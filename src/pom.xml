@@ -10,6 +10,7 @@
     <modules>
         <module>biodwh2-core</module>
         <module>biodwh2-drugbank</module>
+        <module>biodwh2-hgnc</module>
     </modules>
 
     <packaging>pom</packaging>
