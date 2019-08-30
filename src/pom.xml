@@ -12,6 +12,7 @@
         <module>biodwh2-drugbank</module>
         <module>biodwh2-hgnc</module>
         <module>biodwh2-ndfrt</module>
+        <module>biodwh2-dgidb</module>
     </modules>
 
     <packaging>pom</packaging>
