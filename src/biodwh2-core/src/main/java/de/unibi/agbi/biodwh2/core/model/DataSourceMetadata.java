@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DataSourceMetadata {
+public abstract class DataSourceMetadata {
     protected Version version;
     protected LocalDateTime updateTime;
     protected List<String> managedFiles;
@@ -24,4 +24,6 @@ public class DataSourceMetadata {
     public String[] getManagedFiles() {
         return (String[]) managedFiles.toArray();
     }
+
+    public abstract String getDataSourcePrefix();
 }

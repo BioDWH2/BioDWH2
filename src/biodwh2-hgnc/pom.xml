@@ -22,11 +22,6 @@
             <artifactId>jackson-dataformat-csv</artifactId>
             <version>2.9.9</version>
         </dependency>
-        <dependency>
-            <groupId>commons-net</groupId>
-            <artifactId>commons-net</artifactId>
-            <version>3.6</version>
-        </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
