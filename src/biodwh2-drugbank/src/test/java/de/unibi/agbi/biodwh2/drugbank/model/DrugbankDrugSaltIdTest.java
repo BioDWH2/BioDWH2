@@ -1,20 +1,20 @@
 package de.unibi.agbi.biodwh2.drugbank.model;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DrugbankDrugSaltIdTest {
     private void assertValid(String value) {
         DrugbankDrugSaltId id = new DrugbankDrugSaltId();
         id.value = value;
-        assertTrue(value, id.isValid());
+        assertTrue(id.isValid(), value);
     }
 
     private void assertInvalid(String value) {
         DrugbankDrugSaltId id = new DrugbankDrugSaltId();
         id.value = value;
-        assertFalse(value, id.isValid());
+        assertFalse(id.isValid(), value);
     }
 
     @Test

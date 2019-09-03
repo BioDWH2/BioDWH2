@@ -15,6 +15,10 @@
         <module>biodwh2-dgidb</module>
     </modules>
 
+    <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
+    </build>
+
     <packaging>pom</packaging>
 
     <properties>
