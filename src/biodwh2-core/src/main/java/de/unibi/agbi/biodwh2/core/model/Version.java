@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.core.model;
 
-import java.util.Arrays;
 import java.util.regex.Pattern;
 
 public final class Version implements Comparable<Version> {

@@ -7,10 +7,10 @@ import java.util.List;
 public abstract class DataSourceMetadata {
     protected Version version;
     protected LocalDateTime updateTime;
-    protected List<String> managedFiles;
+    protected List<String> sourceFileNames;
 
     public DataSourceMetadata() {
-        managedFiles = new ArrayList<>();
+        sourceFileNames = new ArrayList<>();
     }
 
     public Version getVersion() {
@@ -21,8 +21,8 @@ public abstract class DataSourceMetadata {
         return updateTime;
     }
 
-    public String[] getManagedFiles() {
-        return (String[]) managedFiles.toArray();
+    public String[] getSourceFileNames() {
+        return (String[]) sourceFileNames.toArray();
     }
 
     public abstract String getDataSourcePrefix();
