@@ -14,13 +14,49 @@
         <module>biodwh2-ndfrt</module>
         <module>biodwh2-dgidb</module>
         <module>biodwh2-medrt</module>
+        <module>biodwh2-main</module>
     </modules>
 
-    <build>
-        <finalName>${project.artifactId}-${project.version}</finalName>
-    </build>
-
     <packaging>pom</packaging>
+
+    <build>
+        <finalName>BioDWH2-${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>de.unibi.agbi.biodwh2.BioDWH2</mainClass>
+                                    <manifestEntries>
+                                        <BioDWH2-version>${project.version}</BioDWH2-version>
+                                        <BioDWH2-build-date>${maven.build.timestamp}</BioDWH2-build-date>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
