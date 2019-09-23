@@ -21,6 +21,7 @@ public class HGNCUpdater extends Updater {
         if (!isConnected)
             return null;
         LocalDateTime dateTime = ftpClient.getModificationTimeFromServer(filePath);
+        ftpClient.tryDisconnect();
         return dateTime != null ? convertDateTimeToVersion(dateTime) : null;
     }
 
