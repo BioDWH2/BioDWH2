@@ -6,7 +6,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
 import java.util.ArrayList;
 
-@JsonIgnoreProperties(value = { "schemaLocation" })
+@JsonIgnoreProperties(value = {"schemaLocation"})
 public final class Drugbank {
     public String version;
     @JsonProperty("exported-on")

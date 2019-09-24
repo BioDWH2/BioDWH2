@@ -51,7 +51,7 @@ public class Concept {
     public String id;
     public String namespace;
     public String kind;
-    @JsonSetter(nulls= Nulls.AS_EMPTY)
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     private String primitive;
     @JacksonXmlElementWrapper(localName = "definingConcepts")
     @JacksonXmlProperty(localName = "concept")

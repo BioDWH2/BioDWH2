@@ -11,7 +11,7 @@ public class Property {
     public String id;
     public String namespace;
     public String range;
-    @JsonSetter(nulls= Nulls.AS_EMPTY)
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     private String containsIndex;
     public List<String> pickList;
 

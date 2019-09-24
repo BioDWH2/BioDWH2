@@ -9,8 +9,9 @@ import java.util.jar.JarFile;
 
 public final class Factory {
     private static final List<String> IGNORED_JARS = Arrays.asList("rt.jar", "idea_rt.jar", "aws-java-sdk-ec2",
-            "proto-", "google-cloud-", "google-api-", "openstack4j-core", "selenium-", "google-api-client", "jackson-",
-            "guava", "jetty", "netty-", "junit-");
+                                                                   "proto-", "google-cloud-", "google-api-",
+                                                                   "openstack4j-core", "selenium-", "google-api-client",
+                                                                   "jackson-", "guava", "jetty", "netty-", "junit-");
     private static Factory instance;
     private final Map<String, List<Class<?>>> interfaceToImplementationsMap;
     private final Map<String, List<Class<?>>> baseClassToImplementationsMap;

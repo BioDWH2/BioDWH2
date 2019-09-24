@@ -7,12 +7,7 @@ import java.util.regex.Pattern;
 
 public final class DrugbankDrugSaltId {
     private static final String[] PATTERN = {
-            "DB[0-9]{5}",
-            "DBSALT[0-9]{6}",
-            "APRD[0-9]{5}",
-            "BIOD[0-9]{5}",
-            "BTD[0-9]{5}",
-            "EXPT[0-9]{5}",
+            "DB[0-9]{5}", "DBSALT[0-9]{6}", "APRD[0-9]{5}", "BIOD[0-9]{5}", "BTD[0-9]{5}", "EXPT[0-9]{5}",
             "NUTR[0-9]{5}"
     };
     @JacksonXmlText

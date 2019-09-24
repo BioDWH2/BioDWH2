@@ -3,13 +3,15 @@ package de.unibi.agbi.biodwh2.hgnc.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder(value = {"hgnc_id", "symbol", "name", "locus_group", "locus_type", "status", "location",
-        "location_sortable", "alias_symbol", "alias_name", "prev_symbol", "prev_name", "gene_family",
-        "gene_family_id", "date_approved_reserved", "date_symbol_changed", "date_name_changed", "date_modified",
-        "entrez_id", "ensembl_gene_id", "vega_id", "ucsc_id", "ena", "refseq_accession", "ccds_id", "uniprot_ids",
-        "pubmed_id", "mgd_id", "rgd_id", "lsdb", "cosmic", "omim_id", "mirbase", "homeodb", "snornabase",
-        "bioparadigms_slc", "orphanet", "pseudogene.org", "horde_id", "merops", "imgt", "iuphar", "kznf_gene_catalog",
-        "mamit-trnadb", "cd", "lncrnadb", "enzyme_id", "intermediate_filament_db", "rna_central_ids"})
+@JsonPropertyOrder(value = {
+        "hgnc_id", "symbol", "name", "locus_group", "locus_type", "status", "location", "location_sortable",
+        "alias_symbol", "alias_name", "prev_symbol", "prev_name", "gene_family", "gene_family_id",
+        "date_approved_reserved", "date_symbol_changed", "date_name_changed", "date_modified", "entrez_id",
+        "ensembl_gene_id", "vega_id", "ucsc_id", "ena", "refseq_accession", "ccds_id", "uniprot_ids", "pubmed_id",
+        "mgd_id", "rgd_id", "lsdb", "cosmic", "omim_id", "mirbase", "homeodb", "snornabase", "bioparadigms_slc",
+        "orphanet", "pseudogene.org", "horde_id", "merops", "imgt", "iuphar", "kznf_gene_catalog", "mamit-trnadb", "cd",
+        "lncrnadb", "enzyme_id", "intermediate_filament_db", "rna_central_ids"
+})
 public final class Gene {
     @JsonProperty("hgnc_id")
     public String hgncId;
