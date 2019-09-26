@@ -1,29 +1,27 @@
 package de.unibi.agbi.biodwh2.core.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class DataSourceMetadata {
-    protected Version version;
-    protected LocalDateTime updateTime;
-    protected List<String> sourceFileNames;
+public final class DataSourceMetadata {
+    public Version version;
+    public String updateDateTime;
+    public List<String> sourceFileNames;
 
     public DataSourceMetadata() {
         sourceFileNames = new ArrayList<>();
     }
 
-    public Version getVersion() {
-        return version;
+    @JsonIgnore
+    public LocalDateTime getLocalUpdateDateTime() {
+        return LocalDateTime.parse(updateDateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 
-    public LocalDateTime getUpdateTime() {
-        return updateTime;
+    public void setUpdateDateTimeNow() {
+        updateDateTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
-
-    public String[] getSourceFileNames() {
-        return (String[]) sourceFileNames.toArray();
-    }
-
-    public abstract String getDataSourcePrefix();
 }

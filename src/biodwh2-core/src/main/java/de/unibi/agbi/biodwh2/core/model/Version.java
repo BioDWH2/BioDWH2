@@ -33,6 +33,9 @@ public final class Version implements Comparable<Version> {
         this.minor = minor;
     }
 
+    private Version() {
+    }
+
     public int getMajor() {
         return major;
     }

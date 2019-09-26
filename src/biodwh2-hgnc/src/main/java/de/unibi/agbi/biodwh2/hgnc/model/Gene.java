@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
         "ensembl_gene_id", "vega_id", "ucsc_id", "ena", "refseq_accession", "ccds_id", "uniprot_ids", "pubmed_id",
         "mgd_id", "rgd_id", "lsdb", "cosmic", "omim_id", "mirbase", "homeodb", "snornabase", "bioparadigms_slc",
         "orphanet", "pseudogene.org", "horde_id", "merops", "imgt", "iuphar", "kznf_gene_catalog", "mamit-trnadb", "cd",
-        "lncrnadb", "enzyme_id", "intermediate_filament_db", "rna_central_ids"
+        "lncrnadb", "enzyme_id", "intermediate_filament_db", "rna_central_ids", "lncipedia", "gtrnadb"
 })
 public final class Gene {
     @JsonProperty("hgnc_id")
@@ -111,4 +111,8 @@ public final class Gene {
     public String intermediateFilamentDb;
     @JsonProperty("rna_central_ids")
     public String rnaCentralIds;
+    @JsonProperty("lncipedia")
+    public String lnciPedia;
+    @JsonProperty("gtrnadb")
+    public String gtrnaDb;
 }

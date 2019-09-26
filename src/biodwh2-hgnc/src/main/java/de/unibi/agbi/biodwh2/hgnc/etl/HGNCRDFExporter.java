@@ -10,12 +10,13 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.SKOS;
 
 public class HGNCRDFExporter extends RDFExporter {
     private static final String HGNCDataUri = "https://www.genenames.org/data/";
 
     @Override
-    public Model export(DataSource dataSource) {
+    public Model exportModel(DataSource dataSource) {
         Model model = createDefaultModel();
         for (Gene gene : ((HGNCDataSource) dataSource).genes)
             createGeneResource(model, gene);
@@ -29,6 +30,7 @@ public class HGNCRDFExporter extends RDFExporter {
         r.addProperty(RDFS.seeAlso, "https://identifiers.org/hgnc:" + gene.hgncId);
         r.addProperty(RDFS.seeAlso, "https://identifiers.org/hgnc.symbol:" + gene.symbol);
         r.addProperty(RDF.type, UniProt.Gene);
+        r.addProperty(SKOS.prefLabel, gene.symbol);
         return r;
     }
 }

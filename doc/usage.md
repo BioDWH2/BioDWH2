@@ -1,6 +1,32 @@
 # BioDWH2 usage
 
+The first step is to create a blank workspace in a new location:
 
+~~~BASH
+> BioDWH2.jar -c /path/to/workspace
+~~~
+
+Now the ```config.json``` needs to be adjusted for BioDWH2 to know, which data sources are to be included. A simple example with the HGNC and MED-RT database may look as follows:
+
+```
+{
+  "version" : 1,
+  "creationDateTime" : "2019-09-26T09:30:36.568",
+  "dataSourceIds" : ["HGNC", "MED-RT"]
+}
+```
+
+Now, the workspace can be automatically updated, parsed and output to RDF:
+
+~~~BASH
+> BioDWH2.jar -u /path/to/workspace
+~~~
+
+To check the current state of the workspace, whether new versions are available, something is missing, etc. execute:
+
+~~~BASH
+> BioDWH2.jar -s /path/to/workspace
+~~~
 
 ## The workspace
 
