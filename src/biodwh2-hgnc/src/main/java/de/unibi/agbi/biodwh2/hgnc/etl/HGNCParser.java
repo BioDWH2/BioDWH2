@@ -8,6 +8,8 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
+import de.unibi.agbi.biodwh2.core.exceptions.ParserFileNotFoundException;
+import de.unibi.agbi.biodwh2.core.exceptions.ParserFormatException;
 import de.unibi.agbi.biodwh2.hgnc.HGNCDataSource;
 import de.unibi.agbi.biodwh2.hgnc.model.Gene;
 
@@ -18,13 +20,15 @@ public class HGNCParser extends Parser {
     @Override
     public boolean parse(Workspace workspace, DataSource dataSource) throws ParserException {
         String filePath = dataSource.resolveSourceFilePath(workspace, "hgnc_complete_set.txt");
+        File hgncSetFile = new File(filePath);
+        if (!hgncSetFile.exists())
+            throw new ParserFileNotFoundException("hgnc_complete_set.txt");
         ObjectReader reader = getTsvReader();
         try {
-            MappingIterator<Gene> iterator = reader.readValues(new File(filePath));
+            MappingIterator<Gene> iterator = reader.readValues(hgncSetFile);
             ((HGNCDataSource) dataSource).genes = iterator.readAll();
         } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+            throw new ParserFormatException("Failed to parse the file 'hgnc_complete_set.txt'", e);
         }
         return true;
     }

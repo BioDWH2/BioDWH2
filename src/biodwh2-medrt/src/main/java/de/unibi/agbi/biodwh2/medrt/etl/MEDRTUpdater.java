@@ -14,7 +14,7 @@ public class MEDRTUpdater extends Updater {
     private static final String FtpFilePath = "pub/cacore/EVS/MED-RT/Core_MEDRT_XML.zip";
 
     @Override
-    public Version getNewestVersion() {
+    public Version getNewestVersion() throws UpdaterException {
         AnonymousFTPClient ftpClient = new AnonymousFTPClient();
         boolean isConnected = ftpClient.tryConnect("ftp1.nci.nih.gov");
         if (!isConnected)

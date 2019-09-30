@@ -5,6 +5,8 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
+import de.unibi.agbi.biodwh2.core.exceptions.ParserFileNotFoundException;
+import de.unibi.agbi.biodwh2.core.exceptions.ParserFormatException;
 import de.unibi.agbi.biodwh2.ndfrt.NDFRTDataSource;
 import de.unibi.agbi.biodwh2.ndfrt.model.Terminology;
 
@@ -16,8 +18,11 @@ public class NDFRTParser extends Parser {
     @Override
     public boolean parse(Workspace workspace, DataSource dataSource) throws ParserException {
         String filePath = dataSource.resolveSourceFilePath(workspace, "NDFRT_Public_All.zip");
+        File coreZipFile = new File(filePath);
+        if (!coreZipFile.exists())
+            throw new ParserFileNotFoundException("NDFRT_Public_All.zip");
+        ZipInputStream zipInputStream = openZipInputStream(coreZipFile);
         try {
-            ZipInputStream zipInputStream = openZipInputStream(filePath);
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (isZipEntryCoreXml(zipEntry.getName())) {
@@ -26,15 +31,19 @@ public class NDFRTParser extends Parser {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ParserFormatException("Failed to parse the file 'NDFRT_Public_All.zip'", e);
         }
         return false;
     }
 
-    private static ZipInputStream openZipInputStream(String filePath) throws FileNotFoundException {
-        FileInputStream inputStream = new FileInputStream(filePath);
-        BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-        return new ZipInputStream(bufferedInputStream);
+    private static ZipInputStream openZipInputStream(File file) throws ParserFileNotFoundException {
+        try {
+            FileInputStream inputStream = new FileInputStream(file);
+            BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+            return new ZipInputStream(bufferedInputStream);
+        } catch (FileNotFoundException e) {
+            throw new ParserFileNotFoundException(file.getName());
+        }
     }
 
     private static boolean isZipEntryCoreXml(String name) {

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public abstract class Updater {
-    public abstract Version getNewestVersion();
+    public abstract Version getNewestVersion() throws UpdaterException;
 
     public final boolean update(Workspace workspace, DataSource dataSource) throws UpdaterException {
         Version newestVersion = getNewestVersion();

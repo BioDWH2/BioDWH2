@@ -14,7 +14,7 @@ public class HGNCUpdater extends Updater {
     private static final String FtpFilePath = "pub/databases/genenames/new/tsv/hgnc_complete_set.txt";
 
     @Override
-    public Version getNewestVersion() {
+    public Version getNewestVersion() throws UpdaterException {
         AnonymousFTPClient ftpClient = new AnonymousFTPClient();
         boolean isConnected = ftpClient.tryConnect("ftp.ebi.ac.uk");
         if (!isConnected)

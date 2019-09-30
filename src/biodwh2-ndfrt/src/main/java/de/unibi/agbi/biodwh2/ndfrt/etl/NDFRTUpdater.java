@@ -14,7 +14,7 @@ public class NDFRTUpdater extends Updater {
     private static final String FtpFilePath = "pub/cacore/EVS/NDF-RT/NDFRT_Public_All.zip";
 
     @Override
-    public Version getNewestVersion() {
+    public Version getNewestVersion() throws UpdaterException {
         AnonymousFTPClient ftpClient = new AnonymousFTPClient();
         boolean isConnected = ftpClient.tryConnect("ftp1.nci.nih.gov");
         if (!isConnected)
