@@ -23,6 +23,7 @@
 hs_err_pid*
 
 .idea
+*.iml
 .gradle
 target
 dependency-reduced-pom.xml
