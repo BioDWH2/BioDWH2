@@ -4,6 +4,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
+import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
 import de.unibi.agbi.biodwh2.medrt.MEDRTDataSource;
 import de.unibi.agbi.biodwh2.medrt.model.Terminology;
 
@@ -13,7 +14,7 @@ import java.util.zip.ZipInputStream;
 
 public class MEDRTParser extends Parser {
     @Override
-    public boolean parse(Workspace workspace, DataSource dataSource) {
+    public boolean parse(Workspace workspace, DataSource dataSource) throws ParserException {
         String filePath = dataSource.resolveSourceFilePath(workspace, "Core_MEDRT_XML.zip");
         try {
             ZipInputStream zipInputStream = openZipInputStream(filePath);

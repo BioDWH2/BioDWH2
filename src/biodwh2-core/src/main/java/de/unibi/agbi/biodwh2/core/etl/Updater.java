@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 
 import java.io.IOException;
@@ -11,7 +12,7 @@ import java.time.format.DateTimeFormatter;
 public abstract class Updater {
     public abstract Version getNewestVersion();
 
-    public final boolean update(Workspace workspace, DataSource dataSource) {
+    public final boolean update(Workspace workspace, DataSource dataSource) throws UpdaterException {
         Version newestVersion = getNewestVersion();
         Version workspaceVersion = dataSource.getMetadata().version;
         if (isDataSourceUpToDate(newestVersion, workspaceVersion))
@@ -35,7 +36,7 @@ public abstract class Updater {
         return workspaceVersion != null && newestVersion.compareTo(workspaceVersion) == 0;
     }
 
-    protected abstract boolean tryUpdateFiles(Workspace workspace, DataSource dataSource);
+    protected abstract boolean tryUpdateFiles(Workspace workspace, DataSource dataSource) throws UpdaterException;
 
     protected static Version convertDateTimeToVersion(LocalDateTime dateTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd.HHmmss");

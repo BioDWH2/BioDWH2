@@ -2,6 +2,8 @@ package de.unibi.agbi.biodwh2.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
+import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Configuration;
 
 import java.io.IOException;
@@ -109,10 +111,18 @@ public class Workspace {
         createOrLoadDataSourcesMetadata();
         for (DataSource dataSource : dataSources) {
             System.out.println(dataSource.getId());
-            boolean updated = dataSource.getUpdater().update(this, dataSource);
-            System.out.println("\tupdated: " + updated);
-            boolean parsed = dataSource.getParser().parse(this, dataSource);
-            System.out.println("\tparsed: " + parsed);
+            try {
+                boolean updated = dataSource.getUpdater().update(this, dataSource);
+                System.out.println("\tupdated: " + updated);
+            } catch (UpdaterException e) {
+                e.printStackTrace();
+            }
+            try {
+                boolean parsed = dataSource.getParser().parse(this, dataSource);
+                System.out.println("\tparsed: " + parsed);
+            } catch (ParserException e) {
+                e.printStackTrace();
+            }
             boolean exported = dataSource.getRdfExporter().export(this, dataSource);
             System.out.println("\texported: " + exported);
         }
