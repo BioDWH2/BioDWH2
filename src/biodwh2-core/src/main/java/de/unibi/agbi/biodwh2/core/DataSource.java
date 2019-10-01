@@ -6,6 +6,8 @@ import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,6 +18,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class DataSource {
+    private static final Logger logger = LoggerFactory.getLogger(DataSource.class);
+
     private DataSourceMetadata metadata;
 
     public DataSourceMetadata getMetadata() {
@@ -61,7 +65,7 @@ public abstract class DataSource {
             return Files.walk(sourcePath).filter(Files::isRegularFile).map(sourcePath::relativize).map(Path::toString)
                         .collect(Collectors.toList());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Failed to list files of data source '" + getId() + "'", e);
         }
         return new ArrayList<>();
     }

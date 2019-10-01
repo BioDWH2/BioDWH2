@@ -3,8 +3,6 @@ package de.unibi.agbi.biodwh2;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import org.apache.commons.cli.*;
 
-import java.io.IOException;
-
 public final class BioDWH2 {
     public static void main(String[] args) throws Exception {
         Options options = getCommandLineOptions();

@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
+import de.unibi.agbi.biodwh2.core.exceptions.UpdaterOnlyManuallyException;
 import de.unibi.agbi.biodwh2.core.model.Configuration;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Workspace {
+    private static final Logger logger = LoggerFactory.getLogger(Workspace.class);
+
     public static final int Version = 1;
     private static final String SourcesDirectory = "sources";
 
@@ -71,7 +76,7 @@ public class Workspace {
         try {
             return dataSourceClass.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
+            logger.error("Failed to instantiate data source '" + dataSourceClass.getName() + "'", e);
         }
         return null;
     }
@@ -83,7 +88,7 @@ public class Workspace {
     public void checkState() throws Exception {
         ensureDataSourceDirectoriesExist();
         createOrLoadDataSourcesMetadata();
-        throw new Exception("Not implemented");
+        logger.error("Status intent is not yet implemented", new Exception("Not implemented"));
     }
 
     private void ensureDataSourceDirectoriesExist() {
@@ -91,7 +96,7 @@ public class Workspace {
             try {
                 dataSource.createDirectoryIfNotExists(this);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Failed to create data source directory for '" + dataSource.getId() + "'", e);
             }
         }
     }
@@ -101,7 +106,7 @@ public class Workspace {
             try {
                 dataSource.createOrLoadMetadata(this);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Failed to load data source metadata for '" + dataSource.getId() + "'", e);
             }
         }
     }
@@ -110,21 +115,24 @@ public class Workspace {
         ensureDataSourceDirectoriesExist();
         createOrLoadDataSourcesMetadata();
         for (DataSource dataSource : dataSources) {
-            System.out.println(dataSource.getId());
+            logger.info("Processing of data source '" + dataSource.getId() + "' started");
             try {
                 boolean updated = dataSource.getUpdater().update(this, dataSource);
                 System.out.println("\tupdated: " + updated);
+            } catch (UpdaterOnlyManuallyException e) {
+                logger.error("Data source '" + dataSource.getId() + "' can only be updated manually");
             } catch (UpdaterException e) {
-                e.printStackTrace();
+                logger.error("Failed to update data source '" + dataSource.getId() + "'", e);
             }
             try {
                 boolean parsed = dataSource.getParser().parse(this, dataSource);
                 System.out.println("\tparsed: " + parsed);
             } catch (ParserException e) {
-                e.printStackTrace();
+                logger.error("Failed to parse data source '" + dataSource.getId() + "'", e);
             }
             boolean exported = dataSource.getRdfExporter().export(this, dataSource);
             System.out.println("\texported: " + exported);
+            logger.info("Processing of data source '" + dataSource.getId() + "' finished");
         }
     }
 }
