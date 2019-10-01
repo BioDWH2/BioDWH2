@@ -7,8 +7,11 @@ import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.drugbank.etl.DrugBankParser;
 import de.unibi.agbi.biodwh2.drugbank.etl.DrugBankRDFExporter;
 import de.unibi.agbi.biodwh2.drugbank.etl.DrugBankUpdater;
+import de.unibi.agbi.biodwh2.drugbank.model.Drugbank;
 
 public class DrugBankDataSource extends DataSource {
+    public Drugbank drugBankData;
+
     @Override
     public String getId() {
         return "DrugBank";
