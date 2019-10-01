@@ -6,7 +6,6 @@ import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
-import org.apache.jena.base.Sys;
 
 import java.io.IOException;
 import java.nio.file.Files;

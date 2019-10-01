@@ -1,5 +1,7 @@
 package de.unibi.agbi.biodwh2.drugbank.etl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
@@ -17,28 +19,29 @@ public class DrugBankUpdater extends Updater {
     public Version getNewestVersion() throws UpdaterException {
         String source;
         try {
-            source = HTTPClient.getWebsiteSource("https://www.drugbank.ca/releases");
+            source = HTTPClient.getWebsiteSource("https://www.drugbank.ca/releases.json");
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
-        String versionTable = extractVersionTableFromSource(source);
-        String version = extractVersionFromTableCell(versionTable);
+        JsonNode json = parseJsonSource(source);
+        String version = getFirstReleaseVersion(json);
         return parseVersion(version);
     }
 
-    private String extractVersionTableFromSource(String source) throws UpdaterMalformedVersionException {
-        int tableCutIndex = source.indexOf("<div class=\"download-table\">");
-        if (tableCutIndex == -1)
-            throw new UpdaterMalformedVersionException();
-        return source.substring(tableCutIndex);
+    private JsonNode parseJsonSource(String source) throws UpdaterMalformedVersionException {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.readTree(source);
+        } catch (IOException e) {
+            throw new UpdaterMalformedVersionException(source, e);
+        }
     }
 
-    private String extractVersionFromTableCell(String source) throws UpdaterMalformedVersionException {
-        int firstVersionCellStartIndex = source.indexOf("<td>");
-        int firstVersionCellEndIndex = source.indexOf("</td>");
-        if (firstVersionCellStartIndex == -1 || firstVersionCellEndIndex == -1)
-            throw new UpdaterMalformedVersionException();
-        return source.substring(firstVersionCellStartIndex + 4, firstVersionCellEndIndex);
+    private String getFirstReleaseVersion(JsonNode json) throws UpdaterMalformedVersionException {
+        JsonNode firstRelease = json.get(0);
+        if (firstRelease == null)
+            throw new UpdaterMalformedVersionException(json.toString());
+        return firstRelease.get("version").asText();
     }
 
     private Version parseVersion(String version) throws UpdaterMalformedVersionException {
