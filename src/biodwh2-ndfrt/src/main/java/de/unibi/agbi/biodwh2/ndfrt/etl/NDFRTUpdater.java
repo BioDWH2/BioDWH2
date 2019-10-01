@@ -1,43 +1,20 @@
 package de.unibi.agbi.biodwh2.ndfrt.etl;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
-import de.unibi.agbi.biodwh2.core.Workspace;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
-import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.AnonymousFTPClient;
+import de.unibi.agbi.biodwh2.core.etl.SingleFileFTPUpdater;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-
-public class NDFRTUpdater extends Updater {
-    private static final String FtpFilePath = "pub/cacore/EVS/NDF-RT/NDFRT_Public_All.zip";
-
+public class NDFRTUpdater extends SingleFileFTPUpdater {
     @Override
-    public Version getNewestVersion() throws UpdaterException {
-        AnonymousFTPClient ftpClient = new AnonymousFTPClient();
-        boolean isConnected = ftpClient.tryConnect("ftp1.nci.nih.gov");
-        if (!isConnected)
-            return null;
-        LocalDateTime dateTime = ftpClient.getModificationTimeFromServer(FtpFilePath);
-        return dateTime != null ? convertDateTimeToVersion(dateTime) : null;
+    protected String getFTPAddress() {
+        return "ftp1.nci.nih.gov";
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, DataSource dataSource) throws UpdaterException {
-        AnonymousFTPClient ftpClient = new AnonymousFTPClient();
-        boolean isConnected = ftpClient.tryConnect("ftp1.nci.nih.gov");
-        if (!isConnected)
-            return false;
-        boolean success;
-        try {
-            String sourceFilePath = dataSource.resolveSourceFilePath(workspace, "NDFRT_Public_All.zip");
-            success = ftpClient.downloadFile(FtpFilePath, sourceFilePath);
-        } catch (IOException e) {
-            e.printStackTrace();
-            success = false;
-        }
-        ftpClient.tryDisconnect();
-        return success;
+    protected String getFTPFilePath() {
+        return "pub/cacore/EVS/NDF-RT/NDFRT_Public_All.zip";
+    }
+
+    @Override
+    protected String getTargetFileName() {
+        return "NDFRT_Public_All.zip";
     }
 }

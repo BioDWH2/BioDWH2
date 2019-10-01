@@ -13,15 +13,6 @@ public class AnonymousFTPClient {
     public AnonymousFTPClient() {
     }
 
-    public boolean tryConnect(String url) {
-        try {
-            return connect(url);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
     public boolean connect(String url) throws IOException {
         client = new FTPClient();
         client.connect(url, 21);
@@ -57,8 +48,8 @@ public class AnonymousFTPClient {
                 String dateTime = client.getModificationTime(filePath);
                 return parseFtpDateTime(dateTime);
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return null;
     }

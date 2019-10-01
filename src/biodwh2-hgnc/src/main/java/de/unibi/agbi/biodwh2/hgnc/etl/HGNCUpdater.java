@@ -1,44 +1,20 @@
 package de.unibi.agbi.biodwh2.hgnc.etl;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
-import de.unibi.agbi.biodwh2.core.Workspace;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
-import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.AnonymousFTPClient;
+import de.unibi.agbi.biodwh2.core.etl.SingleFileFTPUpdater;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-
-public class HGNCUpdater extends Updater {
-    private static final String FtpFilePath = "pub/databases/genenames/new/tsv/hgnc_complete_set.txt";
-
+public class HGNCUpdater extends SingleFileFTPUpdater {
     @Override
-    public Version getNewestVersion() throws UpdaterException {
-        AnonymousFTPClient ftpClient = new AnonymousFTPClient();
-        boolean isConnected = ftpClient.tryConnect("ftp.ebi.ac.uk");
-        if (!isConnected)
-            return null;
-        LocalDateTime dateTime = ftpClient.getModificationTimeFromServer(FtpFilePath);
-        ftpClient.tryDisconnect();
-        return dateTime != null ? convertDateTimeToVersion(dateTime) : null;
+    protected String getFTPAddress() {
+        return "ftp.ebi.ac.uk";
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, DataSource dataSource) throws UpdaterException {
-        AnonymousFTPClient ftpClient = new AnonymousFTPClient();
-        boolean isConnected = ftpClient.tryConnect("ftp.ebi.ac.uk");
-        if (!isConnected)
-            return false;
-        boolean success;
-        try {
-            String sourceFilePath = dataSource.resolveSourceFilePath(workspace, "hgnc_complete_set.txt");
-            success = ftpClient.downloadFile(FtpFilePath, sourceFilePath);
-        } catch (IOException e) {
-            e.printStackTrace();
-            success = false;
-        }
-        ftpClient.tryDisconnect();
-        return success;
+    protected String getFTPFilePath() {
+        return "pub/databases/genenames/new/tsv/hgnc_complete_set.txt";
+    }
+
+    @Override
+    protected String getTargetFileName() {
+        return "hgnc_complete_set.txt";
     }
 }
