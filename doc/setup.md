@@ -9,6 +9,28 @@ During setup, make sure to install the following plugins:
 
 Alternatively, the plugins can be installed/enabled under ```Settings > Plugins```.
 
+## Opening the maven project in IntelliJ IDEA
+
+While BioDWH2 is a maven project, IntelliJ IDEA uses it's own project format to store additional information. The following shows how to open the project and keep the maven project intact.
+
+First import the project from existing sources, either from the start screen with ```Import Project``` or via the menu ```File -> New -> Project from Existing Sources...```.
+
+![](img/setup_project1.png "")
+
+Browse to the checked out repository of BioDWH2 and select the ```src``` folder.
+
+![](img/setup_project2.png "")
+
+Select ```Import project from external model``` and as the model ```Maven```.
+
+![](img/setup_project3.png "")
+
+Finally, the most important part is setting the project format to ```directory based``` and to check ```Import Maven projects automatically```. This ensures the automatic sync of the project, if the maven pom.xml files change later on.
+
+![](img/setup_project4.png "")
+
+Lastly, follow through the rest of the dialogs with Next an Finish.
+
 ## Coding style setup
 
 One of the advantages of IntelliJ IDEA is the automated code formatting. This ensures a higher code quality and less merge conflicts. Included in this repository is a coding style configuration file ([CodingStyle.xml](CodingStyle.xml)) which can be directly imported into IntelliJ IDEA. Developers and contributers of BioDWH2 need to adhere to this coding style. The import is very easy. First, go to ```Settings > Editor > Code Style > Java```. Click on the cog icon and select ```Import Scheme > Intellij IDEA code style XML```.
@@ -18,10 +40,6 @@ One of the advantages of IntelliJ IDEA is the automated code formatting. This en
 With the BioDWH2 scheme imported and selected, click the cog icon again, select ```Copy to Project``` and confirm the overwrite.
 
 Now the automatic code formatting is using the BioDWH2 coding style. Formatting an open code file can be done either by the menu ```Code > Reformat Code``` or the shortcut ```Strg + Alt + L```.
-
-## Opening the maven project in IntelliJ IDEA
-
-
 
 ## Creating a new parser module
 
