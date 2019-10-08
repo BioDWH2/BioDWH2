@@ -1,9 +1,11 @@
 package de.unibi.agbi.biodwh2.ndfrt;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
+import de.unibi.agbi.biodwh2.ndfrt.etl.NDFRTGraphExporter;
 import de.unibi.agbi.biodwh2.ndfrt.etl.NDFRTParser;
 import de.unibi.agbi.biodwh2.ndfrt.etl.NDFRTRDFExporter;
 import de.unibi.agbi.biodwh2.ndfrt.etl.NDFRTUpdater;
@@ -30,5 +32,10 @@ public class NDFRTDataSource extends DataSource {
     @Override
     public RDFExporter getRdfExporter() {
         return new NDFRTRDFExporter();
+    }
+
+    @Override
+    public GraphExporter getGraphExporter() {
+        return new NDFRTGraphExporter();
     }
 }

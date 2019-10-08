@@ -132,6 +132,8 @@ public class Workspace {
             }
             boolean exported = dataSource.getRdfExporter().export(this, dataSource);
             System.out.println("\texported: " + exported);
+            exported = dataSource.getGraphExporter().export(this, dataSource);
+            System.out.println("\texported: " + exported);
             logger.info("Processing of data source '" + dataSource.getId() + "' finished");
         }
     }

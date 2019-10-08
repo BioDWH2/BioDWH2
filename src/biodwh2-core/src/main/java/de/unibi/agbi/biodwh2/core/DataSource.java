@@ -2,10 +2,12 @@ package de.unibi.agbi.biodwh2.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,8 @@ public abstract class DataSource {
 
     public abstract RDFExporter getRdfExporter();
 
+    public abstract GraphExporter getGraphExporter();
+
     void createDirectoryIfNotExists(Workspace workspace) throws IOException {
         Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId()));
         Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId(), "source"));
@@ -51,15 +55,16 @@ public abstract class DataSource {
         }
     }
 
-    public String getIntermediateGraphFilePath(Workspace workspace) {
-        return Paths.get(workspace.getSourcesDirectory(), getId(), "intermediate.ttl").toString();
+    public final String getIntermediateGraphFilePath(Workspace workspace, GraphFileFormat format) {
+        String fileName = "intermediate." + format.extension;
+        return Paths.get(workspace.getSourcesDirectory(), getId(), fileName).toString();
     }
 
-    public String resolveSourceFilePath(Workspace workspace, String filePath) {
+    public final String resolveSourceFilePath(Workspace workspace, String filePath) {
         return Paths.get(workspace.getSourcesDirectory(), getId(), "source", filePath).toString();
     }
 
-    public List<String> listSourceFiles(Workspace workspace) {
+    public final List<String> listSourceFiles(Workspace workspace) {
         Path sourcePath = Paths.get(workspace.getSourcesDirectory(), getId(), "source");
         try {
             return Files.walk(sourcePath).filter(Files::isRegularFile).map(sourcePath::relativize).map(Path::toString)
@@ -70,7 +75,7 @@ public abstract class DataSource {
         return new ArrayList<>();
     }
 
-    public void saveMetadata(Workspace workspace) throws IOException {
+    public final void saveMetadata(Workspace workspace) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         Path path = Paths.get(workspace.getSourcesDirectory(), getId(), "metadata.json");
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);

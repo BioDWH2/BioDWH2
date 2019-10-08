@@ -33,4 +33,10 @@ public class HGNCRDFExporter extends RDFExporter {
         r.addProperty(SKOS.prefLabel, gene.symbol);
         return r;
     }
+
+    @Override
+    protected void setModelPrefixes(Model model) {
+        super.setModelPrefixes(model);
+        model.setNsPrefix("upCore", UniProt.Uri);
+    }
 }

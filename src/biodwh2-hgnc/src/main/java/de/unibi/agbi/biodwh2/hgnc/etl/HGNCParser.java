@@ -26,6 +26,7 @@ public class HGNCParser extends Parser {
         ObjectReader reader = getTsvReader();
         try {
             MappingIterator<Gene> iterator = reader.readValues(hgncSetFile);
+            iterator.next();
             ((HGNCDataSource) dataSource).genes = iterator.readAll();
         } catch (IOException e) {
             throw new ParserFormatException("Failed to parse the file 'hgnc_complete_set.txt'", e);
@@ -35,7 +36,7 @@ public class HGNCParser extends Parser {
 
     private ObjectReader getTsvReader() {
         CsvMapper csvMapper = new CsvMapper();
-        CsvSchema schema = csvMapper.schemaFor(Gene.class).withColumnSeparator('\t');
+        CsvSchema schema = csvMapper.schemaFor(Gene.class).withColumnSeparator('\t').withNullValue("");
         return csvMapper.readerFor(Gene.class).with(schema);
     }
 }
