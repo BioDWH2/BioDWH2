@@ -120,7 +120,11 @@ public class Workspace {
                 boolean updated = dataSource.getUpdater().update(this, dataSource);
                 System.out.println("\tupdated: " + updated);
             } catch (UpdaterOnlyManuallyException e) {
-                logger.error("Data source '" + dataSource.getId() + "' can only be updated manually");
+                logger.error("Data source '" + dataSource.getId() + "' can only be updated manually." +
+                             "Download the new version of " + dataSource.getId() +
+                             " and use the command line parameter -i or --integrate to add the data" +
+                             " to the workspace. \n" +
+                             "Help: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
             } catch (UpdaterException e) {
                 logger.error("Failed to update data source '" + dataSource.getId() + "'", e);
             }
@@ -133,6 +137,37 @@ public class Workspace {
             boolean exported = dataSource.getRdfExporter().export(this, dataSource);
             System.out.println("\texported: " + exported);
             logger.info("Processing of data source '" + dataSource.getId() + "' finished");
+        }
+    }
+
+    public void integrateDataSources(List<String> args) {
+        ensureDataSourceDirectoriesExist();
+        createOrLoadDataSourcesMetadata();
+        if (args.size() > 2) {
+            String sourceName = args.get(1);
+            String version = args.get(2);
+            for (DataSource dataSource : dataSources) {
+                if (dataSource.getId().equals(sourceName)) {
+                    logger.info("Processing of data source '" + dataSource.getId() + "' started");
+                    try {
+                        boolean updated = dataSource.getUpdater().integrate(this, dataSource, version);
+                        System.out.println("\tupdated manually: " + updated);
+                    } catch (Exception e) {
+                        logger.error("Failed to update data source '" + dataSource.getId() + "'", e);
+                    }
+                    try {
+                        boolean parsed = dataSource.getParser().parse(this, dataSource);
+                        System.out.println("\tparsed: " + parsed);
+                    } catch (ParserException e) {
+                        logger.error("Failed to parse data source '" + dataSource.getId() + "'", e);
+                    }
+                    boolean exported = dataSource.getRdfExporter().export(this, dataSource);
+                    System.out.println("\texported: " + exported);
+                    logger.info("Processing of data source '" + dataSource.getId() + "' finished");
+                }
+            }
+        } else {
+            logger.error("Failed to read source name and version from the command line");
         }
     }
 }

@@ -40,6 +40,30 @@ public abstract class Updater {
         return false;
     }
 
+    public final boolean integrate(Workspace workspace, DataSource dataSource, String version) throws UpdaterException {
+        Version workspaceVersion = dataSource.getMetadata().version;
+        Version newestVersion = Version.tryParse(version);
+        if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
+            logger.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
+            return false;
+        }
+        logger.info("New version of data source '" + dataSource.getId() + "' found (old: " +
+                    (workspaceVersion != null ? workspaceVersion : "none") + ", new: " + newestVersion + ")");
+        if (tryUpdateFiles(workspace, dataSource)) {
+            dataSource.getMetadata().version = newestVersion;
+            dataSource.getMetadata().setUpdateDateTimeNow();
+            dataSource.getMetadata().sourceFileNames = dataSource.listSourceFiles(workspace);
+            try {
+                dataSource.saveMetadata(workspace);
+            } catch (IOException e) {
+                logger.error("Failed to save metadata for data source '" + dataSource.getId() + "'", e);
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
     private boolean isDataSourceUpToDate(Version newestVersion, Version workspaceVersion) {
         return workspaceVersion != null && newestVersion.compareTo(workspaceVersion) == 0;
     }
