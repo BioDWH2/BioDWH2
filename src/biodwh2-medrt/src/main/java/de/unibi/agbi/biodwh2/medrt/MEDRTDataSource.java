@@ -1,9 +1,11 @@
 package de.unibi.agbi.biodwh2.medrt;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
+import de.unibi.agbi.biodwh2.medrt.etl.MEDRTGraphExporter;
 import de.unibi.agbi.biodwh2.medrt.etl.MEDRTParser;
 import de.unibi.agbi.biodwh2.medrt.etl.MEDRTRDFExporter;
 import de.unibi.agbi.biodwh2.medrt.etl.MEDRTUpdater;
@@ -30,5 +32,10 @@ public class MEDRTDataSource extends DataSource {
     @Override
     public RDFExporter getRdfExporter() {
         return new MEDRTRDFExporter();
+    }
+
+    @Override
+    public GraphExporter getGraphExporter() {
+        return new MEDRTGraphExporter();
     }
 }
