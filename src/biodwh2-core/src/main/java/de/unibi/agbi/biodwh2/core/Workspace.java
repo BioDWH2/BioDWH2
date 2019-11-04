@@ -142,12 +142,10 @@ public class Workspace {
         }
     }
 
-    public void integrateDataSources(List<String> args) {
+    public void integrateDataSources(String sourceName, String version) {
         ensureDataSourceDirectoriesExist();
         createOrLoadDataSourcesMetadata();
-        if (args.size() > 2) {
-            String sourceName = args.get(1);
-            String version = args.get(2);
+        if (sourceName != null || version != null) {
             for (DataSource dataSource : dataSources) {
                 if (dataSource.getId().equals(sourceName)) {
                     logger.info("Processing of data source '" + dataSource.getId() + "' started");
@@ -164,6 +162,8 @@ public class Workspace {
                         logger.error("Failed to parse data source '" + dataSource.getId() + "'", e);
                     }
                     boolean exported = dataSource.getRdfExporter().export(this, dataSource);
+                    System.out.println("\texported: " + exported);
+                    exported = dataSource.getGraphExporter().export(this, dataSource);
                     System.out.println("\texported: " + exported);
                     logger.info("Processing of data source '" + dataSource.getId() + "' finished");
                 }

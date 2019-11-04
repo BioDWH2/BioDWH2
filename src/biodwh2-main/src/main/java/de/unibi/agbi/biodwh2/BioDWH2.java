@@ -27,8 +27,10 @@ public final class BioDWH2 {
         options.addOption(new Option("c", "create", true, "Create a new empty workspace"));
         options.addOption(new Option("s", "status", true, "Check and output the state of a workspace"));
         options.addOption(new Option("u", "update", true, "Update all data sources of a workspace"));
-        options.addOption(
-                new Option("i", "integrate", true, "Integrates manually downloaded data sources to a workspace"));
+        Option integrateOption = new Option("i", "integrate", true,
+                                            "Integrates manually downloaded data sources to a workspace");
+        integrateOption.setArgs(3);
+        options.addOption(integrateOption);
         return options;
     }
 
@@ -55,10 +57,9 @@ public final class BioDWH2 {
     }
 
     private static void integrateWorkspace(CommandLine commandLine) throws Exception {
-        List<String> args = commandLine.getArgList();
-        String workspacePath = commandLine.getOptionValue("i");
-        Workspace workspace = new Workspace(workspacePath);
-        workspace.integrateDataSources(args);
+        String[] optionArguments = commandLine.getOptionValues("i");
+        Workspace workspace = new Workspace(optionArguments[0]);
+        workspace.integrateDataSources(optionArguments[1], optionArguments[2]);
     }
 
     private static void printHelp(Options options) {
