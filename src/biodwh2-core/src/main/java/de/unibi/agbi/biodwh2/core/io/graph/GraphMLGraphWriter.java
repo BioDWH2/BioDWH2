@@ -1,9 +1,9 @@
 package de.unibi.agbi.biodwh2.core.io.graph;
 
+import de.unibi.agbi.biodwh2.core.io.IndentingXMLStreamWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
-import javanet.staxutils.IndentingXMLStreamWriter;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
