@@ -14,6 +14,7 @@ import org.apache.jena.vocabulary.SKOS;
 
 public class HGNCRDFExporter extends RDFExporter {
     private static final String HGNCDataUri = "https://www.genenames.org/data/";
+    private static final String kalisNs = "https://rdf.kalis-amts.de/ns#";
 
     @Override
     public Model exportModel(DataSource dataSource) {
@@ -26,11 +27,11 @@ public class HGNCRDFExporter extends RDFExporter {
     private static Resource createGeneResource(Model model, Gene gene) {
         Resource r = model.createResource(HGNCDataUri + "gene-symbol-report/#!/hgnc_id/" + gene.hgncId);
         r.addProperty(DCTerms.identifier, gene.hgncId);
-        r.addProperty(RDFS.seeAlso, HGNCDataUri + "gene-symbol-report/#!/symbol/" + gene.symbol);
-        r.addProperty(RDFS.seeAlso, "https://identifiers.org/hgnc:" + gene.hgncId);
-        r.addProperty(RDFS.seeAlso, "https://identifiers.org/hgnc.symbol:" + gene.symbol);
         r.addProperty(RDF.type, UniProt.Gene);
         r.addProperty(SKOS.prefLabel, gene.symbol);
+        r.addProperty(RDFS.seeAlso, HGNCDataUri + "gene-symbol-report/#!/symbol/" + gene.symbol);
+        r.addProperty(RDFS.seeAlso, "https://identifiers.org/hgnc.symbol:" + gene.symbol);
+        r.addProperty(RDFS.seeAlso, "https://identifiers.org/hgnc:" + gene.hgncId);
         return r;
     }
 
