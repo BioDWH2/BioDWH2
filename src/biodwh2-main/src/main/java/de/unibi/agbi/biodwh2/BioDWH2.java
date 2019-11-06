@@ -3,8 +3,6 @@ package de.unibi.agbi.biodwh2;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import org.apache.commons.cli.*;
 
-import java.util.List;
-
 public final class BioDWH2 {
     public static void main(String[] args) throws Exception {
         Options options = getCommandLineOptions();
@@ -13,6 +11,8 @@ public final class BioDWH2 {
             createWorkspace(commandLine);
         else if (commandLine.hasOption("s"))
             checkWorkspaceState(commandLine);
+        else if (commandLine.hasOption("v"))
+            verboseWorkspaceState(commandLine);
         else if (commandLine.hasOption("u"))
             updateWorkspace(commandLine);
         else if (commandLine.hasOption("i"))
@@ -26,6 +26,7 @@ public final class BioDWH2 {
         options.addOption(new Option("h", "help", false, "print this message"));
         options.addOption(new Option("c", "create", true, "Create a new empty workspace"));
         options.addOption(new Option("s", "status", true, "Check and output the state of a workspace"));
+        options.addOption(new Option("v", "verbose", true, "Output detailed information of the state of the workspace"));
         options.addOption(new Option("u", "update", true, "Update all data sources of a workspace"));
         Option integrateOption = new Option("i", "integrate", true,
                                             "Integrates manually downloaded data sources to a workspace");
@@ -48,6 +49,12 @@ public final class BioDWH2 {
         String workspacePath = commandLine.getOptionValue("s");
         Workspace workspace = new Workspace(workspacePath);
         workspace.checkState();
+    }
+
+    private static void verboseWorkspaceState(CommandLine commandLine) throws Exception {
+        String workspacePath = commandLine.getOptionValue("v");
+        Workspace workspace = new Workspace(workspacePath);
+        workspace.verboseState();
     }
 
     private static void updateWorkspace(CommandLine commandLine) throws Exception {

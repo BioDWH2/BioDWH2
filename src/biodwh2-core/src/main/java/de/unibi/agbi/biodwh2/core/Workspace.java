@@ -92,10 +92,30 @@ public class Workspace {
         ensureDataSourceDirectoriesExist();
         createOrLoadDataSourcesMetadata();
         Map<String, Boolean> sourcesUptodate = createSourcesUptodate(dataSources);
-        String state = dataSourceMetadataToTable(dataSources, sourcesUptodate);
+        int countUpToDate = countSourcesUptodate(sourcesUptodate);
+        String state = createStateTable(dataSources, sourcesUptodate);
         logger.info(state);
-        logger.info((countSourcesUptodate(sourcesUptodate) == dataSources.size()) ? "all source data are up-to-date." :
-                    countSourcesUptodate(sourcesUptodate) + "/" + dataSources.size() + " source data are up-to-date.");
+        logger.info((countUpToDate == dataSources.size()) ? "all source data are up-to-date." :
+                    countUpToDate + "/" + dataSources.size() + " source data are up-to-date.");
+    }
+
+    public void verboseState() {
+        ensureDataSourceDirectoriesExist();
+        createOrLoadDataSourcesMetadata();
+        Map<String, Boolean> sourcesUptodate = createSourcesUptodate(dataSources);
+        int countUpToDate = countSourcesUptodate(sourcesUptodate);
+        ArrayList<String> notUptodate = new ArrayList<>();
+        String state = createVerboseTable(dataSources, sourcesUptodate);
+        logger.info(state);
+        logger.info((countUpToDate == dataSources.size()) ? "all source data are up-to-date." :
+                    countUpToDate + "/" + dataSources.size() + " source data are up-to-date.");
+        for (String file : sourcesUptodate.keySet()) {
+            if (!sourcesUptodate.get(file)) {
+                notUptodate.add(file);
+            }
+            ;
+        }
+        logger.info("To be updated: " + notUptodate);
     }
 
     private int countSourcesUptodate(Map<String, Boolean> sourcesUptodate) {
@@ -111,8 +131,6 @@ public class Workspace {
         }
     }
 
-
-
     private Map<String, Boolean> createSourcesUptodate(List<DataSource> dataSources) {
         Map<String, Boolean> sourcesUptodate = new HashMap<>();
         for (DataSource dataSource : dataSources) {
@@ -123,12 +141,13 @@ public class Workspace {
         return sourcesUptodate;
     }
 
-    private String dataSourceMetadataToTable(List<DataSource> dataSources, Map<String, Boolean> sourcesUptodate) {
+    private String createVerboseTable(List<DataSource> dataSources, Map<String, Boolean> sourcesUptodate) {
         String state = "";
-        String spacer = StringUtils.repeat("-", 150);
-        String heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s%-28s\n%s\n", spacer, "SourceID",
+        String seperator = StringUtils.repeat("-", 150);
+        String spacer = StringUtils.repeat(" ", 129);
+        String heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s%-28s\n%s\n", seperator, "SourceID",
                                        "Version is up-to-date", "Version", "new Version", "Time of latest update",
-                                       "Files", spacer);
+                                       "Files", seperator);
         for (DataSource dataSource : dataSources) {
             String dataSourceId = dataSource.getId();
             DataSourceMetadata meta = dataSource.getMetadata();
@@ -138,7 +157,29 @@ public class Workspace {
             List<String> existingFiles = meta.sourceFileNames;
             LocalDateTime latestUpdateTime = meta.getLocalUpdateDateTime();
             state = String.format("%s%-23s%-21s%-25s%-25s%-35s%-30s\n", state, dataSourceId, isVersionUptodate,
-                                 workspaceVersion, latestVersion, latestUpdateTime, existingFiles);
+                                  workspaceVersion, latestVersion, latestUpdateTime, existingFiles.get(0));
+            for (int i = 1; i < existingFiles.size(); i++) {
+                state = String.format("%s%s%s\n", state, spacer, existingFiles.get(i));
+            }
+        }
+        return heading + state + "\n" + seperator;
+    }
+
+    private String createStateTable(List<DataSource> dataSources, Map<String, Boolean> sourcesUptodate) {
+        String state = "";
+        String spacer = StringUtils.repeat("-", 120);
+        String heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s\n%s\n", spacer, "SourceID",
+                                       "Version is up-to-date", "Version", "new Version", "Time of latest update",
+                                       spacer);
+        for (DataSource dataSource : dataSources) {
+            String dataSourceId = dataSource.getId();
+            DataSourceMetadata meta = dataSource.getMetadata();
+            Boolean isVersionUptodate = sourcesUptodate.get(dataSourceId);
+            Version workspaceVersion = meta.version;
+            String latestVersion = getLatestVersion(dataSource);
+            LocalDateTime latestUpdateTime = meta.getLocalUpdateDateTime();
+            state = String.format("%s%-23s%-21s%-25s%-25s%-35s\n", state, dataSourceId, isVersionUptodate,
+                                  workspaceVersion, latestVersion, latestUpdateTime);
         }
         return heading + state + spacer;
     }
@@ -168,29 +209,9 @@ public class Workspace {
         createOrLoadDataSourcesMetadata();
         for (DataSource dataSource : dataSources) {
             logger.info("Processing of data source '" + dataSource.getId() + "' started");
-            try {
-                boolean updated = dataSource.getUpdater().update(this, dataSource);
-                logger.info("\tupdated: " + updated);
-            } catch (UpdaterOnlyManuallyException e) {
-                logger.error("Data source '" + dataSource.getId() + "' can only be updated manually." +
-                             "Download the new version of " + dataSource.getId() +
-                             " and use the command line parameter -i or --integrate to add the data" +
-                             " to the workspace. \n" +
-                             "Help: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
-            } catch (UpdaterException e) {
-                logger.error("Failed to update data source '" + dataSource.getId() + "'", e);
-            }
-            try {
-                boolean parsed = dataSource.getParser().parse(this, dataSource);
-                logger.info("\tparsed: " + parsed);
-            } catch (ParserException e) {
-                logger.error("Failed to parse data source '" + dataSource.getId() + "'", e);
-            }
-            boolean exported = dataSource.getRdfExporter().export(this, dataSource);
-            logger.info("\texported: " + exported);
-            exported = dataSource.getGraphExporter().export(this, dataSource);
-            logger.info("\texported: " + exported);
-            logger.info("Processing of data source '" + dataSource.getId() + "' finished");
+            updateAuto(dataSource);
+            parse(dataSource);
+            export(dataSource);
         }
     }
 
@@ -201,25 +222,54 @@ public class Workspace {
             for (DataSource dataSource : dataSources) {
                 if (dataSource.getId().equals(sourceName)) {
                     logger.info("Processing of data source '" + dataSource.getId() + "' started");
-                    try {
-                        boolean updated = dataSource.getUpdater().integrate(this, dataSource, version);
-                        logger.info("\tupdated manually: " + updated);
-                    } catch (Exception e) {
-                        logger.error("Failed to update data source '" + dataSource.getId() + "'", e);
-                    }
-                    try {
-                        boolean parsed = dataSource.getParser().parse(this, dataSource);
-                        logger.info("\tparsed: " + parsed);
-                    } catch (ParserException e) {
-                        logger.error("Failed to parse data source '" + dataSource.getId() + "'", e);
-                    }
-                    boolean exported = dataSource.getRdfExporter().export(this, dataSource);
-                    logger.info("\texported: " + exported);
-                    logger.info("Processing of data source '" + dataSource.getId() + "' finished");
+                    updateMan(dataSource, version);
+                    parse(dataSource);
+                    export(dataSource);
                 }
             }
         } else {
             logger.error("Failed to read source name and version from the command line");
+        }
+    }
+
+    private void export(DataSource dataSource) {
+        boolean exported = dataSource.getRdfExporter().export(this, dataSource);
+        logger.info("\texported: " + exported);
+        exported = dataSource.getGraphExporter().export(this, dataSource);
+        logger.info("\texported: " + exported);
+        logger.info("Processing of data source '" + dataSource.getId() + "' finished");
+    }
+
+    private void parse(DataSource dataSource) {
+        try {
+            boolean parsed = dataSource.getParser().parse(this, dataSource);
+            logger.info("\tparsed: " + parsed);
+        } catch (ParserException e) {
+            logger.error("Failed to parse data source '" + dataSource.getId() + "'", e);
+        }
+    }
+
+    private void updateMan(DataSource dataSource, String version) {
+        try {
+            boolean updated = dataSource.getUpdater().integrate(this, dataSource, version);
+            logger.info("\tupdated manually: " + updated);
+        } catch (Exception e) {
+            logger.error("Failed to update data source '" + dataSource.getId() + "'", e);
+        }
+    }
+
+    private void updateAuto(DataSource dataSource) {
+        try {
+            boolean updated = dataSource.getUpdater().update(this, dataSource);
+            logger.info("\tupdated: " + updated);
+        } catch (UpdaterOnlyManuallyException e) {
+            logger.error("Data source '" + dataSource.getId() + "' can only be updated manually." +
+                         "Download the new version of " + dataSource.getId() +
+                         " and use the command line parameter -i or --integrate to add the data" +
+                         " to the workspace. \n" +
+                         "Help: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
+        } catch (UpdaterException e) {
+            logger.error("Failed to update data source '" + dataSource.getId() + "'", e);
         }
     }
 }
