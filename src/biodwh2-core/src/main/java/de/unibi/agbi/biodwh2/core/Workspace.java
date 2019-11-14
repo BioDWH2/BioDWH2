@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterOnlyManuallyException;
@@ -88,34 +89,24 @@ public class Workspace {
         return configuration.dataSourceIds.contains(dataSource.getId());
     }
 
-    public void checkState() {
-        ensureDataSourceDirectoriesExist();
-        createOrLoadDataSourcesMetadata();
-        Map<String, Boolean> sourcesUptodate = createSourcesUptodate(dataSources);
-        int countUpToDate = countSourcesUptodate(sourcesUptodate);
-        String state = createStateTable(dataSources, sourcesUptodate);
-        logger.info(state);
-        logger.info((countUpToDate == dataSources.size()) ? "all source data are up-to-date." :
-                    countUpToDate + "/" + dataSources.size() + " source data are up-to-date.");
-    }
-
-    public void verboseState() {
+    public void checkState(boolean verbose) {
         ensureDataSourceDirectoriesExist();
         createOrLoadDataSourcesMetadata();
         Map<String, Boolean> sourcesUptodate = createSourcesUptodate(dataSources);
         int countUpToDate = countSourcesUptodate(sourcesUptodate);
         ArrayList<String> notUptodate = new ArrayList<>();
-        String state = createVerboseTable(dataSources, sourcesUptodate);
-        logger.info(state);
-        logger.info((countUpToDate == dataSources.size()) ? "all source data are up-to-date." :
-                    countUpToDate + "/" + dataSources.size() + " source data are up-to-date.");
+        String loggerInfo = (countUpToDate == dataSources.size()) ? "all source data are up-to-date." :
+                            countUpToDate + "/" + dataSources.size() + " source data are up-to-date.";
+            String state = createStateTable(dataSources, sourcesUptodate, verbose);
+            logger.info(state);
+            logger.info(loggerInfo);
         for (String file : sourcesUptodate.keySet()) {
             if (!sourcesUptodate.get(file)) {
                 notUptodate.add(file);
             }
-            ;
         }
         logger.info("To be updated: " + notUptodate);
+
     }
 
     private int countSourcesUptodate(Map<String, Boolean> sourcesUptodate) {
@@ -165,23 +156,47 @@ public class Workspace {
         return heading + state + "\n" + seperator;
     }
 
-    private String createStateTable(List<DataSource> dataSources, Map<String, Boolean> sourcesUptodate) {
+    private String createStateTable(List<DataSource> dataSources, Map<String, Boolean> sourcesUptodate, boolean verbose) {
         String state = "";
-        String spacer = StringUtils.repeat("-", 120);
-        String heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s\n%s\n", spacer, "SourceID",
-                                       "Version is up-to-date", "Version", "new Version", "Time of latest update",
-                                       spacer);
-        for (DataSource dataSource : dataSources) {
-            String dataSourceId = dataSource.getId();
-            DataSourceMetadata meta = dataSource.getMetadata();
-            Boolean isVersionUptodate = sourcesUptodate.get(dataSourceId);
-            Version workspaceVersion = meta.version;
-            String latestVersion = getLatestVersion(dataSource);
-            LocalDateTime latestUpdateTime = meta.getLocalUpdateDateTime();
-            state = String.format("%s%-23s%-21s%-25s%-25s%-35s\n", state, dataSourceId, isVersionUptodate,
-                                  workspaceVersion, latestVersion, latestUpdateTime);
+        String heading;
+        String separator;
+        String spacer = StringUtils.repeat(" ", 129);
+        if (verbose) {
+            separator = StringUtils.repeat("-", 150);
+            heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s%-28s\n%s\n", separator,
+                                    "SourceID", "Version is up-to-date", "Version", "new Version",
+                                    "Time of latest update", "Files", separator);
+        } else {
+            separator = StringUtils.repeat("-", 120);
+            heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s\n%s\n", separator, "SourceID",
+                                    "Version is up-to-date", "Version", "new Version", "Time of latest update",
+                                    separator);
         }
-        return heading + state + spacer;
+        for (DataSource dataSource : dataSources) {
+            Map<String, String> metaMap = createMetadataMap(dataSource, sourcesUptodate);
+            state = String.format("%s%-23s%-21s%-25s%-25s%-35s", state, metaMap.get("dataSourceId"), metaMap.get("isVersionUptodate"),
+                                  metaMap.get("workspaceVersion"), metaMap.get("latestVersion"), metaMap.get("latestUpdateTime"));
+            if (verbose) {
+                DataSourceMetadata meta = dataSource.getMetadata();
+                List<String> existingFiles =  meta.sourceFileNames;
+                state = String.format("%s%-30s\n", state, existingFiles.get(0));
+                for (int i = 1; i < existingFiles.size(); i++) {
+                    state = String.format("%s%s%s\n", state, spacer, existingFiles.get(i));
+                }
+            } else {state += "\n";}
+        }
+        return heading + state + separator;
+    }
+
+    private Map<String, String> createMetadataMap(DataSource dataSource, Map<String, Boolean> sourcesUptodate) {
+        Map<String, String> metaMap = new HashMap<>();
+        DataSourceMetadata meta = dataSource.getMetadata();
+        metaMap.put("dataSourceId", dataSource.getId());
+        metaMap.put("isVersionUpToDate", sourcesUptodate.get(dataSource.getId()).toString());
+        metaMap.put("workspaceVersion", meta.version.toString());
+        metaMap.put("latestVersion", getLatestVersion(dataSource));
+        metaMap.put("latestUpdateTime", meta.getLocalUpdateDateTime().toString());
+        return metaMap;
     }
 
     private void ensureDataSourceDirectoriesExist() {
@@ -233,10 +248,20 @@ public class Workspace {
     }
 
     private void export(DataSource dataSource) {
-        boolean exported = dataSource.getRdfExporter().export(this, dataSource);
-        logger.info("\texported: " + exported);
-        exported = dataSource.getGraphExporter().export(this, dataSource);
-        logger.info("\texported: " + exported);
+        try {
+            boolean exported = dataSource.getRdfExporter().export(this, dataSource);
+            logger.info("\texported: " + exported);
+            dataSource.getMetadata().exportRDFSuccessfull = true;
+        } catch (ExporterFormatException e) {
+            logger.error("Failed to export data source '" + dataSource.getId() + "' into RDF", e);
+        }
+        try {
+            boolean exported = dataSource.getGraphExporter().export(this, dataSource);
+            logger.info("\texported: " + exported);
+            dataSource.getMetadata().exportGraphMLSuccessfull = true;
+        } catch (ExporterFormatException e) {
+            logger.error("Failed to export data source '" + dataSource.getId() + "' into GraphML", e);
+        }
         logger.info("Processing of data source '" + dataSource.getId() + "' finished");
     }
 
@@ -244,6 +269,7 @@ public class Workspace {
         try {
             boolean parsed = dataSource.getParser().parse(this, dataSource);
             logger.info("\tparsed: " + parsed);
+            dataSource.getMetadata().parseSuccessfull = true;
         } catch (ParserException e) {
             logger.error("Failed to parse data source '" + dataSource.getId() + "'", e);
         }

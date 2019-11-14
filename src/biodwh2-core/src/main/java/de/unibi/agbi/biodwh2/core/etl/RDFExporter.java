@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -16,7 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 public abstract class RDFExporter {
-    public final boolean export(Workspace workspace, DataSource dataSource) {
+    public final boolean export(Workspace workspace, DataSource dataSource) throws ExporterFormatException {
         Model model = exportModel(dataSource);
         setModelPrefixes(model);
         if (model != null) {

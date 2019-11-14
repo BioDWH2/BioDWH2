@@ -11,8 +11,6 @@ public final class BioDWH2 {
             createWorkspace(commandLine);
         else if (commandLine.hasOption("s"))
             checkWorkspaceState(commandLine);
-        else if (commandLine.hasOption("v"))
-            verboseWorkspaceState(commandLine);
         else if (commandLine.hasOption("u"))
             updateWorkspace(commandLine);
         else if (commandLine.hasOption("i"))
@@ -26,7 +24,7 @@ public final class BioDWH2 {
         options.addOption(new Option("h", "help", false, "print this message"));
         options.addOption(new Option("c", "create", true, "Create a new empty workspace"));
         options.addOption(new Option("s", "status", true, "Check and output the state of a workspace"));
-        options.addOption(new Option("v", "verbose", true, "Output detailed information of the state of the workspace"));
+        options.addOption(new Option("v", "verbose", false, "Output detailed information about the state of the workspace"));
         options.addOption(new Option("u", "update", true, "Update all data sources of a workspace"));
         Option integrateOption = new Option("i", "integrate", true,
                                             "Integrates manually downloaded data sources to a workspace");
@@ -48,13 +46,7 @@ public final class BioDWH2 {
     private static void checkWorkspaceState(CommandLine commandLine) throws Exception {
         String workspacePath = commandLine.getOptionValue("s");
         Workspace workspace = new Workspace(workspacePath);
-        workspace.checkState();
-    }
-
-    private static void verboseWorkspaceState(CommandLine commandLine) throws Exception {
-        String workspacePath = commandLine.getOptionValue("v");
-        Workspace workspace = new Workspace(workspacePath);
-        workspace.verboseState();
+        workspace.checkState(commandLine.hasOption("v"));
     }
 
     private static void updateWorkspace(CommandLine commandLine) throws Exception {

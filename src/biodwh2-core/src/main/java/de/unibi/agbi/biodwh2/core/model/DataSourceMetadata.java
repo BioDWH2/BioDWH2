@@ -11,6 +11,10 @@ public final class DataSourceMetadata {
     public Version version;
     public String updateDateTime;
     public List<String> sourceFileNames;
+    public Boolean parseSuccessfull;
+    public Boolean exportRDFSuccessfull;
+    public Boolean exportGraphMLSuccessfull;
+    //TODO UpdateSuccessful
 
     public DataSourceMetadata() {
         sourceFileNames = new ArrayList<>();
@@ -24,4 +28,5 @@ public final class DataSourceMetadata {
     public void setUpdateDateTimeNow() {
         updateDateTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
+
 }
