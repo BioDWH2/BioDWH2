@@ -14,6 +14,7 @@ public final class DataSourceMetadata {
     public Boolean parseSuccessfull;
     public Boolean exportRDFSuccessfull;
     public Boolean exportGraphMLSuccessfull;
+    public Boolean updateSuccessful;
 
     public DataSourceMetadata() {
         sourceFileNames = new ArrayList<>();

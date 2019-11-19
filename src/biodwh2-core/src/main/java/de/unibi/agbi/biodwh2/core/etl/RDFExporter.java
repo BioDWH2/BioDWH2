@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.core.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
-import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -17,24 +17,21 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 public abstract class RDFExporter {
-    public final boolean export(Workspace workspace, DataSource dataSource) throws ExporterFormatException {
+    public final boolean export(Workspace workspace, DataSource dataSource) throws ExporterException {
         Model model = exportModel(dataSource);
         setModelPrefixes(model);
-        if (model != null) {
-            try {
-                FileOutputStream outputStream = new FileOutputStream(
-                        dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.RDFTurtle));
-                RDFDataMgr.write(outputStream, model, RDFFormat.TURTLE_PRETTY);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                return false;
-            }
-            return true;
+        try {
+            FileOutputStream outputStream = new FileOutputStream(
+                    dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.RDFTurtle));
+            RDFDataMgr.write(outputStream, model, RDFFormat.TURTLE_PRETTY);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
         }
-        return false;
+        return true;
     }
 
-    protected abstract Model exportModel(DataSource dataSource);
+    protected abstract Model exportModel(DataSource dataSource) throws ExporterException;
 
     protected void setModelPrefixes(Model model) {
         model.setNsPrefix("skos", SKOS.getURI());

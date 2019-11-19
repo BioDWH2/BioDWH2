@@ -2,6 +2,9 @@ package de.unibi.agbi.biodwh2.hgnc.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
+import de.unibi.agbi.biodwh2.core.vocabulary.BioModels;
+import de.unibi.agbi.biodwh2.core.vocabulary.GeneOntology;
 import de.unibi.agbi.biodwh2.core.vocabulary.KalisNs;
 import de.unibi.agbi.biodwh2.core.vocabulary.UniProt;
 import de.unibi.agbi.biodwh2.hgnc.HGNCDataSource;
@@ -15,12 +18,9 @@ import org.apache.jena.vocabulary.SKOS;
 
 public class HGNCRDFExporter extends RDFExporter {
     private static final String HGNCDataUri = "https://www.genenames.org/data/";
-    private static final String kalisNs = "https://rdf.kalis-amts.de/ns#";
-    private static final String bio2rdf = "http://bio2rdf.org/wormbase_vocabulary:approved-gene-name";
 
-    //TODO: Hilfsfunktionen für Properties. Look up table
     @Override
-    public Model exportModel(DataSource dataSource) {
+    public Model exportModel(DataSource dataSource) throws ExporterException {
         Model model = createDefaultModel();
         for (Gene gene : ((HGNCDataSource) dataSource).genes)
             createGeneResource(model, gene);
@@ -36,102 +36,102 @@ public class HGNCRDFExporter extends RDFExporter {
             r.addProperty(UniProt.Status, gene.status);
         if (gene.name != null)
             r.addProperty(UniProt.name, gene.name);
+        if (gene.name != null)
+            r.addProperty(BioModels.name, gene.name);
         if (gene.aliasName != null)
             r.addProperty(UniProt.alias, gene.aliasName);
         if (gene.locusGroup != null)
-            r.addProperty(KalisNs.locusGroupProperty, gene.locusGroup);
+            r.addProperty(UniProt.locusName, gene.locusGroup);
         if (gene.locusType != null)
-            r.addProperty(KalisNs.locusTypeProperty, gene.locusType);
+            r.addProperty(KalisNs.locusTypeHGNCProperty, gene.locusType);
         if (gene.location != null)
-            r.addProperty(KalisNs.locationProperty, gene.location);
+            r.addProperty(UniProt.subcellularLocation, gene.location);
         if (gene.locationSortable != null)
-            r.addProperty(KalisNs.locationSortableProperty, gene.locationSortable);
+            r.addProperty(KalisNs.locationSortableHGNCProperty, gene.locationSortable);
         if (gene.aliasSymbol != null)
-            r.addProperty(KalisNs.aliasSymbolProperty, gene.aliasSymbol);
-        if (gene.aliasName != null)
-            r.addProperty(KalisNs.aliasNameProperty, gene.aliasName);
+            r.addProperty(KalisNs.aliasSymbolHGNCProperty, gene.aliasSymbol);
         if (gene.prevSymbol != null)
-            r.addProperty(KalisNs.prevSymbolProperty, gene.prevSymbol);
+            r.addProperty(KalisNs.prevSymbolHGNCProperty, gene.prevSymbol);
         if (gene.prevName != null)
-            r.addProperty(KalisNs.prevNameProperty, gene.prevName);
+            r.addProperty(KalisNs.prevNameHGNCProperty, gene.prevName);
         if (gene.geneFamily != null)
-            r.addProperty(KalisNs.geneFamilyProperty, gene.geneFamily);
+            r.addProperty(UniProt.familyMembershipStatement, gene.geneFamily);
         if (gene.geneFamilyId != null)
-            r.addProperty(KalisNs.geneFamilyIdProperty, gene.geneFamilyId);
+            r.addProperty(KalisNs.geneFamilyIdHGNCProperty, gene.geneFamilyId);
         if (gene.dateApprovedReserved != null)
-            r.addProperty(KalisNs.dateApprovedReservedProperty, gene.dateApprovedReserved);
+            r.addProperty(UniProt.created, gene.dateApprovedReserved);
         if (gene.dateSymbolChanged != null)
-            r.addProperty(KalisNs.dateSymbolChangedProperty, gene.dateSymbolChanged);
+            r.addProperty(UniProt.date, gene.dateSymbolChanged);
         if (gene.dateNameChanged != null)
-            r.addProperty(KalisNs.dateNameChangedProperty, gene.dateNameChanged);
+            r.addProperty(UniProt.date, gene.dateNameChanged);
         if (gene.dateModified != null)
-            r.addProperty(KalisNs.dateModifiedProperty, gene.dateModified);
+            r.addProperty(UniProt.date, gene.dateModified);
         if (gene.entrezId != null)
-            r.addProperty(KalisNs.entrezIdProperty, gene.entrezId);
+            r.addProperty(GeneOntology.hasAlternativeId, gene.entrezId);
         if (gene.ensemblGeneId != null)
-            r.addProperty(KalisNs.ensembleGeneIdProperty, gene.ensemblGeneId);
+            r.addProperty(KalisNs.ensembleGeneIdHGNCProperty, gene.ensemblGeneId);
         if (gene.vegaId != null)
-            r.addProperty(KalisNs.vegaIdProperty, gene.vegaId);
+            r.addProperty(KalisNs.vegaIdHGNCProperty, gene.vegaId);
         if (gene.ucscId != null)
-            r.addProperty(KalisNs.ucscIdProperty, gene.ucscId);
+            r.addProperty(KalisNs.ucscIdHGNCProperty, gene.ucscId);
         if (gene.ena != null)
-            r.addProperty(KalisNs.enaProperty, gene.ena);
+            r.addProperty(KalisNs.enaHGNCProperty, gene.ena);
         if (gene.refseqAccession != null)
-            r.addProperty(KalisNs.refsecAccessionProperty, gene.refseqAccession);
+            r.addProperty(KalisNs.refsecAccessionHGNCProperty, gene.refseqAccession);
         if (gene.ccdsId != null)
-            r.addProperty(KalisNs.ccdsIdProperty, gene.ccdsId);
+            r.addProperty(KalisNs.ccdsIdHGNCProperty, gene.ccdsId);
         if (gene.uniprotIds != null)
-            r.addProperty(KalisNs.uniprotIdsProperty, gene.uniprotIds);
+            r.addProperty(KalisNs.uniprotIdsHGNCProperty, gene.uniprotIds);
         if (gene.pubmedId != null)
-            r.addProperty(KalisNs.pubmedIdProperty, gene.pubmedId);
+            r.addProperty(KalisNs.pubmedIdHGNCProperty, gene.pubmedId);
         if (gene.mgdId != null)
-            r.addProperty(KalisNs.mgdIdProperty, gene.mgdId);
+            r.addProperty(KalisNs.mgdIdHGNCProperty, gene.mgdId);
         if (gene.rgdId != null)
-            r.addProperty(KalisNs.rgdIdProperty, gene.rgdId);
+            r.addProperty(KalisNs.rgdIdHGNCProperty, gene.rgdId);
         if (gene.lsdb != null)
-            r.addProperty(KalisNs.lsdbProperty, gene.lsdb);
+            r.addProperty(KalisNs.lsdbHGNCProperty, gene.lsdb);
         if (gene.cosmic != null)
-            r.addProperty(KalisNs.cosmicProperty, gene.cosmic);
+            r.addProperty(KalisNs.cosmicHGNCProperty, gene.cosmic);
         if (gene.omimId != null)
-            r.addProperty(KalisNs.omimIdProperty, gene.omimId);
+            r.addProperty(KalisNs.omimIdHGNCProperty, gene.omimId);
         if (gene.mirbase != null)
-            r.addProperty(KalisNs.mirbaseProperty, gene.mirbase);
+            r.addProperty(KalisNs.mirbaseHGNCProperty, gene.mirbase);
         if (gene.homeodb != null)
-            r.addProperty(KalisNs.homeodbProperty, gene.homeodb);
+            r.addProperty(KalisNs.homeodbHGNCProperty, gene.homeodb);
         if (gene.snornabase != null)
-            r.addProperty(KalisNs.snornabaseProperty, gene.snornabase);
+            r.addProperty(KalisNs.snornabaseHGNCProperty, gene.snornabase);
         if (gene.bioparadigmsSlc != null)
-            r.addProperty(KalisNs.bioparadigmsSlcProperty, gene.bioparadigmsSlc);
+            r.addProperty(KalisNs.bioparadigmsSlcHGNCProperty, gene.bioparadigmsSlc);
         if (gene.orphanet != null)
-            r.addProperty(KalisNs.orphanetProperty, gene.orphanet);
+            r.addProperty(KalisNs.orphanetHGNCProperty, gene.orphanet);
         if (gene.pseudogeneOrg != null)
-            r.addProperty(KalisNs.pseudogeneProperty, gene.pseudogeneOrg);
+            r.addProperty(KalisNs.pseudogeneHGNCProperty, gene.pseudogeneOrg);
         if (gene.hordeId != null)
-            r.addProperty(KalisNs.hordeIdProperty, gene.hordeId);
+            r.addProperty(KalisNs.hordeIdHGNCProperty, gene.hordeId);
         if (gene.merops != null)
-            r.addProperty(KalisNs.meropsProperty, gene.merops);
+            r.addProperty(KalisNs.meropsHGNCProperty, gene.merops);
         if (gene.imgt != null)
-            r.addProperty(KalisNs.imgtProperty, gene.imgt);
+            r.addProperty(KalisNs.imgtHGNCProperty, gene.imgt);
         if (gene.iuphar != null)
-            r.addProperty(KalisNs.iupharProperty, gene.iuphar);
+            r.addProperty(KalisNs.iupharHGNCProperty, gene.iuphar);
         if (gene.kznfGeneCatalog != null)
-            r.addProperty(KalisNs.kznfGeneCatalogProperty, gene.kznfGeneCatalog);
+            r.addProperty(KalisNs.kznfGeneCatalogHGNCProperty, gene.kznfGeneCatalog);
         if (gene.mamitTrnaDb != null)
-            r.addProperty(KalisNs.mamitTrnadbProperty, gene.mamitTrnaDb);
+            r.addProperty(KalisNs.mamitTrnadbHGNCProperty, gene.mamitTrnaDb);
         if (gene.cd != null)
-            r.addProperty(KalisNs.cdProperty, gene.cd);
+            r.addProperty(KalisNs.cdHGNCProperty, gene.cd);
         if (gene.lncrnaDb != null)
-            r.addProperty(KalisNs.lncrnadbProperty, gene.lncrnaDb);
+            r.addProperty(KalisNs.lncrnadbHGNCProperty, gene.lncrnaDb);
         if (gene.enzymeId != null)
-            r.addProperty(KalisNs.enzymeIdProperty, gene.enzymeId);
+            r.addProperty(KalisNs.enzymeIdHGNCProperty, gene.enzymeId);
         if (gene.intermediateFilamentDb != null)
-            r.addProperty(KalisNs.intermediateFilamentDbProperty, gene.intermediateFilamentDb);
+            r.addProperty(KalisNs.intermediateFilamentDbHGNCProperty, gene.intermediateFilamentDb);
         if (gene.rnaCentralIds != null)
-            r.addProperty(KalisNs.rnaCentralIdsProperty, gene.rnaCentralIds);
+            r.addProperty(KalisNs.rnaCentralIdsHGNCProperty, gene.rnaCentralIds);
         if (gene.lnciPedia != null)
-            r.addProperty(KalisNs.lncipediaProperty, gene.lnciPedia);
+            r.addProperty(KalisNs.lncipediaHGNCProperty, gene.lnciPedia);
         if (gene.gtrnaDb != null)
-            r.addProperty(KalisNs.gtrnadbProperty, gene.gtrnaDb);
+            r.addProperty(KalisNs.gtrnadbHGNCProperty, gene.gtrnaDb);
         r.addProperty(RDFS.seeAlso, HGNCDataUri + "gene-symbol-report/#!/symbol/" + gene.symbol);
         r.addProperty(RDFS.seeAlso, "https://identifiers.org/hgnc.symbol:" + gene.symbol);
         r.addProperty(RDFS.seeAlso, "https://identifiers.org/hgnc:" + gene.hgncId);

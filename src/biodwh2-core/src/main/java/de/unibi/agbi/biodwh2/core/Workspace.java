@@ -2,10 +2,7 @@ package de.unibi.agbi.biodwh2.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
-import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterOnlyManuallyException;
+import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
@@ -252,14 +249,14 @@ public class Workspace {
             boolean exported = dataSource.getRdfExporter().export(this, dataSource);
             logger.info("\texported: " + exported);
             dataSource.getMetadata().exportRDFSuccessfull = true;
-        } catch (ExporterFormatException e) {
+        } catch (ExporterException e) {
             logger.error("Failed to export data source '" + dataSource.getId() + "' into RDF", e);
         }
         try {
             boolean exported = dataSource.getGraphExporter().export(this, dataSource);
             logger.info("\texported: " + exported);
             dataSource.getMetadata().exportGraphMLSuccessfull = true;
-        } catch (ExporterFormatException e) {
+        } catch (ExporterException e) {
             logger.error("Failed to export data source '" + dataSource.getId() + "' into GraphML", e);
         }
         logger.info("Processing of data source '" + dataSource.getId() + "' finished");
@@ -279,7 +276,8 @@ public class Workspace {
         try {
             boolean updated = dataSource.getUpdater().integrate(this, dataSource, version);
             logger.info("\tupdated manually: " + updated);
-        } catch (Exception e) {
+            dataSource.getMetadata().updateSuccessful = true;
+        } catch (UpdaterException e) {
             logger.error("Failed to update data source '" + dataSource.getId() + "'", e);
         }
     }
@@ -288,6 +286,7 @@ public class Workspace {
         try {
             boolean updated = dataSource.getUpdater().update(this, dataSource);
             logger.info("\tupdated: " + updated);
+            dataSource.getMetadata().updateSuccessful = true;
         } catch (UpdaterOnlyManuallyException e) {
             logger.error("Data source '" + dataSource.getId() + "' can only be updated manually." +
                          "Download the new version of " + dataSource.getId() +
