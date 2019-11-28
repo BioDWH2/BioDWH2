@@ -17,6 +17,7 @@ public final class UniProt {
     public static final Property familyMembershipStatement = ResourceFactory.createProperty(Uri + "Family_Membership_Statement");
     public static final Property created = ResourceFactory.createProperty(Uri + "created");
     public static final Property date = ResourceFactory.createProperty(Uri + "date");
+    public static final Property journal = ResourceFactory.createProperty(Uri + "Journal");
 
 
     private UniProt() {

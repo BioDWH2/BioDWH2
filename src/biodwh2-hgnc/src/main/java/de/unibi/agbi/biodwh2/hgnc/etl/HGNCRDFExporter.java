@@ -3,10 +3,7 @@ package de.unibi.agbi.biodwh2.hgnc.etl;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
-import de.unibi.agbi.biodwh2.core.vocabulary.BioModels;
-import de.unibi.agbi.biodwh2.core.vocabulary.GeneOntology;
-import de.unibi.agbi.biodwh2.core.vocabulary.KalisNs;
-import de.unibi.agbi.biodwh2.core.vocabulary.UniProt;
+import de.unibi.agbi.biodwh2.core.vocabulary.*;
 import de.unibi.agbi.biodwh2.hgnc.HGNCDataSource;
 import de.unibi.agbi.biodwh2.hgnc.model.Gene;
 import org.apache.jena.rdf.model.Model;
@@ -31,69 +28,83 @@ public class HGNCRDFExporter extends RDFExporter {
         Resource r = model.createResource(HGNCDataUri + "gene-symbol-report/#!/hgnc_id/" + gene.hgncId);
         r.addProperty(DCTerms.identifier, gene.hgncId);
         r.addProperty(RDF.type, UniProt.Gene);
-        r.addProperty(SKOS.prefLabel, gene.symbol);
-        if (gene.status != null)
+        if (gene.symbol != null) {
+            r.addProperty(SKOS.prefLabel, gene.symbol);
+            r.addProperty(Hgnc.approvedSymbol, gene.symbol);
+        }
+        if (gene.status != null) {
             r.addProperty(UniProt.Status, gene.status);
-        if (gene.name != null)
+            r.addProperty(Hgnc.status, gene.status);
+        }
+        if (gene.name != null) {
             r.addProperty(UniProt.name, gene.name);
-        if (gene.name != null)
             r.addProperty(BioModels.name, gene.name);
+            r.addProperty(Hgnc.approvedName, gene.name);
+        }
         if (gene.aliasName != null)
-            r.addProperty(UniProt.alias, gene.aliasName);
+            r.addProperty(Hgnc.nameSynonym, gene.aliasName);
         if (gene.locusGroup != null)
-            r.addProperty(UniProt.locusName, gene.locusGroup);
+            r.addProperty(KalisNs.locusGroupHGNCProperty, gene.locusGroup);
         if (gene.locusType != null)
             r.addProperty(KalisNs.locusTypeHGNCProperty, gene.locusType);
-        if (gene.location != null)
-            r.addProperty(UniProt.subcellularLocation, gene.location);
+        if (gene.location != null) {
+            r.addProperty(Faldo.location, gene.location);
+            r.addProperty(Hgnc.chromosome, gene.location);
+        }
         if (gene.locationSortable != null)
             r.addProperty(KalisNs.locationSortableHGNCProperty, gene.locationSortable);
         if (gene.aliasSymbol != null)
             r.addProperty(KalisNs.aliasSymbolHGNCProperty, gene.aliasSymbol);
         if (gene.prevSymbol != null)
-            r.addProperty(KalisNs.prevSymbolHGNCProperty, gene.prevSymbol);
+            r.addProperty(Hgnc.prevSymbol, gene.prevSymbol);
         if (gene.prevName != null)
-            r.addProperty(KalisNs.prevNameHGNCProperty, gene.prevName);
-        if (gene.geneFamily != null)
+            r.addProperty(Hgnc.prevName, gene.prevName);
+        if (gene.geneFamily != null) {
             r.addProperty(UniProt.familyMembershipStatement, gene.geneFamily);
-        if (gene.geneFamilyId != null)
+            r.addProperty(Hgnc.geneFamilyDiscription, gene.geneFamily);
+        }
+        if (gene.geneFamilyId != null) {
             r.addProperty(KalisNs.geneFamilyIdHGNCProperty, gene.geneFamilyId);
+            r.addProperty(Hgnc.geneFamilyTag, gene.geneFamily);
+        }
         if (gene.dateApprovedReserved != null)
-            r.addProperty(UniProt.created, gene.dateApprovedReserved);
+            r.addProperty(Hgnc.dateApproved, gene.dateApprovedReserved);
         if (gene.dateSymbolChanged != null)
-            r.addProperty(UniProt.date, gene.dateSymbolChanged);
+            r.addProperty(Hgnc.dateSymbolChanged, gene.dateSymbolChanged);
         if (gene.dateNameChanged != null)
-            r.addProperty(UniProt.date, gene.dateNameChanged);
+            r.addProperty(Hgnc.dateNameChanged, gene.dateNameChanged);
         if (gene.dateModified != null)
-            r.addProperty(UniProt.date, gene.dateModified);
+            r.addProperty(Hgnc.dateModified, gene.dateModified);
         if (gene.entrezId != null)
             r.addProperty(GeneOntology.hasAlternativeId, gene.entrezId);
         if (gene.ensemblGeneId != null)
-            r.addProperty(KalisNs.ensembleGeneIdHGNCProperty, gene.ensemblGeneId);
+            r.addProperty(Hgnc.ensemblId, gene.ensemblGeneId);
         if (gene.vegaId != null)
-            r.addProperty(KalisNs.vegaIdHGNCProperty, gene.vegaId);
+            r.addProperty(Hgnc.vegaId, gene.vegaId);
         if (gene.ucscId != null)
-            r.addProperty(KalisNs.ucscIdHGNCProperty, gene.ucscId);
+            r.addProperty(Hgnc.ucscId, gene.ucscId);
         if (gene.ena != null)
             r.addProperty(KalisNs.enaHGNCProperty, gene.ena);
         if (gene.refseqAccession != null)
-            r.addProperty(KalisNs.refsecAccessionHGNCProperty, gene.refseqAccession);
+            r.addProperty(Hgnc.refseqId, gene.refseqAccession);
         if (gene.ccdsId != null)
-            r.addProperty(KalisNs.ccdsIdHGNCProperty, gene.ccdsId);
+            r.addProperty(Hgnc.ccdsId, gene.ccdsId);
         if (gene.uniprotIds != null)
-            r.addProperty(KalisNs.uniprotIdsHGNCProperty, gene.uniprotIds);
-        if (gene.pubmedId != null)
-            r.addProperty(KalisNs.pubmedIdHGNCProperty, gene.pubmedId);
+            r.addProperty(Hgnc.uniprotId, gene.uniprotIds);
+        if (gene.pubmedId != null) {
+            r.addProperty(Hgnc.pubmedId, gene.pubmedId);
+            r.addProperty(UniProt.journal, gene.pubmedId);
+        }
         if (gene.mgdId != null)
-            r.addProperty(KalisNs.mgdIdHGNCProperty, gene.mgdId);
+            r.addProperty(Hgnc.mgiId, gene.mgdId);
         if (gene.rgdId != null)
-            r.addProperty(KalisNs.rgdIdHGNCProperty, gene.rgdId);
+            r.addProperty(Hgnc.rgdId, gene.rgdId);
         if (gene.lsdb != null)
             r.addProperty(KalisNs.lsdbHGNCProperty, gene.lsdb);
         if (gene.cosmic != null)
             r.addProperty(KalisNs.cosmicHGNCProperty, gene.cosmic);
         if (gene.omimId != null)
-            r.addProperty(KalisNs.omimIdHGNCProperty, gene.omimId);
+            r.addProperty(Hgnc.omimId, gene.omimId);
         if (gene.mirbase != null)
             r.addProperty(KalisNs.mirbaseHGNCProperty, gene.mirbase);
         if (gene.homeodb != null)
@@ -123,7 +134,7 @@ public class HGNCRDFExporter extends RDFExporter {
         if (gene.lncrnaDb != null)
             r.addProperty(KalisNs.lncrnadbHGNCProperty, gene.lncrnaDb);
         if (gene.enzymeId != null)
-            r.addProperty(KalisNs.enzymeIdHGNCProperty, gene.enzymeId);
+            r.addProperty(Hgnc.ecId, gene.enzymeId);
         if (gene.intermediateFilamentDb != null)
             r.addProperty(KalisNs.intermediateFilamentDbHGNCProperty, gene.intermediateFilamentDb);
         if (gene.rnaCentralIds != null)
