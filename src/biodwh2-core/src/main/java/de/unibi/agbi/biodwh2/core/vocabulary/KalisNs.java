@@ -75,7 +75,7 @@ public class KalisNs {
         KalisNs.locationHGNCProperty.addProperty(RDFS.comment,
                                                  "Indicates the location of the gene or region on the chromosome");
         locationSortableHGNCProperty = createHGNCProperty("locationSortable");
-        KalisNs.locationSortableHGNCProperty.addProperty(RDFS.comment, "");
+        KalisNs.locationSortableHGNCProperty.addProperty(RDFS.comment, "locations sortable");
         aliasSymbolHGNCProperty = createHGNCProperty("aliasSymbol");
         KalisNs.aliasSymbolHGNCProperty.addProperty(RDFS.comment, "Other symbols used to refer to this gene.");
         aliasNameHGNCProperty = createHGNCProperty("aliasName");
@@ -110,7 +110,7 @@ public class KalisNs {
         KalisNs.dateModifiedHGNCProperty.addProperty(RDFS.comment,
                                                      "If applicable, the date the entry was modified by the HGNC.");
         entrezIdHGNCProperty = createHGNCProperty("entrezId");
-        KalisNs.entrezIdHGNCProperty.addProperty(RDFS.comment, "");
+        KalisNs.entrezIdHGNCProperty.addProperty(RDFS.comment, "Entrez gene ID");
         ensembleGeneIdHGNCProperty = createHGNCProperty("ensembleGeneId");
         KalisNs.ensembleGeneIdHGNCProperty.addProperty(RDFS.comment,
                                                        "The Ensembl gene ID associated with the HGNC gene symbol. " +
@@ -240,17 +240,21 @@ public class KalisNs {
                                            "The CD name for a cellular differentiation molecule found within " +
                                            "the HCDM database.");
         lncrnadbHGNCProperty = createHGNCProperty("lncrnadb");
-        KalisNs.lncrnadbHGNCProperty.addProperty(RDFS.comment, "");
+        KalisNs.lncrnadbHGNCProperty.addProperty(RDFS.comment, "lncRNAdb: a biological database of Long " +
+                                                               "non-coding RNAs.");
         enzymeIdHGNCProperty = createHGNCProperty("enzymeId");
-        KalisNs.enzymeIdHGNCProperty.addProperty(RDFS.comment, "");
+        KalisNs.enzymeIdHGNCProperty.addProperty(RDFS.comment, "Enzyme nomenclature database.");
         intermediateFilamentDbHGNCProperty = createHGNCProperty("intermediateFilamentDb");
-        KalisNs.intermediateFilamentDbHGNCProperty.addProperty(RDFS.comment, "");
+        KalisNs.intermediateFilamentDbHGNCProperty.addProperty(RDFS.comment, "Human Intermediate Filament " +
+                                                                             "Database.");
         rnaCentralIdsHGNCProperty = createHGNCProperty("rnaCentralIds");
-        KalisNs.rnaCentralIdsHGNCProperty.addProperty(RDFS.comment, "");
+        KalisNs.rnaCentralIdsHGNCProperty.addProperty(RDFS.comment, "RNAcentral: The non-coding RNA sequence" +
+                                                                    " database.");
         lncipediaHGNCProperty = createHGNCProperty("lncipedia");
-        KalisNs.lncipediaHGNCProperty.addProperty(RDFS.comment, "");
+        KalisNs.lncipediaHGNCProperty.addProperty(RDFS.comment, "LNCipedia: A comprehensive compendium of human " +
+                                                                "long non-coding RNA's.");
         gtrnadbHGNCProperty = createHGNCProperty("gtrnadb");
-        KalisNs.gtrnadbHGNCProperty.addProperty(RDFS.comment, "");
+        KalisNs.gtrnadbHGNCProperty.addProperty(RDFS.comment, "GtRNAdb: Genomic tRNA Database");
     }
 
     private KalisNs() {
