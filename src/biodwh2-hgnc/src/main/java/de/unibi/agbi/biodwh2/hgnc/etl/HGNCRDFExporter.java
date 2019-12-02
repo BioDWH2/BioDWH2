@@ -43,9 +43,10 @@ public class HGNCRDFExporter extends RDFExporter {
             r.addProperty(Hgnc.approvedName, gene.name);
             r.addProperty(BioPortal.approvedName, gene.name);
         }
-        if (gene.aliasName != null)
+        if (gene.aliasName != null) {
             r.addProperty(Hgnc.nameSynonym, gene.aliasName);
             r.addProperty(BioPortal.aliases, gene.aliasName);
+        }
         if (gene.locusGroup != null)
             r.addProperty(BioPortal.locusGroup, gene.locusGroup);
         if (gene.locusType != null)
@@ -66,6 +67,7 @@ public class HGNCRDFExporter extends RDFExporter {
         if (gene.prevName != null) {
             r.addProperty(Hgnc.prevName, gene.prevName);
             r.addProperty(BioPortal.previousNames, gene.prevName);
+        }
         if (gene.geneFamily != null) {
             r.addProperty(UniProt.familyMembershipStatement, gene.geneFamily);
             r.addProperty(Hgnc.geneFamilyDiscription, gene.geneFamily);
@@ -182,7 +184,6 @@ public class HGNCRDFExporter extends RDFExporter {
         r.addProperty(RDFS.seeAlso, "https://identifiers.org/hgnc:" + gene.hgncId);
         return r;
     }
-
 
     @Override
     protected void setModelPrefixes(Model model) {

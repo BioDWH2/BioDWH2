@@ -240,16 +240,16 @@ public class KalisNs {
                                            "The CD name for a cellular differentiation molecule found within " +
                                            "the HCDM database.");
         lncrnadbHGNCProperty = createHGNCProperty("lncrnadb");
-        KalisNs.lncrnadbHGNCProperty.addProperty(RDFS.comment, "lncRNAdb: a biological database of Long " +
-                                                               "non-coding RNAs.");
+        KalisNs.lncrnadbHGNCProperty.addProperty(RDFS.comment,
+                                                 "lncRNAdb: a biological database of Long " + "non-coding RNAs.");
         enzymeIdHGNCProperty = createHGNCProperty("enzymeId");
         KalisNs.enzymeIdHGNCProperty.addProperty(RDFS.comment, "Enzyme nomenclature database.");
         intermediateFilamentDbHGNCProperty = createHGNCProperty("intermediateFilamentDb");
-        KalisNs.intermediateFilamentDbHGNCProperty.addProperty(RDFS.comment, "Human Intermediate Filament " +
-                                                                             "Database.");
+        KalisNs.intermediateFilamentDbHGNCProperty.addProperty(RDFS.comment,
+                                                               "Human Intermediate Filament " + "Database.");
         rnaCentralIdsHGNCProperty = createHGNCProperty("rnaCentralIds");
-        KalisNs.rnaCentralIdsHGNCProperty.addProperty(RDFS.comment, "RNAcentral: The non-coding RNA sequence" +
-                                                                    " database.");
+        KalisNs.rnaCentralIdsHGNCProperty.addProperty(RDFS.comment,
+                                                      "RNAcentral: The non-coding RNA sequence" + " database.");
         lncipediaHGNCProperty = createHGNCProperty("lncipedia");
         KalisNs.lncipediaHGNCProperty.addProperty(RDFS.comment, "LNCipedia: A comprehensive compendium of human " +
                                                                 "long non-coding RNA's.");
