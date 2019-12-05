@@ -73,7 +73,6 @@ public class HGNCRDFExporter extends RDFExporter {
             r.addProperty(Hgnc.geneFamilyDiscription, gene.geneFamily);
         }
         if (gene.geneFamilyId != null) {
-            r.addProperty(KalisNs.geneFamilyIdHGNCProperty, gene.geneFamilyId);
             r.addProperty(Hgnc.geneFamilyTag, gene.geneFamily);
             r.addProperty(BioPortal.geneFamilyTag, gene.geneFamily);
         }
@@ -132,7 +131,6 @@ public class HGNCRDFExporter extends RDFExporter {
         if (gene.lsdb != null)
             r.addProperty(KalisNs.lsdbHGNCProperty, gene.lsdb);
         if (gene.cosmic != null) {
-            r.addProperty(KalisNs.cosmicHGNCProperty, gene.cosmic);
             r.addProperty(BioPortal.cosmicId, gene.cosmic);
         }
         if (gene.omimId != null)
@@ -142,7 +140,6 @@ public class HGNCRDFExporter extends RDFExporter {
         if (gene.homeodb != null)
             r.addProperty(KalisNs.homeodbHGNCProperty, gene.homeodb);
         if (gene.snornabase != null) {
-            r.addProperty(KalisNs.snornabaseHGNCProperty, gene.snornabase);
             r.addProperty(BioPortal.snoRNABaseId, gene.snornabase);
         }
         if (gene.bioparadigmsSlc != null)
