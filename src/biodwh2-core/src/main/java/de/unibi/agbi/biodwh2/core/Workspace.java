@@ -2,7 +2,10 @@ package de.unibi.agbi.biodwh2.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import de.unibi.agbi.biodwh2.core.exceptions.*;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
+import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
+import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
+import de.unibi.agbi.biodwh2.core.exceptions.UpdaterOnlyManuallyException;
 import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
@@ -224,6 +227,8 @@ public class Workspace {
             updateAuto(dataSource);
             parse(dataSource);
             export(dataSource);
+            merge(dataSource);
+            logger.info("Processing of data source '" + dataSource.getId() + "' finished");
         }
     }
 
@@ -259,7 +264,6 @@ public class Workspace {
         } catch (ExporterException e) {
             logger.error("Failed to export data source '" + dataSource.getId() + "' into GraphML", e);
         }
-        logger.info("Processing of data source '" + dataSource.getId() + "' finished");
     }
 
     private void parse(DataSource dataSource) {
@@ -295,6 +299,16 @@ public class Workspace {
                          "Help: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
         } catch (UpdaterException e) {
             logger.error("Failed to update data source '" + dataSource.getId() + "'", e);
+        }
+    }
+
+    private void merge(DataSource dataSource) {
+        try {
+            boolean merged = dataSource.getMerger().merge(this, dataSource);
+            logger.info("\tmerged: " + merged);
+            dataSource.getMetadata().mergeSuccessful = true;
+        } catch (Exception e) {
+            logger.error("Failed to merge data source '" + dataSource.getId() + "'");
         }
     }
 }

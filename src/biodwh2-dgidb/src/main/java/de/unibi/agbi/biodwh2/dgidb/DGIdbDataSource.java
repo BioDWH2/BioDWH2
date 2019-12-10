@@ -1,14 +1,8 @@
 package de.unibi.agbi.biodwh2.dgidb;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
-import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.dgidb.etl.DGIdbGraphExporter;
-import de.unibi.agbi.biodwh2.dgidb.etl.DGIdbParser;
-import de.unibi.agbi.biodwh2.dgidb.etl.DGIdbRDFExporter;
-import de.unibi.agbi.biodwh2.dgidb.etl.DGIdbUpdater;
+import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.dgidb.etl.*;
 
 public class DGIdbDataSource extends DataSource {
     @Override
@@ -34,5 +28,10 @@ public class DGIdbDataSource extends DataSource {
     @Override
     public GraphExporter getGraphExporter() {
         return new DGIdbGraphExporter();
+    }
+
+    @Override
+    public Merger getMerger() {
+        return new DGIdbRDFMerger();
     }
 }

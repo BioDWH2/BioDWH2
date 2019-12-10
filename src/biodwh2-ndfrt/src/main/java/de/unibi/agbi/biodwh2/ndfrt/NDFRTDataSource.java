@@ -1,14 +1,8 @@
 package de.unibi.agbi.biodwh2.ndfrt;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
-import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.ndfrt.etl.NDFRTGraphExporter;
-import de.unibi.agbi.biodwh2.ndfrt.etl.NDFRTParser;
-import de.unibi.agbi.biodwh2.ndfrt.etl.NDFRTRDFExporter;
-import de.unibi.agbi.biodwh2.ndfrt.etl.NDFRTUpdater;
+import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.ndfrt.etl.*;
 import de.unibi.agbi.biodwh2.ndfrt.model.Terminology;
 
 public class NDFRTDataSource extends DataSource {
@@ -37,5 +31,10 @@ public class NDFRTDataSource extends DataSource {
     @Override
     public GraphExporter getGraphExporter() {
         return new NDFRTGraphExporter();
+    }
+
+    @Override
+    public Merger getMerger() {
+        return new NDFRTMerger();
     }
 }

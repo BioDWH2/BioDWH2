@@ -2,10 +2,7 @@ package de.unibi.agbi.biodwh2.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
+import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
 import org.slf4j.Logger;
@@ -37,6 +34,8 @@ public abstract class DataSource {
     public abstract RDFExporter getRdfExporter();
 
     public abstract GraphExporter getGraphExporter();
+
+    public abstract Merger getMerger();
 
     void createDirectoryIfNotExists(Workspace workspace) throws IOException {
         Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId()));

@@ -1,14 +1,8 @@
 package de.unibi.agbi.biodwh2.hgnc;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
-import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.hgnc.etl.HGNCGraphExporter;
-import de.unibi.agbi.biodwh2.hgnc.etl.HGNCParser;
-import de.unibi.agbi.biodwh2.hgnc.etl.HGNCRDFExporter;
-import de.unibi.agbi.biodwh2.hgnc.etl.HGNCUpdater;
+import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.hgnc.etl.*;
 import de.unibi.agbi.biodwh2.hgnc.model.Gene;
 
 import java.util.List;
@@ -39,5 +33,10 @@ public class HGNCDataSource extends DataSource {
     @Override
     public GraphExporter getGraphExporter() {
         return new HGNCGraphExporter();
+    }
+
+    @Override
+    public Merger getMerger() {
+        return new HGNCMerger();
     }
 }

@@ -46,6 +46,7 @@ public class HGNCRDFExporter extends RDFExporter {
         if (gene.aliasName != null) {
             r.addProperty(Hgnc.nameSynonym, gene.aliasName);
             r.addProperty(BioPortal.aliases, gene.aliasName);
+            r.addProperty(DCTerms.alternative, gene.aliasName);
         }
         if (gene.locusGroup != null)
             r.addProperty(BioPortal.locusGroup, gene.locusGroup);
@@ -91,6 +92,7 @@ public class HGNCRDFExporter extends RDFExporter {
         if (gene.dateModified != null) {
             r.addProperty(Hgnc.dateModified, gene.dateModified);
             r.addProperty(BioPortal.dateModified, gene.dateModified);
+            r.addProperty(DCTerms.modified, gene.dateModified);
         }
         if (gene.entrezId != null)
             r.addProperty(BioPortal.entrezGeneId, gene.entrezId);
