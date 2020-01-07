@@ -8,7 +8,6 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterOnlyManuallyException;
 import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
-import de.unibi.agbi.biodwh2.core.model.Version;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +16,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.*;
 
 public class Workspace {
@@ -42,7 +40,7 @@ public class Workspace {
         Files.createDirectories(Paths.get(getSourcesDirectory()));
     }
 
-    String getSourcesDirectory() {
+    public String getSourcesDirectory() {
         return Paths.get(workingDirectory, SourcesDirectory).toString();
     }
 
@@ -97,9 +95,9 @@ public class Workspace {
         ArrayList<String> notUptodate = new ArrayList<>();
         String loggerInfo = (countUpToDate == dataSources.size()) ? "all source data are up-to-date." :
                             countUpToDate + "/" + dataSources.size() + " source data are up-to-date.";
-            String state = createStateTable(dataSources, sourcesUptodate, verbose);
-            logger.info(state);
-            logger.info(loggerInfo);
+        String state = createStateTable(dataSources, sourcesUptodate, verbose);
+        logger.info(state);
+        logger.info(loggerInfo);
         for (String file : sourcesUptodate.keySet()) {
             if (!sourcesUptodate.get(file)) {
                 notUptodate.add(file);
@@ -132,40 +130,17 @@ public class Workspace {
         return sourcesUptodate;
     }
 
-    private String createVerboseTable(List<DataSource> dataSources, Map<String, Boolean> sourcesUptodate) {
-        String state = "";
-        String seperator = StringUtils.repeat("-", 150);
-        String spacer = StringUtils.repeat(" ", 129);
-        String heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s%-28s\n%s\n", seperator, "SourceID",
-                                       "Version is up-to-date", "Version", "new Version", "Time of latest update",
-                                       "Files", seperator);
-        for (DataSource dataSource : dataSources) {
-            String dataSourceId = dataSource.getId();
-            DataSourceMetadata meta = dataSource.getMetadata();
-            Boolean isVersionUptodate = sourcesUptodate.get(dataSourceId);
-            Version workspaceVersion = meta.version;
-            String latestVersion = getLatestVersion(dataSource);
-            List<String> existingFiles = meta.sourceFileNames;
-            LocalDateTime latestUpdateTime = meta.getLocalUpdateDateTime();
-            state = String.format("%s%-23s%-21s%-25s%-25s%-35s%-30s\n", state, dataSourceId, isVersionUptodate,
-                                  workspaceVersion, latestVersion, latestUpdateTime, existingFiles.get(0));
-            for (int i = 1; i < existingFiles.size(); i++) {
-                state = String.format("%s%s%s\n", state, spacer, existingFiles.get(i));
-            }
-        }
-        return heading + state + "\n" + seperator;
-    }
-
-    private String createStateTable(List<DataSource> dataSources, Map<String, Boolean> sourcesUptodate, boolean verbose) {
+    private String createStateTable(List<DataSource> dataSources, Map<String, Boolean> sourcesUptodate,
+                                    boolean verbose) {
         String state = "";
         String heading;
         String separator;
         String spacer = StringUtils.repeat(" ", 129);
         if (verbose) {
             separator = StringUtils.repeat("-", 150);
-            heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s%-28s\n%s\n", separator,
-                                    "SourceID", "Version is up-to-date", "Version", "new Version",
-                                    "Time of latest update", "Files", separator);
+            heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s%-28s\n%s\n", separator, "SourceID",
+                                    "Version is up-to-date", "Version", "new Version", "Time of latest update", "Files",
+                                    separator);
         } else {
             separator = StringUtils.repeat("-", 120);
             heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s\n%s\n", separator, "SourceID",
@@ -174,16 +149,19 @@ public class Workspace {
         }
         for (DataSource dataSource : dataSources) {
             Map<String, String> metaMap = createMetadataMap(dataSource, sourcesUptodate);
-            state = String.format("%s%-23s%-21s%-25s%-25s%-35s", state, metaMap.get("dataSourceId"), metaMap.get("isVersionUptodate"),
-                                  metaMap.get("workspaceVersion"), metaMap.get("latestVersion"), metaMap.get("latestUpdateTime"));
+            state = String.format("%s%-23s%-21s%-25s%-25s%-35s", state, metaMap.get("dataSourceId"),
+                                  metaMap.get("isVersionUptodate"), metaMap.get("workspaceVersion"),
+                                  metaMap.get("latestVersion"), metaMap.get("latestUpdateTime"));
             if (verbose) {
                 DataSourceMetadata meta = dataSource.getMetadata();
-                List<String> existingFiles =  meta.sourceFileNames;
+                List<String> existingFiles = meta.sourceFileNames;
                 state = String.format("%s%-30s\n", state, existingFiles.get(0));
                 for (int i = 1; i < existingFiles.size(); i++) {
                     state = String.format("%s%s%s\n", state, spacer, existingFiles.get(i));
                 }
-            } else {state += "\n";}
+            } else {
+                state += "\n";
+            }
         }
         return heading + state + separator;
     }
@@ -293,7 +271,7 @@ public class Workspace {
             dataSource.getMetadata().updateSuccessful = true;
         } catch (UpdaterOnlyManuallyException e) {
             logger.error("Data source '" + dataSource.getId() + "' can only be updated manually." +
-                         "Download the new version of " + dataSource.getId() +
+                         " Download the new version of " + dataSource.getId() +
                          " and use the command line parameter -i or --integrate to add the data" +
                          " to the workspace. \n" +
                          "Help: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
@@ -304,7 +282,7 @@ public class Workspace {
 
     private void merge(DataSource dataSource) {
         try {
-            boolean merged = dataSource.getMerger().merge(this, dataSource);
+            boolean merged = dataSource.getMerger().merge(this, dataSources);
             logger.info("\tmerged: " + merged);
             dataSource.getMetadata().mergeSuccessful = true;
         } catch (Exception e) {

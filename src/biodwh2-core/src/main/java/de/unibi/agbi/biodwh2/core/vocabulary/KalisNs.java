@@ -11,12 +11,11 @@ public class KalisNs {
 
     private static final Model m = ModelFactory.createDefaultModel();
 
-    private static Property createHGNCProperty(String property) {
-        return m.createProperty(Uri + "hgnc/" + property);
-    }
-
-    private static Property createProperty(String property) {
-        return m.createProperty(Uri + property);
+    private static void createProperty(Property propName, String comment) {
+        Property prop = m.createProperty(Uri + propName);
+        prop.addProperty(RDFS.comment, comment);
+        Property propHGNC = m.createProperty(Uri + "hgnc/" + propName);
+        propHGNC.addProperty(OWL.sameAs, prop);
     }
 
     public static Property locationSortableHGNCProperty;
@@ -46,67 +45,23 @@ public class KalisNs {
     private static Property gtrnadbProperty;
 
     static {
-        locationSortableProperty = createProperty("locationSortable");
-        KalisNs.locationSortableProperty.addProperty(RDFS.comment, "locations sortable");
-        aliasSymbolProperty = createProperty("aliasSymbol");
-        KalisNs.aliasSymbolProperty.addProperty(RDFS.comment, "Other symbols used to refer to this gene.");
-        enaProperty = createProperty("ena");
-        KalisNs.enaProperty.addProperty(RDFS.comment, "INSDC nucleotide sequence accession numbers selected " +
-                                                      "by the HGNC for a gene.");
-        lsdbProperty = createProperty("lsdb");
-        KalisNs.lsdbProperty.addProperty(RDFS.comment, "This contains LSDB database names/URL pertinent to the gene.");
-        mirbaseProperty = createProperty("mirbase");
-        KalisNs.mirbaseProperty.addProperty(RDFS.comment, "An accession number for a microRNA sequence within the " +
-                                                          "miRBase database for the HGNC gene.");
-        homeodbProperty = createProperty("homedb");
-        KalisNs.homeodbProperty.addProperty(RDFS.comment,
-                                            "ID for a homeobox gene within the Homeobox database (HomeoDB2).");
-        bioparadigmsSlcProperty = createProperty("bioparadigmsSlc");
-        KalisNs.bioparadigmsSlcProperty.addProperty(RDFS.comment,
-                                                    "The gene symbol for a solute carrier gene as found " +
-                                                    "in the Bioparadigms SLC tables database.");
-
-        mamitTrnadbProperty = createProperty("mamitTrnadb");
-        KalisNs.mamitTrnadbProperty.addProperty(RDFS.comment,
-                                                "Mamit-tRNAdb is a compilation of mammalian mitochondrial " +
-                                                "tRNA genes. The ID refers to a tRNA gene within the " +
-                                                "mamit-tRNAdb database.");
-        lncrnadbProperty = createProperty("lncrnadb");
-        KalisNs.lncrnadbProperty.addProperty(RDFS.comment,
-                                             "lncRNAdb: a biological database of Long " + "non-coding RNAs.");
-        rnaCentralIdsProperty = createProperty("rnaCentralIds");
-        KalisNs.rnaCentralIdsProperty.addProperty(RDFS.comment,
-                                                  "RNAcentral: The non-coding RNA sequence" + " database.");
-        lncipediaProperty = createProperty("lncipedia");
-        KalisNs.lncipediaProperty.addProperty(RDFS.comment, "LNCipedia: A comprehensive compendium of human " +
-                                                            "long non-coding RNA's.");
-        gtrnadbProperty = createProperty("gtrnadb");
-        KalisNs.gtrnadbProperty.addProperty(RDFS.comment, "GtRNAdb: Genomic tRNA Database");
-
-        locationSortableHGNCProperty = createHGNCProperty("locationSortable");
-        KalisNs.locationSortableHGNCProperty.addProperty(OWL.sameAs, locationSortableProperty);
-        aliasSymbolHGNCProperty = createHGNCProperty("aliasSymbol");
-        KalisNs.aliasSymbolHGNCProperty.addProperty(OWL.sameAs, aliasSymbolProperty);
-        enaHGNCProperty = createHGNCProperty("ena");
-        KalisNs.enaHGNCProperty.addProperty(OWL.sameAs, enaProperty);
-        lsdbHGNCProperty = createHGNCProperty("lsdb");
-        KalisNs.lsdbHGNCProperty.addProperty(OWL.sameAs, lsdbProperty);
-        mirbaseHGNCProperty = createHGNCProperty("mirbase");
-        KalisNs.mirbaseHGNCProperty.addProperty(OWL.sameAs, mirbaseProperty);
-        homeodbHGNCProperty = createHGNCProperty("homedb");
-        KalisNs.homeodbHGNCProperty.addProperty(OWL.sameAs, homeodbProperty);
-        bioparadigmsSlcHGNCProperty = createHGNCProperty("bioparadigmsSlc");
-        KalisNs.bioparadigmsSlcHGNCProperty.addProperty(OWL.sameAs, bioparadigmsSlcProperty);
-        mamitTrnadbHGNCProperty = createHGNCProperty("mamitTrnadb");
-        KalisNs.mamitTrnadbHGNCProperty.addProperty(OWL.sameAs, mamitTrnadbProperty);
-        lncrnadbHGNCProperty = createHGNCProperty("lncrnadb");
-        KalisNs.lncrnadbHGNCProperty.addProperty(OWL.sameAs, lncrnadbProperty);
-        rnaCentralIdsHGNCProperty = createHGNCProperty("rnaCentralIds");
-        KalisNs.rnaCentralIdsHGNCProperty.addProperty(OWL.sameAs, rnaCentralIdsProperty);
-        lncipediaHGNCProperty = createHGNCProperty("lncipedia");
-        KalisNs.lncipediaHGNCProperty.addProperty(OWL.sameAs, lncipediaProperty);
-        gtrnadbHGNCProperty = createHGNCProperty("gtrnadb");
-        KalisNs.gtrnadbHGNCProperty.addProperty(OWL.sameAs, gtrnadbHGNCProperty);
+        createProperty(locationSortableProperty, "locations sortable");
+        createProperty(aliasSymbolProperty, "Other symbols used to refer to this gene.");
+        createProperty(enaProperty,
+                       "INSDC nucleotide sequence accession numbers selected " + "by the HGNC for a gene.");
+        createProperty(lsdbProperty, "This contains LSDB database names/URL pertinent to the gene.");
+        createProperty(mirbaseProperty, "An accession number for a microRNA sequence within the " +
+                                        "miRBase database for the HGNC gene.");
+        createProperty(homeodbProperty, "ID for a homeobox gene within the Homeobox database (HomeoDB2).");
+        createProperty(bioparadigmsSlcProperty, "The gene symbol for a solute carrier gene as found " +
+                                                "in the Bioparadigms SLC tables database.");
+        createProperty(mamitTrnadbProperty, "Mamit-tRNAdb is a compilation of mammalian mitochondrial " +
+                                            "tRNA genes. The ID refers to a tRNA gene within the " +
+                                            "mamit-tRNAdb database.");
+        createProperty(lncrnadbProperty, "lncRNAdb: a biological database of Long " + "non-coding RNAs.");
+        createProperty(rnaCentralIdsProperty, "RNAcentral: The non-coding RNA sequence database.");
+        createProperty(lncipediaProperty, "LNCipedia: A comprehensive compendium of human " + "long non-coding RNA's.");
+        createProperty(gtrnadbProperty, "GtRNAdb: Genomic tRNA Database");
     }
 
     private KalisNs() {
