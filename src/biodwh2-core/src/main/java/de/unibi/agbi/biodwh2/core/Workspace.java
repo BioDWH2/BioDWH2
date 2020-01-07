@@ -2,17 +2,16 @@ package de.unibi.agbi.biodwh2.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
-import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterOnlyManuallyException;
+import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -205,9 +204,9 @@ public class Workspace {
             updateAuto(dataSource);
             parse(dataSource);
             export(dataSource);
-            merge(dataSource);
             logger.info("Processing of data source '" + dataSource.getId() + "' finished");
         }
+        merge(dataSources);
     }
 
     public void integrateDataSources(String sourceName, String version) {
@@ -225,6 +224,7 @@ public class Workspace {
         } else {
             logger.error("Failed to read source name and version from the command line");
         }
+        merge(dataSources);
     }
 
     private void export(DataSource dataSource) {
@@ -280,13 +280,20 @@ public class Workspace {
         }
     }
 
-    private void merge(DataSource dataSource) {
+    private void merge(List<DataSource> dataSources) {
         try {
-            boolean merged = dataSource.getMerger().merge(this, dataSources);
-            logger.info("\tmerged: " + merged);
-            dataSource.getMetadata().mergeSuccessful = true;
-        } catch (Exception e) {
-            logger.error("Failed to merge data source '" + dataSource.getId() + "'");
+            PrintWriter writer = new PrintWriter(getSourcesDirectory() + "/merged.ttl");
+            for (DataSource dataSource : dataSources) {
+                try {
+                    boolean merged = dataSource.getMerger().merge(this, dataSources, writer);
+                    logger.info("\tmerged " + dataSource.getId() + ": " + merged);
+                    dataSource.getMetadata().mergeSuccessful = true;
+                } catch (MergerException e) {
+                    logger.error("Failed to merge data source '" + dataSource.getId() + "'");
+                }
+            }
+        } catch (FileNotFoundException e) {
+            logger.error("Failed to create file '" + getSourcesDirectory() + "/merged.ttl'");
         }
     }
 }

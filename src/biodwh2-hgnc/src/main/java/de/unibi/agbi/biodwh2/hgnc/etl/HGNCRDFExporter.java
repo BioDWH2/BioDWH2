@@ -26,12 +26,12 @@ public class HGNCRDFExporter extends RDFExporter {
     }
 
     private static void connect(Resource sub, Property pred, String ob) {
-        if (ob != null)
+        if (ob != null && pred != null)
             sub.addProperty(pred, ob);
     }
 
     private static void connect(Resource sub, Property pred, Resource ob) {
-        if (ob != null)
+        if (ob != null && pred != null)
             sub.addProperty(pred, ob);
     }
 
