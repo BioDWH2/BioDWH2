@@ -25,7 +25,7 @@ public class DrugCentralUpdater extends Updater {
                 if (word.contains("drugcentral.dump.")) {
                     String version = word.split("href=\"")[1].split("\\.")[3];
                     return parseVersion(
-                            version.substring(2, 4) + "." + version.substring(0, 2) + "." + version.substring(4));
+                            version.substring(4) + "." + version.substring(0, 2) + "." + version.substring(2, 4));
                 }
             }
         } catch (IOException e) {
@@ -66,7 +66,7 @@ public class DrugCentralUpdater extends Updater {
             BufferedReader reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(
                     new FileInputStream(dataSource.resolveSourceFilePath(workspace, "rawDrugCentral.sql.gz"))),
                                                                              StandardCharsets.UTF_8));
-            PrintWriter writer = new PrintWriter(dataSource.resolveSourceFilePath(workspace, "tmp.txt"));
+            PrintWriter writer = null;
             boolean copy = false;
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("COPY")) {
@@ -77,9 +77,9 @@ public class DrugCentralUpdater extends Updater {
                     writer.println(attributes);
                 } else if (line.contains("\\.")) {
                     copy = false;
-                    writer.close();
+                    if (writer != null) writer.close();
                 } else if (copy) {
-                    writer.println(line);
+                    if (writer != null) writer.println(line);
                 }
             }
             reader.close();
