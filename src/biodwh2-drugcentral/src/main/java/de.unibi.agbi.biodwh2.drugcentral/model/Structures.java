@@ -3,16 +3,18 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder(value = {"cdId", "cdFormular", "cdMolweight", "id", "clogp", "alogs", "casRegNo", "tpsa",
-"lipinski", "name", "noFormulations", "stem", "molfile", "mrdef", "enhancedStereo", "aromC", "sp3C", "sp2C",
-"spc", "halogen", "heteroSp2C", "rotb", "molimg", "oN", "inchi", "smiles", "rgb", "fdaLabels", "inchiKey"})
+@JsonPropertyOrder(value = {
+        "cd_id", "cd_formular", "cd_molweight", "id", "clogp", "alogs", "cas_reg_no", "tpsa", "lipinski", "name",
+        "no_formulations", "stem", "molfile", "mrdef", "enhanced_stereo", "arom_c", "sp3_c", "sp2_c", "spc", "halogen",
+        "hetero_sp2_c", "rotb", "molimg", "o_n", "oh_nh", "inchi", "smiles", "rgb", "fda_labels", "inchikey"
+})
 
 public final class Structures {
-    @JsonProperty("cdId")
+    @JsonProperty("cd_id")
     public String cdId;
-    @JsonProperty("cdFormular")
+    @JsonProperty("cd_formular")
     public String cdFormular;
-    @JsonProperty("cdMolweight")
+    @JsonProperty("cd_molweight")
     public String cdMolweight;
     @JsonProperty("id")
     public String id;
@@ -20,7 +22,7 @@ public final class Structures {
     public String clogp;
     @JsonProperty("alogs")
     public String alogs;
-    @JsonProperty("casRegNo")
+    @JsonProperty("cas_reg_no")
     public String casRegNo;
     @JsonProperty("tpsa")
     public String tpsa;
@@ -28,7 +30,7 @@ public final class Structures {
     public String lipinski;
     @JsonProperty("name")
     public String name;
-    @JsonProperty("noFormulations")
+    @JsonProperty("no_formulations")
     public String noFormulations;
     @JsonProperty("stem")
     public String stem;
@@ -36,34 +38,36 @@ public final class Structures {
     public String molfile;
     @JsonProperty("mrdef")
     public String mrdef;
-    @JsonProperty("enhancedStereo")
+    @JsonProperty("enhanced_stereo")
     public String enhancedStereo;
-    @JsonProperty("aromC")
+    @JsonProperty("arom_c")
     public String aromC;
-    @JsonProperty("sp3C")
+    @JsonProperty("sp3_c")
     public String sp3C;
-    @JsonProperty("sp2C")
+    @JsonProperty("sp2_c")
     public String sp2C;
-    @JsonProperty("spC")
+    @JsonProperty("sp_c")
     public String spC;
     @JsonProperty("halogen")
     public String halogen;
-    @JsonProperty("heteroSp2C")
+    @JsonProperty("hetero_sp2_c")
     public String heteroSp2C;
     @JsonProperty("rotb")
     public String rotb;
     @JsonProperty("molimg")
     public String molimg;
-    @JsonProperty("oN")
+    @JsonProperty("o_n")
     public String ohNh;
+    @JsonProperty("oh_nh")
+    public String oh_nh;
     @JsonProperty("inchi")
     public String inchi;
     @JsonProperty("smiles")
     public String smiles;
     @JsonProperty("rgb")
     public String rgb;
-    @JsonProperty("fdaLabels")
+    @JsonProperty("fda_labels")
     public String fdaLabels;
-    @JsonProperty("inchiKey")
+    @JsonProperty("inchikey")
     public String inchiKey;
 }

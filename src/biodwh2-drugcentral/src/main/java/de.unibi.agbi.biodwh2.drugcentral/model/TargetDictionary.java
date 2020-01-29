@@ -3,18 +3,18 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder(value = {"id", "name", "targetClass", "proteinComponents", "proteinType", "tdl"})
+@JsonPropertyOrder(value = {"id", "name", "target_class", "protein_components", "protein_type", "tdl"})
 
 public final class TargetDictionary {
     @JsonProperty("id")
     public String id;
     @JsonProperty("name")
     public String name;
-    @JsonProperty("targetClass")
+    @JsonProperty("target_class")
     public String targetClass;
-    @JsonProperty("proteinComponents")
+    @JsonProperty("protein_components")
     public String proteiComponents;
-    @JsonProperty("proteinType")
+    @JsonProperty("protein_type")
     public String proteinType;
     @JsonProperty("tdl")
     public String tdl;

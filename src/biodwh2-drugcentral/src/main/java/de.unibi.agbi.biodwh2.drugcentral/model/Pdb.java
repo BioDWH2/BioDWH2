@@ -3,27 +3,29 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder(value = {"id", "structId", "pdb", "chainId", "accession", "title", "pubmedId",
-                            "expMethod", "depositionDate", "ligandId"})
+@JsonPropertyOrder(value = {
+        "id", "struct_id", "pdb", "chain_id", "accession", "title", "pubmed_id", "exp_method", "deposition_date",
+        "ligand_id"
+})
 public final class Pdb {
     @JsonProperty("id")
     public String id;
-    @JsonProperty("structId")
+    @JsonProperty("struct_id")
     public String structId;
     @JsonProperty("pdb")
     public String pdb;
-    @JsonProperty("chainId")
+    @JsonProperty("chain_id")
     public String chainId;
     @JsonProperty("accession")
     public String accession;
     @JsonProperty("title")
     public String title;
-    @JsonProperty("pubmedId")
+    @JsonProperty("pubmed_id")
     public String pubmedId;
-    @JsonProperty("expMethod")
+    @JsonProperty("exp_method")
     public String expMethod;
-    @JsonProperty("depositionDate")
+    @JsonProperty("deposition_date")
     public String depositionDate;
-    @JsonProperty("ligandId")
+    @JsonProperty("ligand_id")
     public String ligandId;
 }

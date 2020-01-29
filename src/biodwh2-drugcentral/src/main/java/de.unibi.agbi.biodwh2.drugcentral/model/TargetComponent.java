@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder(value = {"id", "accession", "swissprot", "organism"})
+@JsonPropertyOrder(value = {"id", "accession", "swissprot", "organism", "name", "gene", "geneid", "tdl"})
 
 public final class TargetComponent {
     @JsonProperty("id")
@@ -18,7 +18,7 @@ public final class TargetComponent {
     public String name;
     @JsonProperty("gene")
     public String gene;
-    @JsonProperty("geneId")
+    @JsonProperty("geneid")
     public String geneId;
     @JsonProperty("tdl")
     public String tdl;

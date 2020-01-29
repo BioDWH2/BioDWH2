@@ -3,24 +3,26 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder(value = {"id", "ndcProductCode", "form", "genericName", "productCode",
-"route", "marketingStatus", "activeIngredientCount"})
+@JsonPropertyOrder(value = {
+        "id", "ndc_product_code", "form", "generic_name", "product_code", "route", "marketing_status",
+        "active_ingredient_count"
+})
 
 public final class Product {
     @JsonProperty("id")
     public String id;
-    @JsonProperty("ndcProductCode")
+    @JsonProperty("ndc_product_code")
     public String ndcProductCode;
     @JsonProperty("form")
     public String form;
-    @JsonProperty("genericName")
+    @JsonProperty("generic_name")
     public String genericName;
-    @JsonProperty("productName")
+    @JsonProperty("product_name")
     public String productName;
     @JsonProperty("route")
     public String route;
-    @JsonProperty("marketingStatus")
+    @JsonProperty("marketing_status")
     public String marketingStatus;
-    @JsonProperty("activeIngredientCount")
+    @JsonProperty("active_ingredient_count")
     public String activeIngredientCount;
 }

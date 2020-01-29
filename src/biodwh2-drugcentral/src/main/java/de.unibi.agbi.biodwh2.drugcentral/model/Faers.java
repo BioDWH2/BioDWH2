@@ -3,30 +3,32 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder(value = {"id", "structId", "meddraName", "meddraCode", "level", "llr", "llrThreshold", "drugAe",
-"drugNoAe", "noDrugAe", "NoDrugNoAe"})
+@JsonPropertyOrder(value = {
+        "id", "struct_id", "meddra_name", "meddra_code", "level", "llr", "llr_threshold", "drug_ae", "drug_no_ae",
+        "no_drug_ae", "no_drug_no_ae"
+})
 
 public final class Faers {
     @JsonProperty("id")
     public String id;
-    @JsonProperty("structId")
+    @JsonProperty("struct_id")
     public String structId;
-    @JsonProperty("meddraName")
+    @JsonProperty("meddra_name")
     public String meddraName;
-    @JsonProperty("meddraCode")
+    @JsonProperty("meddra_code")
     public String meddraCode;
     @JsonProperty("level")
     public String level;
     @JsonProperty("llr")
     public String llr;
-    @JsonProperty("llrThreshold")
+    @JsonProperty("llr_threshold")
     public String llrThreshold;
-    @JsonProperty("drugAe")
+    @JsonProperty("drug_ae")
     public String drugAe;
-    @JsonProperty("drugNoAe")
+    @JsonProperty("drug_no_ae")
     public String drugNoAe;
-    @JsonProperty("noDrugAe")
+    @JsonProperty("no_drug_ae")
     public String noDrugAe;
-    @JsonProperty("NoDrugNoAe")
+    @JsonProperty("no_drug_no_ae")
     public String NoDrugNoAe;
 }

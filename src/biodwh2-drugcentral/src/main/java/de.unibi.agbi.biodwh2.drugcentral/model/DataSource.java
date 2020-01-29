@@ -3,11 +3,11 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder(value = {"srcId", "sourceName"})
+@JsonPropertyOrder(value = {"src_id", "source_name"})
 
 public final class DataSource {
-    @JsonProperty("srcId")
+    @JsonProperty("src_id")
     public String srcId;
-    @JsonProperty("sourceName")
+    @JsonProperty("source_name")
     public String sourceName;
 }

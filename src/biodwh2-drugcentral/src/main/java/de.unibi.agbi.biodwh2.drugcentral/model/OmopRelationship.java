@@ -3,26 +3,28 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder(value = {"id", "structId", "conceptId", "relationshipName", "conceptName",
-"umlsCui", "snomedFullName", "cuiSemanticType", "snomedConceptId"})
+@JsonPropertyOrder(value = {
+        "id", "struct_id", "concept_id", "relationship_name", "concept_name", "umls_cui", "snomed_full_name",
+        "cui_semantic_type", "snomed_concept_id"
+})
 
 public final class OmopRelationship {
     @JsonProperty("id")
     public String id;
-    @JsonProperty("structId")
+    @JsonProperty("struct_id")
     public String structId;
-    @JsonProperty("conceptId")
+    @JsonProperty("concept_id")
     public String conceptId;
-    @JsonProperty("relationshipName")
+    @JsonProperty("relationship_name")
     public String relationshipName;
-    @JsonProperty("conceptName")
+    @JsonProperty("concept_name")
     public String conceptName;
-    @JsonProperty("umlsCui")
+    @JsonProperty("umls_cui")
     public String umlsCui;
-    @JsonProperty("snomedFullName")
+    @JsonProperty("snomed_full_name")
     public String snomedFullName;
-    @JsonProperty("cuiSemanticType")
+    @JsonProperty("cui_semantic_type")
     public String cuiSemanticType;
-    @JsonProperty("snomedConceptId")
+    @JsonProperty("snomed_concept_id")
     public String snomedConceptId;
 }

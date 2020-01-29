@@ -4,21 +4,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder(value = {
-        "actId", "structId", "targetId", "targetName", "targetClass", "accession", "gene", "swissprot", "actValue",
-        "actUnit", "actType", "actComment", "actSource", "relation", "moa", "moaSource", "actSourceUrl", "moaSourceUrl",
-        "actionType", "firstInClass", "tdl", "actRefId", "moaRefId", "organism"
+        "act_id", "struct_id", "target_id", "target_name", "target_class", "accession", "gene", "swissprot",
+        "act_value", "act_unit", "act_type", "act_comment", "act_source", "relation", "moa", "moa_source",
+        "act_source_url", "moa_source_url", "action_type", "first_in_class", "tdl", "act_ref_id", "moa_ref_id",
+        "organism"
 })
 
 public final class ActTableFull {
-    @JsonProperty("actId")
+    @JsonProperty("act_id")
     public String actId;
-    @JsonProperty("structId")
+    @JsonProperty("struct_id")
     public String structId;
-    @JsonProperty("targetId")
+    @JsonProperty("target_id")
     public String targetId;
-    @JsonProperty("targetName")
+    @JsonProperty("target_name")
     public String targetName;
-    @JsonProperty("targetClass")
+    @JsonProperty("target_class")
     public String targetClass;
     @JsonProperty("accession")
     public String accession;
@@ -26,35 +27,35 @@ public final class ActTableFull {
     public String gene;
     @JsonProperty("swissprot")
     public String swissprot;
-    @JsonProperty("actValue")
+    @JsonProperty("act_value")
     public String actValue;
-    @JsonProperty("actUnit")
+    @JsonProperty("act_unit")
     public String actUnit;
-    @JsonProperty("actType")
+    @JsonProperty("act_type")
     public String actType;
-    @JsonProperty("actComment")
+    @JsonProperty("act_comment")
     public String actComment;
-    @JsonProperty("actSource")
+    @JsonProperty("act_source")
     public String actSource;
     @JsonProperty("relation")
     public String relation;
     @JsonProperty("moa")
     public String moa;
-    @JsonProperty("moaSource")
+    @JsonProperty("moa_source")
     public String moaSource;
-    @JsonProperty("actSourceUrl")
+    @JsonProperty("act_source_url")
     public String actSourceUrl;
-    @JsonProperty("moaSourceUrl")
+    @JsonProperty("moa_source_url")
     public String moaSourceUrl;
-    @JsonProperty("actionType")
+    @JsonProperty("action_type")
     public String actionType;
-    @JsonProperty("firstInClass")
+    @JsonProperty("first_in_class")
     public String firstInClass;
     @JsonProperty("tdl")
     public String tdl;
-    @JsonProperty("actRefId")
+    @JsonProperty("act_ref_id")
     public String actRefId;
-    @JsonProperty("moaRefId")
+    @JsonProperty("moa_ref_id")
     public String moaRefId;
     @JsonProperty("organism")
     public String organism;
