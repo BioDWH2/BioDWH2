@@ -25,7 +25,7 @@ public class NDFRTDataSource extends DataSource {
 
     @Override
     public RDFExporter getRdfExporter() {
-        return new NDFRTRDFExporter();
+        return new EmptyRDFExporter();
     }
 
     @Override

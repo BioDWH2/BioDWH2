@@ -25,7 +25,7 @@ public class MEDRTDataSource extends DataSource {
 
     @Override
     public RDFExporter getRdfExporter() {
-        return new MEDRTRDFExporter();
+        return new EmptyRDFExporter();
     }
 
     @Override

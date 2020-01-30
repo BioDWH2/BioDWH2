@@ -31,7 +31,7 @@ public class DrugCentralDataSource extends DataSource {
 
     @Override
     public RDFExporter getRdfExporter() {
-        return new DrugCentralRDFExporter();
+        return new EmptyRDFExporter();
     }
 
     @Override

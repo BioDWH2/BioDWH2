@@ -25,7 +25,7 @@ public class DrugBankDataSource extends DataSource {
 
     @Override
     public RDFExporter getRdfExporter() {
-        return new DrugBankRDFExporter();
+        return new EmptyRDFExporter();
     }
 
     @Override

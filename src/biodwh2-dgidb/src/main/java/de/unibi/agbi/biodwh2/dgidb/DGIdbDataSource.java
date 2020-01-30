@@ -22,7 +22,7 @@ public class DGIdbDataSource extends DataSource {
 
     @Override
     public RDFExporter getRdfExporter() {
-        return new DGIdbRDFExporter();
+        return new EmptyRDFExporter();
     }
 
     @Override

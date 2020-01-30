@@ -81,6 +81,8 @@ public class GraphMLGraphWriter extends GraphWriter {
         writer.writeAttribute("id", key);
         writer.writeAttribute("for", propertyFor);
         writer.writeAttribute("attr.name", key);
+        // boolean, int, long, float, double, string
+        //writer.writeAttribute("attr.type", "string");
         writer.writeEndElement();
     }
 
