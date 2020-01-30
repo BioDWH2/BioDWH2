@@ -9,10 +9,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -64,39 +61,52 @@ public class GraphMLGraphWriter extends GraphWriter {
     }
 
     private void writeNodeProperties(XMLStreamWriter writer, Graph graph) throws XMLStreamException {
-        for (String key : collectAllNodePropertyNames(graph.getNodes()))
-            writePropertyKey(writer, key, "node");
+        Map<String, Class<?>> nodePropertyKeyTypes = collectAllNodePropertyKeyTypes(graph.getNodes());
+        for (String key : nodePropertyKeyTypes.keySet())
+            writePropertyKey(writer, key, nodePropertyKeyTypes.get(key), "node");
     }
 
-    private Set<String> collectAllNodePropertyNames(Collection<Node> nodes) {
-        Set<String> propertyNames = new HashSet<>();
-        propertyNames.add("labels");
-        for (Node node : nodes)
-            propertyNames.addAll(node.getPropertyKeys());
-        return propertyNames;
+    private Map<String, Class<?>> collectAllNodePropertyKeyTypes(Collection<Node> nodes) {
+        Map<String, Class<?>> propertyKeyTypes = new HashMap<>();
+        propertyKeyTypes.put("labels", String.class);
+        for (Node node : nodes) {
+            Map<String, Class<?>> nodePropertyKeyTypes = node.getPropertyKeyTypes();
+            for (String key : nodePropertyKeyTypes.keySet())
+                propertyKeyTypes.put(key, nodePropertyKeyTypes.get(key));
+        }
+        return propertyKeyTypes;
     }
 
-    private void writePropertyKey(XMLStreamWriter writer, String key, String propertyFor) throws XMLStreamException {
+    private void writePropertyKey(XMLStreamWriter writer, String key, Class<?> type,
+                                  String propertyFor) throws XMLStreamException {
         writer.writeStartElement("key");
         writer.writeAttribute("id", key);
         writer.writeAttribute("for", propertyFor);
         writer.writeAttribute("attr.name", key);
+        if (type.isArray()) {
+            writer.writeAttribute("attr.list", "string");
+            type = type.getComponentType();
+        }
         // boolean, int, long, float, double, string
-        //writer.writeAttribute("attr.type", "string");
+        writer.writeAttribute("attr.type", type.getSimpleName().toLowerCase(Locale.US));
         writer.writeEndElement();
     }
 
     private void writeEdgeProperties(XMLStreamWriter writer, Graph graph) throws XMLStreamException {
-        for (String key : collectAllEdgePropertyNames(graph.getEdges()))
-            writePropertyKey(writer, key, "edge");
+        Map<String, Class<?>> edgePropertyKeyTypes = collectAllEdgePropertyKeyTypes(graph.getEdges());
+        for (String key : edgePropertyKeyTypes.keySet())
+            writePropertyKey(writer, key, edgePropertyKeyTypes.get(key), "edge");
     }
 
-    private Set<String> collectAllEdgePropertyNames(Collection<Edge> edges) {
-        Set<String> propertyNames = new HashSet<>();
-        propertyNames.add("label");
-        for (Edge edge : edges)
-            propertyNames.addAll(edge.getPropertyKeys());
-        return propertyNames;
+    private Map<String, Class<?>> collectAllEdgePropertyKeyTypes(Collection<Edge> edges) {
+        Map<String, Class<?>> propertyKeyTypes = new HashMap<>();
+        propertyKeyTypes.put("label", String.class);
+        for (Edge edge : edges) {
+            Map<String, Class<?>> nodePropertyKeyTypes = edge.getPropertyKeyTypes();
+            for (String key : nodePropertyKeyTypes.keySet())
+                propertyKeyTypes.put(key, nodePropertyKeyTypes.get(key));
+        }
+        return propertyKeyTypes;
     }
 
     private void writeNode(XMLStreamWriter writer, Node node) throws XMLStreamException {

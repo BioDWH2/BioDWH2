@@ -30,6 +30,7 @@ public final class BioDWH2 {
         Option integrateOption = new Option("i", "integrate", true,
                                             "Integrates manually downloaded data sources to a workspace");
         integrateOption.setArgs(3);
+        options.addOption(new Option("su", "skip-update", false, "Skip update, only parse and export"));
         options.addOption(integrateOption);
         return options;
     }
@@ -53,8 +54,9 @@ public final class BioDWH2 {
 
     private static void updateWorkspace(final CommandLine commandLine) throws Exception {
         String workspacePath = commandLine.getOptionValue("u");
+        boolean skipUpdate = commandLine.hasOption("su");
         Workspace workspace = new Workspace(workspacePath);
-        workspace.updateDataSources(null, null);
+        workspace.updateDataSources(null, null, skipUpdate);
     }
 
     private static void integrateWorkspace(final CommandLine commandLine) throws Exception {
@@ -66,8 +68,9 @@ public final class BioDWH2 {
             throw new Exception(
                     "The integrate command needs three non-empty arguments. data source name is '" + dataSourceName +
                     "' and version '" + version + "'");
+        boolean skipUpdate = commandLine.hasOption("su");
         Workspace workspace = new Workspace(workspacePath);
-        workspace.updateDataSources(dataSourceName, version);
+        workspace.updateDataSources(dataSourceName, version, skipUpdate);
     }
 
     private static void printHelp(final Options options) {

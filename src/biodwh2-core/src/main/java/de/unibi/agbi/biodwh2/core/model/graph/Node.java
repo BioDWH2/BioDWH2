@@ -33,6 +33,13 @@ public class Node {
         return properties.keySet();
     }
 
+    public Map<String, Class<?>> getPropertyKeyTypes() {
+        Map<String, Class<?>> keyTypeMap = new HashMap<>();
+        for (String key : properties.keySet())
+            keyTypeMap.put(key, properties.get(key).getClass());
+        return keyTypeMap;
+    }
+
     public <T> T getProperty(String key) {
         //noinspection unchecked
         return (T) properties.get(key);

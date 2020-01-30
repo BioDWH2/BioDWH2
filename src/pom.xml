@@ -16,6 +16,7 @@
         <module>biodwh2-medrt</module>
         <module>biodwh2-main</module>
         <module>biodwh2-drugcentral</module>
+        <module>biodwh2-kegg</module>
     </modules>
 
     <packaging>pom</packaging>

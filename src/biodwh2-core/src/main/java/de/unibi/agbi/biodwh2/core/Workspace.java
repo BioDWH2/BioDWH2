@@ -174,21 +174,23 @@ public class Workspace {
         return true;
     }
 
-    public void updateDataSources(final String sourceName, final String version) {
+    public void updateDataSources(final String sourceName, final String version, final boolean skipUpdate) {
         if (prepareDataSources()) {
             for (DataSource dataSource : dataSources)
                 if (sourceName == null || dataSource.getId().equals(sourceName))
-                    updateDataSource(dataSource, version);
+                    updateDataSource(dataSource, version, skipUpdate);
             mergeDataSources();
         }
     }
 
-    private void updateDataSource(final DataSource dataSource, final String version) {
+    private void updateDataSource(final DataSource dataSource, final String version, final boolean skipUpdate) {
         logger.info("Processing of data source '" + dataSource.getId() + "' started");
-        if (version != null)
-            dataSource.updateManually(this, version);
-        else
-            dataSource.updateAutomatic(this);
+        if (!skipUpdate) {
+            if (version != null)
+                dataSource.updateManually(this, version);
+            else
+                dataSource.updateAutomatic(this);
+        }
         if (dataSource.getMetadata().updateSuccessful) {
             dataSource.parse(this);
             dataSource.export(this);
