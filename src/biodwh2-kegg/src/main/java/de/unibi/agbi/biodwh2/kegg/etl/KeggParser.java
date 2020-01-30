@@ -6,8 +6,7 @@ import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserFormatException;
 import de.unibi.agbi.biodwh2.kegg.KeggDataSource;
-import de.unibi.agbi.biodwh2.kegg.model.Drug;
-import de.unibi.agbi.biodwh2.kegg.model.DrugGroup;
+import de.unibi.agbi.biodwh2.kegg.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,12 +23,12 @@ public class KeggParser extends Parser {
     @Override
     public boolean parse(Workspace workspace, DataSource dataSource) throws ParserException {
         KeggDataSource keggDataSource = (KeggDataSource) dataSource;
-        parseDrugGroups(workspace, keggDataSource);
-        keggDataSource.diseases = new ArrayList<>();
-        parseDrugs(workspace, keggDataSource);
-        keggDataSource.networks = new ArrayList<>();
-        keggDataSource.variants = new ArrayList<>();
-        return false;
+        boolean success = parseDrugGroups(workspace, keggDataSource);
+        success = success && parseDiseases(workspace, keggDataSource);
+        success = success && parseDrugs(workspace, keggDataSource);
+        success = success && parseNetworks(workspace, keggDataSource);
+        success = success && parseVariants(workspace, keggDataSource);
+        return success;
     }
 
     private boolean parseDrugGroups(Workspace workspace, KeggDataSource dataSource) throws ParserException {
@@ -88,13 +87,6 @@ public class KeggParser extends Parser {
                     dataSource.drugGroupChildMap.get(parentId).add(id);
                 }
             }
-            entry.remove("id");
-            entry.remove("tags");
-            entry.remove("NAME");
-            entry.remove("REMARK");
-            entry.remove("COMMENT");
-            entry.remove("  STEM");
-            entry.remove("MEMBER");
             // TODO: CLASS
             dataSource.drugGroups.add(drugGroup);
         }
@@ -138,6 +130,35 @@ public class KeggParser extends Parser {
             throw new ParserFormatException("Failed to parse kegg file '" + filePath + "'", e);
         }
         return result;
+    }
+
+    private boolean parseDiseases(Workspace workspace, KeggDataSource dataSource) throws ParserException {
+        dataSource.diseases = new ArrayList<>();
+        List<Map<String, List<String>>> diseases = parseKeggFile(
+                dataSource.resolveSourceFilePath(workspace, "disease"));
+        for (Map<String, List<String>> entry : diseases) {
+            Disease disease = new Disease();
+            disease.id = entry.get("id").get(0);
+            disease.externalIds.add("KEGG:" + disease.id);
+            disease.tags = entry.get("tags");
+            disease.names = entry.get("NAME");
+            if (entry.containsKey("DBLINKS")) {
+                for (String remark : entry.get("DBLINKS")) {
+                    String dbName = remark.split(":")[0].trim();
+                    String idValues = remark.split(":")[1].trim();
+                    List<String> ids = Arrays.stream(idValues.split(" ")).filter(x -> x.length() > 0).map(
+                            x -> dbName + ":" + x).collect(Collectors.toList());
+                    disease.externalIds.addAll(ids);
+                }
+            }
+            if (entry.containsKey("DRUG"))
+                for (String drug : entry.get("DRUG"))
+                    // TODO: consider factors after [DR:D00000]
+                    disease.indicatedDrugIds.add(drug.split("\\[")[1].split("]")[0].split(":")[1]);
+            // [ENV_FACTOR,   SUBGROUP, NETWORK, PATHOGEN,   MODULE, CARCINOGEN, COMMENT,   SUPERGRP, GENE,   JOURNAL, DESCRIPTION, CATEGORY, REFERENCE,   TITLE,   ELEMENT,   AUTHORS]
+            dataSource.diseases.add(disease);
+        }
+        return true;
     }
 
     private boolean parseDrugs(Workspace workspace, KeggDataSource dataSource) throws ParserException {
@@ -195,6 +216,36 @@ public class KeggParser extends Parser {
             entry.remove("ATOM");
             entry.remove("BRACKET");
             dataSource.drugs.add(drug);
+        }
+        return true;
+    }
+
+    private boolean parseNetworks(Workspace workspace, KeggDataSource dataSource) throws ParserException {
+        dataSource.networks = new ArrayList<>();
+        List<Map<String, List<String>>> networks = parseKeggFile(
+                dataSource.resolveSourceFilePath(workspace, "network"));
+        for (Map<String, List<String>> entry : networks) {
+            Network network = new Network();
+            network.id = entry.get("id").get(0);
+            network.externalIds.add("KEGG:" + network.id);
+            network.tags = entry.get("tags");
+            network.names = entry.get("NAME");
+            dataSource.networks.add(network);
+        }
+        return true;
+    }
+
+    private boolean parseVariants(Workspace workspace, KeggDataSource dataSource) throws ParserException {
+        dataSource.variants = new ArrayList<>();
+        List<Map<String, List<String>>> variants = parseKeggFile(
+                dataSource.resolveSourceFilePath(workspace, "disease"));
+        for (Map<String, List<String>> entry : variants) {
+            Variant variant = new Variant();
+            variant.id = entry.get("id").get(0);
+            variant.externalIds.add("KEGG:" + variant.id);
+            variant.tags = entry.get("tags");
+            variant.names = entry.get("NAME");
+            dataSource.variants.add(variant);
         }
         return true;
     }

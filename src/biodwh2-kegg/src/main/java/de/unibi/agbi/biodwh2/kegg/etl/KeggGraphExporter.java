@@ -6,6 +6,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.kegg.KeggDataSource;
+import de.unibi.agbi.biodwh2.kegg.model.Disease;
 import de.unibi.agbi.biodwh2.kegg.model.Drug;
 import de.unibi.agbi.biodwh2.kegg.model.DrugGroup;
 
@@ -52,11 +53,25 @@ public class KeggGraphExporter extends GraphExporter {
             idNodeMap.put(drug.id, node);
             graph.addNode(node);
         }
+        for (Disease disease : keggDataSource.diseases) {
+            String[] labels = disease.tags.stream().map(x -> "KEGG_" + x).toArray(String[]::new);
+            Node node = new Node(nodeId, labels);
+            nodeId += 1;
+            node.setProperty("_id", disease.id);
+            if (disease.names != null && disease.names.size() > 0)
+                node.setProperty("names", disease.names.toArray(new String[0]));
+            node.setProperty("ids", disease.externalIds.toArray(new String[0]));
+            if (disease.indicatedDrugIds != null)
+                for (String drugId : disease.indicatedDrugIds)
+                    graph.addEdge(new Edge(idNodeMap.get(drugId), node, "INDICATES"));
+            idNodeMap.put(disease.id, node);
+            graph.addNode(node);
+        }
         for (String key : keggDataSource.drugGroupChildMap.keySet()) {
             for (String child : keggDataSource.drugGroupChildMap.get(key)) {
                 // TODO: handle chemical and missing links
                 if (idNodeMap.containsKey(child))
-                   graph.addEdge(new Edge(idNodeMap.get(key), idNodeMap.get(child), "HAS_MEMBER"));
+                    graph.addEdge(new Edge(idNodeMap.get(key), idNodeMap.get(child), "HAS_MEMBER"));
             }
         }
         return graph;
