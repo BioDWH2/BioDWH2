@@ -11,10 +11,10 @@ public final class DataSourceMetadata {
     public Version version;
     public String updateDateTime;
     public List<String> sourceFileNames;
-    public Boolean parseSuccessfull;
-    public Boolean exportRDFSuccessfull;
-    public Boolean exportGraphMLSuccessfull;
     public Boolean updateSuccessful;
+    public Boolean parseSuccessful;
+    public Boolean exportRDFSuccessful;
+    public Boolean exportGraphMLSuccessful;
     public Boolean mergeSuccessful;
 
     public DataSourceMetadata() {

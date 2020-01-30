@@ -7,7 +7,6 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -21,43 +20,27 @@ public abstract class Updater {
         Version workspaceVersion = dataSource.getMetadata().version;
         if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
             logger.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
-            return false;
+            return true;
         }
         logger.info("New version of data source '" + dataSource.getId() + "' found (old: " +
                     (workspaceVersion != null ? workspaceVersion : "none") + ", new: " + newestVersion + ")");
         if (tryUpdateFiles(workspace, dataSource)) {
-            dataSource.getMetadata().version = newestVersion;
-            dataSource.getMetadata().setUpdateDateTimeNow();
-            dataSource.getMetadata().sourceFileNames = dataSource.listSourceFiles(workspace);
-            try {
-                dataSource.saveMetadata(workspace);
-            } catch (IOException e) {
-                logger.error("Failed to save metadata for data source '" + dataSource.getId() + "'", e);
-                return false;
-            }
+            updateDataSourceMetadata(workspace, dataSource, newestVersion);
             return true;
         }
         return false;
     }
 
-    public final boolean integrate(Workspace workspace, DataSource dataSource, String version) throws UpdaterException {
+    public final boolean updateManually(Workspace workspace, DataSource dataSource, String version) {
         Version workspaceVersion = dataSource.getMetadata().version;
         Version newestVersion = Version.tryParse(version);
         if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
             logger.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
-            return false;
+            return true;
         }
         logger.info("New version of data source '" + dataSource.getId() + "' found (old: " +
                     (workspaceVersion != null ? workspaceVersion : "none") + ", new: " + newestVersion + ")");
-        dataSource.getMetadata().version = newestVersion;
-        dataSource.getMetadata().setUpdateDateTimeNow();
-        dataSource.getMetadata().sourceFileNames = dataSource.listSourceFiles(workspace);
-        try {
-            dataSource.saveMetadata(workspace);
-        } catch (IOException e) {
-            logger.error("Failed to save metadata for data source '" + dataSource.getId() + "'", e);
-            return false;
-        }
+        updateDataSourceMetadata(workspace, dataSource, newestVersion);
         return true;
     }
 
@@ -66,6 +49,12 @@ public abstract class Updater {
     }
 
     protected abstract boolean tryUpdateFiles(Workspace workspace, DataSource dataSource) throws UpdaterException;
+
+    final void updateDataSourceMetadata(Workspace workspace, DataSource dataSource, Version version) {
+        dataSource.getMetadata().version = version;
+        dataSource.getMetadata().setUpdateDateTimeNow();
+        dataSource.getMetadata().sourceFileNames = dataSource.listSourceFiles(workspace);
+    }
 
     protected static Version convertDateTimeToVersion(LocalDateTime dateTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd.HHmmss");

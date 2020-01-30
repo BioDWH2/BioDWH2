@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.core;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
 import org.slf4j.Logger;
@@ -18,6 +19,8 @@ import java.util.stream.Collectors;
 
 public abstract class DataSource {
     private static final Logger logger = LoggerFactory.getLogger(DataSource.class);
+    private static final String SourceDirectoryName = "source";
+    private static final String MetadataFileName = "metadata.json";
 
     private DataSourceMetadata metadata;
 
@@ -29,28 +32,100 @@ public abstract class DataSource {
 
     public abstract Updater getUpdater();
 
-    public abstract Parser getParser();
+    protected abstract Parser getParser();
 
-    public abstract RDFExporter getRdfExporter();
+    protected abstract RDFExporter getRdfExporter();
 
-    public abstract GraphExporter getGraphExporter();
+    protected abstract GraphExporter getGraphExporter();
 
     public abstract Merger getMerger();
 
-    void createDirectoryIfNotExists(Workspace workspace) throws IOException {
-        Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId()));
-        Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId(), "source"));
+    void prepare(Workspace workspace) throws DataSourceException {
+        try {
+            createDirectoryIfNotExists(workspace);
+            createOrLoadMetadata(workspace);
+        } catch (IOException e) {
+            throw new DataSourceException("Failed to prepare data source '" + getId() + "'", e);
+        }
     }
 
-    void createOrLoadMetadata(Workspace workspace) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Path path = Paths.get(workspace.getSourcesDirectory(), getId(), "metadata.json");
-        if (Files.exists(path))
+    private void createDirectoryIfNotExists(Workspace workspace) throws IOException {
+        Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId()));
+        Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId(), SourceDirectoryName));
+    }
+
+    private void createOrLoadMetadata(Workspace workspace) throws IOException {
+        Path path = Paths.get(workspace.getSourcesDirectory(), getId(), MetadataFileName);
+        if (Files.exists(path)) {
+            ObjectMapper objectMapper = new ObjectMapper();
             metadata = objectMapper.readValue(path.toFile(), DataSourceMetadata.class);
-        else {
+        } else {
             metadata = new DataSourceMetadata();
-            objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-            objectMapper.writeValue(path.toFile(), metadata);
+            saveMetadata(workspace);
+        }
+    }
+
+    private void saveMetadata(Workspace workspace) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Path path = Paths.get(workspace.getSourcesDirectory(), getId(), MetadataFileName);
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        objectMapper.writeValue(path.toFile(), metadata);
+    }
+
+    public final void trySaveMetadata(Workspace workspace) {
+        try {
+            saveMetadata(workspace);
+        } catch (IOException e) {
+            logger.error("Failed to save metadata for data source '" + getId() + "'", e);
+        }
+    }
+
+    final void updateAutomatic(Workspace workspace) {
+        try {
+            metadata.updateSuccessful = getUpdater().update(workspace, this);
+        } catch (UpdaterOnlyManuallyException e) {
+            logger.error("Data source '" + getId() + "' can only be updated manually. Download the new version of " +
+                         getId() + " and use the command line parameter -i or --integrate to add the data to the " +
+                         "workspace. \nHelp: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
+        } catch (UpdaterException e) {
+            logger.error("Failed to update data source '" + getId() + "'", e);
+            metadata.updateSuccessful = false;
+        }
+    }
+
+    final void updateManually(Workspace workspace, String version) {
+        metadata.updateSuccessful = getUpdater().updateManually(workspace, this, version);
+    }
+
+    final void parse(Workspace workspace) {
+        try {
+            metadata.parseSuccessful = getParser().parse(workspace, this);
+        } catch (ParserException e) {
+            logger.error("Failed to parse data source '" + getId() + "'", e);
+            metadata.parseSuccessful = false;
+        }
+    }
+
+    final void export(Workspace workspace) {
+        exportRdf(workspace);
+        exportGraphML(workspace);
+    }
+
+    final void exportRdf(Workspace workspace) {
+        try {
+            metadata.exportRDFSuccessful = getRdfExporter().export(workspace, this);
+        } catch (ExporterException e) {
+            logger.error("Failed to export data source '" + getId() + "' in RDF format", e);
+            metadata.exportRDFSuccessful = false;
+        }
+    }
+
+    final void exportGraphML(Workspace workspace) {
+        try {
+            metadata.exportGraphMLSuccessful = getGraphExporter().export(workspace, this);
+        } catch (ExporterException e) {
+            logger.error("Failed to export data source '" + getId() + "' in GraphML format", e);
+            metadata.exportGraphMLSuccessful = false;
         }
     }
 
@@ -60,11 +135,11 @@ public abstract class DataSource {
     }
 
     public final String resolveSourceFilePath(Workspace workspace, String filePath) {
-        return Paths.get(workspace.getSourcesDirectory(), getId(), "source", filePath).toString();
+        return Paths.get(workspace.getSourcesDirectory(), getId(), SourceDirectoryName, filePath).toString();
     }
 
     public final List<String> listSourceFiles(Workspace workspace) {
-        Path sourcePath = Paths.get(workspace.getSourcesDirectory(), getId(), "source");
+        Path sourcePath = Paths.get(workspace.getSourcesDirectory(), getId(), SourceDirectoryName);
         try {
             return Files.walk(sourcePath).filter(Files::isRegularFile).map(sourcePath::relativize).map(Path::toString)
                         .collect(Collectors.toList());
@@ -72,12 +147,5 @@ public abstract class DataSource {
             logger.error("Failed to list files of data source '" + getId() + "'", e);
         }
         return new ArrayList<>();
-    }
-
-    public final void saveMetadata(Workspace workspace) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Path path = Paths.get(workspace.getSourcesDirectory(), getId(), "metadata.json");
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        objectMapper.writeValue(path.toFile(), metadata);
     }
 }

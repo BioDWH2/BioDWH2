@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -21,7 +20,8 @@ public class Workspace {
     private static final Logger logger = LoggerFactory.getLogger(Workspace.class);
 
     public static final int Version = 1;
-    private static final String SourcesDirectory = "sources";
+    private static final String SourcesDirectoryName = "sources";
+    private static final String ConfigFileName = "config.json";
 
     private final String workingDirectory;
     private final Configuration configuration;
@@ -31,34 +31,28 @@ public class Workspace {
         this.workingDirectory = workingDirectory;
         createWorkingDirectoryIfNotExists();
         configuration = createOrLoadConfiguration();
+        logger.info("Using data sources " + configuration.dataSourceIds);
         dataSources = resolveUsedDataSources();
     }
 
     private void createWorkingDirectoryIfNotExists() throws IOException {
+        logger.info("Using workspace directory '" + workingDirectory + "'");
         Files.createDirectories(Paths.get(workingDirectory));
         Files.createDirectories(Paths.get(getSourcesDirectory()));
     }
 
-    public String getSourcesDirectory() {
-        return Paths.get(workingDirectory, SourcesDirectory).toString();
+    String getSourcesDirectory() {
+        return Paths.get(workingDirectory, SourcesDirectoryName).toString();
     }
 
     private Configuration createOrLoadConfiguration() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        Path path = Paths.get(workingDirectory, "config.json");
+        Path path = Paths.get(workingDirectory, ConfigFileName);
         if (Files.exists(path))
             return objectMapper.readValue(path.toFile(), Configuration.class);
         Configuration configuration = new Configuration();
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         objectMapper.writeValue(path.toFile(), configuration);
-        return configuration;
-    }
-
-    public String getWorkingDirectory() {
-        return workingDirectory;
-    }
-
-    public Configuration getConfiguration() {
         return configuration;
     }
 
@@ -86,51 +80,43 @@ public class Workspace {
         return configuration.dataSourceIds.contains(dataSource.getId());
     }
 
-    public void checkState(boolean verbose) {
-        ensureDataSourceDirectoriesExist();
-        createOrLoadDataSourcesMetadata();
-        Map<String, Boolean> sourcesUptodate = createSourcesUptodate(dataSources);
-        int countUpToDate = countSourcesUptodate(sourcesUptodate);
-        ArrayList<String> notUptodate = new ArrayList<>();
-        String loggerInfo = (countUpToDate == dataSources.size()) ? "all source data are up-to-date." :
-                            countUpToDate + "/" + dataSources.size() + " source data are up-to-date.";
-        String state = createStateTable(dataSources, sourcesUptodate, verbose);
-        logger.info(state);
-        logger.info(loggerInfo);
-        for (String file : sourcesUptodate.keySet()) {
-            if (!sourcesUptodate.get(file)) {
-                notUptodate.add(file);
-            }
+    public void checkState(final boolean verbose) {
+        if (prepareDataSources()) {
+            Map<String, Boolean> sourcesUpToDate = createSourcesUpToDate();
+            int countUpToDate = Collections.frequency(sourcesUpToDate.values(), true);
+            ArrayList<String> notUpToDate = new ArrayList<>();
+            for (String file : sourcesUpToDate.keySet())
+                if (!sourcesUpToDate.get(file))
+                    notUpToDate.add(file);
+            String loggerInfo = (countUpToDate == dataSources.size()) ? "all source data are up-to-date." :
+                                countUpToDate + "/" + dataSources.size() + " source data are up-to-date.";
+            String state = createStateTable(sourcesUpToDate, verbose);
+            logger.info(state);
+            logger.info(loggerInfo);
+            logger.info("Data sources to be updated: " + notUpToDate);
         }
-        logger.info("To be updated: " + notUptodate);
-
     }
 
-    private int countSourcesUptodate(Map<String, Boolean> sourcesUptodate) {
-        return Collections.frequency(sourcesUptodate.values(), true);
+    private Map<String, Boolean> createSourcesUpToDate() {
+        Map<String, Boolean> sourcesUpToDate = new HashMap<>();
+        for (DataSource dataSource : dataSources) {
+            String currentVersion = dataSource.getMetadata().version.toString();
+            String latestVersion = getLatestVersion(dataSource);
+            sourcesUpToDate.put(dataSource.getId(), currentVersion.equals(latestVersion));
+        }
+        return sourcesUpToDate;
     }
 
     private String getLatestVersion(DataSource dataSource) {
         try {
             return dataSource.getUpdater().getNewestVersion().toString();
         } catch (UpdaterException e) {
-            logger.error("New version of " + dataSource.getId() + " is not accessible.");
+            logger.error("Failed to get newest version for data source '" + dataSource.getId() + "'");
             return "-";
         }
     }
 
-    private Map<String, Boolean> createSourcesUptodate(List<DataSource> dataSources) {
-        Map<String, Boolean> sourcesUptodate = new HashMap<>();
-        for (DataSource dataSource : dataSources) {
-            String currentVersion = dataSource.getMetadata().version.toString();
-            String latestVersion = getLatestVersion(dataSource);
-            sourcesUptodate.put(dataSource.getId(), currentVersion.equals(latestVersion));
-        }
-        return sourcesUptodate;
-    }
-
-    private String createStateTable(List<DataSource> dataSources, Map<String, Boolean> sourcesUptodate,
-                                    boolean verbose) {
+    private String createStateTable(Map<String, Boolean> sourcesUpToDate, boolean verbose) {
         String state = "";
         String heading;
         String separator;
@@ -147,9 +133,9 @@ public class Workspace {
                                     separator);
         }
         for (DataSource dataSource : dataSources) {
-            Map<String, String> metaMap = createMetadataMap(dataSource, sourcesUptodate);
+            Map<String, String> metaMap = createMetadataMap(dataSource, sourcesUpToDate);
             state = String.format("%s%-23s%-21s%-25s%-25s%-35s", state, metaMap.get("dataSourceId"),
-                                  metaMap.get("isVersionUptodate"), metaMap.get("workspaceVersion"),
+                                  metaMap.get("isVersionUpToDate"), metaMap.get("workspaceVersion"),
                                   metaMap.get("latestVersion"), metaMap.get("latestUpdateTime"));
             if (verbose) {
                 DataSourceMetadata meta = dataSource.getMetadata();
@@ -165,135 +151,67 @@ public class Workspace {
         return heading + state + separator;
     }
 
-    private Map<String, String> createMetadataMap(DataSource dataSource, Map<String, Boolean> sourcesUptodate) {
+    private Map<String, String> createMetadataMap(DataSource dataSource, Map<String, Boolean> sourcesUpToDate) {
         Map<String, String> metaMap = new HashMap<>();
         DataSourceMetadata meta = dataSource.getMetadata();
         metaMap.put("dataSourceId", dataSource.getId());
-        metaMap.put("isVersionUpToDate", sourcesUptodate.get(dataSource.getId()).toString());
+        metaMap.put("isVersionUpToDate", sourcesUpToDate.get(dataSource.getId()).toString());
         metaMap.put("workspaceVersion", meta.version.toString());
         metaMap.put("latestVersion", getLatestVersion(dataSource));
         metaMap.put("latestUpdateTime", meta.getLocalUpdateDateTime().toString());
         return metaMap;
     }
 
-    private void ensureDataSourceDirectoriesExist() {
+    private boolean prepareDataSources() {
         for (DataSource dataSource : dataSources) {
             try {
-                dataSource.createDirectoryIfNotExists(this);
-            } catch (IOException e) {
-                logger.error("Failed to create data source directory for '" + dataSource.getId() + "'", e);
+                dataSource.prepare(this);
+            } catch (DataSourceException e) {
+                logger.error("Failed to prepare data source '" + dataSource.getId() + "'", e);
+                return false;
             }
         }
+        return true;
     }
 
-    private void createOrLoadDataSourcesMetadata() {
-        for (DataSource dataSource : dataSources) {
-            try {
-                dataSource.createOrLoadMetadata(this);
-            } catch (IOException e) {
-                logger.error("Failed to load data source metadata for '" + dataSource.getId() + "'", e);
-            }
+    public void updateDataSources(final String sourceName, final String version) {
+        if (prepareDataSources()) {
+            for (DataSource dataSource : dataSources)
+                if (sourceName == null || dataSource.getId().equals(sourceName))
+                    updateDataSource(dataSource, version);
+            mergeDataSources();
         }
     }
 
-    public void updateDataSources() {
-        ensureDataSourceDirectoriesExist();
-        createOrLoadDataSourcesMetadata();
-        for (DataSource dataSource : dataSources) {
-            logger.info("Processing of data source '" + dataSource.getId() + "' started");
-            updateAuto(dataSource);
-            parse(dataSource);
-            export(dataSource);
-            logger.info("Processing of data source '" + dataSource.getId() + "' finished");
+    private void updateDataSource(final DataSource dataSource, final String version) {
+        logger.info("Processing of data source '" + dataSource.getId() + "' started");
+        if (version != null)
+            dataSource.updateManually(this, version);
+        else
+            dataSource.updateAutomatic(this);
+        if (dataSource.getMetadata().updateSuccessful) {
+            dataSource.parse(this);
+            dataSource.export(this);
         }
-        merge(dataSources);
+        dataSource.trySaveMetadata(this);
+        logger.info("Processing of data source '" + dataSource.getId() + "' finished");
     }
 
-    public void integrateDataSources(String sourceName, String version) {
-        ensureDataSourceDirectoriesExist();
-        createOrLoadDataSourcesMetadata();
-        if (sourceName != null || version != null) {
-            for (DataSource dataSource : dataSources) {
-                if (dataSource.getId().equals(sourceName)) {
-                    logger.info("Processing of data source '" + dataSource.getId() + "' started");
-                    updateMan(dataSource, version);
-                    parse(dataSource);
-                    export(dataSource);
-                }
-            }
-        } else {
-            logger.error("Failed to read source name and version from the command line");
-        }
-        merge(dataSources);
-    }
-
-    private void export(DataSource dataSource) {
+    private void mergeDataSources() {
+        logger.info("Merging of data sources started");
+        String mergedFilePath = Paths.get(getSourcesDirectory(), "merged.ttl").toString();
         try {
-            boolean exported = dataSource.getRdfExporter().export(this, dataSource);
-            logger.info("\texported: " + exported);
-            dataSource.getMetadata().exportRDFSuccessfull = true;
-        } catch (ExporterException e) {
-            logger.error("Failed to export data source '" + dataSource.getId() + "' into RDF", e);
-        }
-        try {
-            boolean exported = dataSource.getGraphExporter().export(this, dataSource);
-            logger.info("\texported: " + exported);
-            dataSource.getMetadata().exportGraphMLSuccessfull = true;
-        } catch (ExporterException e) {
-            logger.error("Failed to export data source '" + dataSource.getId() + "' into GraphML", e);
-        }
-    }
-
-    private void parse(DataSource dataSource) {
-        try {
-            boolean parsed = dataSource.getParser().parse(this, dataSource);
-            logger.info("\tparsed: " + parsed);
-            dataSource.getMetadata().parseSuccessfull = true;
-        } catch (ParserException e) {
-            logger.error("Failed to parse data source '" + dataSource.getId() + "'", e);
-        }
-    }
-
-    private void updateMan(DataSource dataSource, String version) {
-        try {
-            boolean updated = dataSource.getUpdater().integrate(this, dataSource, version);
-            logger.info("\tupdated manually: " + updated);
-            dataSource.getMetadata().updateSuccessful = true;
-        } catch (UpdaterException e) {
-            logger.error("Failed to update data source '" + dataSource.getId() + "'", e);
-        }
-    }
-
-    private void updateAuto(DataSource dataSource) {
-        try {
-            boolean updated = dataSource.getUpdater().update(this, dataSource);
-            logger.info("\tupdated: " + updated);
-            dataSource.getMetadata().updateSuccessful = true;
-        } catch (UpdaterOnlyManuallyException e) {
-            logger.error("Data source '" + dataSource.getId() + "' can only be updated manually." +
-                         " Download the new version of " + dataSource.getId() +
-                         " and use the command line parameter -i or --integrate to add the data" +
-                         " to the workspace. \n" +
-                         "Help: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
-        } catch (UpdaterException e) {
-            logger.error("Failed to update data source '" + dataSource.getId() + "'", e);
-        }
-    }
-
-    private void merge(List<DataSource> dataSources) {
-        try {
-            PrintWriter writer = new PrintWriter(getSourcesDirectory() + "/merged.ttl");
+            PrintWriter writer = new PrintWriter(mergedFilePath);
             for (DataSource dataSource : dataSources) {
                 try {
-                    boolean merged = dataSource.getMerger().merge(this, dataSources, writer);
-                    logger.info("\tmerged " + dataSource.getId() + ": " + merged);
-                    dataSource.getMetadata().mergeSuccessful = true;
+                    dataSource.getMetadata().mergeSuccessful = dataSource.getMerger().merge(this, dataSources, writer);
                 } catch (MergerException e) {
                     logger.error("Failed to merge data source '" + dataSource.getId() + "'");
                 }
             }
-        } catch (FileNotFoundException e) {
-            logger.error("Failed to create file '" + getSourcesDirectory() + "/merged.ttl'");
+        } catch (IOException e) {
+            logger.error("Failed to create merge file '" + mergedFilePath + "'");
         }
+        logger.info("Merging of data sources finished");
     }
 }
