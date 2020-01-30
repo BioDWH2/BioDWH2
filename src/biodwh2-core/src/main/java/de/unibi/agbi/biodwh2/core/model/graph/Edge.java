@@ -1,10 +1,16 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
+import org.apache.commons.lang3.ClassUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Edge {
+    private static final Logger logger = LoggerFactory.getLogger(Graph.class);
+
     private final long fromId;
     private final long toId;
     private final String label;
@@ -39,6 +45,19 @@ public class Edge {
     }
 
     public void setProperty(String key, Object value) {
-        properties.put(key, value);
+        if (value == null)
+            properties.put(key, null);
+        else {
+            Class<?> valueType = value.getClass();
+            if (valueType.isArray())
+                valueType = valueType.getComponentType();
+            if (ClassUtils.isPrimitiveOrWrapper(valueType) || valueType == String.class)
+                properties.put(key, value);
+            else {
+                logger.warn("Type '" + valueType.toString() + "' is not allowed as an edge property. Using the " +
+                            "toString representation for now '" + value.toString() + "'");
+                properties.put(key, value.toString());
+            }
+        }
     }
 }
