@@ -1,21 +1,14 @@
 package de.unibi.agbi.biodwh2.pharmgkb;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
-import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.pharmgkb.etl.PharmGKBGraphExporter;
-import de.unibi.agbi.biodwh2.pharmgkb.etl.PharmGKBParser;
-import de.unibi.agbi.biodwh2.pharmgkb.etl.PharmGKBRDFExporter;
-import de.unibi.agbi.biodwh2.pharmgkb.etl.PharmGKBUpdater;
+import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.pharmgkb.etl.*;
 import de.unibi.agbi.biodwh2.pharmgkb.model.*;
 
 import java.util.HashMap;
 import java.util.List;
 
 public class PharmGKBDataSource extends DataSource {
-
     public List<Gene> genes;
     public List<Chemical> chemicals;
     public List<Drug> drugs;
@@ -53,5 +46,10 @@ public class PharmGKBDataSource extends DataSource {
     @Override
     public GraphExporter getGraphExporter() {
         return new PharmGKBGraphExporter();
+    }
+
+    @Override
+    public Merger getMerger() {
+        return new PharmGKBMerger();
     }
 }

@@ -17,6 +17,12 @@ public final class HTTPClient {
         outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
     }
 
+    public static void downloadFileAsBrowser(String uri, String filePath) throws IOException {
+        ReadableByteChannel urlByteChannel = Channels.newChannel(getUrlInputStream(uri));
+        FileOutputStream outputStream = new FileOutputStream(filePath);
+        outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
+    }
+
     public static String getWebsiteSource(String url) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         InputStreamReader inputReader = new InputStreamReader(getUrlInputStream(url), StandardCharsets.UTF_8);
