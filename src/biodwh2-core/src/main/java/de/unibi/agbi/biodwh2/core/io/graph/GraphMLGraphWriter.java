@@ -84,10 +84,11 @@ public class GraphMLGraphWriter extends GraphWriter {
         writer.writeAttribute("for", propertyFor);
         writer.writeAttribute("attr.name", key);
         if (type.isArray()) {
-            writer.writeAttribute("attr.list", "string");
-            type = type.getComponentType();
+            String arrayType = type.getComponentType().getSimpleName().toLowerCase(Locale.US);
+            writer.writeAttribute("attr.list", arrayType);
+            type = String.class;
         }
-        // boolean, int, long, float, double, string
+        // Allowed types: boolean, int, long, float, double, string
         writer.writeAttribute("attr.type", type.getSimpleName().toLowerCase(Locale.US));
         writer.writeEndElement();
     }
