@@ -190,6 +190,7 @@ public class Workspace {
                 dataSource.updateManually(this, version);
             else
                 dataSource.updateAutomatic(this);
+            dataSource.trySaveMetadata(this);
         }
         if (dataSource.getMetadata().updateSuccessful) {
             dataSource.parse(this);

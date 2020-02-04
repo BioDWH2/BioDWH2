@@ -4,19 +4,19 @@ import com.univocity.parsers.annotations.Parsed;
 
 public class DrugLabel {
     @Parsed(field = "PharmGKB ID")
-    public String pharmgkb_accession_id;
+    public String pharmgkbAccessionId;
     @Parsed(field = "Name")
     public String name;
     @Parsed(field = "Source")
     public String source;
     @Parsed(field = "Biomarker Flag")
-    public String biomarker_flag;
+    public String biomarkerFlag;
     @Parsed(field = "Testing Level")
-    public String testing_level;
+    public String testingLevel;
     @Parsed(field = "Has Dosing Info")
-    public String has_dosing_info;
+    public String hasDosingInfo;
     @Parsed(field = "Has Alternate Drug")
-    public String has_alternate_drug;
+    public String hasAlternateDrug;
     @Parsed(field = "Cancer Genome")
-    public String cancer_genome;
+    public String cancerGenome;
 }

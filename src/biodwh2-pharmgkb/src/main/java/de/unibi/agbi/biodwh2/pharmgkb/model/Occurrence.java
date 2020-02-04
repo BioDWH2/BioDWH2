@@ -4,15 +4,15 @@ import com.univocity.parsers.annotations.Parsed;
 
 public class Occurrence {
     @Parsed(field = "Source Type")
-    public String source_type;
+    public String sourceType;
     @Parsed(field = "Source ID")
-    public String source_id;
+    public String sourceId;
     @Parsed(field = "Source Name")
-    public String source_name;
+    public String sourceName;
     @Parsed(field = "Object Type")
-    public String object_type;
+    public String objectType;
     @Parsed(field = "Object ID")
-    public String object_id;
+    public String objectId;
     @Parsed(field = "Object Name")
-    public String object_name;
+    public String objectName;
 }

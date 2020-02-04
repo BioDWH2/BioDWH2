@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.pharmgkb.model;
 
 import com.univocity.parsers.annotations.Parsed;
 
-public class VariantDrugAnnotations {
+public class VariantDrugAnnotation {
     @Parsed(field = "Annotation ID")
     public String annotation_id;
     @Parsed(field = "Variant")
@@ -27,5 +27,4 @@ public class VariantDrugAnnotations {
     public String alleles;
     @Parsed(field = "Chromosome")
     public String chromosome;
-
 }

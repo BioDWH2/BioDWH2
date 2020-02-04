@@ -10,7 +10,7 @@ public class ClinicalVariants {
     @Parsed(field = "type")
     public String type;
     @Parsed(field = "level of evidence")
-    public String level_of_evidence;
+    public String levelOfEvidence;
     @Parsed(field = "chemicals")
     public String chemicals;
     @Parsed(field = "phenotypes")

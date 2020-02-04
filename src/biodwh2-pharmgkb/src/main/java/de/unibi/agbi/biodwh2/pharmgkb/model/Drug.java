@@ -3,53 +3,52 @@ package de.unibi.agbi.biodwh2.pharmgkb.model;
 import com.univocity.parsers.annotations.Parsed;
 
 public class Drug {
-
     @Parsed(field = "PharmGKB Accession Id")
-    public String pharmgkb_accession_id;
+    public String pharmgkbAccessionId;
     @Parsed(field = "Name")
     public String name;
     @Parsed(field = "Generic Names")
-    public String generic_names;
+    public String genericNames;
     @Parsed(field = "Trade Names")
-    public String trade_names;
+    public String tradeNames;
     @Parsed(field = "Brand Mixtures")
-    public String brand_mixtures;
+    public String brandMixtures;
     @Parsed(field = "Type")
     public String type;
     @Parsed(field = "Cross-references")
-    public String cross_reference;
+    public String crossReference;
     @Parsed(field = "SMILES")
     public String smiles;
     @Parsed(field = "InChI")
     public String inchi;
     @Parsed(field = "Dosing Guideline")
-    public String dosing_guideline;
+    public String dosingGuideline;
     @Parsed(field = "External Vocabulary")
-    public String external_vocabulary;
+    public String externalVocabulary;
     @Parsed(field = "Clinical Annotation Count")
-    public String clinical_annotation_count;
+    public String clinicalAnnotationCount;
     @Parsed(field = "Variant Annotation Count")
-    public String variant_annotation_count;
+    public String variantAnnotationCount;
     @Parsed(field = "Pathway Count")
-    public String pathway_count;
+    public String pathwayCount;
     @Parsed(field = "VIP Count")
-    public String vip_count;
+    public String vipCount;
     @Parsed(field = "Dosing Guideline Sources")
-    public String dosing_guideline_sources;
+    public String dosingGuidelineSources;
     @Parsed(field = "Top Clinical Annotation Level")
-    public String top_clinical_annotation_level;
+    public String topClinicalAnnotationLevel;
     @Parsed(field = "Top FDA Label Testing Level")
-    public String top_fda_label_testing_level;
+    public String topFdaLabelTestingLevel;
     @Parsed(field = "Top Any Drug Label Testing Level")
-    public String top_any_drug_label_testing_level;
+    public String topAnyDrugLabelTestingLevel;
     @Parsed(field = "Label Has Dosing Info")
-    public String label_has_dosing_info;
+    public String labelHasDosingInfo;
     @Parsed(field = "Has Rx Annotation")
-    public String has_rx_annotation;
+    public String hasRxAnnotation;
     @Parsed(field = "RxNorm Identifiers")
-    public String rx_norm_identifiers;
+    public String rxNormIdentifiers;
     @Parsed(field = "ATC Identifiers")
-    public String atc_identifiers;
+    public String atcIdentifiers;
     @Parsed(field = "PubChem Compound Identifiers")
-    public String pub_chem_compound_identifiers;
+    public String pubChemCompoundIdentifiers;
 }

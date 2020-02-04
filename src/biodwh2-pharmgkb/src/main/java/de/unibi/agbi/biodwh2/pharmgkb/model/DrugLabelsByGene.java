@@ -4,11 +4,11 @@ import com.univocity.parsers.annotations.Parsed;
 
 public class DrugLabelsByGene {
     @Parsed(field = "Gene ID")
-    public String gene_id;
+    public String geneId;
     @Parsed(field = "Gene Symbol")
-    public String gene_symbol;
+    public String geneSymbol;
     @Parsed(field = "Label IDs")
-    public String label_ids;
+    public String labelIds;
     @Parsed(field = "Label Names")
-    public String label_names;
+    public String labelNames;
 }

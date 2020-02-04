@@ -37,5 +37,4 @@ public class AutomatedAnnotation {
     public String sentences;
     @Parsed(field = "Source")
     public String source;
-
 }

@@ -72,8 +72,11 @@ public class GraphMLGraphWriter extends GraphWriter {
         for (Node node : nodes) {
             Map<String, Class<?>> nodePropertyKeyTypes = node.getPropertyKeyTypes();
             for (String key : nodePropertyKeyTypes.keySet())
-                propertyKeyTypes.put(key, nodePropertyKeyTypes.get(key));
+                if (!propertyKeyTypes.containsKey(key) || nodePropertyKeyTypes.get(key) != null)
+                    propertyKeyTypes.put(key, nodePropertyKeyTypes.get(key));
         }
+        for (String key : propertyKeyTypes.keySet())
+            propertyKeyTypes.putIfAbsent(key, String.class);
         return propertyKeyTypes;
     }
 
@@ -136,13 +139,26 @@ public class GraphMLGraphWriter extends GraphWriter {
 
     private String getPropertyStringRepresentation(Object property) {
         return property.getClass().isArray() ? getArrayPropertyStringRepresentation((Object[]) property) :
-               property.toString();
+               replaceInvalidXmlCharacters(property.toString());
+    }
+
+    private static String replaceInvalidXmlCharacters(String s) {
+        //s = s.replace("&", "&amp;");
+        //s = s.replace("\"", "&quot;");
+        //s = s.replace("\'", "&apos;");
+        //s = s.replace("<", "&lt;");
+        //s = s.replace(">", "&gt;");
+        s = s.replaceAll("[\\x01\\x02\\x04\\x08\\x1d\\x18]", "");
+        return s;
     }
 
     private String getArrayPropertyStringRepresentation(Object[] property) {
+        String[] arrayValues = new String[property.length];
+        for (int i = 0; i < arrayValues.length; i++)
+            arrayValues[i] = replaceInvalidXmlCharacters(property[i].toString());
         Collector<CharSequence, ?, String> collector = isArrayPropertyStringArray(property) ? Collectors.joining(
                 "\",\"", "[\"", "\"]") : Collectors.joining(",", "[", "]");
-        return Arrays.stream(property).map(Object::toString).collect(collector);
+        return Arrays.stream(arrayValues).collect(collector);
     }
 
     private static boolean isArrayPropertyStringArray(Object[] property) {

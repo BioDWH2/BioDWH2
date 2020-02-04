@@ -35,8 +35,10 @@ public class Node {
 
     public Map<String, Class<?>> getPropertyKeyTypes() {
         Map<String, Class<?>> keyTypeMap = new HashMap<>();
-        for (String key : properties.keySet())
-            keyTypeMap.put(key, properties.get(key).getClass());
+        for (String key : properties.keySet()) {
+            Class<?> propertyClass = properties.get(key) != null ? properties.get(key).getClass() : null;
+            keyTypeMap.put(key, propertyClass);
+        }
         return keyTypeMap;
     }
 

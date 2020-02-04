@@ -4,25 +4,25 @@ import com.univocity.parsers.annotations.Parsed;
 
 public class Variant {
     @Parsed(field = "Variant ID")
-    public String variant_id;
+    public String variantId;
     @Parsed(field = "Variant Name")
-    public String variant_name;
+    public String variantName;
     @Parsed(field = "Gene IDs")
-    public String gene_ids;
+    public String geneIds;
     @Parsed(field = "Gene Symbols")
-    public String gene_symbols;
+    public String geneSymbols;
     @Parsed(field = "Location")
     public String location;
     @Parsed(field = "Variant Annotation count")
-    public String variant_annotation_count;
+    public String variantAnnotationCount;
     @Parsed(field = "Clinical Annotation count")
-    public String clinical_annotation_count;
+    public String clinicalAnnotationCount;
     @Parsed(field = "Level 1/2 Clinical Annotation count")
-    public String level_12_clinical_annotation_count;
+    public String level12ClinicalAnnotationCount;
     @Parsed(field = "Guideline Annotation count")
-    public String guideline_annotation_count;
+    public String guidelineAnnotationCount;
     @Parsed(field = "Label Annotation count")
-    public String label_annotation_count;
+    public String labelAnnotationCount;
     @Parsed(field = "Synonyms")
     public String synonyms;
 }

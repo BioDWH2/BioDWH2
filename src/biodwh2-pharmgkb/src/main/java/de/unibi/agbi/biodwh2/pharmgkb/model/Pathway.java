@@ -8,13 +8,13 @@ public class Pathway {
     @Parsed(field = "To")
     public String to;
     @Parsed(field = "Reaction Type")
-    public String reaction_type;
+    public String reactionType;
     @Parsed(field = "Controller")
     public String controller;
     @Parsed(field = "Control Type")
-    public String control_type;
+    public String controlType;
     @Parsed(field = "Cell Type")
-    public String cell_type;
+    public String cellType;
     @Parsed(field = "PMIDs")
     public String pmids;
     @Parsed(field = "Genes")

@@ -4,37 +4,37 @@ import com.univocity.parsers.annotations.Parsed;
 
 public class StudyParameters {
     @Parsed(field = "Study Parameters ID")
-    public String study_parameters_id;
+    public String studyParametersId;
     @Parsed(field = "Study Type")
-    public String study_type;
+    public String studyType;
     @Parsed(field = "Study Cases")
-    public String study_cases;
+    public String studyCases;
     @Parsed(field = "Study Controls")
-    public String study_controls;
+    public String studyControls;
     @Parsed(field = "Characteristics")
     public String characteristics;
     @Parsed(field = "Characteristics Type")
-    public String characteristics_type;
+    public String characteristicsType;
     @Parsed(field = "Frequency In Cases")
-    public String frequency_in_cases;
+    public String frequencyInCases;
     @Parsed(field = "Allele Of Frequency In Cases")
-    public String allele_of_frequency_in_cases;
+    public String alleleOfFrequencyInCases;
     @Parsed(field = "Frequency In Controls")
-    public String frequency_in_controls;
+    public String frequencyInControls;
     @Parsed(field = "Allele Of Frequency In Controls")
-    public String allele_of_frequency_in_controls;
+    public String alleleOfFrequencyInControls;
     @Parsed(field = "P Value Operator")
-    public String p_value_operator;
+    public String pValueOperator;
     @Parsed(field = "P Value")
-    public String p_value;
+    public String pValue;
     @Parsed(field = "Ratio Stat Type")
-    public String ratio_stat_type;
+    public String ratioStatType;
     @Parsed(field = "Ratio Stat")
-    public String ratio_stat;
+    public String ratioStat;
     @Parsed(field = "Confidence Interval Start")
-    public String confidence_interval_start;
+    public String confidenceIntervalStart;
     @Parsed(field = "Confidence Interval Stop")
-    public String confidence_interval_stop;
-    @Parsed(field = "Race(s)")
-    public String races;
+    public String confidenceIntervalStop;
+    @Parsed(field = "Biogeographical Groups")
+    public String biogeographicalGroups;
 }

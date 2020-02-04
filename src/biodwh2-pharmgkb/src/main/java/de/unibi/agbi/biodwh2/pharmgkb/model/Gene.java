@@ -1,44 +1,40 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.univocity.parsers.annotations.Parsed;
 
 public class Gene {
-
-    //@JsonProperty("PharmGKB Accession Id")
     @Parsed(field = "PharmGKB Accession Id")
-    public String pharmgkb_accession_id;
+    public String pharmgkbAccessionId;
     @Parsed(field = "NCBI Gene ID")
-    public String ncbi_gene_id;
+    public String ncbiGeneId;
     @Parsed(field = "HGNC ID")
-    public String hgnc_id;
+    public String hgncId;
     @Parsed(field = "Ensembl Id")
-    public String ensemble_id;
+    public String ensembleId;
     @Parsed(field = "Name")
     public String name;
     @Parsed(field = "Symbol")
     public String symbol;
     @Parsed(field = "Alternate Names")
-    public String alternate_names;
+    public String alternateNames;
     @Parsed(field = "Alternate Symbols")
-    public String alternate_symbols;
+    public String alternateSymbols;
     @Parsed(field = "Is VIP")
-    public String is_vip;
+    public String isVip;
     @Parsed(field = "Has Variant Annotation")
-    public String has_variant_annotation;
+    public String hasVariantAnnotation;
     @Parsed(field = "Cross-references")
-    public String cross_reference;
+    public String crossReference;
     @Parsed(field = "Has CPIC Dosing Guideline")
-    public String has_cpic_dosing_guideline;
+    public String hasCpicDosingGuideline;
     @Parsed(field = "Chromosome")
     public String chromosome;
     @Parsed(field = "Chromosomal Start - GRCh37.p13")
-    public String chromosomal_start_grch37_p13;
+    public String chromosomalStartGrch37P13;
     @Parsed(field = "Chromosomal Stop - GRCh37.p13")
-    public String chromosomal_stop_grch37_p13;
-    @Parsed(field = "Chromosomal Start - GRCh38.p13")
-    public String chromosomal_start_grch38_p13;
-    @Parsed(field = "Chromosomal Stop - GRCh38.p13")
-    public String chromosomal_stop_grch38_p13;
+    public String chromosomalStopGrch37P13;
+    @Parsed(field = "Chromosomal Start - GRCh38.p7")
+    public String chromosomalStartGrch38P7;
+    @Parsed(field = "Chromosomal Stop - GRCh38.p7")
+    public String chromosomalStopGrch38P7;
 }

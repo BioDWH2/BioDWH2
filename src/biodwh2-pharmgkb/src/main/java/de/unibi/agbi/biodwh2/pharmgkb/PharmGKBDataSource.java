@@ -12,7 +12,7 @@ public class PharmGKBDataSource extends DataSource {
     public List<Gene> genes;
     public List<Chemical> chemicals;
     public List<Drug> drugs;
-    public List<Phenotyp> phenotyps;
+    public List<Phenotype> phenotyps;
     public List<Variant> variants;
     public List<AutomatedAnnotation> automatedAnnotations;
     public List<ClinicalAnnotation> clinicalAnnotations;
@@ -22,13 +22,15 @@ public class PharmGKBDataSource extends DataSource {
     public List<DrugLabelsByGene> drugLabelsByGenes;
     public List<Occurrence> occurrences;
     public List<StudyParameters> studyParameters;
-    public List<VariantDrugAnnotations> variantDrugAnnotations;
+    public List<VariantDrugAnnotation> variantDrugAnnotations;
     public List<VariantFunctionalAnalysisAnnotation> variantFunctionalAnalysisAnnotations;
     public List<VariantPhenotypeAnnotation> variantPhenotypeAnnotations;
-    public HashMap<String, List<Pathway>> pathways = new HashMap<String, List<Pathway>>();
+    public HashMap<String, List<Pathway>> pathways = new HashMap<>();
 
     @Override
-    public String getId() { return "PharmGKB"; }
+    public String getId() {
+        return "PharmGKB";
+    }
 
     @Override
     public Updater getUpdater() {
@@ -41,7 +43,9 @@ public class PharmGKBDataSource extends DataSource {
     }
 
     @Override
-    public RDFExporter getRdfExporter() { return new PharmGKBRDFExporter(); }
+    public RDFExporter getRdfExporter() {
+        return new EmptyRDFExporter();
+    }
 
     @Override
     public GraphExporter getGraphExporter() {
