@@ -85,8 +85,9 @@ public abstract class DataSource {
             metadata.updateSuccessful = getUpdater().update(workspace, this);
         } catch (UpdaterOnlyManuallyException e) {
             logger.error("Data source '" + getId() + "' can only be updated manually. Download the new version of " +
-                         getId() + " and use the command line parameter -i or --integrate to add the data to the " +
-                         "workspace. \nHelp: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
+                         getId() + " and use the command line parameter -u or --update with the parameters " +
+                         "<workspacePath> \"" + getId() + "\" <version>.\n" +
+                         "Help: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
         } catch (UpdaterException e) {
             logger.error("Failed to update data source '" + getId() + "'", e);
             metadata.updateSuccessful = false;
