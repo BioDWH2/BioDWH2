@@ -34,9 +34,4 @@ public class DrugCentralDataSource extends DataSource {
     public GraphExporter getGraphExporter() {
         return new DrugCentralGraphExporter();
     }
-
-    @Override
-    public Merger getMerger() {
-        return new DrugCentralMerger();
-    }
 }

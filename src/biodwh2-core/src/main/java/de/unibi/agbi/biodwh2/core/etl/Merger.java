@@ -4,12 +4,14 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.exceptions.MergerException;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-public abstract class Merger {
+public class Merger {
     public final boolean merge(Workspace workspace, List<DataSource> dataSources,
                                PrintWriter writer) throws MergerException {
         try {
@@ -22,6 +24,7 @@ public abstract class Merger {
                     writer.println(line);
 
                 }
+                dataSource.getMetadata().mergeSuccessful = true;
             }
             return true;
         } catch (IOException e) {

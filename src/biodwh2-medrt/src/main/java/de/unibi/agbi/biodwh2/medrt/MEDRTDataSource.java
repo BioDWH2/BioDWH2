@@ -32,9 +32,4 @@ public class MEDRTDataSource extends DataSource {
     public GraphExporter getGraphExporter() {
         return new MEDRTGraphExporter();
     }
-
-    @Override
-    public Merger getMerger() {
-        return new MEDRTMerger();
-    }
 }

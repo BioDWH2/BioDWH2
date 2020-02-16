@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import de.unibi.agbi.biodwh2.core.etl.Merger;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
@@ -9,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -202,18 +204,15 @@ public class Workspace {
 
     private void mergeDataSources() {
         logger.info("Merging of data sources started");
+        Merger merger = new Merger();
         String mergedFilePath = Paths.get(getSourcesDirectory(), "merged.ttl").toString();
         try {
             PrintWriter writer = new PrintWriter(mergedFilePath);
-            for (DataSource dataSource : dataSources) {
-                try {
-                    dataSource.getMetadata().mergeSuccessful = dataSource.getMerger().merge(this, dataSources, writer);
-                } catch (MergerException e) {
-                    logger.error("Failed to merge data source '" + dataSource.getId() + "'");
-                }
-            }
-        } catch (IOException e) {
+            merger.merge(this, dataSources, writer);
+        } catch (FileNotFoundException e) {
             logger.error("Failed to create merge file '" + mergedFilePath + "'");
+        } catch (MergerException e) {
+            logger.error("Failed to merge");
         }
         logger.info("Merging of data sources finished");
     }

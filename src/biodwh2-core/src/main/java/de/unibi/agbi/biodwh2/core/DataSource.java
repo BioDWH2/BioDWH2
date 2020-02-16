@@ -38,8 +38,6 @@ public abstract class DataSource {
 
     protected abstract GraphExporter getGraphExporter();
 
-    public abstract Merger getMerger();
-
     void prepare(Workspace workspace) throws DataSourceException {
         try {
             createDirectoryIfNotExists(workspace);

@@ -32,9 +32,4 @@ public class NDFRTDataSource extends DataSource {
     public GraphExporter getGraphExporter() {
         return new NDFRTGraphExporter();
     }
-
-    @Override
-    public Merger getMerger() {
-        return new NDFRTMerger();
-    }
 }

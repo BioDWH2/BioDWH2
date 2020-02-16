@@ -29,9 +29,4 @@ public class DGIdbDataSource extends DataSource {
     public GraphExporter getGraphExporter() {
         return new DGIdbGraphExporter();
     }
-
-    @Override
-    public Merger getMerger() {
-        return new DGIdbRDFMerger();
-    }
 }

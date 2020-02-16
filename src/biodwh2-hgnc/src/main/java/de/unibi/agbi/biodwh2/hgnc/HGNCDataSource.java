@@ -34,9 +34,4 @@ public class HGNCDataSource extends DataSource {
     public GraphExporter getGraphExporter() {
         return new HGNCGraphExporter();
     }
-
-    @Override
-    public Merger getMerger() {
-        return new HGNCMerger();
-    }
 }

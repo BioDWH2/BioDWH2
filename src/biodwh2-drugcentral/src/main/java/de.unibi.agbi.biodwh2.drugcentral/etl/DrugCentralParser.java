@@ -78,9 +78,10 @@ public class DrugCentralParser<T> extends Parser {
 
     @Override
     public boolean parse(Workspace workspace, DataSource dataSource) throws ParserException {
-        for (Class key : typeVariableClasses.keySet()) {
-            parseCsvFile(workspace, dataSource, key, typeVariableClasses.get(key));
-        }
+        parseCsvFile(workspace, dataSource, Structures.class, typeVariableClasses.get(Structures.class));
+//        for (Class key : typeVariableClasses.keySet()) {
+//            parseCsvFile(workspace, dataSource, key, typeVariableClasses.get(key));
+//        }
         return true;
     }
 

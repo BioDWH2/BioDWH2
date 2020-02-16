@@ -51,9 +51,4 @@ public class PharmGKBDataSource extends DataSource {
     public GraphExporter getGraphExporter() {
         return new PharmGKBGraphExporter();
     }
-
-    @Override
-    public Merger getMerger() {
-        return new PharmGKBMerger();
-    }
 }
