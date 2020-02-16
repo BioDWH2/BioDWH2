@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class DrugCentralParser<T> extends Parser {
     private Map<Class, String> typeVariableClasses = new HashMap<Class, String>() {{
@@ -79,8 +78,9 @@ public class DrugCentralParser<T> extends Parser {
 
     @Override
     public boolean parse(Workspace workspace, DataSource dataSource) throws ParserException {
-        for (Class key : typeVariableClasses.keySet())
+        for (Class key : typeVariableClasses.keySet()) {
             parseCsvFile(workspace, dataSource, key, typeVariableClasses.get(key));
+        }
         return true;
     }
 
@@ -94,15 +94,14 @@ public class DrugCentralParser<T> extends Parser {
         try {
             MappingIterator<T> iterator = reader.readValues(sourceFile);
             iterator.next();
-            storeResults(dataSource, fileName, iterator.readAll());
+            storeResults(dataSource, typeVariableClass, iterator.readAll());
         } catch (IOException e) {
             throw new ParserFormatException("Failed to parse the file '" + fileName + "'", e);
         }
     }
 
-
-    private void storeResults(DataSource dataSource, String fileName, List<?> results) {
-        ((DrugCentralDataSource) dataSource).drugCentralDict.put(fileName, (List<Object>) results);
+    private void storeResults(DataSource dataSource, Class typeVariableClass, List<?> results) {
+        ((DrugCentralDataSource) dataSource).drugCentralDict.put(typeVariableClass, (List<Object>) results);
     }
 
     private ObjectReader getFormatReader(Class typeVariableClass) {

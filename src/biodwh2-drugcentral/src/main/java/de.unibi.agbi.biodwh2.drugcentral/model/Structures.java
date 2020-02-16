@@ -57,7 +57,7 @@ public final class Structures {
     @JsonProperty("molimg")
     public String molimg;
     @JsonProperty("o_n")
-    public String ohNh;
+    public String oN;
     @JsonProperty("oh_nh")
     public String oh_nh;
     @JsonProperty("inchi")

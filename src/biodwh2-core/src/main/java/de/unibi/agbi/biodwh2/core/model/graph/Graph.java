@@ -26,4 +26,12 @@ public class Graph {
     public Collection<Edge> getEdges() {
         return edges;
     }
+
+    public Node findNode(String labels, String propertyName, String value) {
+        for (Node n : idNodeMap.values()) {
+            if (n.getLabels()[0].equals(labels) && n.getProperty(propertyName).equals(value))
+                return n;
+        }
+        return null;
+    }
 }

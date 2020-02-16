@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder(value = {
-        "id", "ndc_product_code", "form", "generic_name", "product_code", "route", "marketing_status",
+        "id", "ndc_product_code", "form", "generic_name", "product_name", "route", "marketing_status",
         "active_ingredient_count"
 })
 

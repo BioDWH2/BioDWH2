@@ -30,5 +30,5 @@ public final class Faers {
     @JsonProperty("no_drug_ae")
     public String noDrugAe;
     @JsonProperty("no_drug_no_ae")
-    public String NoDrugNoAe;
+    public String noDrugNoAe;
 }

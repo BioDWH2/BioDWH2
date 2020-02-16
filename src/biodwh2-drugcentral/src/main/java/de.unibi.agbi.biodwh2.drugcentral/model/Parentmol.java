@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder(value = {
-        "cdid", "name", "cas_reg_no", "inchi", "nostereo_inchi", "molfile", "molimg", "smiles", "inchi_key"
+        "cdId", "name", "cas_reg_no", "inchi", "nostereo_inchi", "molfile", "molimg", "smiles", "inchi_key"
 })
 
 public final class Parentmol {
-    @JsonProperty("cdId")
+    @JsonProperty("cd_id")
     public String cdId;
     @JsonProperty("name")
     public String name;
