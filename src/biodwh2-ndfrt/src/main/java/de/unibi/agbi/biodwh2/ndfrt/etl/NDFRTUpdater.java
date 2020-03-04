@@ -1,8 +1,9 @@
 package de.unibi.agbi.biodwh2.ndfrt.etl;
 
 import de.unibi.agbi.biodwh2.core.etl.SingleFileFTPUpdater;
+import de.unibi.agbi.biodwh2.ndfrt.NDFRTDataSource;
 
-public class NDFRTUpdater extends SingleFileFTPUpdater {
+public class NDFRTUpdater extends SingleFileFTPUpdater<NDFRTDataSource> {
     @Override
     protected String getFTPAddress() {
         return "ftp1.nci.nih.gov";

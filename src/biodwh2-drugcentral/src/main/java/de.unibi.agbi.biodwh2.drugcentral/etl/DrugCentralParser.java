@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
@@ -15,77 +14,70 @@ import de.unibi.agbi.biodwh2.drugcentral.model.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class DrugCentralParser<T> extends Parser {
-    private Map<Class, String> typeVariableClasses = new HashMap<Class, String>() {{
-        put(ActionType.class, "action_type.tsv");
-        put(ActiveIngredient.class, "active_ingredient.tsv");
-        put(ActTableFull.class, "act_table_full.tsv");
-        put(Approval.class, "approval.tsv");
-        put(ApprovalType.class, "approval_type.tsv");
-        put(Atc.class, "atc.tsv");
-        put(AtcDdd.class, "atc_ddd.tsv");
-        put(AttributeType.class, "attr_type.tsv");
-        put(de.unibi.agbi.biodwh2.drugcentral.model.DataSource.class, "data_source.tsv");
-        put(DbVersion.class, "dbversion.tsv");
-        put(Ddi.class, "ddi.tsv");
-        put(DdiRisk.class, "ddi_risk.tsv");
-        put(Doid.class, "doid.tsv");
-        put(DoidXref.class, "doid_xref.tsv");
-        put(DrugClass.class, "drug_class.tsv");
-        put(Faers.class, "faers.tsv");
-        put(Identifier.class, "identifier.tsv");
-        put(IdType.class, "id_type.tsv");
-        put(InnStem.class, "inn_stem.tsv");
-        put(Label.class, "label.tsv");
-        put(LincsSignature.class, "lincs_signature.tsv");
-        put(ObExclusivity.class, "ob_exclusivity.tsv");
-        put(ObExclusivityCode.class, "ob_exclusivity_code.tsv");
-        put(ObPatent.class, "ob_patent.tsv");
-        put(ObPatentUseCode.class, "ob_patent_use_code.tsv");
-        put(ObProduct.class, "ob_product.tsv");
-        put(OmopRelationship.class, "omop_relationship.tsv");
-        put(Parentmol.class, "parentmol.tsv");
-        put(Pdb.class, "pdb.tsv");
-        put(PharmaClass.class, "pharma_class.tsv");
-        put(Pka.class, "pka.tsv");
-        put(Prd2Label.class, "prd2label.tsv");
-        put(Product.class, "product.tsv");
-        put(ProteinType.class, "protein_type.tsv");
-        put(Reference.class, "reference.tsv");
-        put(RefType.class, "ref_type.tsv");
-        put(Section.class, "section.tsv");
-        put(Struct2Atc.class, "struct2atc.tsv");
-        put(Struct2DrgClass.class, "struct2drgclass.tsv");
-        put(Struct2ObProd.class, "struct2obprod.tsv");
-        put(Struct2Parent.class, "struct2parent.tsv");
-        put(StructTypeDef.class, "struct_type_def.tsv");
-        put(Structures.class, "structures.tsv");
-        put(StructureType.class, "structure_type.tsv");
-        put(Synonyms.class, "synonyms.tsv");
-        put(TargetClass.class, "target_class.tsv");
-        put(TargetComponent.class, "target_component.tsv");
-        put(TargetDictionary.class, "target_dictionary.tsv");
-        put(TargetGo.class, "target_go.tsv");
-        put(TargetKeyword.class, "target_keyword.tsv");
-        put(Td2Tc.class, "td2tc.tsv");
-        put(Tdgo2Tc.class, "tdgo2tc.tsv");
-        put(Tdkey2Tc.class, "tdkey2tc.tsv");
-    }};
-
+public class DrugCentralParser extends Parser<DrugCentralDataSource> {
     @Override
-    public boolean parse(Workspace workspace, DataSource dataSource) throws ParserException {
-        for (Class key : typeVariableClasses.keySet()) {
-            parseCsvFile(workspace, dataSource, key, typeVariableClasses.get(key));
-        }
+    public boolean parse(Workspace workspace, DrugCentralDataSource dataSource) throws ParserException {
+        parseCsvFile(workspace, dataSource, ActionType.class, "action_type.tsv");
+        parseCsvFile(workspace, dataSource, ActiveIngredient.class, "active_ingredient.tsv");
+        parseCsvFile(workspace, dataSource, ActTableFull.class, "act_table_full.tsv");
+        parseCsvFile(workspace, dataSource, Approval.class, "approval.tsv");
+        parseCsvFile(workspace, dataSource, ApprovalType.class, "approval_type.tsv");
+        parseCsvFile(workspace, dataSource, Atc.class, "atc.tsv");
+        parseCsvFile(workspace, dataSource, AtcDdd.class, "atc_ddd.tsv");
+        parseCsvFile(workspace, dataSource, AttributeType.class, "attr_type.tsv");
+        parseCsvFile(workspace, dataSource, de.unibi.agbi.biodwh2.drugcentral.model.DataSource.class,
+                     "data_source.tsv");
+        parseCsvFile(workspace, dataSource, DbVersion.class, "dbversion.tsv");
+        parseCsvFile(workspace, dataSource, Ddi.class, "ddi.tsv");
+        parseCsvFile(workspace, dataSource, DdiRisk.class, "ddi_risk.tsv");
+        parseCsvFile(workspace, dataSource, Doid.class, "doid.tsv");
+        parseCsvFile(workspace, dataSource, DoidXref.class, "doid_xref.tsv");
+        parseCsvFile(workspace, dataSource, DrugClass.class, "drug_class.tsv");
+        parseCsvFile(workspace, dataSource, Faers.class, "faers.tsv");
+        parseCsvFile(workspace, dataSource, Identifier.class, "identifier.tsv");
+        parseCsvFile(workspace, dataSource, IdType.class, "id_type.tsv");
+        parseCsvFile(workspace, dataSource, InnStem.class, "inn_stem.tsv");
+        parseCsvFile(workspace, dataSource, Label.class, "label.tsv");
+        parseCsvFile(workspace, dataSource, LincsSignature.class, "lincs_signature.tsv");
+        parseCsvFile(workspace, dataSource, ObExclusivity.class, "ob_exclusivity.tsv");
+        parseCsvFile(workspace, dataSource, ObExclusivityCode.class, "ob_exclusivity_code.tsv");
+        parseCsvFile(workspace, dataSource, ObPatent.class, "ob_patent.tsv");
+        parseCsvFile(workspace, dataSource, ObPatentUseCode.class, "ob_patent_use_code.tsv");
+        parseCsvFile(workspace, dataSource, ObProduct.class, "ob_product.tsv");
+        parseCsvFile(workspace, dataSource, OmopRelationship.class, "omop_relationship.tsv");
+        parseCsvFile(workspace, dataSource, Parentmol.class, "parentmol.tsv");
+        parseCsvFile(workspace, dataSource, Pdb.class, "pdb.tsv");
+        parseCsvFile(workspace, dataSource, PharmaClass.class, "pharma_class.tsv");
+        parseCsvFile(workspace, dataSource, Pka.class, "pka.tsv");
+        parseCsvFile(workspace, dataSource, Prd2Label.class, "prd2label.tsv");
+        parseCsvFile(workspace, dataSource, Product.class, "product.tsv");
+        parseCsvFile(workspace, dataSource, ProteinType.class, "protein_type.tsv");
+        parseCsvFile(workspace, dataSource, Reference.class, "reference.tsv");
+        parseCsvFile(workspace, dataSource, RefType.class, "ref_type.tsv");
+        parseCsvFile(workspace, dataSource, Section.class, "section.tsv");
+        parseCsvFile(workspace, dataSource, Struct2Atc.class, "struct2atc.tsv");
+        parseCsvFile(workspace, dataSource, Struct2DrgClass.class, "struct2drgclass.tsv");
+        parseCsvFile(workspace, dataSource, Struct2ObProd.class, "struct2obprod.tsv");
+        parseCsvFile(workspace, dataSource, Struct2Parent.class, "struct2parent.tsv");
+        parseCsvFile(workspace, dataSource, StructTypeDef.class, "struct_type_def.tsv");
+        parseCsvFile(workspace, dataSource, Structures.class, "structures.tsv");
+        parseCsvFile(workspace, dataSource, StructureType.class, "structure_type.tsv");
+        parseCsvFile(workspace, dataSource, Synonyms.class, "synonyms.tsv");
+        parseCsvFile(workspace, dataSource, TargetClass.class, "target_class.tsv");
+        parseCsvFile(workspace, dataSource, TargetComponent.class, "target_component.tsv");
+        parseCsvFile(workspace, dataSource, TargetDictionary.class, "target_dictionary.tsv");
+        parseCsvFile(workspace, dataSource, TargetGo.class, "target_go.tsv");
+        parseCsvFile(workspace, dataSource, TargetKeyword.class, "target_keyword.tsv");
+        parseCsvFile(workspace, dataSource, Td2Tc.class, "td2tc.tsv");
+        parseCsvFile(workspace, dataSource, Tdgo2Tc.class, "tdgo2tc.tsv");
+        parseCsvFile(workspace, dataSource, Tdkey2Tc.class, "tdkey2tc.tsv");
         return true;
     }
 
-    private void parseCsvFile(Workspace workspace, DataSource dataSource, Class typeVariableClass,
-                              String fileName) throws ParserException {
+    private <T> void parseCsvFile(Workspace workspace, DrugCentralDataSource dataSource, Class<T> typeVariableClass,
+                                  String fileName) throws ParserException {
         String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
         File sourceFile = new File(filePath);
         if (!sourceFile.exists())
@@ -100,11 +92,11 @@ public class DrugCentralParser<T> extends Parser {
         }
     }
 
-    private void storeResults(DataSource dataSource, Class typeVariableClass, List<?> results) {
-        ((DrugCentralDataSource) dataSource).drugCentralDict.put(typeVariableClass, (List<Object>) results);
+    private <T> void storeResults(DrugCentralDataSource dataSource, Class<?> typeVariableClass, List<T> results) {
+        dataSource.drugCentralDict.put(typeVariableClass, results);
     }
 
-    private ObjectReader getFormatReader(Class typeVariableClass) {
+    private <T> ObjectReader getFormatReader(Class<T> typeVariableClass) {
         CsvMapper csvMapper = new CsvMapper();
         CsvSchema schema = csvMapper.schemaFor(typeVariableClass).withColumnSeparator('\t').withNullValue("");
         return csvMapper.readerFor(typeVariableClass).with(schema);

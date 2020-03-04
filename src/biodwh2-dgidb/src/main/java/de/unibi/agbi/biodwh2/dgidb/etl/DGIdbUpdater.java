@@ -10,10 +10,11 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterMalformedVersionException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
+import de.unibi.agbi.biodwh2.dgidb.DGIdbDataSource;
 
 import java.io.IOException;
 
-public class DGIdbUpdater extends Updater {
+public class DGIdbUpdater extends Updater<DGIdbDataSource> {
     @Override
     public Version getNewestVersion() throws UpdaterException {
         String source;
@@ -45,7 +46,7 @@ public class DGIdbUpdater extends Updater {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, DataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(Workspace workspace, DGIdbDataSource dataSource) throws UpdaterException {
         return false;
     }
 }

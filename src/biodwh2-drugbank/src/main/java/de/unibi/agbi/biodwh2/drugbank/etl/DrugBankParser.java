@@ -1,7 +1,6 @@
 package de.unibi.agbi.biodwh2.drugbank.etl;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
@@ -20,15 +19,15 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class DrugBankParser extends Parser {
+public class DrugBankParser extends Parser<DrugBankDataSource> {
     private static final Logger logger = LoggerFactory.getLogger(DrugBankParser.class);
 
     @Override
-    public boolean parse(Workspace workspace, DataSource dataSource) throws ParserException {
+    public boolean parse(Workspace workspace, DrugBankDataSource dataSource) throws ParserException {
         return parseDrugBankXmlFile(workspace, dataSource) && parseMetaboliteSdfFile(workspace, dataSource);
     }
 
-    private boolean parseDrugBankXmlFile(Workspace workspace, DataSource dataSource) throws ParserException {
+    private boolean parseDrugBankXmlFile(Workspace workspace, DrugBankDataSource dataSource) throws ParserException {
         String filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_full_database.xml.zip");
         File zipFile = new File(filePath);
         if (!zipFile.exists())
@@ -38,7 +37,7 @@ public class DrugBankParser extends Parser {
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (isZipEntryCoreXml(zipEntry.getName())) {
-                    ((DrugBankDataSource) dataSource).drugBankData = parseDrugBankFromZipStream(zipInputStream);
+                    dataSource.drugBankData = parseDrugBankFromZipStream(zipInputStream);
                     return true;
                 }
             }
@@ -67,7 +66,7 @@ public class DrugBankParser extends Parser {
         return xmlMapper.readValue(stream, Drugbank.class);
     }
 
-    private boolean parseMetaboliteSdfFile(Workspace workspace, DataSource dataSource) throws ParserException {
+    private boolean parseMetaboliteSdfFile(Workspace workspace, DrugBankDataSource dataSource) throws ParserException {
         String filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_metabolite-structures.sdf.zip");
         File zipFile = new File(filePath);
         if (!zipFile.exists())
@@ -77,7 +76,7 @@ public class DrugBankParser extends Parser {
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (isZipEntryMetaboliteSdf(zipEntry.getName())) {
-                    ((DrugBankDataSource) dataSource).metabolites = parseMetabolitesFromZipStream(zipInputStream);
+                    dataSource.metabolites = parseMetabolitesFromZipStream(zipInputStream);
                     return true;
                 }
             }

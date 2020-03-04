@@ -7,6 +7,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.AnonymousFTPClient;
+import de.unibi.agbi.biodwh2.kegg.KeggDataSource;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class KeggUpdater extends Updater {
+public class KeggUpdater extends Updater<KeggDataSource> {
     private static final String FTPBasePath = "pub/kegg/medicus/";
 
     @Override
@@ -49,7 +50,7 @@ public class KeggUpdater extends Updater {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, DataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(Workspace workspace, KeggDataSource dataSource) throws UpdaterException {
         AnonymousFTPClient ftpClient = connectToFTP();
         boolean success = updateFile(workspace, dataSource, ftpClient, "dgroup/dgroup");
         success = success && updateFile(workspace, dataSource, ftpClient, "disease/disease");

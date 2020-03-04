@@ -1,19 +1,17 @@
 package de.unibi.agbi.biodwh2.hgnc.etl;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.hgnc.HGNCDataSource;
 import de.unibi.agbi.biodwh2.hgnc.model.Gene;
 
-public class HGNCGraphExporter extends GraphExporter {
+public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
     @Override
-    protected Graph exportGraph(DataSource dataSource) {
+    protected Graph exportGraph(HGNCDataSource dataSource) {
         Graph g = new Graph();
-        long id = 0;
-        for (Gene gene : ((HGNCDataSource) dataSource).genes) {
-            Node geneNode = new Node(id, "HGNC_Gene");
+        for (Gene gene : dataSource.genes) {
+            Node geneNode = createNode(g, "HGNC_Gene");
             geneNode.setProperty("hgnc_id", gene.hgncId);
             geneNode.setProperty("symbol", gene.symbol);
             geneNode.setProperty("name", gene.name);
@@ -65,8 +63,6 @@ public class HGNCGraphExporter extends GraphExporter {
             geneNode.setProperty("rna_central_ids", gene.rnaCentralIds);
             geneNode.setProperty("lncipedia", gene.lnciPedia);
             geneNode.setProperty("gtrnadb", gene.gtrnaDb);
-            g.addNode(geneNode);
-            id += 1;
         }
         return g;
     }

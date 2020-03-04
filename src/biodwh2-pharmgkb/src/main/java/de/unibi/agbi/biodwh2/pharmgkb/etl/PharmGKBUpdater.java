@@ -7,6 +7,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
+import de.unibi.agbi.biodwh2.pharmgkb.PharmGKBDataSource;
 
 import java.io.*;
 import java.time.LocalDateTime;
@@ -14,7 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class PharmGKBUpdater extends Updater {
+public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
     @Override
     public Version getNewestVersion() throws UpdaterException {
         LocalDateTime stringDate = null;
@@ -41,7 +42,7 @@ public class PharmGKBUpdater extends Updater {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, DataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(Workspace workspace, PharmGKBDataSource dataSource) throws UpdaterException {
         boolean success = true;
         String[] fileNames = {
                 "genes.zip", "drugs.zip", "chemicals.zip", "variants.zip", "phenotypes.zip", "annotations.zip",

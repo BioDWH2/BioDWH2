@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class DrugCentralDataSource extends DataSource {
-    public HashMap<Class, List<Object>> drugCentralDict = new HashMap<>();
+    public HashMap<Class<?>, List<?>> drugCentralDict = new HashMap<>();
 
     @Override
     public String getId() {

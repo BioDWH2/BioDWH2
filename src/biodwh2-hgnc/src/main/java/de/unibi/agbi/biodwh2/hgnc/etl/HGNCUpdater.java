@@ -1,8 +1,9 @@
 package de.unibi.agbi.biodwh2.hgnc.etl;
 
 import de.unibi.agbi.biodwh2.core.etl.SingleFileFTPUpdater;
+import de.unibi.agbi.biodwh2.hgnc.HGNCDataSource;
 
-public class HGNCUpdater extends SingleFileFTPUpdater {
+public class HGNCUpdater extends SingleFileFTPUpdater<HGNCDataSource> {
     @Override
     protected String getFTPAddress() {
         return "ftp.ebi.ac.uk";

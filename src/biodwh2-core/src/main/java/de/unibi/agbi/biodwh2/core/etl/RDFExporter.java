@@ -16,8 +16,8 @@ import org.apache.jena.vocabulary.SKOS;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
-public abstract class RDFExporter {
-    public final boolean export(Workspace workspace, DataSource dataSource) throws ExporterException {
+public abstract class RDFExporter<D extends DataSource> {
+    public final boolean export(Workspace workspace, D dataSource) throws ExporterException {
         Model model = exportModel(dataSource);
         setModelPrefixes(model);
         try {
@@ -31,7 +31,7 @@ public abstract class RDFExporter {
         return true;
     }
 
-    protected abstract Model exportModel(DataSource dataSource) throws ExporterException;
+    protected abstract Model exportModel(D dataSource) throws ExporterException;
 
     protected void setModelPrefixes(Model model) {
         model.setNsPrefix("skos", SKOS.getURI());

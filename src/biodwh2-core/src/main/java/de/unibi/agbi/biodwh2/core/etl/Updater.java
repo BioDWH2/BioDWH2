@@ -10,12 +10,12 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public abstract class Updater {
+public abstract class Updater<D extends DataSource> {
     private static final Logger logger = LoggerFactory.getLogger(Updater.class);
 
     public abstract Version getNewestVersion() throws UpdaterException;
 
-    public final boolean update(Workspace workspace, DataSource dataSource) throws UpdaterException {
+    public final boolean update(Workspace workspace, D dataSource) throws UpdaterException {
         Version newestVersion = getNewestVersion();
         Version workspaceVersion = dataSource.getMetadata().version;
         if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
@@ -31,7 +31,7 @@ public abstract class Updater {
         return false;
     }
 
-    public final boolean updateManually(Workspace workspace, DataSource dataSource, String version) {
+    public final boolean updateManually(Workspace workspace, D dataSource, String version) {
         Version workspaceVersion = dataSource.getMetadata().version;
         Version newestVersion = Version.tryParse(version);
         if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
@@ -48,9 +48,9 @@ public abstract class Updater {
         return workspaceVersion != null && newestVersion.compareTo(workspaceVersion) == 0;
     }
 
-    protected abstract boolean tryUpdateFiles(Workspace workspace, DataSource dataSource) throws UpdaterException;
+    protected abstract boolean tryUpdateFiles(Workspace workspace, D dataSource) throws UpdaterException;
 
-    final void updateDataSourceMetadata(Workspace workspace, DataSource dataSource, Version version) {
+    final void updateDataSourceMetadata(Workspace workspace, D dataSource, Version version) {
         dataSource.getMetadata().version = version;
         dataSource.getMetadata().setUpdateDateTimeNow();
         dataSource.getMetadata().sourceFileNames = dataSource.listSourceFiles(workspace);

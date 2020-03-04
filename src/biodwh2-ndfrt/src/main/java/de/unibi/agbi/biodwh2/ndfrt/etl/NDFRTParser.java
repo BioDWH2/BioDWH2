@@ -14,9 +14,9 @@ import java.io.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class NDFRTParser extends Parser {
+public class NDFRTParser extends Parser<NDFRTDataSource> {
     @Override
-    public boolean parse(Workspace workspace, DataSource dataSource) throws ParserException {
+    public boolean parse(Workspace workspace, NDFRTDataSource dataSource) throws ParserException {
         String filePath = dataSource.resolveSourceFilePath(workspace, "NDFRT_Public_All.zip");
         File coreZipFile = new File(filePath);
         if (!coreZipFile.exists())
@@ -26,7 +26,7 @@ public class NDFRTParser extends Parser {
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (isZipEntryCoreXml(zipEntry.getName())) {
-                    ((NDFRTDataSource) dataSource).terminology = parseTerminologyFromZipStream(zipInputStream);
+                    dataSource.terminology = parseTerminologyFromZipStream(zipInputStream);
                     return true;
                 }
             }

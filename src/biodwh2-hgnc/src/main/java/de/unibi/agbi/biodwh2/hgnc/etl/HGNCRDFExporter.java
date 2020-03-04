@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.hgnc.etl;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.vocabulary.*;
@@ -14,13 +13,13 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.SKOS;
 
-public class HGNCRDFExporter extends RDFExporter {
+public class HGNCRDFExporter extends RDFExporter<HGNCDataSource> {
     private static final String HGNCDataUri = "https://www.genenames.org/data/";
 
     @Override
-    public Model exportModel(DataSource dataSource) throws ExporterException {
+    public Model exportModel(HGNCDataSource dataSource) throws ExporterException {
         Model model = createDefaultModel();
-        for (Gene gene : ((HGNCDataSource) dataSource).genes)
+        for (Gene gene : dataSource.genes)
             createGeneResource(model, gene);
         return model;
     }

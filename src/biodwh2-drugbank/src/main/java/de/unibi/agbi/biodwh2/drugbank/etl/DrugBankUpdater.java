@@ -11,10 +11,11 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterMalformedVersionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterOnlyManuallyException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
+import de.unibi.agbi.biodwh2.drugbank.DrugBankDataSource;
 
 import java.io.IOException;
 
-public class DrugBankUpdater extends Updater {
+public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     @Override
     public Version getNewestVersion() throws UpdaterException {
         String source;
@@ -53,7 +54,7 @@ public class DrugBankUpdater extends Updater {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, DataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(Workspace workspace, DrugBankDataSource dataSource) throws UpdaterException {
         throw new UpdaterOnlyManuallyException();
     }
 }

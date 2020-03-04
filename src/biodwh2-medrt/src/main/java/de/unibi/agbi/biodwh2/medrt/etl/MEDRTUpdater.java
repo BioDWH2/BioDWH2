@@ -1,8 +1,9 @@
 package de.unibi.agbi.biodwh2.medrt.etl;
 
 import de.unibi.agbi.biodwh2.core.etl.SingleFileFTPUpdater;
+import de.unibi.agbi.biodwh2.medrt.MEDRTDataSource;
 
-public class MEDRTUpdater extends SingleFileFTPUpdater {
+public class MEDRTUpdater extends SingleFileFTPUpdater<MEDRTDataSource> {
     @Override
     protected String getFTPAddress() {
         return "ftp1.nci.nih.gov";

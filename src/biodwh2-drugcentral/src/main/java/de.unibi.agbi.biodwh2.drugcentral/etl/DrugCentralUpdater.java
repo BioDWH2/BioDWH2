@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.drugcentral.etl;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
@@ -8,6 +7,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterMalformedVersionException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
+import de.unibi.agbi.biodwh2.drugcentral.DrugCentralDataSource;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,7 +16,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
-public class DrugCentralUpdater extends Updater {
+public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
     @Override
     public Version getNewestVersion() throws UpdaterException {
         try {
@@ -57,15 +57,16 @@ public class DrugCentralUpdater extends Updater {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, DataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(Workspace workspace, DrugCentralDataSource dataSource) throws UpdaterException {
         String line;
-        File newFile = new File(dataSource.resolveSourceFilePath(workspace, "rawDrugCentral.sql.gz"));
+        String dumpFilePath = dataSource.resolveSourceFilePath(workspace, "rawDrugCentral.sql.gz");
+        File newFile = new File(dumpFilePath);
         URL dcURL = getDrugCentralFileURL();
         try {
             FileUtils.copyURLToFile(dcURL, newFile);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(
-                    new FileInputStream(dataSource.resolveSourceFilePath(workspace, "rawDrugCentral.sql.gz"))),
-                                                                             StandardCharsets.UTF_8));
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(new GZIPInputStream(new FileInputStream(dumpFilePath)),
+                                          StandardCharsets.UTF_8));
             PrintWriter writer = null;
             boolean copy = false;
             while ((line = reader.readLine()) != null) {
@@ -77,10 +78,12 @@ public class DrugCentralUpdater extends Updater {
                     writer.println(attributes);
                 } else if (line.contains("\\.")) {
                     copy = false;
-                    if (writer != null) writer.close();
-                } else if (copy) {
-                    if (writer != null) writer.println(line);
-                }
+                    if (writer != null) {
+                        writer.close();
+                        writer = null;
+                    }
+                } else if (copy)
+                    writer.println(line);
             }
             reader.close();
             return true;

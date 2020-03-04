@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.medrt.etl;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
@@ -9,28 +8,18 @@ import de.unibi.agbi.biodwh2.medrt.MEDRTDataSource;
 import de.unibi.agbi.biodwh2.medrt.model.Namespace;
 import de.unibi.agbi.biodwh2.medrt.model.Terminology;
 
-public class MEDRTGraphExporter extends GraphExporter {
-    private long nodeId = 0;
-
+public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     @Override
-    protected Graph exportGraph(DataSource dataSource) {
-        nodeId = 0;
+    protected Graph exportGraph(MEDRTDataSource dataSource) {
         Graph g = new Graph();
-        addTerminology(g, ((MEDRTDataSource) dataSource).terminology);
+        addTerminology(g, dataSource.terminology);
         return g;
     }
 
     private void addTerminology(Graph g, Terminology terminology) {
-        Node node = addNewNode(g, "MED-RT_Terminology");
+        Node node = createNode(g, "Terminology");
         addTerminologyNamespace(g, node, terminology.namespace);
         addReferencedNamespaces(g, node, terminology);
-    }
-
-    private Node addNewNode(Graph g, String label) {
-        Node n = new Node(nodeId, label);
-        nodeId++;
-        g.addNode(n);
-        return n;
     }
 
     private void addTerminologyNamespace(Graph g, Node terminologyNode, Namespace namespace) {
@@ -39,7 +28,7 @@ public class MEDRTGraphExporter extends GraphExporter {
     }
 
     private Node addNamespace(Graph g, Namespace namespace) {
-        Node node = addNewNode(g, "MED-RT_Namespace");
+        Node node = createNode(g, "Namespace");
         node.setProperty("version", namespace.version);
         node.setProperty("authority", namespace.authority);
         node.setProperty("code", namespace.code);

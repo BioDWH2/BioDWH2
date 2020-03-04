@@ -14,7 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public abstract class SingleFileCsvParser<T> extends Parser {
+public abstract class SingleFileCsvParser<D extends DataSource, T> extends Parser<D> {
     private final Class<T> typeVariableClass;
     private final boolean hasHeader;
     private final CsvType type;
@@ -28,7 +28,7 @@ public abstract class SingleFileCsvParser<T> extends Parser {
     }
 
     @Override
-    public boolean parse(Workspace workspace, DataSource dataSource) throws ParserException {
+    public boolean parse(Workspace workspace, D dataSource) throws ParserException {
         String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
         File sourceFile = new File(filePath);
         if (!sourceFile.exists())
@@ -61,7 +61,7 @@ public abstract class SingleFileCsvParser<T> extends Parser {
         }
     }
 
-    protected abstract void storeResults(DataSource dataSource, List<T> results);
+    protected abstract void storeResults(D dataSource, List<T> results);
 
     protected enum CsvType {
         CSV,

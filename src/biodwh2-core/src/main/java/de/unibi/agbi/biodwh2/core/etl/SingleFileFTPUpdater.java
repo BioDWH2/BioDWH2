@@ -10,7 +10,7 @@ import de.unibi.agbi.biodwh2.core.net.AnonymousFTPClient;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-public abstract class SingleFileFTPUpdater extends Updater {
+public abstract class SingleFileFTPUpdater<D extends DataSource> extends Updater<D> {
     @Override
     public final Version getNewestVersion() throws UpdaterException {
         AnonymousFTPClient ftpClient = connectToFTP();
@@ -37,7 +37,7 @@ public abstract class SingleFileFTPUpdater extends Updater {
     protected abstract String getFTPFilePath();
 
     @Override
-    protected final boolean tryUpdateFiles(Workspace workspace, DataSource dataSource) throws UpdaterException {
+    protected final boolean tryUpdateFiles(Workspace workspace, D dataSource) throws UpdaterException {
         AnonymousFTPClient ftpClient = connectToFTP();
         boolean success;
         try {

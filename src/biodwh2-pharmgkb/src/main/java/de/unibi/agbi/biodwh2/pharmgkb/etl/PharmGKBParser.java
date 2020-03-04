@@ -3,7 +3,6 @@ package de.unibi.agbi.biodwh2.pharmgkb.etl;
 import com.univocity.parsers.common.processor.BeanListProcessor;
 import com.univocity.parsers.tsv.TsvParser;
 import com.univocity.parsers.tsv.TsvParserSettings;
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
@@ -17,13 +16,13 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public class PharmGKBParser extends Parser {
+public class PharmGKBParser extends Parser<PharmGKBDataSource> {
     @Override
-    public boolean parse(Workspace workspace, DataSource dataSource) throws ParserException {
+    public boolean parse(Workspace workspace, PharmGKBDataSource dataSource) throws ParserException {
         List<String> files = dataSource.listSourceFiles(workspace);
         for (String file : files)
             try {
-                parseFile((PharmGKBDataSource) dataSource, dataSource.resolveSourceFilePath(workspace, file));
+                parseFile(dataSource, dataSource.resolveSourceFilePath(workspace, file));
             } catch (IOException e) {
                 throw new ParserFileNotFoundException("Failed to parse the file '" + file + "'");
             }
