@@ -4,12 +4,11 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
-import de.unibi.agbi.biodwh2.core.model.graph.Graph;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
-import de.unibi.agbi.biodwh2.core.model.graph.Node;
+import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 
 public abstract class GraphExporter<D extends DataSource> {
     private long lastNodeId = 0;
@@ -45,10 +44,29 @@ public abstract class GraphExporter<D extends DataSource> {
         }
     }
 
+    protected final <T> Node createNodeFromModel(final Graph g, final T obj) throws ExporterException {
+        String[] labels = obj.getClass().getAnnotation(NodeLabels.class).value();
+        Node node = createNode(g, labels);
+        for (Field field : obj.getClass().getDeclaredFields())
+            addPropertyToNode(obj, node, field);
+        return node;
+    }
+
     protected final Node createNode(final Graph g, final String... labels) {
         lastNodeId += 1;
         Node n = new Node(lastNodeId, labels);
         g.addNode(n);
         return n;
+    }
+
+    private <T> void addPropertyToNode(final T obj, final Node node, final Field field) throws ExporterException {
+        field.setAccessible(true);
+        if (field.isAnnotationPresent(GraphProperty.class)) {
+            try {
+                node.setProperty(field.getAnnotation(GraphProperty.class).value(), field.get(obj));
+            } catch (IllegalAccessException e) {
+                throw new ExporterException(e);
+            }
+        }
     }
 }
