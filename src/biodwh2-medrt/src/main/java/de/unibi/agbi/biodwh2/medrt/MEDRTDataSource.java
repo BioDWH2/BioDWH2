@@ -14,22 +14,22 @@ public class MEDRTDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
+    public Updater<MEDRTDataSource> getUpdater() {
         return new MEDRTUpdater();
     }
 
     @Override
-    public Parser getParser() {
+    public Parser<MEDRTDataSource> getParser() {
         return new MEDRTParser();
     }
 
     @Override
-    public RDFExporter getRdfExporter() {
-        return new EmptyRDFExporter();
+    public RDFExporter<MEDRTDataSource> getRdfExporter() {
+        return new EmptyRDFExporter<>();
     }
 
     @Override
-    public GraphExporter getGraphExporter() {
+    public GraphExporter<MEDRTDataSource> getGraphExporter() {
         return new MEDRTGraphExporter();
     }
 }

@@ -16,22 +16,22 @@ public class HGNCDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
+    public Updater<HGNCDataSource> getUpdater() {
         return new HGNCUpdater();
     }
 
     @Override
-    public Parser getParser() {
+    public Parser<HGNCDataSource> getParser() {
         return new HGNCParser();
     }
 
     @Override
-    public RDFExporter getRdfExporter() {
+    public RDFExporter<HGNCDataSource> getRdfExporter() {
         return new HGNCRDFExporter();
     }
 
     @Override
-    public GraphExporter getGraphExporter() {
+    public GraphExporter<HGNCDataSource> getGraphExporter() {
         return new HGNCGraphExporter();
     }
 }

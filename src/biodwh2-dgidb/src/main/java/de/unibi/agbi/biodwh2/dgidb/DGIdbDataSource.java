@@ -11,22 +11,22 @@ public class DGIdbDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
+    public Updater<DGIdbDataSource> getUpdater() {
         return new DGIdbUpdater();
     }
 
     @Override
-    public Parser getParser() {
+    public Parser<DGIdbDataSource> getParser() {
         return new DGIdbParser();
     }
 
     @Override
-    public RDFExporter getRdfExporter() {
-        return new EmptyRDFExporter();
+    public RDFExporter<DGIdbDataSource> getRdfExporter() {
+        return new EmptyRDFExporter<>();
     }
 
     @Override
-    public GraphExporter getGraphExporter() {
+    public GraphExporter<DGIdbDataSource> getGraphExporter() {
         return new DGIdbGraphExporter();
     }
 }

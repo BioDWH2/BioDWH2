@@ -25,22 +25,22 @@ public class KeggDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
+    public Updater<KeggDataSource> getUpdater() {
         return new KeggUpdater();
     }
 
     @Override
-    protected Parser getParser() {
+    protected Parser<KeggDataSource> getParser() {
         return new KeggParser();
     }
 
     @Override
-    protected RDFExporter getRdfExporter() {
-        return new EmptyRDFExporter();
+    protected RDFExporter<KeggDataSource> getRdfExporter() {
+        return new EmptyRDFExporter<>();
     }
 
     @Override
-    protected GraphExporter getGraphExporter() {
+    protected GraphExporter<KeggDataSource> getGraphExporter() {
         return new KeggGraphExporter();
     }
 }

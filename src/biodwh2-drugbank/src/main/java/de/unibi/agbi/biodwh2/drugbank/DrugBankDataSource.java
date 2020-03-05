@@ -18,22 +18,22 @@ public class DrugBankDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
+    public Updater<DrugBankDataSource> getUpdater() {
         return new DrugBankUpdater();
     }
 
     @Override
-    public Parser getParser() {
+    public Parser<DrugBankDataSource> getParser() {
         return new DrugBankParser();
     }
 
     @Override
-    public RDFExporter getRdfExporter() {
-        return new EmptyRDFExporter();
+    public RDFExporter<DrugBankDataSource> getRdfExporter() {
+        return new EmptyRDFExporter<>();
     }
 
     @Override
-    public GraphExporter getGraphExporter() {
+    public GraphExporter<DrugBankDataSource> getGraphExporter() {
         return new DrugBankGraphExporter();
     }
 }

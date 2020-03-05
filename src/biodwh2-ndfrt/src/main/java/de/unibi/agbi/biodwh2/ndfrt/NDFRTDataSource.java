@@ -14,22 +14,22 @@ public class NDFRTDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
+    public Updater<NDFRTDataSource> getUpdater() {
         return new NDFRTUpdater();
     }
 
     @Override
-    public Parser getParser() {
+    public Parser<NDFRTDataSource> getParser() {
         return new NDFRTParser();
     }
 
     @Override
-    public RDFExporter getRdfExporter() {
-        return new EmptyRDFExporter();
+    public RDFExporter<NDFRTDataSource> getRdfExporter() {
+        return new EmptyRDFExporter<>();
     }
 
     @Override
-    public GraphExporter getGraphExporter() {
+    public GraphExporter<NDFRTDataSource> getGraphExporter() {
         return new NDFRTGraphExporter();
     }
 }
