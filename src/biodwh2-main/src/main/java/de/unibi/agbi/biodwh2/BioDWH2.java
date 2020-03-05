@@ -39,7 +39,6 @@ public final class BioDWH2 {
 
     private static void updateWorkspace(final CmdArgs commandLine) throws Exception {
         List<String> optionArguments = commandLine.update;
-        System.out.println(Arrays.toString(optionArguments.toArray()));
         String workspacePath = optionArguments.get(0);
         String dataSourceName = optionArguments.size() > 1 ? optionArguments.get(1) : null;
         String version = optionArguments.size() > 2 ? optionArguments.get(2) : null;

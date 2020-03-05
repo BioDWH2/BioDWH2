@@ -1,21 +1,16 @@
 package de.unibi.agbi.biodwh2.medrt.etl;
 
-import de.unibi.agbi.biodwh2.core.etl.SingleFileFTPUpdater;
+import de.unibi.agbi.biodwh2.core.etl.SingleFileFTPWebUpdater;
 import de.unibi.agbi.biodwh2.medrt.MEDRTDataSource;
 
-public class MEDRTUpdater extends SingleFileFTPUpdater<MEDRTDataSource> {
+public class MEDRTUpdater extends SingleFileFTPWebUpdater<MEDRTDataSource> {
     @Override
-    protected String getFTPAddress() {
-        return "ftp1.nci.nih.gov";
+    protected String getFTPIndexUrl() {
+        return "https://evs.nci.nih.gov/ftp1/MED-RT/";
     }
 
     @Override
-    protected String getFTPFilePath() {
-        return "pub/cacore/EVS/MED-RT/Core_MEDRT_XML.zip";
-    }
-
-    @Override
-    protected String getTargetFileName() {
+    protected String getFileName() {
         return "Core_MEDRT_XML.zip";
     }
 }
