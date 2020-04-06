@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import org.apache.commons.lang3.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,16 +12,24 @@ import java.util.Map;
 public class Edge {
     private static final Logger logger = LoggerFactory.getLogger(Graph.class);
 
+    private final Graph graph;
+    private final long id;
     private final long fromId;
     private final long toId;
     private final String label;
     private final Map<String, Object> properties;
 
-    public Edge(Node from, Node to, String label) {
-        fromId = from.getId();
-        toId = to.getId();
+    Edge(Graph graph, long id, long fromId, long toId, String label) {
+        this.graph = graph;
+        this.id = id;
+        this.fromId = fromId;
+        this.toId = toId;
         this.label = label;
         properties = new HashMap<>();
+    }
+
+    public long getId() {
+        return id;
     }
 
     public long getFromId() {
@@ -51,7 +60,11 @@ public class Edge {
         return (T) properties.get(key);
     }
 
-    public void setProperty(String key, Object value) {
+    public void setProperty(String key, Object value) throws ExporterException {
+        setProperty(key, value, true);
+    }
+
+    void setProperty(String key, Object value, boolean persist) throws ExporterException {
         if (value == null)
             properties.put(key, null);
         else {
@@ -65,6 +78,8 @@ public class Edge {
                             "toString representation for now '" + value.toString() + "'");
                 properties.put(key, value.toString());
             }
+            if (persist)
+                graph.setEdgeProperty(this, key, value);
         }
     }
 }

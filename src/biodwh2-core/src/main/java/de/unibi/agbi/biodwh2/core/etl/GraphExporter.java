@@ -11,26 +11,29 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 
 public abstract class GraphExporter<D extends DataSource> {
-    private long lastNodeId = 0;
-
     public final boolean export(final Workspace workspace, final D dataSource) throws ExporterException {
-        lastNodeId = 0;
-        Graph g = exportGraph(dataSource);
-        if (g == null)
-            return false;
-        addDataSourcePrefixToGraphNodes(dataSource, g);
-        return trySaveGraphToFile(workspace, dataSource, g);
+        Graph g = new Graph(dataSource.getGraphDatabaseFilePath(workspace));
+        boolean exportSuccessful = exportGraph(workspace, dataSource, g);
+        g.synchronize(true);
+        if (exportSuccessful) {
+            addDataSourcePrefixToGraphNodes(dataSource, g);
+            return trySaveGraphToFile(workspace, dataSource, g);
+        }
+        return false;
     }
 
-    protected abstract Graph exportGraph(D dataSource) throws ExporterException;
+    protected abstract boolean exportGraph(final Workspace workspace, final D dataSource,
+                                           final Graph graph) throws ExporterException;
 
     private void addDataSourcePrefixToGraphNodes(final DataSource dataSource, final Graph g) {
+        /* TODO: fix
         for (Node n : g.getNodes()) {
             final String[] labels = n.getLabels();
             for (int i = 0; i < labels.length; i++)
                 if (!labels[i].contains(dataSource.getId()))
                     labels[i] = dataSource.getId() + "_" + labels[i];
         }
+        */
     }
 
     private boolean trySaveGraphToFile(final Workspace workspace, final D dataSource, final Graph g) {
@@ -52,18 +55,16 @@ public abstract class GraphExporter<D extends DataSource> {
         return node;
     }
 
-    protected final Node createNode(final Graph g, final String... labels) {
-        lastNodeId += 1;
-        Node n = new Node(lastNodeId, labels);
-        g.addNode(n);
-        return n;
+    protected final Node createNode(final Graph g, final String... labels) throws ExporterException {
+        return g.addNode(labels);
     }
 
     private <T> void addPropertyToNode(final T obj, final Node node, final Field field) throws ExporterException {
         field.setAccessible(true);
         if (field.isAnnotationPresent(GraphProperty.class)) {
             try {
-                node.setProperty(field.getAnnotation(GraphProperty.class).value(), field.get(obj));
+                GraphProperty property = field.getAnnotation(GraphProperty.class);
+                node.setProperty(property.value(), field.get(obj));
             } catch (IllegalAccessException e) {
                 throw new ExporterException(e);
             }

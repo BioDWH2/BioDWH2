@@ -6,11 +6,11 @@ import de.unibi.agbi.biodwh2.ndfrt.NDFRTDataSource;
 public class NDFRTUpdater extends SingleFileFTPWebUpdater<NDFRTDataSource> {
     @Override
     protected String getFTPIndexUrl() {
-        return "https://evs.nci.nih.gov/ftp1/NDF-RT/";
+        return "https://evs.nci.nih.gov/ftp1/NDF-RT/Archive/";
     }
 
     @Override
     protected String getFileName() {
-        return "NDFRT_Public_All.zip";
+        return "NDFRT_Public_All%202018-02-05.zip";
     }
 }

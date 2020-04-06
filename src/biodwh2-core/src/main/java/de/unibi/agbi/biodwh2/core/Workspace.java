@@ -6,6 +6,7 @@ import de.unibi.agbi.biodwh2.core.etl.Merger;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
+import de.unibi.agbi.biodwh2.core.model.Version;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,18 +19,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class Workspace {
+public final class Workspace {
     private static final Logger logger = LoggerFactory.getLogger(Workspace.class);
 
     public static final int Version = 1;
     private static final String SourcesDirectoryName = "sources";
     private static final String ConfigFileName = "config.json";
+    private static final String MergedGraphRdfFileName = "merged.ttl";
 
     private final String workingDirectory;
     private final Configuration configuration;
     private final List<DataSource> dataSources;
 
-    public Workspace(String workingDirectory) throws IOException {
+    public Workspace(final String workingDirectory) throws IOException {
         this.workingDirectory = workingDirectory;
         createWorkingDirectoryIfNotExists();
         configuration = createOrLoadConfiguration();
@@ -102,66 +104,51 @@ public class Workspace {
     private Map<String, Boolean> createSourcesUpToDate() {
         Map<String, Boolean> sourcesUpToDate = new HashMap<>();
         for (DataSource dataSource : dataSources) {
-            String currentVersion = dataSource.getMetadata().version.toString();
-            String latestVersion = getLatestVersion(dataSource);
-            sourcesUpToDate.put(dataSource.getId(), currentVersion.equals(latestVersion));
+            Version workspaceVersion = dataSource.getMetadata().version;
+            Version newestVersion = getLatestVersion(dataSource);
+            boolean isUpToDate = workspaceVersion != null && newestVersion != null && newestVersion.compareTo(
+                    workspaceVersion) == 0;
+            sourcesUpToDate.put(dataSource.getId(), isUpToDate);
         }
         return sourcesUpToDate;
     }
 
-    private String getLatestVersion(DataSource dataSource) {
+    private Version getLatestVersion(DataSource dataSource) {
         try {
-            return dataSource.getUpdater().getNewestVersion().toString();
+            return dataSource.getUpdater().getNewestVersion();
         } catch (UpdaterException e) {
             logger.error("Failed to get newest version for data source '" + dataSource.getId() + "'");
-            return "-";
+            return null;
         }
     }
 
     private String createStateTable(Map<String, Boolean> sourcesUpToDate, boolean verbose) {
-        String state = "";
         String heading;
-        String separator;
-        String spacer = StringUtils.repeat(" ", 129);
-        if (verbose) {
-            separator = StringUtils.repeat("-", 150);
+        final String separator = StringUtils.repeat("-", verbose ? 150 : 120);
+        if (verbose)
             heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s%-28s\n%s\n", separator, "SourceID",
                                     "Version is up-to-date", "Version", "new Version", "Time of latest update", "Files",
                                     separator);
-        } else {
-            separator = StringUtils.repeat("-", 120);
+        else
             heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s\n%s\n", separator, "SourceID",
                                     "Version is up-to-date", "Version", "new Version", "Time of latest update",
                                     separator);
-        }
+        String state = "";
         for (DataSource dataSource : dataSources) {
-            Map<String, String> metaMap = createMetadataMap(dataSource, sourcesUpToDate);
-            state = String.format("%s%-23s%-21s%-25s%-25s%-35s", state, metaMap.get("dataSourceId"),
-                                  metaMap.get("isVersionUpToDate"), metaMap.get("workspaceVersion"),
-                                  metaMap.get("latestVersion"), metaMap.get("latestUpdateTime"));
+            final DataSourceMetadata meta = dataSource.getMetadata();
+            state = String.format("%s%-23s%-21s%-25s%-25s%-35s", state, dataSource.getId(),
+                                  sourcesUpToDate.get(dataSource.getId()), meta.version, getLatestVersion(dataSource),
+                                  meta.getLocalUpdateDateTime());
             if (verbose) {
-                DataSourceMetadata meta = dataSource.getMetadata();
-                List<String> existingFiles = meta.sourceFileNames;
+                final String spacer = StringUtils.repeat(" ", 129);
+                final List<String> existingFiles = meta.sourceFileNames;
                 state = String.format("%s%-30s\n", state, existingFiles.get(0));
-                for (int i = 1; i < existingFiles.size(); i++) {
+                for (int i = 1; i < existingFiles.size(); i++)
                     state = String.format("%s%s%s\n", state, spacer, existingFiles.get(i));
-                }
-            } else {
+            } else
                 state += "\n";
-            }
         }
         return heading + state + separator;
-    }
-
-    private Map<String, String> createMetadataMap(DataSource dataSource, Map<String, Boolean> sourcesUpToDate) {
-        Map<String, String> metaMap = new HashMap<>();
-        DataSourceMetadata meta = dataSource.getMetadata();
-        metaMap.put("dataSourceId", dataSource.getId());
-        metaMap.put("isVersionUpToDate", sourcesUpToDate.get(dataSource.getId()).toString());
-        metaMap.put("workspaceVersion", meta.version.toString());
-        metaMap.put("latestVersion", getLatestVersion(dataSource));
-        metaMap.put("latestUpdateTime", meta.getLocalUpdateDateTime().toString());
-        return metaMap;
     }
 
     private boolean prepareDataSources() {
@@ -176,10 +163,10 @@ public class Workspace {
         return true;
     }
 
-    public void updateDataSources(final String sourceName, final String version, final boolean skipUpdate) {
+    public void updateDataSources(final String dataSourceId, final String version, final boolean skipUpdate) {
         if (prepareDataSources()) {
             for (DataSource dataSource : dataSources)
-                if (sourceName == null || dataSource.getId().equals(sourceName))
+                if (dataSourceId == null || dataSource.getId().equals(dataSourceId))
                     updateDataSource(dataSource, version, skipUpdate);
             mergeDataSources();
         }
@@ -188,14 +175,21 @@ public class Workspace {
     private void updateDataSource(final DataSource dataSource, final String version, final boolean skipUpdate) {
         logger.info("Processing of data source '" + dataSource.getId() + "' started");
         if (!skipUpdate) {
+            logger.info("Running updater");
             if (version != null)
                 dataSource.updateManually(this, version);
             else
                 dataSource.updateAutomatic(this);
             dataSource.trySaveMetadata(this);
+        } else if (dataSource.getMetadata().updateSuccessful == null) {
+            logger.error("Update was skipped for data source '" + dataSource.getId() +
+                         "' without successful previous update.");
+            return;
         }
         if (dataSource.getMetadata().updateSuccessful) {
+            logger.info("Running parser");
             dataSource.parse(this);
+            logger.info("Running exporter");
             dataSource.export(this);
         }
         dataSource.trySaveMetadata(this);
@@ -205,14 +199,14 @@ public class Workspace {
     private void mergeDataSources() {
         logger.info("Merging of data sources started");
         Merger merger = new Merger();
-        String mergedFilePath = Paths.get(getSourcesDirectory(), "merged.ttl").toString();
+        String mergedFilePath = Paths.get(getSourcesDirectory(), MergedGraphRdfFileName).toString();
         try {
             PrintWriter writer = new PrintWriter(mergedFilePath);
             merger.merge(this, dataSources, writer);
         } catch (FileNotFoundException e) {
-            logger.error("Failed to create merge file '" + mergedFilePath + "'");
+            logger.error("Failed to create merge file '" + mergedFilePath + "'", e);
         } catch (MergerException e) {
-            logger.error("Failed to merge");
+            logger.error("Failed to merge data sources", e);
         }
         logger.info("Merging of data sources finished");
     }

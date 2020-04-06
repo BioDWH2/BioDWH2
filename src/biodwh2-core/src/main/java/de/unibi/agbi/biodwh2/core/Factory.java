@@ -131,6 +131,7 @@ public final class Factory {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public <T> List<Class<T>> getImplementations(Class<T> type) {
         String typeName = type.getName();
         if (interfaceToImplementationsMap.containsKey(typeName))

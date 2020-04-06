@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.core.io.graph;
 
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.io.IndentingXMLStreamWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
@@ -23,7 +24,7 @@ public class GraphMLGraphWriter extends GraphWriter {
             writeGraph(writer, graph);
             writer.writeEndElement();
             writer.writeEndDocument();
-        } catch (XMLStreamException e) {
+        } catch (XMLStreamException | ExporterException e) {
             e.printStackTrace();
             return false;
         }
@@ -44,7 +45,7 @@ public class GraphMLGraphWriter extends GraphWriter {
                                                     "http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd");
     }
 
-    private void writeGraph(XMLStreamWriter writer, Graph graph) throws XMLStreamException {
+    private void writeGraph(XMLStreamWriter writer, Graph graph) throws XMLStreamException, ExporterException {
         writeNodeProperties(writer, graph);
         writeEdgeProperties(writer, graph);
         writer.writeStartElement("graph");
@@ -60,13 +61,13 @@ public class GraphMLGraphWriter extends GraphWriter {
         writer.writeEndElement();
     }
 
-    private void writeNodeProperties(XMLStreamWriter writer, Graph graph) throws XMLStreamException {
+    private void writeNodeProperties(XMLStreamWriter writer, Graph graph) throws XMLStreamException, ExporterException {
         Map<String, Class<?>> nodePropertyKeyTypes = collectAllNodePropertyKeyTypes(graph.getNodes());
         for (String key : nodePropertyKeyTypes.keySet())
             writePropertyKey(writer, key, nodePropertyKeyTypes.get(key), "node");
     }
 
-    private Map<String, Class<?>> collectAllNodePropertyKeyTypes(Collection<Node> nodes) {
+    private Map<String, Class<?>> collectAllNodePropertyKeyTypes(Iterable<Node> nodes) {
         Map<String, Class<?>> propertyKeyTypes = new HashMap<>();
         propertyKeyTypes.put("labels", String.class);
         for (Node node : nodes) {
@@ -96,13 +97,13 @@ public class GraphMLGraphWriter extends GraphWriter {
         writer.writeEndElement();
     }
 
-    private void writeEdgeProperties(XMLStreamWriter writer, Graph graph) throws XMLStreamException {
+    private void writeEdgeProperties(XMLStreamWriter writer, Graph graph) throws XMLStreamException, ExporterException {
         Map<String, Class<?>> edgePropertyKeyTypes = collectAllEdgePropertyKeyTypes(graph.getEdges());
         for (String key : edgePropertyKeyTypes.keySet())
             writePropertyKey(writer, key, edgePropertyKeyTypes.get(key), "edge");
     }
 
-    private Map<String, Class<?>> collectAllEdgePropertyKeyTypes(Collection<Edge> edges) {
+    private Map<String, Class<?>> collectAllEdgePropertyKeyTypes(Iterable<Edge> edges) {
         Map<String, Class<?>> propertyKeyTypes = new HashMap<>();
         propertyKeyTypes.put("label", String.class);
         for (Edge edge : edges) {

@@ -1,6 +1,8 @@
 package de.unibi.agbi.biodwh2.pharmgkb.etl;
 
+import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -25,8 +27,8 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     private HashMap<String, Node> variant_annotation_id = new HashMap<>();
 
     @Override
-    protected Graph exportGraph(PharmGKBDataSource dataSource) {
-        Graph graph = new Graph();
+    protected boolean exportGraph(final Workspace workspace, final PharmGKBDataSource dataSource,
+                                  final Graph graph) throws ExporterException {
         for (String keyName : dataSource.pathways.keySet())
             addPathway(graph, keyName, dataSource.pathways.get(keyName));
         addGenes(graph, dataSource.genes);
@@ -45,10 +47,10 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         addVariantFunctionalAnalysisAnnotations(graph, dataSource.variantFunctionalAnalysisAnnotations);
         addVariantPhenotypeAnnotations(graph, dataSource.variantPhenotypeAnnotations);
         addClinicalAnnotationMetadata(graph, dataSource.clinicalAnnotationMetadata);
-        return graph;
+        return true;
     }
 
-    private void addGenes(final Graph graph, final List<Gene> genes) {
+    private void addGenes(final Graph graph, final List<Gene> genes) throws ExporterException {
         for (Gene gene : genes) {
             Node node = createNode(graph, "Gene");
             idNodeMap.put(gene.pharmgkbAccessionId, node);
@@ -100,7 +102,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         return result.toArray(new String[0]);
     }
 
-    private void addChemicals(final Graph graph, final List<Chemical> chemicals) {
+    private void addChemicals(final Graph graph, final List<Chemical> chemicals) throws ExporterException {
         for (Chemical chemical : chemicals) {
             Node node = createNode(graph, "Chemical");
             idNodeMap.put(chemical.pharmgkbAccessionId, node);
@@ -159,7 +161,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         return new HashSet<>(ids).toArray(new String[0]);
     }
 
-    private void addDrugs(final Graph graph, final List<Drug> drugs) {
+    private void addDrugs(final Graph graph, final List<Drug> drugs) throws ExporterException {
         for (Drug drug : drugs) {
             Node node = createNode(graph, "Drug");
             idNodeMap.put(drug.pharmgkbAccessionId, node);
@@ -201,7 +203,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         }
     }
 
-    private void addPhenotypes(final Graph graph, final List<Phenotype> phenotypes) {
+    private void addPhenotypes(final Graph graph, final List<Phenotype> phenotypes) throws ExporterException {
         for (Phenotype phenotype : phenotypes) {
             Node node = createNode(graph, "Phenotype");
             idNodeMap.put(phenotype.pharmgkbAccessionId, node);
@@ -222,7 +224,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         }
     }
 
-    private void addVariants(final Graph graph, final List<Variant> variants) {
+    private void addVariants(final Graph graph, final List<Variant> variants) throws ExporterException {
         for (Variant variant : variants) {
             Node node = createNode(graph, "Variant");
             idNodeMap.put(variant.variantId, node);
@@ -247,11 +249,11 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             // TODO: variant.gene_symbols
             if (variant.geneIds != null)
                 for (String geneId : variant.geneIds.split(","))
-                    addEdgeToGraph(idNodeMap.get(geneId), node, "has_variant", graph);
+                    graph.addEdge(idNodeMap.get(geneId), node, "has_variant");
         }
     }
 
-    private void addDrugLabels(final Graph graph, final List<DrugLabel> drugLabels) {
+    private void addDrugLabels(final Graph graph, final List<DrugLabel> drugLabels) throws ExporterException {
         for (DrugLabel drugLabel : drugLabels) {
             Node node = createNode(graph, "DrugLabel");
             idNodeMap.put(drugLabel.pharmgkbAccessionId, node);
@@ -267,7 +269,8 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         }
     }
 
-    private void addStudyParameters(final Graph graph, final List<StudyParameters> studyParameters) {
+    private void addStudyParameters(final Graph graph,
+                                    final List<StudyParameters> studyParameters) throws ExporterException {
         for (StudyParameters studyParameter : studyParameters) {
             Node node = createNode(graph, "StudyParameters");
             idNodeMap.put(studyParameter.studyParametersId, node);
@@ -293,7 +296,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         }
     }
 
-    private void addOccurrences(final Graph graph, final List<Occurrence> occurrences) {
+    private void addOccurrences(final Graph graph, final List<Occurrence> occurrences) throws ExporterException {
         for (Occurrence occurrence : occurrences) {
             Node node = createNode(graph, "Occurrence");
             node.setProperty("source_type", occurrence.sourceType);
@@ -303,24 +306,26 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             node.setProperty("object_id", occurrence.objectId);
             node.setProperty("object_name", occurrence.objectName);
             if (idNodeMap.containsKey(occurrence.objectId))
-                addEdgeToGraph(idNodeMap.get(occurrence.objectId), node, "has_occurrence", graph);
+                graph.addEdge(idNodeMap.get(occurrence.objectId), node, "has_occurrence");
             //TODO: else
             //    logger.warn("PharmGKB ID not found (potential new haplotype data): " + occurrence.object_id);
         }
     }
 
-    private void addDrugLabelsByGene(final Graph graph, final List<DrugLabelsByGene> drugLabelsByGenes) {
+    private void addDrugLabelsByGene(final Graph graph,
+                                     final List<DrugLabelsByGene> drugLabelsByGenes) throws ExporterException {
         for (DrugLabelsByGene drugLabelsByGene : drugLabelsByGenes) {
             for (String labelId : drugLabelsByGene.labelIds.split(";")) {
-                Edge edge = addEdgeToGraph(idNodeMap.get(labelId), idNodeMap.get(drugLabelsByGene.geneId),
-                                           "associated_with", graph);
+                Edge edge = graph.addEdge(idNodeMap.get(labelId), idNodeMap.get(drugLabelsByGene.geneId),
+                                          "associated_with");
                 edge.setProperty("gene_symbol", drugLabelsByGene.geneSymbol);
                 edge.setProperty("label_names", drugLabelsByGene.labelNames.split(";"));
             }
         }
     }
 
-    private void addClinicalAnnotations(final Graph graph, final List<ClinicalAnnotation> clinicalAnnotations) {
+    private void addClinicalAnnotations(final Graph graph,
+                                        final List<ClinicalAnnotation> clinicalAnnotations) throws ExporterException {
         for (ClinicalAnnotation clinicalAnnotation : clinicalAnnotations) {
             Node node = createNode(graph, "ClinicalAnnotation", "Annotation");
             node.setProperty("_id", clinicalAnnotation.genotypePhenotypeId);
@@ -330,29 +335,29 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         }
     }
 
-    private void addAutomatedAnnotations(final Graph graph, final List<AutomatedAnnotation> automatedAnnotations) {
+    private void addAutomatedAnnotations(final Graph graph,
+                                         final List<AutomatedAnnotation> automatedAnnotations) throws ExporterException {
         for (AutomatedAnnotation automatedAnnotation : automatedAnnotations) {
             Node node = createNode(graph, "AutomatedAnnotation", "Annotation");
             // TODO
             if (automatedAnnotation.gene_ids != null)
                 for (String geneId : automatedAnnotation.gene_ids.split(","))
-                    addEdgeToGraph(node, idNodeMap.get(geneId), "has_gene", graph);
+                    graph.addEdge(node, idNodeMap.get(geneId), "has_gene");
             if (automatedAnnotation.chemical_id != null) {
                 if (idNodeMap.containsKey(automatedAnnotation.chemical_id))
-                    addEdgeToGraph(node, idNodeMap.get(automatedAnnotation.chemical_id), "has_chemical", graph);
+                    graph.addEdge(node, idNodeMap.get(automatedAnnotation.chemical_id), "has_chemical");
                 else
                     logger.warn("Chemical not found: " + automatedAnnotation.chemical_id);
             }
             if (automatedAnnotation.variation_id != null) {
                 if (automatedAnnotation.variation_id.contains("rs")) {
                     if (variantNameNodeMap.containsKey(automatedAnnotation.variation_id))
-                        addEdgeToGraph(node, variantNameNodeMap.get(automatedAnnotation.variation_id), "has_variation",
-                                       graph);
+                        graph.addEdge(node, variantNameNodeMap.get(automatedAnnotation.variation_id), "has_variation");
                     else
                         logger.warn("Variant not found: " + automatedAnnotation.variation_id);
                 } else {
                     if (idNodeMap.containsKey(automatedAnnotation.variation_id))
-                        addEdgeToGraph(node, idNodeMap.get(automatedAnnotation.variation_id), "has_variation", graph);
+                        graph.addEdge(node, idNodeMap.get(automatedAnnotation.variation_id), "has_variation");
                     else
                         logger.warn("Variant not found: " + automatedAnnotation.variation_id);
                 }
@@ -360,30 +365,31 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         }
     }
 
-    private void addClinicalVariants(final Graph graph, final List<ClinicalVariants> clinicalVariants) {
+    private void addClinicalVariants(final Graph graph,
+                                     final List<ClinicalVariants> clinicalVariants) throws ExporterException {
         for (ClinicalVariants clinicalVariant : clinicalVariants) {
             Node node = createNode(graph, "ClinicalVariant");
             node.setProperty("type", clinicalVariant.type);
             node.setProperty("level_of_evidence", clinicalVariant.levelOfEvidence);
             if (clinicalVariant.gene != null)
                 for (String geneId : clinicalVariant.gene.split(","))
-                    addEdgeToGraph(node, geneSymbolNodeMap.get(geneId), "associated_with", graph);
+                    graph.addEdge(node, geneSymbolNodeMap.get(geneId), "associated_with");
             for (String chemical : parseStringArray(clinicalVariant.chemicals)) {
                 if (chemicalNameNodeMap.containsKey(chemical))
-                    addEdgeToGraph(node, chemicalNameNodeMap.get(chemical), "associated_with", graph);
+                    graph.addEdge(node, chemicalNameNodeMap.get(chemical), "associated_with");
                 else
                     logger.warn("Chemical not found: " + chemical);
             }
             for (String phenotype : parseStringArray(clinicalVariant.phenotypes)) {
                 if (phenotypeNameNodeMap.containsKey(phenotype))
-                    addEdgeToGraph(node, phenotypeNameNodeMap.get(phenotype), "associated_with", graph);
+                    graph.addEdge(node, phenotypeNameNodeMap.get(phenotype), "associated_with");
                 else
                     logger.warn("Phenotype not found: " + phenotype);
             }
             if (clinicalVariant.variant != null) {
                 if (clinicalVariant.variant.contains("rs")) {
                     if (variantNameNodeMap.containsKey(clinicalVariant.variant))
-                        addEdgeToGraph(node, variantNameNodeMap.get(clinicalVariant.variant), "associated_with", graph);
+                        graph.addEdge(node, variantNameNodeMap.get(clinicalVariant.variant), "associated_with");
                     else
                         logger.warn("Variant name not found: " + clinicalVariant.variant);
                 } else {
@@ -406,15 +412,15 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             if (fieldName.equals("gene")) {
                 for (String geneId : parseStringArray(value)) {
                     String gid = geneId.split("\\(")[1].replace(")", "");
-                    addEdgeToGraph(node, idNodeMap.get(gid), "has_gene", g);
+                    graph.addEdge(node, idNodeMap.get(gid), "has_gene", g);
                 }
             } else if (fieldName.equals("study_parameters")) {
                 for (String gpId : parseStringArray(value))
-                    addEdgeToGraph(node, studyParametersIdNodeMap.get(gpId), "has_study_parameter", g);
+                    graph.addEdge(node, studyParametersIdNodeMap.get(gpId), "has_study_parameter", g);
             } else if (fieldName.equals("variant")) {
                 if (value != null) {
                     if (value.contains("rs") && variantNameNodeMap.containsKey(value))
-                        addEdgeToGraph(node, variantNameNodeMap.get(value), "has_variation", g);
+                        graph.addEdge(node, variantNameNodeMap.get(value), "has_variation", g);
                     else
                         logger.warn("Chemical not found: " + value);
                 }
@@ -426,14 +432,14 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                     if (partList.length > 2) {
                         String cid = partList[partList.length - 1].replace(")", "");
                         if (idNodeMap.containsKey(cid)) {
-                            addEdgeToGraph(node, idNodeMap.get(cid), "has_chemical", g);
+                            graph.addEdge(node, idNodeMap.get(cid), "has_chemical", g);
                         } else {
                             logger.warn("Chemical ID not found: " + cid);
                         }
                     } else {
                         String cid = partList[1].replace(")", "").replace("\"", "");
                         if (idNodeMap.containsKey(cid)) {
-                            addEdgeToGraph(node, idNodeMap.get(cid), "has_chemical", g);
+                            graph.addEdge(node, idNodeMap.get(cid), "has_chemical", g);
                         } else {
                             logger.warn("Chemical ID not found: " + cid);
                         }
@@ -459,14 +465,14 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                 if (partList.length > 2) {
                     String cid = partList[partList.length - 1].replace(")", "");
                     if (idNodeMap.containsKey(cid)) {
-                        addEdgeToGraph(node, idNodeMap.get(cid), "has_chemical", g);
+                        graph.addEdge(node, idNodeMap.get(cid), "has_chemical", g);
                     } else {
                         logger.warn("Chemical ID not found: " + cid);
                     }
                 } else {
                     String cid = partList[1].replace(")", "");
                     if (idNodeMap.containsKey(cid)) {
-                        addEdgeToGraph(node, idNodeMap.get(cid), "has_chemical", g);
+                        graph.addEdge(node, idNodeMap.get(cid), "has_chemical", g);
                     } else {
                         logger.warn("Chemical ID not found: " + cid);
                     }
@@ -475,19 +481,19 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         } else if (fieldName.equals("gene")) {
             for (String geneId : parseStringArray(value)) {
                 String gid = geneId.split("\\(")[1].replace(")", "");
-                addEdgeToGraph(node, idNodeMap.get(gid), "has_gene", g);
+                graph.addEdge(node, idNodeMap.get(gid), "has_gene", g);
             }
         } else if (fieldName.equals("genotype_phenotypes_id")) {
             for (String gpId : parseStringArray(value))
-                addEdgeToGraph(node, genotype_phenotype_id.get(gpId), "has_genotype_phenotype", g);
+                graph.addEdge(node, genotype_phenotype_id.get(gpId), "has_genotype_phenotype", g);
         } else if (fieldName.equals("variant_annotations_id")) {
             for (String gpId : parseStringArray(value))
-                addEdgeToGraph(node, variant_annotation_id.get(gpId), "has_genotype_phenotype", g);
+                graph.addEdge(node, variant_annotation_id.get(gpId), "has_genotype_phenotype", g);
         } else if (fieldName.equals("location")) {
             if (value != null && value.contains("rs")) {
                 for (String variantName : parseStringArray(value)) {
                     if (variantNameNodeMap.containsKey(variantName)) {
-                        addEdgeToGraph(node, variantNameNodeMap.get(variantName), "has_variation", g);
+                        graph.addEdge(node, variantNameNodeMap.get(variantName), "has_variation", g);
                     } else {
                         logger.warn("Variant name not found: " + variantName);
                     }
@@ -497,7 +503,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
          */
     }
 
-    private void addPathway(Graph graph, String keyName, List<Pathway> pathways) {
+    private void addPathway(Graph graph, String keyName, List<Pathway> pathways) throws ExporterException {
         String pathwayId = keyName.split("-")[0];
         String pathwayName = keyName.split("-")[1].replace("_", " ");
         Node node = createNode(graph, "Pathway");
@@ -520,11 +526,5 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             id += 1;
         }
         */
-    }
-
-    private Edge addEdgeToGraph(Node startNode, Node endNode, String label, Graph g) {
-        Edge edge = new Edge(startNode, endNode, label);
-        g.addEdge(edge);
-        return edge;
     }
 }

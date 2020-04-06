@@ -1,6 +1,6 @@
 package de.unibi.agbi.biodwh2.core.exceptions;
 
-public abstract class ExporterFormatException extends ExporterException {
+public class ExporterFormatException extends ExporterException {
     public ExporterFormatException() {
     }
 

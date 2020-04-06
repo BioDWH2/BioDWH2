@@ -14,10 +14,11 @@ public abstract class SingleFileFTPWebUpdater<D extends DataSource> extends Upda
     public Version getNewestVersion() throws UpdaterException {
         try {
             String source = HTTPClient.getWebsiteSource(getFTPIndexUrl());
-            String searchKey = "<a href=\"" + getFileName() + "\">" + getFileName() + "</a>";
+            String searchKey = "<a href=\"" + getFileName() + "\">";
             if (!source.contains(searchKey))
                 return null;
-            String[] dateParts = source.split(searchKey)[1].split("</a>")[0].trim().split(" ")[0].split("-");
+            String date = source.split(searchKey)[1].split("<td")[1].split("[<>]")[1].split(" ")[0];
+            String[] dateParts = date.split("-");
             return new Version(Integer.parseInt(dateParts[0]), Integer.parseInt(dateParts[1]),
                                Integer.parseInt(dateParts[2]));
         } catch (IOException e) {

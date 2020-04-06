@@ -17,10 +17,11 @@ import java.util.zip.ZipInputStream;
 public class NDFRTParser extends Parser<NDFRTDataSource> {
     @Override
     public boolean parse(Workspace workspace, NDFRTDataSource dataSource) throws ParserException {
-        String filePath = dataSource.resolveSourceFilePath(workspace, "NDFRT_Public_All.zip");
+        final String sourceFileName = dataSource.getMetadata().sourceFileNames.get(0);
+        String filePath = dataSource.resolveSourceFilePath(workspace, sourceFileName);
         File coreZipFile = new File(filePath);
         if (!coreZipFile.exists())
-            throw new ParserFileNotFoundException("NDFRT_Public_All.zip");
+            throw new ParserFileNotFoundException(sourceFileName);
         ZipInputStream zipInputStream = openZipInputStream(coreZipFile);
         try {
             ZipEntry zipEntry;
@@ -31,7 +32,7 @@ public class NDFRTParser extends Parser<NDFRTDataSource> {
                 }
             }
         } catch (IOException e) {
-            throw new ParserFormatException("Failed to parse the file 'NDFRT_Public_All.zip'", e);
+            throw new ParserFormatException("Failed to parse the file '" + sourceFileName + "'", e);
         }
         return false;
     }

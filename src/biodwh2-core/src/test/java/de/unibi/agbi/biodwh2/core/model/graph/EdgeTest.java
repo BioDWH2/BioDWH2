@@ -1,15 +1,16 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 
-public class EdgeTest {
+class EdgeTest {
     @Test
-    public void testSetProperty() {
-        Node a = new Node(1);
-        Node b = new Node(2);
-        Edge e = new Edge(a, b, "TEST");
+    void testSetProperty() throws ExporterException {
+        Node a = new Node(null, 1, true);
+        Node b = new Node(null, 2, true);
+        Edge e = new Edge(null, 1, a.getId(), b.getId(), "TEST");
         e.setProperty("int_property", 0);
         e.setProperty("byte_property", 0x1b);
         e.setProperty("float_property", 0.5f);

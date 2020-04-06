@@ -3,7 +3,6 @@ package de.unibi.agbi.biodwh2;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import picocli.CommandLine;
 
-import java.util.Arrays;
 import java.util.List;
 
 public final class BioDWH2 {
@@ -40,10 +39,10 @@ public final class BioDWH2 {
     private static void updateWorkspace(final CmdArgs commandLine) throws Exception {
         List<String> optionArguments = commandLine.update;
         String workspacePath = optionArguments.get(0);
-        String dataSourceName = optionArguments.size() > 1 ? optionArguments.get(1) : null;
+        String dataSourceId = optionArguments.size() > 1 ? optionArguments.get(1) : null;
         String version = optionArguments.size() > 2 ? optionArguments.get(2) : null;
         Workspace workspace = new Workspace(workspacePath);
-        workspace.updateDataSources(dataSourceName, version, commandLine.skipUpdate);
+        workspace.updateDataSources(dataSourceId, version, commandLine.skipUpdate);
     }
 
     private static void printHelp(final CmdArgs commandLine) {

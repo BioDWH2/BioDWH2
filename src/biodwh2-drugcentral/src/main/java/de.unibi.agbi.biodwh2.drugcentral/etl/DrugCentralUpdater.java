@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.drugcentral.etl;
 
+import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
@@ -17,29 +18,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
 public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
+    private static final String DownloadPageUrl = "http://drugcentral.org/download";
+
     @Override
     public Version getNewestVersion() throws UpdaterException {
         try {
-            String html = HTTPClient.getWebsiteSource("http://drugcentral.org/download");
+            String html = HTTPClient.getWebsiteSource(DownloadPageUrl);
             for (String word : html.split(" {4}")) {
                 if (word.contains("drugcentral.dump.")) {
                     String version = word.split("href=\"")[1].split("\\.")[3];
                     return parseVersion(
                             version.substring(4) + "." + version.substring(0, 2) + "." + version.substring(2, 4));
-                }
-            }
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
-        return null;
-    }
-
-    private URL getDrugCentralFileURL() throws UpdaterException {
-        try {
-            String html = HTTPClient.getWebsiteSource("http://drugcentral.org/download");
-            for (String word : html.split(" {4}")) {
-                if (word.contains("drugcentral.dump.")) {
-                    return new URL(word.split("\"")[3]);
                 }
             }
         } catch (IOException e) {
@@ -58,37 +47,65 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(Workspace workspace, DrugCentralDataSource dataSource) throws UpdaterException {
-        String line;
-        String dumpFilePath = dataSource.resolveSourceFilePath(workspace, "rawDrugCentral.sql.gz");
+        final String dumpFilePath = dataSource.resolveSourceFilePath(workspace, "rawDrugCentral.sql.gz");
+        downloadDrugCentralDatabase(dumpFilePath);
+        extractTsvFilesFromDatabaseDump(workspace, dataSource, dumpFilePath);
+        return true;
+    }
+
+    private void downloadDrugCentralDatabase(final String dumpFilePath) throws UpdaterException {
         File newFile = new File(dumpFilePath);
-        URL dcURL = getDrugCentralFileURL();
+        URL downloadFileUrl = getDrugCentralFileUrl();
         try {
-            FileUtils.copyURLToFile(dcURL, newFile);
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(new GZIPInputStream(new FileInputStream(dumpFilePath)),
-                                          StandardCharsets.UTF_8));
-            PrintWriter writer = null;
-            boolean copy = false;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("COPY")) {
-                    String tableName = line.split(" ")[1].split("\\.")[1];
-                    String attributes = StringUtils.join(line.split("\\(")[1].split("\\)")[0].split(", "), "\t");
-                    copy = true;
-                    writer = new PrintWriter(dataSource.resolveSourceFilePath(workspace, tableName + ".tsv"));
-                    writer.println(attributes);
-                } else if (line.contains("\\.")) {
-                    copy = false;
-                    if (writer != null) {
-                        writer.close();
-                        writer = null;
-                    }
-                } else if (copy)
-                    writer.println(line);
-            }
-            reader.close();
-            return true;
+            FileUtils.copyURLToFile(downloadFileUrl, newFile);
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
+    }
+
+    private URL getDrugCentralFileUrl() throws UpdaterException {
+        try {
+            String html = HTTPClient.getWebsiteSource(DownloadPageUrl);
+            for (String word : html.split(" {4}"))
+                if (word.contains("drugcentral.dump."))
+                    return new URL(word.split("\"")[3]);
+        } catch (IOException e) {
+            throw new UpdaterConnectionException(e);
+        }
+        throw new UpdaterConnectionException("Failed to get database download URL from download page");
+    }
+
+    private void extractTsvFilesFromDatabaseDump(final Workspace workspace, final DrugCentralDataSource dataSource,
+                                                 final String dumpFilePath) throws UpdaterException {
+        try (BufferedReader reader = getBufferedReaderFromFile(dumpFilePath)) {
+            PrintWriter writer = null;
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("COPY"))
+                    writer = getTsvWriterFromCopyLine(workspace, dataSource, line);
+                else if (line.contains("\\.")) {
+                    if (writer != null)
+                        writer.close();
+                    writer = null;
+                } else if (writer != null)
+                    writer.println(line.replace("\\N", ""));
+            }
+        } catch (IOException e) {
+            throw new UpdaterConnectionException(e);
+        }
+    }
+
+    private BufferedReader getBufferedReaderFromFile(final String filePath) throws IOException {
+        GZIPInputStream zipStream = new GZIPInputStream(new FileInputStream(filePath));
+        return new BufferedReader(new InputStreamReader(zipStream, StandardCharsets.UTF_8));
+    }
+
+    private PrintWriter getTsvWriterFromCopyLine(final Workspace workspace, final DataSource dataSource,
+                                                 final String line) throws FileNotFoundException {
+        String tableName = line.split(" ")[1].split("\\.")[1];
+        PrintWriter writer = new PrintWriter(dataSource.resolveSourceFilePath(workspace, tableName + ".tsv"));
+        String columnNames = StringUtils.join(line.split("\\(")[1].split("\\)")[0].split(", "), "\t");
+        writer.println(columnNames);
+        return writer;
     }
 }

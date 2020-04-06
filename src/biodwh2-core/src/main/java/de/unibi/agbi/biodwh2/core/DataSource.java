@@ -21,6 +21,7 @@ public abstract class DataSource {
     private static final Logger logger = LoggerFactory.getLogger(DataSource.class);
     private static final String SourceDirectoryName = "source";
     private static final String MetadataFileName = "metadata.json";
+    private static final String PersistentGraphFileName = "graphdb.sqlite";
 
     private DataSourceMetadata metadata;
 
@@ -52,15 +53,20 @@ public abstract class DataSource {
         Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId(), SourceDirectoryName));
     }
 
-    private void createOrLoadMetadata(Workspace workspace) throws IOException {
+    private void createOrLoadMetadata(final Workspace workspace) throws IOException {
         Path path = Paths.get(workspace.getSourcesDirectory(), getId(), MetadataFileName);
         if (Files.exists(path)) {
             ObjectMapper objectMapper = new ObjectMapper();
-            metadata = objectMapper.readValue(path.toFile(), DataSourceMetadata.class);
-        } else {
-            metadata = new DataSourceMetadata();
-            saveMetadata(workspace);
+            try {
+                metadata = objectMapper.readValue(path.toFile(), DataSourceMetadata.class);
+                if (metadata != null)
+                    return;
+            } catch (IOException e) {
+                logger.warn("Failed to load data source '" + getId() + "' metadata. Creating a new one.", e);
+            }
         }
+        metadata = new DataSourceMetadata();
+        saveMetadata(workspace);
     }
 
     private void saveMetadata(Workspace workspace) throws IOException {
@@ -70,7 +76,7 @@ public abstract class DataSource {
         objectMapper.writeValue(path.toFile(), metadata);
     }
 
-    public final void trySaveMetadata(Workspace workspace) {
+    final void trySaveMetadata(Workspace workspace) {
         try {
             saveMetadata(workspace);
         } catch (IOException e) {
@@ -80,6 +86,7 @@ public abstract class DataSource {
 
     final void updateAutomatic(Workspace workspace) {
         try {
+            //noinspection unchecked
             metadata.updateSuccessful = getUpdater().update(workspace, this);
         } catch (UpdaterOnlyManuallyException e) {
             logger.error("Data source '" + getId() + "' can only be updated manually. Download the new version of " +
@@ -93,11 +100,13 @@ public abstract class DataSource {
     }
 
     final void updateManually(Workspace workspace, String version) {
+        //noinspection unchecked
         metadata.updateSuccessful = getUpdater().updateManually(workspace, this, version);
     }
 
     final void parse(Workspace workspace) {
         try {
+            //noinspection unchecked
             metadata.parseSuccessful = getParser().parse(workspace, this);
         } catch (ParserException e) {
             logger.error("Failed to parse data source '" + getId() + "'", e);
@@ -110,8 +119,9 @@ public abstract class DataSource {
         exportGraphML(workspace);
     }
 
-    final void exportRdf(Workspace workspace) {
+    private void exportRdf(Workspace workspace) {
         try {
+            //noinspection unchecked
             metadata.exportRDFSuccessful = getRdfExporter().export(workspace, this);
         } catch (ExporterException e) {
             logger.error("Failed to export data source '" + getId() + "' in RDF format", e);
@@ -119,13 +129,18 @@ public abstract class DataSource {
         }
     }
 
-    final void exportGraphML(Workspace workspace) {
+    private void exportGraphML(Workspace workspace) {
         try {
+            //noinspection unchecked
             metadata.exportGraphMLSuccessful = getGraphExporter().export(workspace, this);
         } catch (ExporterException e) {
             logger.error("Failed to export data source '" + getId() + "' in GraphML format", e);
             metadata.exportGraphMLSuccessful = false;
         }
+    }
+
+    public final String getGraphDatabaseFilePath(Workspace workspace) {
+        return Paths.get(workspace.getSourcesDirectory(), getId(), PersistentGraphFileName).toString();
     }
 
     public final String getIntermediateGraphFilePath(Workspace workspace, GraphFileFormat format) {
