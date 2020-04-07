@@ -5,6 +5,7 @@ import de.unibi.agbi.biodwh2.core.io.IndentingXMLStreamWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -15,8 +16,13 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class GraphMLGraphWriter extends GraphWriter {
+    private long labelKeyIdCounter = 0;
+    private final Map<String, String> labelKeyIdMap = new HashMap<>();
+
     @Override
     public boolean write(OutputStream stream, Graph graph) {
+        labelKeyIdCounter = 0;
+        labelKeyIdMap.clear();
         try {
             XMLStreamWriter writer = createXMLStreamWriter(stream);
             writer.writeStartDocument();
@@ -72,13 +78,24 @@ public class GraphMLGraphWriter extends GraphWriter {
         propertyKeyTypes.put("labels", String.class);
         for (Node node : nodes) {
             Map<String, Class<?>> nodePropertyKeyTypes = node.getPropertyKeyTypes();
-            for (String key : nodePropertyKeyTypes.keySet())
-                if (!propertyKeyTypes.containsKey(key) || nodePropertyKeyTypes.get(key) != null)
-                    propertyKeyTypes.put(key, nodePropertyKeyTypes.get(key));
+            for (String key : nodePropertyKeyTypes.keySet()) {
+                String labelKeyId = getNodeLabelKeyId(node, key);
+                if (!propertyKeyTypes.containsKey(labelKeyId) || nodePropertyKeyTypes.get(key) != null)
+                    propertyKeyTypes.put(labelKeyId, nodePropertyKeyTypes.get(key));
+            }
         }
         for (String key : propertyKeyTypes.keySet())
             propertyKeyTypes.putIfAbsent(key, String.class);
         return propertyKeyTypes;
+    }
+
+    private String getNodeLabelKeyId(final Node node, final String key) {
+        String labelKey = "node|" + String.join("|", node.getLabels()) + "|" + key;
+        if (!labelKeyIdMap.containsKey(labelKey)) {
+            labelKeyIdMap.put(labelKey, "nt" + labelKeyIdCounter);
+            labelKeyIdCounter++;
+        }
+        return labelKeyIdMap.get(labelKey);
     }
 
     private void writePropertyKey(XMLStreamWriter writer, String key, Class<?> type,
@@ -86,7 +103,16 @@ public class GraphMLGraphWriter extends GraphWriter {
         writer.writeStartElement("key");
         writer.writeAttribute("id", key);
         writer.writeAttribute("for", propertyFor);
-        writer.writeAttribute("attr.name", key);
+        if (labelKeyIdMap.containsValue(key)) {
+            Optional<Map.Entry<String, String>> entry = labelKeyIdMap.entrySet().stream().filter(
+                    e -> e.getValue().equals(key)).findFirst();
+            if (entry.isPresent()) {
+                String[] parts = StringUtils.split(entry.get().getKey(), "|");
+                writer.writeAttribute("attr.name", parts[parts.length - 1]);
+            } else
+                writer.writeAttribute("attr.name", key);
+        } else
+            writer.writeAttribute("attr.name", key);
         if (type.isArray()) {
             String arrayType = type.getComponentType().getSimpleName().toLowerCase(Locale.US);
             writer.writeAttribute("attr.list", arrayType);
@@ -107,11 +133,25 @@ public class GraphMLGraphWriter extends GraphWriter {
         Map<String, Class<?>> propertyKeyTypes = new HashMap<>();
         propertyKeyTypes.put("label", String.class);
         for (Edge edge : edges) {
-            Map<String, Class<?>> nodePropertyKeyTypes = edge.getPropertyKeyTypes();
-            for (String key : nodePropertyKeyTypes.keySet())
-                propertyKeyTypes.put(key, nodePropertyKeyTypes.get(key));
+            Map<String, Class<?>> edgePropertyKeyTypes = edge.getPropertyKeyTypes();
+            for (String key : edgePropertyKeyTypes.keySet()) {
+                String labelKeyId = getEdgeLabelKeyId(edge, key);
+                if (!propertyKeyTypes.containsKey(labelKeyId) || edgePropertyKeyTypes.get(key) != null)
+                    propertyKeyTypes.put(labelKeyId, edgePropertyKeyTypes.get(key));
+            }
         }
+        for (String key : propertyKeyTypes.keySet())
+            propertyKeyTypes.putIfAbsent(key, String.class);
         return propertyKeyTypes;
+    }
+
+    private String getEdgeLabelKeyId(final Edge edge, final String key) {
+        String labelKey = "edge|" + edge.getLabel() + "|" + key;
+        if (!labelKeyIdMap.containsKey(labelKey)) {
+            labelKeyIdMap.put(labelKey, "et" + labelKeyIdCounter);
+            labelKeyIdCounter++;
+        }
+        return labelKeyIdMap.get(labelKey);
     }
 
     private void writeNode(XMLStreamWriter writer, Node node) throws XMLStreamException {
@@ -120,8 +160,10 @@ public class GraphMLGraphWriter extends GraphWriter {
         writer.writeAttribute("id", "n" + node.getId());
         writer.writeAttribute("labels", labels);
         writePropertyIfNotNull(writer, "labels", labels);
-        for (String key : node.getPropertyKeys())
-            writePropertyIfNotNull(writer, key, node.getProperty(key));
+        for (String key : node.getPropertyKeys()) {
+            String labelKeyId = getNodeLabelKeyId(node, key);
+            writePropertyIfNotNull(writer, labelKeyId, node.getProperty(key));
+        }
         writer.writeEndElement();
     }
 
@@ -174,7 +216,8 @@ public class GraphMLGraphWriter extends GraphWriter {
         writer.writeAttribute("label", edge.getLabel());
         writePropertyIfNotNull(writer, "label", edge.getLabel());
         for (String key : edge.getPropertyKeys()) {
-            writePropertyIfNotNull(writer, key, edge.getProperty(key));
+            String labelKeyId = getEdgeLabelKeyId(edge, key);
+            writePropertyIfNotNull(writer, labelKeyId, edge.getProperty(key));
         }
         writer.writeEndElement();
     }
