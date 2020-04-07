@@ -46,6 +46,12 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             Node node = createNodeFromModel(graph, gene);
             if (gene.crossReference != null)
                 node.setProperty("cross_references", parseQuotedStringArray(gene.crossReference));
+            if (gene.hgncId != null)
+                node.setProperty("hgnc_ids", parseQuotedStringArray(gene.hgncId));
+            if (gene.ncbiGeneId != null)
+                node.setProperty("ncbi_gene_ids", parseQuotedStringArray(gene.ncbiGeneId));
+            if (gene.ensembleId != null)
+                node.setProperty("ensemble_ids", parseQuotedStringArray(gene.ensembleId));
             if (gene.alternateNames != null)
                 node.setProperty("alternate_names", parseQuotedStringArray(gene.alternateNames));
             if (gene.alternateSymbols != null)
@@ -79,6 +85,8 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         for (Chemical chemical : chemicals) {
             existingIds.add(chemical.pharmgkbAccessionId);
             Node node = createNodeFromModel(graph, chemical);
+            if (chemical.type != null)
+                node.setProperty("types", parseQuotedStringArray(chemical.type));
             if (chemical.crossReference != null)
                 node.setProperty("cross_references", parseQuotedStringArray(chemical.crossReference));
             if (chemical.externalVocabulary != null)
@@ -120,6 +128,8 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         for (Drug drug : drugs) {
             existingIds.add(drug.pharmgkbAccessionId);
             Node node = createNodeFromModel(graph, drug);
+            if (drug.type != null)
+                node.setProperty("types", parseQuotedStringArray(drug.type));
             if (drug.crossReference != null)
                 node.setProperty("cross_references", parseQuotedStringArray(drug.crossReference));
             if (drug.externalVocabulary != null)
@@ -258,13 +268,15 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     }
 
     private Node addVariantIfNotExists(final Graph graph, final String variantId,
-                                       final String variantName) throws ExporterException {
+                                       String variantName) throws ExporterException {
+        if (existingIds.contains(variantId))
+            return graph.findNode("Variant", "id", variantId);
         if (variantId.startsWith("rs")) {
             Node node = graph.findNode("Variant", "name", variantId);
             if (node != null)
                 return node;
-        } else if (existingIds.contains(variantId))
-            return graph.findNode("Variant", "id", variantId);
+            variantName = variantName != null ? variantName : variantId;
+        }
         Node node = createNode(graph, "Variant");
         node.setProperty("id", variantId);
         node.setProperty("name", variantName);

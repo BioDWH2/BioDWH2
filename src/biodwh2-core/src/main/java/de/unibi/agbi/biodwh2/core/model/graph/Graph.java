@@ -455,9 +455,8 @@ public final class Graph {
             }
         }
         String packedValue = StringUtils.replace(packValue(value), UnescapedDoubleQuotes, EscapedDoubleQuotes);
-        String sql =
-                "SELECT '__id' FROM nodes WHERE __labels='" + labels + "' AND " + propertyName + "='" + packedValue +
-                "';";
+        String sql = "SELECT __id FROM nodes WHERE __labels='" + labels + "' AND " + propertyName + "='" + packedValue +
+                     "';";
         Long id = null;
         try (ResultSet result = connection.createStatement().executeQuery(sql)) {
             if (result.next())

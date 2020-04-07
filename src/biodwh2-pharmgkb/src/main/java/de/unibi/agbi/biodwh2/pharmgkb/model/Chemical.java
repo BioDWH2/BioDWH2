@@ -19,7 +19,6 @@ public class Chemical {
     @Parsed(field = "Brand Mixtures")
     public String brandMixtures;
     @Parsed(field = "Type")
-    @GraphProperty("type")
     public String type;
     @Parsed(field = "Cross-references")
     public String crossReference;

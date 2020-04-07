@@ -10,13 +10,10 @@ public class Gene {
     @GraphProperty("id")
     public String pharmgkbAccessionId;
     @Parsed(field = "NCBI Gene ID")
-    @GraphProperty("ncbi_gene_id")
     public String ncbiGeneId;
     @Parsed(field = "HGNC ID")
-    @GraphProperty("hgnc_id")
     public String hgncId;
     @Parsed(field = "Ensembl Id")
-    @GraphProperty("ensembl_id")
     public String ensembleId;
     @Parsed(field = "Name")
     @GraphProperty("name")

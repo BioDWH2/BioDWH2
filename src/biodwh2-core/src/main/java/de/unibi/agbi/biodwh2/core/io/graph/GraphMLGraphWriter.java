@@ -114,13 +114,17 @@ public class GraphMLGraphWriter extends GraphWriter {
         } else
             writer.writeAttribute("attr.name", key);
         if (type.isArray()) {
-            String arrayType = type.getComponentType().getSimpleName().toLowerCase(Locale.US);
+            String arrayType = getTypeName(type.getComponentType());
             writer.writeAttribute("attr.list", arrayType);
             type = String.class;
         }
         // Allowed types: boolean, int, long, float, double, string
-        writer.writeAttribute("attr.type", type.getSimpleName().toLowerCase(Locale.US));
+        writer.writeAttribute("attr.type", getTypeName(type));
         writer.writeEndElement();
+    }
+
+    private String getTypeName(Class<?> type) {
+        return type.getSimpleName().toLowerCase(Locale.US).replace("integer", "int");
     }
 
     private void writeEdgeProperties(XMLStreamWriter writer, Graph graph) throws XMLStreamException, ExporterException {
@@ -191,7 +195,7 @@ public class GraphMLGraphWriter extends GraphWriter {
         //s = s.replace("\'", "&apos;");
         //s = s.replace("<", "&lt;");
         //s = s.replace(">", "&gt;");
-        s = s.replaceAll("[\\x01\\x02\\x04\\x08\\x1d\\x18]", "");
+        s = s.replaceAll("[\\x01\\x02\\x04\\x08\\x1d\\x18]", "").replace("\"", "\\\"");
         return s;
     }
 
