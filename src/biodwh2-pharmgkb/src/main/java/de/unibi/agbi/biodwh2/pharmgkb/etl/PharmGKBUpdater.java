@@ -16,6 +16,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
+    private static final String[] FileNames = {
+            "genes.zip", "drugs.zip", "chemicals.zip", "variants.zip", "phenotypes.zip", "annotations.zip",
+            "relationships.zip", "dosingGuidelines.json.zip", "drugLabels.zip", "pathways-tsv.zip",
+            "clinicalVariants.zip", "occurrences.zip", "automated_annotations.zip", "occurrences.zip"
+    };
+
     @Override
     public Version getNewestVersion() throws UpdaterException {
         LocalDateTime stringDate = null;
@@ -42,20 +48,16 @@ public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, PharmGKBDataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(final Workspace workspace,
+                                     final PharmGKBDataSource dataSource) throws UpdaterException {
         boolean success = true;
-        String[] fileNames = {
-                "genes.zip", "drugs.zip", "chemicals.zip", "variants.zip", "phenotypes.zip", "annotations.zip",
-                "relationships.zip", "dosingGuidelines.json.zip", "drugLabels.zip", "pathways-tsv.zip",
-                "clinicalVariants.zip", "occurrences.zip", "automated_annotations.zip", "occurrences.zip"
-        };
-        for (String name : fileNames)
+        for (String name : FileNames)
             success = success && downloadFile(name, workspace, dataSource);
         return success;
     }
 
-    private boolean downloadFile(String fileName, Workspace workspace,
-                                 DataSource dataSource) throws UpdaterConnectionException {
+    private boolean downloadFile(final String fileName, final Workspace workspace,
+                                 final DataSource dataSource) throws UpdaterConnectionException {
         try {
             String sourceFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
             HTTPClient.downloadFileAsBrowser("https://s3.pgkb.org/data/" + fileName, sourceFilePath);

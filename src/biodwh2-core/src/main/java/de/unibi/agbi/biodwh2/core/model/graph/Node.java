@@ -62,9 +62,7 @@ public class Node {
 
     void setProperty(String key, Object value, boolean persist, boolean modified) throws ExporterException {
         this.modified = modified;
-        if (value == null)
-            properties.put(key, null);
-        else {
+        if (value != null)  {
             Class<?> valueType = value.getClass();
             if (valueType.isArray())
                 valueType = valueType.getComponentType();
@@ -78,5 +76,9 @@ public class Node {
             if (persist)
                 graph.setNodeProperty(this, key, value);
         }
+    }
+
+    public boolean hasProperty(String propertyName) {
+        return properties.containsKey(propertyName);
     }
 }

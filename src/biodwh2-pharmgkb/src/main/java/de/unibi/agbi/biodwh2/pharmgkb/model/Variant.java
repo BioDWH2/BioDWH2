@@ -1,17 +1,23 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
 import com.univocity.parsers.annotations.Parsed;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
+@NodeLabels({"Variant"})
 public class Variant {
     @Parsed(field = "Variant ID")
+    @GraphProperty("id")
     public String variantId;
     @Parsed(field = "Variant Name")
+    @GraphProperty("name")
     public String variantName;
     @Parsed(field = "Gene IDs")
     public String geneIds;
     @Parsed(field = "Gene Symbols")
     public String geneSymbols;
     @Parsed(field = "Location")
+    @GraphProperty("location")
     public String location;
     @Parsed(field = "Variant Annotation count")
     public String variantAnnotationCount;

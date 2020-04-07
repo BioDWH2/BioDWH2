@@ -18,15 +18,19 @@ import java.util.zip.ZipFile;
 
 public class PharmGKBParser extends Parser<PharmGKBDataSource> {
     @Override
-    public boolean parse(Workspace workspace, PharmGKBDataSource dataSource) throws ParserException {
-        List<String> files = dataSource.listSourceFiles(workspace);
-        for (String file : files)
-            try {
-                parseFile(dataSource, dataSource.resolveSourceFilePath(workspace, file));
-            } catch (IOException e) {
-                throw new ParserFileNotFoundException("Failed to parse the file '" + file + "'");
-            }
+    public boolean parse(final Workspace workspace, final PharmGKBDataSource dataSource) throws ParserException {
+        for (String filePath : dataSource.listSourceFiles(workspace))
+            tryParseFile(workspace, dataSource, filePath);
         return true;
+    }
+
+    private void tryParseFile(final Workspace workspace, final PharmGKBDataSource dataSource,
+                              final String filePath) throws ParserException {
+        try {
+            parseFile(dataSource, dataSource.resolveSourceFilePath(workspace, filePath));
+        } catch (IOException e) {
+            throw new ParserFileNotFoundException("Failed to parse the file '" + filePath + "'");
+        }
     }
 
     private void parseFile(final PharmGKBDataSource dataSource, final String filePath) throws IOException {
@@ -36,7 +40,7 @@ public class PharmGKBParser extends Parser<PharmGKBDataSource> {
             ZipEntry zipEntry = entries.nextElement();
             String zipEntryName = zipEntry.getName();
             InputStream stream = zipFile.getInputStream(zipEntry);
-            if (zipEntryName.contains("Pathway")) {
+            if (filePath.contains("pathways") && zipEntryName.startsWith("PA")) {
                 List<Pathway> tmpList = parseTSV(stream, Pathway.class);
                 dataSource.pathways.put(zipEntry.getName().split("\\.")[0], tmpList);
             } else if (zipEntryName.equals("chemicals.tsv")) {
@@ -65,7 +69,7 @@ public class PharmGKBParser extends Parser<PharmGKBDataSource> {
             } else if (zipEntryName.equals("automated_annotations.tsv")) {
                 dataSource.automatedAnnotations = parseTSV(stream, AutomatedAnnotation.class);
             } else if (zipEntryName.equals("clinicalVariants.tsv")) {
-                dataSource.clinicalVariants = parseTSV(stream, ClinicalVariants.class);
+                dataSource.clinicalVariants = parseTSV(stream, ClinicalVariant.class);
             } else if (zipEntryName.equals("drugLabels.byGene.tsv")) {
                 dataSource.drugLabelsByGenes = parseTSV(stream, DrugLabelsByGene.class);
             } else if (zipEntryName.equals("drugLabels.tsv")) {

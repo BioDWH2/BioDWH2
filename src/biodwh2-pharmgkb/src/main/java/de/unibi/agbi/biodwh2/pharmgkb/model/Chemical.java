@@ -1,11 +1,16 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
 import com.univocity.parsers.annotations.Parsed;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
+@NodeLabels({"Chemical"})
 public class Chemical {
     @Parsed(field = "PharmGKB Accession Id")
+    @GraphProperty("id")
     public String pharmgkbAccessionId;
     @Parsed(field = "Name")
+    @GraphProperty("name")
     public String name;
     @Parsed(field = "Generic Names")
     public String genericNames;
@@ -14,12 +19,15 @@ public class Chemical {
     @Parsed(field = "Brand Mixtures")
     public String brandMixtures;
     @Parsed(field = "Type")
+    @GraphProperty("type")
     public String type;
     @Parsed(field = "Cross-references")
     public String crossReference;
     @Parsed(field = "SMILES")
+    @GraphProperty("smiles")
     public String smiles;
     @Parsed(field = "InChI")
+    @GraphProperty("inchi")
     public String inchi;
     @Parsed(field = "Dosing Guideline")
     public String dosingGuideline;

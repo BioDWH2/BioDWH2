@@ -105,14 +105,14 @@ public final class Graph {
             return;
         ensureNodeColumnExists(key);
         String packedValue = StringUtils.replace(packValue(value), UnescapedDoubleQuotes, EscapedDoubleQuotes);
-        executeSql("UPDATE nodes SET " + key + "='" + packedValue + "' WHERE __id=" + node.getId() + ";");
+        executeSql("UPDATE nodes SET \"" + key + "\"='" + packedValue + "' WHERE __id=" + node.getId() + ";");
     }
 
     private void ensureNodeColumnExists(String columnName) throws ExporterException {
         if (nodeColumns.contains(columnName))
             return;
         nodeColumns.add(columnName);
-        executeSql("ALTER TABLE nodes ADD COLUMN " + columnName + " TEXT;");
+        executeSql("ALTER TABLE nodes ADD COLUMN \"" + columnName + "\" TEXT;");
         if (ArrayUtils.contains(indexColumnNames, columnName))
             executeSql("CREATE INDEX nodes_" + columnName + "_index ON nodes(" + columnName + ");");
     }
@@ -252,7 +252,7 @@ public final class Graph {
                     first = false;
                     String packedValue = StringUtils.replace(packValue(value), UnescapedDoubleQuotes,
                                                              EscapedDoubleQuotes);
-                    sql.append(key).append("='").append(packedValue).append(UnescapedDoubleQuotes);
+                    sql.append("\"").append(key).append("\"='").append(packedValue).append(UnescapedDoubleQuotes);
                 }
                 sql.append(" WHERE __id=").append(node.getId()).append(";");
                 if (atLeastOneValueNotNull)
@@ -406,7 +406,7 @@ public final class Graph {
         if (nodeLabelIdMap.containsKey(labels)) {
             for (Long nodeId : nodeLabelIdMap.get(labels)) {
                 Node n = nodeCache.get(nodeId);
-                if (n.getProperty(propertyName).equals(value))
+                if (n.hasProperty(propertyName) && n.getProperty(propertyName).equals(value))
                     return n;
             }
         }
@@ -414,11 +414,8 @@ public final class Graph {
         String sql =
                 "SELECT * FROM nodes WHERE __labels='" + labels + "' AND " + propertyName + "='" + packedValue + "';";
         try (ResultSet result = connection.createStatement().executeQuery(sql)) {
-            if (!result.next()) {
-                System.out.println(
-                        "Failed to find node with label " + labels + " and " + propertyName + "=" + value + "\n" + sql);
+            if (!result.next())
                 return null;
-            }
             Node node = createNodeFromResultSet(result);
             nodeCache.put(node.getId(), node);
             for (String label : node.getLabels()) {
@@ -428,7 +425,8 @@ public final class Graph {
             }
             return node;
         } catch (SQLException | ExporterException e) {
-            e.printStackTrace(); // TODO: exception
+            //e.printStackTrace(); // TODO: exception
+            System.out.println("Failed to find node: " + sql);
         }
         return null;
     }
@@ -457,18 +455,16 @@ public final class Graph {
             }
         }
         String packedValue = StringUtils.replace(packValue(value), UnescapedDoubleQuotes, EscapedDoubleQuotes);
-        String sql = "SELECT __id FROM nodes WHERE __labels='" + labels + "' AND " + propertyName + "='" + packedValue +
-                     "';";
+        String sql =
+                "SELECT '__id' FROM nodes WHERE __labels='" + labels + "' AND " + propertyName + "='" + packedValue +
+                "';";
         Long id = null;
         try (ResultSet result = connection.createStatement().executeQuery(sql)) {
-            if (!result.next()) {
-                System.out.println(
-                        "Failed to find node id with label " + labels + " and " + propertyName + "=" + value + "\n" +
-                        sql);
-            } else
+            if (result.next())
                 id = result.getLong(1);
         } catch (SQLException e) {
-            e.printStackTrace(); // TODO: exception
+            //e.printStackTrace(); // TODO: exception
+            System.out.println("Failed to find node: " + sql);
         }
         return id;
     }

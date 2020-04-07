@@ -17,7 +17,7 @@ public class PharmGKBDataSource extends DataSource {
     public List<AutomatedAnnotation> automatedAnnotations;
     public List<ClinicalAnnotation> clinicalAnnotations;
     public List<ClinicalAnnotationMetadata> clinicalAnnotationMetadata;
-    public List<ClinicalVariants> clinicalVariants;
+    public List<ClinicalVariant> clinicalVariants;
     public List<DrugLabel> drugLabels;
     public List<DrugLabelsByGene> drugLabelsByGenes;
     public List<Occurrence> occurrences;
