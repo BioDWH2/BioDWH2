@@ -125,6 +125,10 @@ public final class Graph {
         }
     }
 
+    public void prefixAllLabels(String prefix) throws ExporterException {
+        executeSql("UPDATE nodes SET __labels = '" + prefix + "_' || REPLACE(__labels, ';', ';" + prefix + "_');");
+    }
+
     void setEdgeProperty(final Edge edge, final String key, final Object value) throws ExporterException {
         if (value == null)
             return;

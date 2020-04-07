@@ -25,15 +25,8 @@ public abstract class GraphExporter<D extends DataSource> {
     protected abstract boolean exportGraph(final Workspace workspace, final D dataSource,
                                            final Graph graph) throws ExporterException;
 
-    private void addDataSourcePrefixToGraphNodes(final DataSource dataSource, final Graph g) {
-        /* TODO: fix
-        for (Node n : g.getNodes()) {
-            final String[] labels = n.getLabels();
-            for (int i = 0; i < labels.length; i++)
-                if (!labels[i].contains(dataSource.getId()))
-                    labels[i] = dataSource.getId() + "_" + labels[i];
-        }
-        */
+    private void addDataSourcePrefixToGraphNodes(final DataSource dataSource, final Graph g) throws ExporterException {
+        g.prefixAllLabels(dataSource.getId());
     }
 
     private boolean trySaveGraphToFile(final Workspace workspace, final D dataSource, final Graph g) {

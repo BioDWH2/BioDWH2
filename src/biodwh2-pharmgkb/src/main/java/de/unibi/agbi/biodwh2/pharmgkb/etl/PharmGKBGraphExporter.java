@@ -191,9 +191,9 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                     graph.addEdge(graph.findNodeId("Gene", "id", geneId), node, "has_variant");
             }
             if (variant.geneSymbols != null)
-                node.setProperty("gene_symbols", parseQuotedStringArray(variant.geneSymbols));
+                node.setProperty("gene_symbols", StringUtils.split(variant.geneSymbols, ","));
             if (variant.synonyms != null)
-                node.setProperty("gene_symbols", parseQuotedStringArray(variant.synonyms));
+                node.setProperty("synonyms", parseQuotedStringArray(variant.synonyms));
             node.setProperty("variant_annotation_count", Integer.parseInt(variant.variantAnnotationCount));
             node.setProperty("clinical_annotation_count", Integer.parseInt(variant.clinicalAnnotationCount));
             node.setProperty("level12_clinical_annotation_count",
