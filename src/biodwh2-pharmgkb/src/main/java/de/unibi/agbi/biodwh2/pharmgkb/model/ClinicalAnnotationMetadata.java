@@ -15,14 +15,14 @@ public class ClinicalAnnotationMetadata {
     @Parsed(field = "Gene")
     public String gene;
     @Parsed(field = "Level of Evidence")
-    @GraphProperty("levelOfEvidence")
+    @GraphProperty("level_of_evidence")
     public String levelOfEvidence;
     @Parsed(field = "Clinical Annotation Types")
     public String clinicalAnnotationTypes;
     @Parsed(field = "Genotype-Phenotype IDs")
     public String genotypePhenotypesId;
     @Parsed(field = "Annotation Text")
-    @GraphProperty("annotationText")
+    @GraphProperty("annotation_text")
     public String annotationText;
     @Parsed(field = "Variant Annotations IDs")
     public String variantAnnotationsId;

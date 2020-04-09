@@ -17,9 +17,10 @@ public abstract class GraphExporter<D extends DataSource> {
         g.synchronize(true);
         if (exportSuccessful) {
             addDataSourcePrefixToGraphNodes(dataSource, g);
-            return trySaveGraphToFile(workspace, dataSource, g);
+            exportSuccessful = trySaveGraphToFile(workspace, dataSource, g);
         }
-        return false;
+        g.dispose();
+        return exportSuccessful;
     }
 
     protected abstract boolean exportGraph(final Workspace workspace, final D dataSource,

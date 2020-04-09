@@ -48,7 +48,7 @@ public final class ObProduct {
     @GraphProperty("applicant_full_name")
     public String applicantFullName;
     @JsonProperty("doseForm")
-    @GraphProperty("doseForm")
+    @GraphProperty("dose_form")
     public String doseForm;
     @JsonProperty("route")
     @GraphProperty("route")

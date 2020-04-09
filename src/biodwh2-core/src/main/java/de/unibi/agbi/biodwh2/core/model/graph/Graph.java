@@ -493,4 +493,18 @@ public final class Graph {
             throw new ExporterException("Failed to persist graph", e);
         }
     }
+
+    public long getNumberOfNodes() {
+        return nextNodeId - 1;
+    }
+
+    public void dispose() {
+        try {
+            connection.commit();
+            connection.close();
+        } catch (SQLException ignored) {
+        }
+        nodeCache = null;
+        nodeLabelIdMap = null;
+    }
 }
