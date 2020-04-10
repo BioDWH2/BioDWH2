@@ -9,6 +9,9 @@ public class KeggEntry {
     public String id;
     public List<String> tags = new ArrayList<>();
     public List<String> names = new ArrayList<>();
+    public List<String> nameStems = new ArrayList<>();
     public Set<String> externalIds = new HashSet<>();
     public List<Reference> references = new ArrayList<>();
+    public String comment;
+    public String remark;
 }

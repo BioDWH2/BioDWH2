@@ -4,5 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Disease extends KeggEntry {
-    public List<String> indicatedDrugIds = new ArrayList<>();
+    public String description;
+    public List<NameIdsPair> envFactors = new ArrayList<>();
+    public List<NameIdsPair> carcinogens = new ArrayList<>();
+    public List<NameIdsPair> drugs = new ArrayList<>();
 }

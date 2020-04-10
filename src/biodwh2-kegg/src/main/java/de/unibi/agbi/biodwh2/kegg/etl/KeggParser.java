@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.kegg.etl;
 
+import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
@@ -13,143 +14,60 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class KeggParser extends Parser<KeggDataSource> {
     private static final Logger logger = LoggerFactory.getLogger(KeggParser.class);
-    private static final List<String> Ignored_Keywords = Arrays.asList("INTERACTION", "ATOM", "BOND");
+    private static final Pattern referencePattern = Pattern.compile(
+            "PMID:([0-9]+)(([ \n\r]+\\(\\(?[a-zA-Z0-9/\n\r. ,_\\-]+\\)?\\))*)");
+    private static final Pattern targetIdsPattern = Pattern.compile("\\[([A-Za-z]+:)([0-9A-Za-z]+( [0-9A-Za-z]+)*)]");
 
-    @Override
-    public boolean parse(Workspace workspace, KeggDataSource dataSource) throws ParserException {
-        boolean success = parseDrugGroups(workspace, dataSource);
-        success = success && parseDiseases(workspace, dataSource);
-        success = success && parseDrugs(workspace, dataSource);
-        success = success && parseNetworks(workspace, dataSource);
-        success = success && parseVariants(workspace, dataSource);
-        return success;
+    private static class ChunkLine {
+        String keyword;
+        String value;
     }
 
-    private boolean parseDrugGroups(Workspace workspace, KeggDataSource dataSource) throws ParserException {
-        dataSource.drugGroups = new ArrayList<>();
-        dataSource.drugGroupChildMap = new HashMap<>();
-        List<KeggEntry> drugGroups = parseKeggFile(dataSource.resolveSourceFilePath(workspace, "dgroup"));
-        /*
-        for (Map<String, List<String>> entry : drugGroups) {
-            DrugGroup drugGroup = new DrugGroup();
-            drugGroup.id = entry.get("id").get(0);
-            drugGroup.externalIds.add("KEGG:" + drugGroup.id);
-            drugGroup.tags = entry.get("tags");
-            drugGroup.names = entry.get("NAME");
-            if (entry.containsKey("REMARK")) {
-                for (String remark : entry.get("REMARK")) {
-                    if (remark.startsWith("ATC code:")) {
-                        String atcCodes = remark.split(":")[1].trim();
-                        List<String> atcIds = Arrays.stream(atcCodes.split(" ")).filter(x -> x.length() > 0).map(
-                                x -> "ATC:" + x).collect(Collectors.toList());
-                        drugGroup.externalIds.addAll(atcIds);
-                    }
-                }
-            }
-            if (entry.containsKey("COMMENT")) {
-                for (String comment : entry.get("COMMENT")) {
-                    List<String> comments = Arrays.stream(comment.split(",")).map(String::trim).collect(
-                            Collectors.toList());
-                    drugGroup.comments.addAll(comments);
-                }
-            }
-            if (entry.containsKey("  STEM")) {
-                for (String nameStem : entry.get("  STEM")) {
-                    List<String> nameStems = Arrays.stream(nameStem.split(",")).map(String::trim).collect(
-                            Collectors.toList());
-                    drugGroup.nameStems.addAll(nameStems);
-                }
-            }
-            if (entry.containsKey("MEMBER")) {
-                Stack<String> depthStack = new Stack<>();
-                depthStack.add(entry.get("id").get(0));
-                int lastDepth = -1;
-                for (String member : entry.get("MEMBER")) {
-                    int depth = member.length() - StringUtils.stripStart(member, null).length();
-                    member = member.trim();
-                    String id = member.substring(0, member.indexOf(' '));
-                    if (depth > lastDepth)
-                        depthStack.push(id);
-                    else if (depth < lastDepth)
-                        while (depthStack.size() - 2 > depth)
-                            depthStack.pop();
-                    lastDepth = depth;
-                    depthStack.set(depthStack.size() - 1, id);
-                    String parentId = depthStack.get(depthStack.size() - 2);
-                    if (!dataSource.drugGroupChildMap.containsKey(parentId))
-                        dataSource.drugGroupChildMap.put(parentId, new HashSet<>());
-                    dataSource.drugGroupChildMap.get(parentId).add(id);
-                }
-            }
-            // TODO: CLASS
-            dataSource.drugGroups.add(drugGroup);
-        }
-        */
+    @Override
+    public boolean parse(final Workspace workspace, final KeggDataSource dataSource) throws ParserException {
+        parseKeggFile(workspace, dataSource, Variant.class, "variant");
+        parseKeggFile(workspace, dataSource, DrugGroup.class, "dgroup");
+        parseKeggFile(workspace, dataSource, Drug.class, "drug");
+        parseKeggFile(workspace, dataSource, Disease.class, "disease");
+        parseKeggFile(workspace, dataSource, Network.class, "network");
         return true;
     }
 
-    private List<KeggEntry> parseKeggFile(String filePath) throws ParserException {
-        List<KeggEntry> result = new ArrayList<>();
-        KeggEntry currentEntry = new KeggEntry();
-        String lastKeyword = null;
+    private <T extends KeggEntry> List<T> parseKeggFile(final Workspace workspace, final DataSource dataSource,
+                                                        final Class<T> entryClass,
+                                                        final String fileName) throws ParserFormatException {
+        List<T> result = new ArrayList<>();
+        String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
         try {
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
+            List<ChunkLine> chunk = new ArrayList<>();
             String line;
             while ((line = reader.readLine()) != null) {
                 line = StringUtils.stripEnd(line, null);
                 if (line.startsWith("///")) {
-                    result.add(currentEntry);
-                    currentEntry = new KeggEntry();
-                    lastKeyword = null;
+                    result.add(processChunk(entryClass, chunk.toArray(new ChunkLine[0])));
+                    chunk.clear();
+                    continue;
+                }
+                String keyword = StringUtils.stripEnd(line.substring(0, Math.min(12, line.length())), null);
+                String value = line.length() > 12 ? StringUtils.stripEnd(line.substring(12), null) : "";
+
+                if (keyword.length() > 0) {
+                    ChunkLine chunkLine = new ChunkLine();
+                    chunkLine.keyword = keyword;
+                    chunkLine.value = value;
+                    chunk.add(chunkLine);
                 } else {
-                    String keyword = StringUtils.stripEnd(line.substring(0, Math.min(12, line.length())), null);
-                    if (keyword.length() > 0)
-                        lastKeyword = keyword;
-                    else
-                        keyword = lastKeyword;
-                    String value = line.length() > 12 ? StringUtils.stripEnd(line.substring(12), null) : "";
-                    if (keyword.equals("ENTRY")) {
-                        String[] parts = Arrays.stream(value.split(" ")).filter(x -> x.length() > 0).toArray(
-                                String[]::new);
-                        currentEntry.id = parts[0];
-                        currentEntry.tags = Arrays.stream(parts).skip(1).collect(Collectors.toList());
-                    } else if (keyword.equals("REFERENCE")) {
-                        Reference reference = new Reference();
-                        currentEntry.references.add(reference);
-                        reference.pmid = value.trim();
-                    } else if (keyword.equals("  AUTHORS")) {
-                        Reference reference = currentEntry.references.get(currentEntry.references.size() - 1);
-                        if (reference.authors != null)
-                            logger.warn("Overwriting authors for reference '" + reference.pmid + "'");
-                        reference.authors = value.trim();
-                    } else if (keyword.equals("  TITLE")) {
-                        Reference reference = currentEntry.references.get(currentEntry.references.size() - 1);
-                        if (reference.title != null)
-                            logger.warn("Overwriting title for reference '" + reference.pmid + "'");
-                        reference.title = value.trim();
-                    } else if (keyword.equals("  JOURNAL")) {
-                        Reference reference = currentEntry.references.get(currentEntry.references.size() - 1);
-                        if (reference.journal == null)
-                            reference.journal = value.trim();
-                        else if (value.toLowerCase(Locale.US).startsWith("doi:"))
-                            reference.doi = value.split(":")[1].trim();
-                    } else if (keyword.equals("DBLINKS")) {
-                        String dbName = value.split(":")[0].trim();
-                        String idValues = value.split(":")[1].trim();
-                        List<String> ids = Arrays.stream(idValues.split(" ")).filter(x -> x.length() > 0).map(
-                                x -> dbName + ":" + x).collect(Collectors.toList());
-                        currentEntry.externalIds.addAll(ids);
-                    } else if (!Ignored_Keywords.contains(keyword)) {
-                        System.out.println(keyword);
-                        //if (!currentEntry.containsKey(keyword))
-                        //    currentEntry.put(keyword, new ArrayList<>());
-                        //currentEntry.get(keyword).add(value);
-                    }
+                    //noinspection StringConcatenationInLoop
+                    chunk.get(chunk.size() - 1).value += "\n" + value;
                 }
             }
             reader.close();
@@ -159,126 +77,346 @@ public class KeggParser extends Parser<KeggDataSource> {
         return result;
     }
 
-    private boolean parseDiseases(Workspace workspace, KeggDataSource dataSource) throws ParserException {
-        dataSource.diseases = new ArrayList<>();
-        List<KeggEntry> diseases = parseKeggFile(dataSource.resolveSourceFilePath(workspace, "disease"));
-        /*
-        for (Map<String, List<Object>> entry : diseases) {
-            Disease disease = new Disease();
-            disease.id = (String) entry.get("id").get(0);
-            disease.externalIds.add("KEGG:" + disease.id);
-            disease.tags = entry.get("tags");
-            disease.names = entry.get("NAME");
-            if (entry.containsKey("DBLINKS")) {
-                for (String remark : entry.get("DBLINKS")) {
-                    String dbName = remark.split(":")[0].trim();
-                    String idValues = remark.split(":")[1].trim();
-                    List<String> ids = Arrays.stream(idValues.split(" ")).filter(x -> x.length() > 0).map(
-                            x -> dbName + ":" + x).collect(Collectors.toList());
-                    disease.externalIds.addAll(ids);
+    private <T extends KeggEntry> T processChunk(final Class<T> entryClass, final ChunkLine[] chunk) {
+        T entry = createInstance(entryClass);
+        if (entry == null)
+            return null;
+        for (int i = 0; i < chunk.length; i++) {
+            ChunkLine line = chunk[i];
+            final boolean lineNotEmpty = line.value.trim().length() > 0;
+            switch (line.keyword) {
+                case "ENTRY":
+                    String[] parts = StringUtils.split(line.value, " ");
+                    entry.id = parts[0];
+                    entry.tags.addAll(Arrays.asList(parts).subList(1, parts.length));
+                    break;
+                case "NAME":
+                    entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                    //   SUPERGRP
+                    //   SUBGROUP
+                    for (int j = i + 1; j < chunk.length; j++)
+                        if (chunk[j].keyword.equals("  SUPERGRP") || chunk[j].keyword.equals("  SUBGROUP"))
+                            i++; // TODO
+                        else
+                            break;
+                    break;
+                case "  STEM":
+                    entry.nameStems.addAll(Arrays.asList(StringUtils.splitByWholeSeparator(line.value, ", ")));
+                    break;
+                case "REFERENCE":
+                    Reference reference = parseReference(chunk, i, line);
+                    entry.references.add(reference);
+                    i = reference.lookAheadPosition;
+                    break;
+                case "DBLINKS":
+                    for (String link : StringUtils.split(line.value, "\n")) {
+                        String[] linkParts = StringUtils.split(link, ": ", 2);
+                        for (String id : StringUtils.split(linkParts[1], " "))
+                            entry.externalIds.add(linkParts[0] + ":" + id);
+                    }
+                    break;
+                case "FORMULA":
+                    if (lineNotEmpty)
+                        ((Drug) entry).formula = line.value.trim();
+                    break;
+                case "EXACT_MASS":
+                    if (lineNotEmpty)
+                        ((Drug) entry).exactMass = line.value.trim();
+                    break;
+                case "MOL_WEIGHT":
+                    if (lineNotEmpty)
+                        ((Drug) entry).molecularWeight = line.value.trim();
+                    break;
+                case "COMMENT":
+                    entry.comment = line.value;
+                    break;
+                case "REMARK":
+                    entry.remark = line.value;
+                    break;
+                case "ATOM":
+                    ((Drug) entry).atoms = line.value;
+                    break;
+                case "BOND":
+                    ((Drug) entry).bonds = line.value;
+                    break;
+                case "INTERACTION":
+                    if (lineNotEmpty)
+                        ((Drug) entry).interactions.addAll(parseInteractions(line));
+                    break;
+                case "TARGET":
+                    if (lineNotEmpty)
+                        ((Drug) entry).targets.addAll(parseTargets(line));
+                    //   NETWORK
+                    for (int j = i + 1; j < chunk.length; j++)
+                        if (chunk[j].keyword.equals("  NETWORK"))
+                            i++; // TODO
+                        else
+                            break;
+                    break;
+                case "EFFICACY":
+                    if (lineNotEmpty)
+                        ((Drug) entry).efficacy = line.value.trim();
+                    //   DISEASE
+                    for (int j = i + 1; j < chunk.length; j++)
+                        if (chunk[j].keyword.equals("  DISEASE"))
+                            i++; // TODO
+                        else
+                            break;
+                    break;
+                case "COMPONENT":
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                case "SEQUENCE":
+                    Sequence sequence = new Sequence();
+                    sequence.sequence = line.value;
+                    //   TYPE
+                    if (chunk[i + 1].keyword.equals("  TYPE")) {
+                        sequence.type = chunk[i + 1].value;
+                        i++;
+                    }
+                    ((Drug) entry).sequences.add(sequence);
+                    break;
+                case "BRACKET":
+                    Bracket bracket = new Bracket();
+                    bracket.value = line.value;
+                    for (int j = i + 1; j < chunk.length; j++) {
+                        if (chunk[j].keyword.equals("  ORIGINAL")) {
+                            bracket.original = line.value;
+                            i++;
+                        } else if (chunk[j].keyword.equals("  REPEAT")) {
+                            bracket.repeat = line.value;
+                            i++;
+                        } else
+                            break;
+                    }
+                    ((Drug) entry).bracket = bracket;
+                    break;
+                case "METABOLISM":
+                    if (lineNotEmpty)
+                        ((Drug) entry).metabolisms.addAll(parseMetabolisms(line));
+                    break;
+                case "CLASS":
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                case "SOURCE":
+                    if (lineNotEmpty)
+                        ((Drug) entry).sources.addAll(parseNameIdsPairs(line.value));
+                    break;
+                case "NETWORK":
+                    //   ELEMENT
+                    for (int j = i + 1; j < chunk.length; j++)
+                        if (chunk[j].keyword.equals("  ELEMENT"))
+                            i++; // TODO
+                        else
+                            break;
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                case "GENE":
+                    if (entryClass == Variant.class) {
+                        String[] geneRestParts = StringUtils.splitByWholeSeparator(line.value, "  ", 2);
+                        ((Variant) entry).genes.put(geneRestParts[0], parseNameIdsPair(geneRestParts[1]));
+                    } else if (entryClass == Disease.class) {
+                        //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    } else if (entryClass == Network.class) {
+                        //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    }
+                    break;
+                case "ORGANISM":
+                    if (lineNotEmpty)
+                        ((Variant) entry).organism = line.value;
+                    break;
+                case "VARIATION":
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                case "DESCRIPTION":
+                    if (lineNotEmpty)
+                        ((Disease) entry).description = line.value;
+                    break;
+                case "PATHOGEN":
+                    //   MODULE
+                    for (int j = i + 1; j < chunk.length; j++)
+                        if (chunk[j].keyword.equals("  MODULE"))
+                            i++; // TODO
+                        else
+                            break;
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                case "DRUG":
+                    if (lineNotEmpty)
+                        ((Disease) entry).drugs.addAll(parseMultilineNameIdsPairs(line));
+                    break;
+                case "CATEGORY":
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                case "ENV_FACTOR":
+                    if (lineNotEmpty)
+                        ((Disease) entry).envFactors.addAll(parseMultilineNameIdsPairs(line));
+                    break;
+                case "CARCINOGEN":
+                    if (lineNotEmpty)
+                        ((Disease) entry).carcinogens.addAll(parseMultilineNameIdsPairs(line));
+                    break;
+                case "DISEASE":
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                case "MEMBER":
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                case "MAP":
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                case "TYPE":
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                case "PERTURBANT":
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                case "VARIANT":
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                case "METABOLITE":
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                case "DEFINITION":
+                    //   EXPANDED
+                    for (int j = i + 1; j < chunk.length; j++)
+                        if (chunk[j].keyword.equals("  EXPANDED"))
+                            i++; // TODO
+                        else
+                            break;
+                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
+                    break;
+                default:
+                    System.out.println(line.keyword);
+                    break;
+            }
+        }
+        return entry;
+    }
+
+    private static <T extends KeggEntry> T createInstance(final Class<T> entryClass) {
+        try {
+            return entryClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static Reference parseReference(final ChunkLine[] chunk, final int i, final ChunkLine line) {
+        Reference reference = new Reference();
+        if (line.value.trim().length() > 0) {
+            Matcher matcher = referencePattern.matcher(line.value);
+            if (matcher.matches()) {
+                reference.pmid = matcher.group(1);
+                String remarks = matcher.group(2).trim().replace("\n", " ");
+                if (remarks.length() > 0) {
+                    reference.remarks = remarks;
                 }
-            }
-            if (entry.containsKey("DRUG"))
-                for (String drug : entry.get("DRUG"))
-                    // TODO: consider factors after [DR:D00000]
-                    disease.indicatedDrugIds.add(drug.split("\\[")[1].split("]")[0].split(":")[1]);
-            // [ENV_FACTOR,   SUBGROUP, NETWORK, PATHOGEN,   MODULE, CARCINOGEN, COMMENT,   SUPERGRP, GENE,   JOURNAL, DESCRIPTION, CATEGORY, REFERENCE,   TITLE,   ELEMENT,   AUTHORS]
-            dataSource.diseases.add(disease);
+            } else
+                reference.remarks = line.value;
         }
-        */
-        return true;
+        for (int j = i + 1; j < chunk.length; j++) {
+            ChunkLine nextLine = chunk[j];
+            if (!nextLine.keyword.startsWith("  "))
+                break;
+            reference.lookAheadPosition = j;
+            switch (nextLine.keyword) {
+                case "  AUTHORS":
+                    reference.authors = nextLine.value;
+                    break;
+                case "  TITLE":
+                    reference.title = nextLine.value;
+                    break;
+                case "  JOURNAL":
+                    String[] parts = StringUtils.split(nextLine.value, "\n");
+                    reference.journal = parts[0];
+                    if (parts.length > 1) {
+                        for (int k = 1; k < parts.length; k++) {
+                            if (parts[k].startsWith("DOI:"))
+                                reference.doi = parts[k].substring(4);
+                            else
+                                logger.warn("Unknown journal line in: " + nextLine.value);
+                        }
+                    }
+                    break;
+            }
+        }
+        return reference;
     }
 
-    private boolean parseDrugs(Workspace workspace, KeggDataSource dataSource) throws ParserException {
-        dataSource.drugs = new ArrayList<>();
-        List<KeggEntry> drugs = parseKeggFile(dataSource.resolveSourceFilePath(workspace, "drug"));
-        /*
-        for (Map<String, List<String>> entry : drugs) {
-            Drug drug = new Drug();
-            drug.id = entry.get("id").get(0);
-            drug.externalIds.add("KEGG:" + drug.id);
-            drug.tags = entry.get("tags");
-            drug.names = entry.get("NAME");
-            if (entry.containsKey("DBLINKS")) {
-                for (String remark : entry.get("DBLINKS")) {
-                    String dbName = remark.split(":")[0].trim();
-                    String idValues = remark.split(":")[1].trim();
-                    List<String> ids = Arrays.stream(idValues.split(" ")).filter(x -> x.length() > 0).map(
-                            x -> dbName + ":" + x).collect(Collectors.toList());
-                    drug.externalIds.addAll(ids);
-                }
+    private static List<Interaction> parseInteractions(final ChunkLine line) {
+        List<Interaction> result = new ArrayList<>();
+        for (String subLine : StringUtils.split(line.value.trim(), "\n")) {
+            String[] typeRestParts = StringUtils.split(subLine, ":", 2);
+            for (NameIdsPair target : parseNameIdsPairs(typeRestParts[1])) {
+                Interaction interaction = new Interaction();
+                interaction.type = typeRestParts[0];
+                interaction.target = target;
+                result.add(interaction);
             }
-            if (entry.containsKey("FORMULA")) {
-                List<String> formulas = entry.get("FORMULA");
-                if (formulas.size() > 1)
-                    logger.warn(
-                            "KEGG drug with id '" + drug.id + "' has multiple formula '" + formulas.toString() + "'");
-                drug.formula = formulas.get(0).trim();
-            }
-            if (entry.containsKey("SEQUENCE"))
-                drug.sequences = entry.get("SEQUENCE");
-            if (entry.containsKey("EXACT_MASS"))
-                drug.exactMass = entry.get("EXACT_MASS").get(0).trim();
-            if (entry.containsKey("MOL_WEIGHT"))
-                drug.molecularWeight = entry.get("MOL_WEIGHT").get(0).trim();
-            entry.remove("id");
-            entry.remove("tags");
-            entry.remove("NAME");
-            entry.remove("DBLINKS");
-            entry.remove("FORMULA");
-            entry.remove("EXACT_MASS");
-            entry.remove("MOL_WEIGHT");
-            entry.remove("SEQUENCE");
-            // EFFICACY
-            //   DISEASE
-            // TARGET
-            // COMPONENT
-            // METABOLISM
-            //   TYPE
-            // REMARK
-            // COMMENT
-            // CLASS
-            // INTERACTION
-            // SOURCE
-            //   REPEAT
-            entry.remove("BOND");
-            entry.remove("ATOM");
-            entry.remove("BRACKET");
-            dataSource.drugs.add(drug);
         }
-        */
-        return true;
+        return result;
     }
 
-    private boolean parseNetworks(Workspace workspace, KeggDataSource dataSource) throws ParserException {
-        dataSource.networks = new ArrayList<>();
-        List<KeggEntry> networks = parseKeggFile(dataSource.resolveSourceFilePath(workspace, "network"));
-        /*
-        for (Map<String, List<String>> entry : networks) {
-            Network network = new Network();
-            network.id = entry.get("id").get(0);
-            network.externalIds.add("KEGG:" + network.id);
-            network.tags = entry.get("tags");
-            network.names = entry.get("NAME");
-            dataSource.networks.add(network);
-        }
-        */
-        return true;
+    private static List<NameIdsPair> parseNameIdsPairs(final String line) {
+        List<NameIdsPair> result = new ArrayList<>();
+        String[] parts = StringUtils.split(line, ";,");
+        for (String pair : parts)
+            result.add(parseNameIdsPair(pair));
+        return result;
     }
 
-    private boolean parseVariants(Workspace workspace, KeggDataSource dataSource) throws ParserException {
-        dataSource.variants = new ArrayList<>();
-        List<KeggEntry> variants = parseKeggFile(dataSource.resolveSourceFilePath(workspace, "variant"));
-        /*
-        for (Map<String, List<String>> entry : variants) {
-            Variant variant = new Variant();
-            variant.id = entry.get("id").get(0);
-            variant.externalIds.add("KEGG:" + variant.id);
-            variant.tags = entry.get("tags");
-            variant.names = entry.get("NAME");
-            dataSource.variants.add(variant);
+    private static NameIdsPair parseNameIdsPair(String line) {
+        NameIdsPair pair = new NameIdsPair();
+        pair.name = line;
+        int replaceOffset = 0;
+        Matcher matcher = targetIdsPattern.matcher(line);
+        while (matcher.find()) {
+            pair.name = pair.name.substring(0, matcher.start() - replaceOffset) + pair.name.substring(
+                    matcher.end() - replaceOffset);
+            replaceOffset += matcher.end() - matcher.start();
+            String prefix = matcher.group(1);
+            String[] ids = StringUtils.split(matcher.group(2), " ");
+            for (String id : ids)
+                pair.ids.add(prefix + id);
         }
-        */
-        return true;
+        pair.name = pair.name.trim().replace("  ", " ");
+        return pair;
+    }
+
+    private static List<NameIdsPair> parseTargets(final ChunkLine line) {
+        List<NameIdsPair> result = new ArrayList<>();
+        for (String subLine : StringUtils.split(line.value.trim(), "\n"))
+            result.add(parseNameIdsPair(subLine));
+        return result;
+    }
+
+    private static List<Metabolism> parseMetabolisms(final ChunkLine line) {
+        List<Metabolism> result = new ArrayList<>();
+        for (String subLine : StringUtils.split(line.value.trim(), "\n")) {
+            String[] typeRestParts = StringUtils.split(subLine, ":", 2);
+            for (NameIdsPair target : parseNameIdsPairs(typeRestParts[1])) {
+                Metabolism metabolism = new Metabolism();
+                metabolism.type = typeRestParts[0];
+                metabolism.target = target;
+                result.add(metabolism);
+            }
+        }
+        return result;
+    }
+
+    private static List<NameIdsPair> parseMultilineNameIdsPairs(final ChunkLine line) {
+        List<NameIdsPair> result = new ArrayList<>();
+        for (String subLine : StringUtils.split(line.value.trim(), "\n"))
+            result.add(parseNameIdsPair(subLine));
+        return result;
+    }
+
+    private static void printChunk(final ChunkLine[] chunk) {
+        for (ChunkLine line : chunk)
+            System.out.println(
+                    StringUtils.rightPad(line.keyword, 11, " ") + " " + line.value.replace("\n", "\n            "));
+        System.out.println("///");
     }
 }
