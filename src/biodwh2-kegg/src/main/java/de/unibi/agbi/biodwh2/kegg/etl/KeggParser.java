@@ -14,9 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,11 +31,11 @@ public class KeggParser extends Parser<KeggDataSource> {
 
     @Override
     public boolean parse(final Workspace workspace, final KeggDataSource dataSource) throws ParserException {
-        parseKeggFile(workspace, dataSource, Variant.class, "variant");
-        parseKeggFile(workspace, dataSource, DrugGroup.class, "dgroup");
-        parseKeggFile(workspace, dataSource, Drug.class, "drug");
-        parseKeggFile(workspace, dataSource, Disease.class, "disease");
-        parseKeggFile(workspace, dataSource, Network.class, "network");
+        dataSource.variants = parseKeggFile(workspace, dataSource, Variant.class, "variant");
+        dataSource.drugGroups = parseKeggFile(workspace, dataSource, DrugGroup.class, "dgroup");
+        dataSource.drugs = parseKeggFile(workspace, dataSource, Drug.class, "drug");
+        dataSource.diseases = parseKeggFile(workspace, dataSource, Disease.class, "disease");
+        dataSource.networks = parseKeggFile(workspace, dataSource, Network.class, "network");
         return true;
     }
 
@@ -83,25 +81,11 @@ public class KeggParser extends Parser<KeggDataSource> {
             return null;
         for (int i = 0; i < chunk.length; i++) {
             ChunkLine line = chunk[i];
-            final boolean lineNotEmpty = line.value.trim().length() > 0;
             switch (line.keyword) {
                 case "ENTRY":
                     String[] parts = StringUtils.split(line.value, " ");
                     entry.id = parts[0];
                     entry.tags.addAll(Arrays.asList(parts).subList(1, parts.length));
-                    break;
-                case "NAME":
-                    entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
-                    //   SUPERGRP
-                    //   SUBGROUP
-                    for (int j = i + 1; j < chunk.length; j++)
-                        if (chunk[j].keyword.equals("  SUPERGRP") || chunk[j].keyword.equals("  SUBGROUP"))
-                            i++; // TODO
-                        else
-                            break;
-                    break;
-                case "  STEM":
-                    entry.nameStems.addAll(Arrays.asList(StringUtils.splitByWholeSeparator(line.value, ", ")));
                     break;
                 case "REFERENCE":
                     Reference reference = parseReference(chunk, i, line);
@@ -115,179 +99,23 @@ public class KeggParser extends Parser<KeggDataSource> {
                             entry.externalIds.add(linkParts[0] + ":" + id);
                     }
                     break;
-                case "FORMULA":
-                    if (lineNotEmpty)
-                        ((Drug) entry).formula = line.value.trim();
-                    break;
-                case "EXACT_MASS":
-                    if (lineNotEmpty)
-                        ((Drug) entry).exactMass = line.value.trim();
-                    break;
-                case "MOL_WEIGHT":
-                    if (lineNotEmpty)
-                        ((Drug) entry).molecularWeight = line.value.trim();
-                    break;
                 case "COMMENT":
                     entry.comment = line.value;
                     break;
                 case "REMARK":
                     entry.remark = line.value;
                     break;
-                case "ATOM":
-                    ((Drug) entry).atoms = line.value;
-                    break;
-                case "BOND":
-                    ((Drug) entry).bonds = line.value;
-                    break;
-                case "INTERACTION":
-                    if (lineNotEmpty)
-                        ((Drug) entry).interactions.addAll(parseInteractions(line));
-                    break;
-                case "TARGET":
-                    if (lineNotEmpty)
-                        ((Drug) entry).targets.addAll(parseTargets(line));
-                    //   NETWORK
-                    for (int j = i + 1; j < chunk.length; j++)
-                        if (chunk[j].keyword.equals("  NETWORK"))
-                            i++; // TODO
-                        else
-                            break;
-                    break;
-                case "EFFICACY":
-                    if (lineNotEmpty)
-                        ((Drug) entry).efficacy = line.value.trim();
-                    //   DISEASE
-                    for (int j = i + 1; j < chunk.length; j++)
-                        if (chunk[j].keyword.equals("  DISEASE"))
-                            i++; // TODO
-                        else
-                            break;
-                    break;
-                case "COMPONENT":
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
-                case "SEQUENCE":
-                    Sequence sequence = new Sequence();
-                    sequence.sequence = line.value;
-                    //   TYPE
-                    if (chunk[i + 1].keyword.equals("  TYPE")) {
-                        sequence.type = chunk[i + 1].value;
-                        i++;
-                    }
-                    ((Drug) entry).sequences.add(sequence);
-                    break;
-                case "BRACKET":
-                    Bracket bracket = new Bracket();
-                    bracket.value = line.value;
-                    for (int j = i + 1; j < chunk.length; j++) {
-                        if (chunk[j].keyword.equals("  ORIGINAL")) {
-                            bracket.original = line.value;
-                            i++;
-                        } else if (chunk[j].keyword.equals("  REPEAT")) {
-                            bracket.repeat = line.value;
-                            i++;
-                        } else
-                            break;
-                    }
-                    ((Drug) entry).bracket = bracket;
-                    break;
-                case "METABOLISM":
-                    if (lineNotEmpty)
-                        ((Drug) entry).metabolisms.addAll(parseMetabolisms(line));
-                    break;
-                case "CLASS":
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
-                case "SOURCE":
-                    if (lineNotEmpty)
-                        ((Drug) entry).sources.addAll(parseNameIdsPairs(line.value));
-                    break;
-                case "NETWORK":
-                    //   ELEMENT
-                    for (int j = i + 1; j < chunk.length; j++)
-                        if (chunk[j].keyword.equals("  ELEMENT"))
-                            i++; // TODO
-                        else
-                            break;
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
-                case "GENE":
-                    if (entryClass == Variant.class) {
-                        String[] geneRestParts = StringUtils.splitByWholeSeparator(line.value, "  ", 2);
-                        ((Variant) entry).genes.put(geneRestParts[0], parseNameIdsPair(geneRestParts[1]));
-                    } else if (entryClass == Disease.class) {
-                        //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    } else if (entryClass == Network.class) {
-                        //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    }
-                    break;
-                case "ORGANISM":
-                    if (lineNotEmpty)
-                        ((Variant) entry).organism = line.value;
-                    break;
-                case "VARIATION":
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
-                case "DESCRIPTION":
-                    if (lineNotEmpty)
-                        ((Disease) entry).description = line.value;
-                    break;
-                case "PATHOGEN":
-                    //   MODULE
-                    for (int j = i + 1; j < chunk.length; j++)
-                        if (chunk[j].keyword.equals("  MODULE"))
-                            i++; // TODO
-                        else
-                            break;
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
-                case "DRUG":
-                    if (lineNotEmpty)
-                        ((Disease) entry).drugs.addAll(parseMultilineNameIdsPairs(line));
-                    break;
-                case "CATEGORY":
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
-                case "ENV_FACTOR":
-                    if (lineNotEmpty)
-                        ((Disease) entry).envFactors.addAll(parseMultilineNameIdsPairs(line));
-                    break;
-                case "CARCINOGEN":
-                    if (lineNotEmpty)
-                        ((Disease) entry).carcinogens.addAll(parseMultilineNameIdsPairs(line));
-                    break;
-                case "DISEASE":
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
-                case "MEMBER":
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
-                case "MAP":
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
-                case "TYPE":
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
-                case "PERTURBANT":
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
-                case "VARIANT":
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
-                case "METABOLITE":
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
-                case "DEFINITION":
-                    //   EXPANDED
-                    for (int j = i + 1; j < chunk.length; j++)
-                        if (chunk[j].keyword.equals("  EXPANDED"))
-                            i++; // TODO
-                        else
-                            break;
-                    //System.out.println(entryClass.getSimpleName() + "> " + line.value); // TODO
-                    break;
                 default:
-                    System.out.println(line.keyword);
+                    if (entryClass == Drug.class)
+                        i = processDrugLine(chunk, line, i, (Drug) entry);
+                    else if (entryClass == Variant.class)
+                        i = processVariantLine(chunk, line, i, (Variant) entry);
+                    else if (entryClass == Disease.class)
+                        i = processDiseaseLine(chunk, line, i, (Disease) entry);
+                    else if (entryClass == DrugGroup.class)
+                        i = processDrugGroupLine(chunk, line, i, (DrugGroup) entry);
+                    else if (entryClass == Network.class)
+                        i = processNetworkGroupLine(chunk, line, i, (Network) entry);
                     break;
             }
         }
@@ -301,6 +129,298 @@ public class KeggParser extends Parser<KeggDataSource> {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private int processDrugLine(final ChunkLine[] chunk, final ChunkLine line, int i, Drug entry) {
+        final boolean lineNotEmpty = line.value.trim().length() > 0;
+        switch (line.keyword) {
+            case "NAME":
+                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                break;
+            case "FORMULA":
+                if (lineNotEmpty)
+                    entry.formula = line.value.trim();
+                break;
+            case "EXACT_MASS":
+                if (lineNotEmpty)
+                    entry.exactMass = line.value.trim();
+                break;
+            case "MOL_WEIGHT":
+                if (lineNotEmpty)
+                    entry.molecularWeight = line.value.trim();
+                break;
+            case "ATOM":
+                entry.atoms = line.value;
+                break;
+            case "BOND":
+                entry.bonds = line.value;
+                break;
+            case "INTERACTION":
+                if (lineNotEmpty)
+                    entry.interactions.addAll(parseInteractions(line));
+                break;
+            case "TARGET":
+                if (lineNotEmpty)
+                    entry.targets.addAll(parseTargets(line));
+                for (int j = i + 1; j < chunk.length; j++)
+                    if (chunk[j].keyword.equals("  NETWORK")) {
+                        entry.networkTargets.add(parseIdNamePair(chunk[j].value));
+                        i++;
+                    } else
+                        break;
+                break;
+            case "EFFICACY":
+                if (lineNotEmpty)
+                    entry.efficacy = line.value.trim();
+                for (int j = i + 1; j < chunk.length; j++)
+                    if (chunk[j].keyword.equals("  DISEASE")) {
+                        entry.efficacyDiseases.addAll(parseMultilineNameIdsPairs(chunk[j]));
+                        i++;
+                    } else
+                        break;
+                break;
+            case "COMPONENT":
+                if (lineNotEmpty)
+                    entry.mixtures.addAll(parseDrugComponents(line));
+                break;
+            case "CLASS":
+                if (lineNotEmpty)
+                    entry.classes.addAll(parseMemberClassHierarchy(line));
+                break;
+            case "SEQUENCE":
+                Sequence sequence = new Sequence();
+                sequence.sequence = line.value;
+                if (chunk[i + 1].keyword.equals("  TYPE")) {
+                    sequence.type = chunk[i + 1].value;
+                    i++;
+                }
+                entry.sequences.add(sequence);
+                break;
+            case "BRACKET":
+                Bracket bracket = new Bracket();
+                bracket.value = line.value;
+                for (int j = i + 1; j < chunk.length; j++) {
+                    if (chunk[j].keyword.equals("  ORIGINAL")) {
+                        bracket.original = line.value;
+                        i++;
+                    } else if (chunk[j].keyword.equals("  REPEAT")) {
+                        bracket.repeat = line.value;
+                        i++;
+                    } else
+                        break;
+                }
+                entry.bracket = bracket;
+                break;
+            case "METABOLISM":
+                if (lineNotEmpty)
+                    entry.metabolisms.addAll(parseMetabolisms(line));
+                break;
+            case "SOURCE":
+                if (lineNotEmpty)
+                    entry.sources.addAll(parseNameIdsPairs(line.value));
+                break;
+            default:
+                System.out.println("Drug> " + line.keyword);
+                break;
+        }
+        return i;
+    }
+
+    private int processVariantLine(final ChunkLine[] chunk, final ChunkLine line, int i, Variant entry) {
+        final boolean lineNotEmpty = line.value.trim().length() > 0;
+        switch (line.keyword) {
+            case "NAME":
+                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                break;
+            case "GENE":
+                String[] geneRestParts = StringUtils.splitByWholeSeparator(line.value, "  ", 2);
+                entry.genes.put(geneRestParts[0], parseNameIdsPair(geneRestParts[1]));
+                break;
+            case "ORGANISM":
+                if (lineNotEmpty)
+                    entry.organism = line.value;
+                break;
+            case "NETWORK":
+                NetworkLink network = new NetworkLink();
+                entry.networks.add(network);
+                if (lineNotEmpty)
+                    network.network = parseIdNamePair(line.value);
+                for (int j = i + 1; j < chunk.length; j++)
+                    if (chunk[j].keyword.equals("  ELEMENT")) {
+                        network.elements.addAll(parseMultilineIdNamePairs(chunk[j]));
+                        i++;
+                    } else
+                        break;
+                break;
+            case "VARIATION":
+                NameIdsPair variation = new NameIdsPair();
+                String[] lines = StringUtils.split(line.value, "\n");
+                variation.name = lines[0];
+                for (int j = 1; j < lines.length; j++) {
+                    String[] idParts = StringUtils.split(lines[j], " ");
+                    for (int k = 1; k < idParts.length; k++)
+                        variation.ids.add(idParts[0] + idParts[k]);
+                }
+                entry.variations.add(variation);
+                break;
+            default:
+                System.out.println("Variant> " + line.keyword);
+                break;
+        }
+        return i;
+    }
+
+    private int processDrugGroupLine(final ChunkLine[] chunk, final ChunkLine line, int i, DrugGroup entry) {
+        final boolean lineNotEmpty = line.value.trim().length() > 0;
+        switch (line.keyword) {
+            case "NAME":
+                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                for (int j = i + 1; j < chunk.length; j++)
+                    if (chunk[j].keyword.equals("  STEM")) {
+                        entry.nameStems.addAll(Arrays.asList(StringUtils.splitByWholeSeparator(line.value, ", ")));
+                        i++;
+                    } else
+                        break;
+                break;
+            case "CLASS":
+                if (lineNotEmpty)
+                    entry.classes.addAll(parseMemberClassHierarchy(line));
+                break;
+            case "MEMBER":
+                if (lineNotEmpty)
+                    entry.members.addAll(parseMemberClassHierarchy(line));
+                break;
+            default:
+                System.out.println("DrugGroup> " + line.keyword);
+                break;
+        }
+        return i;
+    }
+
+    private int processDiseaseLine(final ChunkLine[] chunk, final ChunkLine line, int i, Disease entry) {
+        final boolean lineNotEmpty = line.value.trim().length() > 0;
+        switch (line.keyword) {
+            case "NAME":
+                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                for (int j = i + 1; j < chunk.length; j++)
+                    if (chunk[j].keyword.equals("  SUPERGRP")) {
+                        entry.superGroups.add(chunk[j].value);
+                        i++;
+                    } else if (chunk[j].keyword.equals("  SUBGROUP")) {
+                        entry.subGroups.add(chunk[j].value);
+                        i++;
+                    } else
+                        break;
+                break;
+            case "DESCRIPTION":
+                if (lineNotEmpty)
+                    entry.description = line.value;
+                break;
+            case "DRUG":
+                if (lineNotEmpty)
+                    entry.drugs.addAll(parseMultilineNameIdsPairs(line));
+                break;
+            case "ENV_FACTOR":
+                if (lineNotEmpty)
+                    entry.envFactors.addAll(parseMultilineNameIdsPairs(line));
+                break;
+            case "CARCINOGEN":
+                if (lineNotEmpty)
+                    entry.carcinogens.addAll(parseMultilineNameIdsPairs(line));
+                break;
+            case "PATHOGEN":
+                if (lineNotEmpty)
+                    entry.pathogens.addAll(parseMultilineNameIdsPairs(line));
+                for (int j = i + 1; j < chunk.length; j++)
+                    if (chunk[j].keyword.equals("  MODULE")) {
+                        entry.pathogenSignatureModules.addAll(parseMultilineIdNamePairs(chunk[j]));
+                        i++;
+                    } else
+                        break;
+                break;
+            case "NETWORK":
+                NetworkLink network = new NetworkLink();
+                entry.networks.add(network);
+                if (lineNotEmpty)
+                    network.network = parseIdNamePair(line.value);
+                for (int j = i + 1; j < chunk.length; j++)
+                    if (chunk[j].keyword.equals("  ELEMENT")) {
+                        network.elements.addAll(parseMultilineIdNamePairs(chunk[j]));
+                        i++;
+                    } else
+                        break;
+                break;
+            case "CATEGORY":
+                if (lineNotEmpty)
+                    for (String category : StringUtils.split(line.value, ";"))
+                        entry.categories.add(category.trim());
+                break;
+            case "GENE":
+                if (lineNotEmpty)
+                    entry.genes.addAll(parseMultilineNameIdsPairs(line));
+                break;
+            default:
+                System.out.println("Disease> " + line.keyword);
+                break;
+        }
+        return i;
+    }
+
+    private int processNetworkGroupLine(final ChunkLine[] chunk, final ChunkLine line, int i, Network entry) {
+        final boolean lineNotEmpty = line.value.trim().length() > 0;
+        switch (line.keyword) {
+            case "NAME":
+                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                break;
+            case "TYPE":
+                entry.type = line.value;
+                break;
+            case "GENE":
+                if (lineNotEmpty)
+                    entry.genes.addAll(parseMultilineIdNamePairs(line));
+                break;
+            case "CLASS":
+                if (lineNotEmpty)
+                    entry.classes.addAll(parseMultilineIdNamePairs(line));
+                break;
+            case "PERTURBANT":
+                if (lineNotEmpty)
+                    entry.perturbants.addAll(parseMultilineIdNamePairs(line));
+                break;
+            case "VARIANT":
+                if (lineNotEmpty)
+                    entry.variants.addAll(parseMultilineIdNamePairs(line));
+                break;
+            case "METABOLITE":
+                if (lineNotEmpty)
+                    entry.metabolites.addAll(parseMultilineIdNamePairs(line));
+                break;
+            case "DEFINITION":
+                if (lineNotEmpty)
+                    entry.definition = line.value;
+                for (int j = i + 1; j < chunk.length; j++)
+                    if (chunk[j].keyword.equals("  EXPANDED")) {
+                        entry.expandedDefinition = chunk[j].value;
+                        i++;
+                    } else
+                        break;
+                break;
+            case "DISEASE":
+                if (lineNotEmpty)
+                    entry.diseases.addAll(parseMultilineIdNamePairs(line));
+                break;
+            case "MEMBER":
+                if (lineNotEmpty)
+                    entry.members.addAll(parseMultilineIdNamePairs(line));
+                break;
+            case "MAP":
+                // TODO: always referencing itself
+                break;
+            default:
+                System.out.println("Network> " + line.keyword);
+                break;
+        }
+        return i;
     }
 
     private static Reference parseReference(final ChunkLine[] chunk, final int i, final ChunkLine line) {
@@ -413,10 +533,78 @@ public class KeggParser extends Parser<KeggDataSource> {
         return result;
     }
 
-    private static void printChunk(final ChunkLine[] chunk) {
-        for (ChunkLine line : chunk)
-            System.out.println(
-                    StringUtils.rightPad(line.keyword, 11, " ") + " " + line.value.replace("\n", "\n            "));
-        System.out.println("///");
+    private static List<NameIdsPair> parseMultilineIdNamePairs(final ChunkLine line) {
+        List<NameIdsPair> result = new ArrayList<>();
+        for (String subLine : StringUtils.split(line.value.trim(), "\n"))
+            result.add((parseIdNamePair(subLine)));
+        return result;
+    }
+
+    private static NameIdsPair parseIdNamePair(String line) {
+        String[] idRestParts = StringUtils.splitByWholeSeparator(line, "  ", 2);
+        if (idRestParts.length == 1)
+            idRestParts = StringUtils.split(line, " ", 2);
+        NameIdsPair pair = new NameIdsPair();
+        pair.ids.add(idRestParts[0]);
+        if (idRestParts.length > 1)
+            pair.name = idRestParts[1];
+        return pair;
+    }
+
+    private static List<KeggHierarchicalEntry.ParentChildRelation> parseMemberClassHierarchy(final ChunkLine line) {
+        List<KeggHierarchicalEntry.ParentChildRelation> result = new ArrayList<>();
+        Stack<NameIdsPair> depthStack = new Stack<>();
+        int lastDepth = -1;
+        for (String branch : StringUtils.split(line.value, "\n")) {
+            int depth = branch.length() - StringUtils.stripStart(branch, null).length();
+            branch = branch.trim();
+            String[] idRestParts = StringUtils.splitByWholeSeparator(branch, "  ", 2);
+            NameIdsPair pair = new NameIdsPair();
+            if (idRestParts.length > 1) {
+                pair.name = idRestParts[1];
+                pair.ids.add(idRestParts[0]);
+            } else
+                pair.name = branch;
+            if (depth > lastDepth) {
+                depthStack.push(pair);
+            } else if (depth < lastDepth)
+                while (depthStack.size() - 2 > depth)
+                    depthStack.pop();
+            lastDepth = depth;
+            depthStack.set(depthStack.size() - 1, pair);
+            if (depthStack.size() > 1) {
+                KeggHierarchicalEntry.ParentChildRelation relation = new KeggHierarchicalEntry.ParentChildRelation();
+                relation.parent = depthStack.get(depthStack.size() - 2);
+                relation.child = pair;
+                result.add(relation);
+            }
+        }
+        return result;
+    }
+
+    private static List<List<NameIdsPair>> parseDrugComponents(final ChunkLine line) {
+        List<List<NameIdsPair>> result = new ArrayList<>();
+        List<String[]> parts = new ArrayList<>();
+        for (String andPart : StringUtils.splitByWholeSeparator(line.value, ", "))
+            parts.add(StringUtils.splitByWholeSeparator(StringUtils.strip(andPart, "()"), " | "));
+        while (parts.size() > 1) {
+            String[] newPart = new String[parts.get(0).length * parts.get(1).length];
+            int index = 0;
+            for (String a : parts.get(0)) {
+                for (String b : parts.get(1)) {
+                    newPart[index] = a + ", " + b;
+                    index++;
+                }
+            }
+            parts.remove(1);
+            parts.set(0, newPart);
+        }
+        for (String mixture : parts.get(0)) {
+            List<NameIdsPair> components = new ArrayList<>();
+            for (String andPart : StringUtils.splitByWholeSeparator(mixture, ", "))
+                components.add(parseNameIdsPair(andPart));
+            result.add(components);
+        }
+        return result;
     }
 }

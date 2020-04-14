@@ -8,11 +8,8 @@ import de.unibi.agbi.biodwh2.kegg.etl.KeggUpdater;
 import de.unibi.agbi.biodwh2.kegg.model.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class KeggDataSource extends DataSource {
-    public Map<String, Set<String>> drugGroupChildMap;
     public List<DrugGroup> drugGroups;
     public List<Disease> diseases;
     public List<Drug> drugs;
