@@ -81,6 +81,7 @@ public class KeggParser extends Parser<KeggDataSource> {
             return null;
         for (int i = 0; i < chunk.length; i++) {
             ChunkLine line = chunk[i];
+            final boolean lineNotEmpty = line.value.trim().length() > 0;
             switch (line.keyword) {
                 case "ENTRY":
                     String[] parts = StringUtils.split(line.value, " ");
@@ -100,10 +101,12 @@ public class KeggParser extends Parser<KeggDataSource> {
                     }
                     break;
                 case "COMMENT":
-                    entry.comment = line.value;
+                    if (lineNotEmpty)
+                        entry.comments.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
                     break;
                 case "REMARK":
-                    entry.remark = line.value;
+                    if (lineNotEmpty)
+                        entry.remarks.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
                     break;
                 default:
                     if (entryClass == Drug.class)
@@ -117,6 +120,15 @@ public class KeggParser extends Parser<KeggDataSource> {
                     else if (entryClass == Network.class)
                         i = processNetworkGroupLine(chunk, line, i, (Network) entry);
                     break;
+            }
+        }
+        for (int i = entry.remarks.size() - 1; i >= 0; i--) {
+            String remark = entry.remarks.get(i);
+            if (remark.startsWith("ATC code:")) {
+                String codes = StringUtils.split(remark, ":")[1].trim();
+                for (String code : StringUtils.split(codes, " "))
+                    entry.externalIds.add("ATC:" + code);
+                entry.remarks.remove(i);
             }
         }
         return entry;

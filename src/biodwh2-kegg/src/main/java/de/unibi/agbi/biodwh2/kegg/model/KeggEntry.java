@@ -7,10 +7,10 @@ import java.util.Set;
 
 public abstract class KeggEntry {
     public String id;
-    public List<String> tags = new ArrayList<>();
-    public List<String> names = new ArrayList<>();
-    public Set<String> externalIds = new HashSet<>();
-    public List<Reference> references = new ArrayList<>();
-    public String comment;
-    public String remark;
+    public final List<String> tags = new ArrayList<>();
+    public final List<String> names = new ArrayList<>();
+    public final Set<String> externalIds = new HashSet<>();
+    public final List<Reference> references = new ArrayList<>();
+    public final List<String> comments = new ArrayList<>();
+    public final List<String> remarks = new ArrayList<>();
 }
