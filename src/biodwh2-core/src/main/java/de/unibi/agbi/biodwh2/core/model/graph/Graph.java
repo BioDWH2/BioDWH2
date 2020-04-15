@@ -13,10 +13,12 @@ import java.sql.*;
 import java.util.*;
 
 public final class Graph {
-    private static final String UnescapedDoubleQuotes = "'";
-    private static final String EscapedDoubleQuotes = "''";
+    private static final String PackedArraySplitter = "','";
+    private static final String UnescapedQuotes = "'";
+    private static final String EscapedQuotes = "''";
     private static final String UnescapedComma = ",";
-    private static final String EscapedComma = "\\,";
+    private static final String FindNodeQuery = "SELECT * FROM nodes WHERE __labels='%s' AND %s='%s';";
+    private static final String FindNodeIdQuery = "SELECT __id FROM nodes WHERE __labels='%s' AND %s='%s';";
     private long nextNodeId = 1;
     private long nextEdgeId = 1;
     private final Connection connection;
@@ -104,7 +106,7 @@ public final class Graph {
         if (value == null || nodeCache.containsKey(node.getId()))
             return;
         ensureNodeColumnExists(key);
-        String packedValue = StringUtils.replace(packValue(value), UnescapedDoubleQuotes, EscapedDoubleQuotes);
+        String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
         executeSql("UPDATE nodes SET \"" + key + "\"='" + packedValue + "' WHERE __id=" + node.getId() + ";");
     }
 
@@ -133,7 +135,7 @@ public final class Graph {
         if (value == null)
             return;
         ensureEdgeColumnExists(key);
-        String packedValue = StringUtils.replace(packValue(value), UnescapedDoubleQuotes, EscapedDoubleQuotes);
+        String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
         executeSql("UPDATE edges SET " + key + "='" + packedValue + "' WHERE __id=" + edge.getId() + ";");
     }
 
@@ -162,9 +164,8 @@ public final class Graph {
                     joinedArray.append(UnescapedComma);
                 String elementValue = array[i].toString();
                 if (array[i] instanceof CharSequence)
-                    joinedArray.append(UnescapedDoubleQuotes).append(
-                            elementValue.replace(UnescapedDoubleQuotes, EscapedDoubleQuotes)
-                                        .replace(UnescapedComma, EscapedComma)).append(UnescapedDoubleQuotes);
+                    joinedArray.append(UnescapedQuotes).append(elementValue.replace(UnescapedQuotes, EscapedQuotes))
+                               .append(UnescapedQuotes);
                 else
                     joinedArray.append(elementValue);
             }
@@ -196,12 +197,11 @@ public final class Graph {
                 Class<?> valueType = type.getComponentType();
                 if (value.length() == 0)
                     return java.lang.reflect.Array.newInstance(valueType, 0);
-                String[] parts = value.split("(?<!\\\\),");
+                String[] parts = StringUtils.splitByWholeSeparator(value, PackedArraySplitter);
                 Object[] array = (Object[]) java.lang.reflect.Array.newInstance(valueType, parts.length);
                 if (valueType == String.class)
                     for (int i = 0; i < parts.length; i++)
-                        array[i] = parts[i].substring(1, parts[i].length() - 1).replace(EscapedComma, UnescapedComma)
-                                           .replace(EscapedDoubleQuotes, UnescapedDoubleQuotes);
+                        array[i] = StringUtils.strip(parts[i], UnescapedQuotes).replace(EscapedQuotes, UnescapedQuotes);
                 if (ClassUtils.isPrimitiveOrWrapper(valueType)) {
                     if (valueType == Integer.class)
                         for (int i = 0; i < parts.length; i++)
@@ -256,9 +256,8 @@ public final class Graph {
                     if (!first)
                         sql.append(", ");
                     first = false;
-                    String packedValue = StringUtils.replace(packValue(value), UnescapedDoubleQuotes,
-                                                             EscapedDoubleQuotes);
-                    sql.append("\"").append(key).append("\"='").append(packedValue).append(UnescapedDoubleQuotes);
+                    String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
+                    sql.append("\"").append(key).append("\"='").append(packedValue).append(UnescapedQuotes);
                 }
                 sql.append(" WHERE __id=").append(node.getId()).append(";");
                 if (atLeastOneValueNotNull)
@@ -279,13 +278,17 @@ public final class Graph {
         synchronize(false);
         Node node = new Node(this, nextNodeId, true, labels);
         nextNodeId++;
+        addNodeToMemoryCache(node);
+        return node;
+    }
+
+    private void addNodeToMemoryCache(Node node) {
         nodeCache.put(node.getId(), node);
-        for (String label : labels) {
+        for (String label : node.getLabels()) {
             if (!nodeLabelIdMap.containsKey(label))
                 nodeLabelIdMap.put(label, new ArrayList<>());
             nodeLabelIdMap.get(label).add(node.getId());
         }
-        return node;
     }
 
     public Edge addEdge(Node from, Node to, String label) throws ExporterException {
@@ -406,34 +409,33 @@ public final class Graph {
         }
     }
 
-    public Node findNode(String labels, String propertyName, String value) {
+    public Node findNode(String label, String propertyName, Object value) {
         if (value == null)
             return null;
-        if (nodeLabelIdMap.containsKey(labels)) {
-            for (Long nodeId : nodeLabelIdMap.get(labels)) {
+        Node memoryNode = findNodeInMemory(label, propertyName, value);
+        if (memoryNode != null)
+            return memoryNode;
+        String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
+        String sql = String.format(FindNodeQuery, label, propertyName, packedValue);
+        try (ResultSet result = connection.createStatement().executeQuery(sql)) {
+            if (result.next()) {
+                Node node = createNodeFromResultSet(result);
+                addNodeToMemoryCache(node);
+                return node;
+            }
+        } catch (SQLException | ExporterException ignored) {
+            System.out.println("Failed to find node: " + sql);
+        }
+        return null;
+    }
+
+    private Node findNodeInMemory(String label, String propertyName, Object value) {
+        if (nodeLabelIdMap.containsKey(label))
+            for (Long nodeId : nodeLabelIdMap.get(label)) {
                 Node n = nodeCache.get(nodeId);
                 if (n.hasProperty(propertyName) && n.getProperty(propertyName).equals(value))
                     return n;
             }
-        }
-        String packedValue = StringUtils.replace(packValue(value), UnescapedDoubleQuotes, EscapedDoubleQuotes);
-        String sql =
-                "SELECT * FROM nodes WHERE __labels='" + labels + "' AND " + propertyName + "='" + packedValue + "';";
-        try (ResultSet result = connection.createStatement().executeQuery(sql)) {
-            if (!result.next())
-                return null;
-            Node node = createNodeFromResultSet(result);
-            nodeCache.put(node.getId(), node);
-            for (String label : node.getLabels()) {
-                if (!nodeLabelIdMap.containsKey(label))
-                    nodeLabelIdMap.put(label, new ArrayList<>());
-                nodeLabelIdMap.get(label).add(node.getId());
-            }
-            return node;
-        } catch (SQLException | ExporterException e) {
-            //e.printStackTrace(); // TODO: exception
-            System.out.println("Failed to find node: " + sql);
-        }
         return null;
     }
 
@@ -442,33 +444,30 @@ public final class Graph {
         for (int i = 3; i <= result.getMetaData().getColumnCount(); i++) {
             String value = result.getString(i);
             if (value != null) {
-                Object unpackedValue = unpackValue(
-                        StringUtils.replace(value, EscapedDoubleQuotes, UnescapedDoubleQuotes));
+                Object unpackedValue = unpackValue(StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
                 node.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false, false);
             }
         }
         return node;
     }
 
-    public Long findNodeId(String labels, String propertyName, String value) {
+    public Long findNodeId(String label, String propertyName, Object value) {
+        return findNodeId(label, propertyName, value, false);
+    }
+
+    public Long findNodeId(String label, String propertyName, Object value, boolean inArray) {
         if (value == null)
             return null;
-        if (nodeLabelIdMap.containsKey(labels)) {
-            for (Long nodeId : nodeLabelIdMap.get(labels)) {
-                Node n = nodeCache.get(nodeId);
-                if (n.getProperty(propertyName).equals(value))
-                    return n.getId();
-            }
-        }
-        String packedValue = StringUtils.replace(packValue(value), UnescapedDoubleQuotes, EscapedDoubleQuotes);
-        String sql = "SELECT __id FROM nodes WHERE __labels='" + labels + "' AND " + propertyName + "='" + packedValue +
-                     "';";
+        Node memoryNode = findNodeInMemory(label, propertyName, value);
+        if (memoryNode != null)
+            return memoryNode.getId();
+        String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
+        String sql = String.format(FindNodeIdQuery, label, propertyName, packedValue);
         Long id = null;
         try (ResultSet result = connection.createStatement().executeQuery(sql)) {
             if (result.next())
                 id = result.getLong(1);
-        } catch (SQLException e) {
-            //e.printStackTrace(); // TODO: exception
+        } catch (SQLException ignored) {
             System.out.println("Failed to find node: " + sql);
         }
         return id;
@@ -480,8 +479,7 @@ public final class Graph {
         for (int i = 5; i <= result.getMetaData().getColumnCount(); i++) {
             String value = result.getString(i);
             if (value != null) {
-                Object unpackedValue = unpackValue(
-                        StringUtils.replace(value, EscapedDoubleQuotes, UnescapedDoubleQuotes));
+                Object unpackedValue = unpackValue(StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
                 edge.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false);
             }
         }
