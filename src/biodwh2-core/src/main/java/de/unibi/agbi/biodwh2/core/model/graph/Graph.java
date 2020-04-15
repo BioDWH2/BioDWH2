@@ -19,6 +19,10 @@ public final class Graph {
     private static final String UnescapedComma = ",";
     private static final String FindNodeQuery = "SELECT * FROM nodes WHERE __labels='%s' AND %s='%s';";
     private static final String FindNodeIdQuery = "SELECT __id FROM nodes WHERE __labels='%s' AND %s='%s';";
+    private static final String FindNodeInStringArrayQuery = "SELECT * FROM nodes WHERE __labels='%s' AND %s LIKE '%%%s%%';";
+    private static final String FindNodeInNonStringArrayQuery = "SELECT * FROM nodes WHERE __labels='%s' AND %s REGEXP '^.*\\|(.*,)?%s(,.*)?$';";
+    private static final String FindNodeIdInStringArrayQuery = "SELECT __id FROM nodes WHERE __labels='%s' AND %s LIKE '%%%s%%';";
+    private static final String FindNodeIdInNonStringArrayQuery = "SELECT __id FROM nodes WHERE __labels='%s' AND %s REGEXP '^.*\\|(.*,)?%s(,.*)?$';";
     private long nextNodeId = 1;
     private long nextEdgeId = 1;
     private final Connection connection;
@@ -410,13 +414,24 @@ public final class Graph {
     }
 
     public Node findNode(String label, String propertyName, Object value) {
+        return findNode(label, propertyName, value, false);
+    }
+
+    public Node findNode(String label, String propertyName, Object value, boolean inArray) {
         if (value == null)
             return null;
         Node memoryNode = findNodeInMemory(label, propertyName, value);
         if (memoryNode != null)
             return memoryNode;
         String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
-        String sql = String.format(FindNodeQuery, label, propertyName, packedValue);
+        String sql;
+        if (inArray) {
+            if (value.getClass() == String.class)
+                sql = String.format(FindNodeInStringArrayQuery, label, propertyName, packedValue);
+            else
+                sql = String.format(FindNodeInNonStringArrayQuery, label, propertyName, packedValue);
+        } else
+            sql = String.format(FindNodeQuery, label, propertyName, packedValue);
         try (ResultSet result = connection.createStatement().executeQuery(sql)) {
             if (result.next()) {
                 Node node = createNodeFromResultSet(result);
@@ -462,7 +477,14 @@ public final class Graph {
         if (memoryNode != null)
             return memoryNode.getId();
         String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
-        String sql = String.format(FindNodeIdQuery, label, propertyName, packedValue);
+        String sql;
+        if (inArray) {
+            if (value.getClass() == String.class)
+                sql = String.format(FindNodeIdInStringArrayQuery, label, propertyName, packedValue);
+            else
+                sql = String.format(FindNodeIdInNonStringArrayQuery, label, propertyName, packedValue);
+        } else
+            sql = String.format(FindNodeIdQuery, label, propertyName, packedValue);
         Long id = null;
         try (ResultSet result = connection.createStatement().executeQuery(sql)) {
             if (result.next())
