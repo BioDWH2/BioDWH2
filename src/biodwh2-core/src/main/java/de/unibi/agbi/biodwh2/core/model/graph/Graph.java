@@ -194,6 +194,8 @@ public final class Graph {
             }
             if (type.isArray()) {
                 Class<?> valueType = type.getComponentType();
+                if (value.length() == 0)
+                    return java.lang.reflect.Array.newInstance(valueType, 0);
                 String[] parts = value.split("(?<!\\\\),");
                 Object[] array = (Object[]) java.lang.reflect.Array.newInstance(valueType, parts.length);
                 if (valueType == String.class)
