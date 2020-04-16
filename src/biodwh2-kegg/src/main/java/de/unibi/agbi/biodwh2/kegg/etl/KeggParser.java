@@ -289,7 +289,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                 entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
                 for (int j = i + 1; j < chunk.length; j++)
                     if (chunk[j].keyword.equals("  STEM")) {
-                        entry.nameStems.addAll(Arrays.asList(StringUtils.splitByWholeSeparator(line.value, ", ")));
+                        entry.nameStems.addAll(Arrays.asList(StringUtils.splitByWholeSeparator(chunk[j].value, ", ")));
                         i++;
                     } else
                         break;
