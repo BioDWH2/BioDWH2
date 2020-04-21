@@ -18,6 +18,11 @@
         <module>biodwh2-drugcentral</module>
         <module>biodwh2-kegg</module>
         <module>biodwh2-pharmgkb</module>
+        <module>biodwh2-sider</module>
+        <module>biodwh2-mondo</module>
+        <module>biodwh2-geneontology</module>
+        <module>biodwh2-hpo</module>
+        <module>biodwh2-disgenet</module>
     </modules>
 
     <packaging>pom</packaging>

@@ -58,6 +58,31 @@
             <version>0.1</version>
         </dependency>
         <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-mondo</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-disgenet</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-sider</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-geneontology</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-hpo</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
             <version>4.1.4</version>
