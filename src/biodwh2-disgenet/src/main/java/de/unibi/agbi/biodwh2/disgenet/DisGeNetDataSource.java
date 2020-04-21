@@ -9,7 +9,7 @@ import de.unibi.agbi.biodwh2.disgenet.etl.DisGeNetUpdater;
 public class DisGeNetDataSource extends DataSource {
     @Override
     public String getId() {
-        return "DisGeNet";
+        return "DisGeNET";
     }
 
     @Override

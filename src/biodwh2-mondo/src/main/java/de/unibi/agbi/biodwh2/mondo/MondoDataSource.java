@@ -2,24 +2,24 @@ package de.unibi.agbi.biodwh2.mondo;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.*;
-import de.unibi.agbi.biodwh2.mondo.etl.MONDOGraphExporter;
-import de.unibi.agbi.biodwh2.mondo.etl.MONDOParser;
-import de.unibi.agbi.biodwh2.mondo.etl.MONDOUpdater;
+import de.unibi.agbi.biodwh2.mondo.etl.MondoGraphExporter;
+import de.unibi.agbi.biodwh2.mondo.etl.MondoParser;
+import de.unibi.agbi.biodwh2.mondo.etl.MondoUpdater;
 
-public class MONDODataSource extends DataSource {
+public class MondoDataSource extends DataSource {
     @Override
     public String getId() {
-        return "MONDO";
+        return "Mondo";
     }
 
     @Override
     public Updater getUpdater() {
-        return new MONDOUpdater();
+        return new MondoUpdater();
     }
 
     @Override
     protected Parser getParser() {
-        return new MONDOParser();
+        return new MondoParser();
     }
 
     @Override
@@ -29,6 +29,6 @@ public class MONDODataSource extends DataSource {
 
     @Override
     protected GraphExporter getGraphExporter() {
-        return new MONDOGraphExporter();
+        return new MondoGraphExporter();
     }
 }
