@@ -42,11 +42,13 @@ The basic structure is visualized below:
 |   |   |   +-- drugbank_full.xml
 |   |   |   +-- drugbank vocabulary.csv
 |   |   +-- intermediate.ttl
+|   |   +-- intermediate.graphml
 |   |   +-- metadata.json
 |   +-- HGNC
 |   |   +-- source
 |   |   |   +-- hgnc_complete_set.txt
 |   |   +-- intermediate.ttl
+|   |   +-- intermediate.graphml
 |   |   +-- metadata.json
 |   ...
 +-- neo4j_import
@@ -59,10 +61,12 @@ The basic structure is visualized below:
 
 ## Command line interface parameters
 
-| Short parameter | Long parameter | Values         | Description                  |
-| --------------- | -------------- | -------------- | ---------------------------- |
-| -h              | --help         | -              | Print the help message       |
-| -c              | --create       | workspace path | Create a new empty workspace |
+| Short parameter | Long parameter | Values         | Description                               |
+| --------------- | -------------- | -------------- | ----------------------------------------- |
+| -h              | --help         | -              | Print the help message                    |
+| -su             | --skip-update  | -              | Skip update, only parse and export        |
+| -v              | --verbose      | -              | Enable additional logging output          |
+| -c              | --create       | workspace path | Create a new empty workspace              |
 | -s              | --status       | workspace path | Check and output the state of a workspace |
-| -u              | --update       | workspace path | Update all data sources of a workspace |
-|                 |                |                |                              |
+| -u              | --update       | workspace path | Update all data sources of a workspace    |
+|                 |                |                |                                           |
