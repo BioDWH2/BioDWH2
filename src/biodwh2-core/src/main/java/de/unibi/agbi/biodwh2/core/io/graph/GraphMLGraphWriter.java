@@ -1,76 +1,78 @@
 package de.unibi.agbi.biodwh2.core.io.graph;
 
+import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.io.IndentingXMLStreamWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class GraphMLGraphWriter extends GraphWriter {
+    private static class Property {
+        String id;
+        String forType;
+        String name;
+        String list;
+        String type;
+    }
+
+    private static class SubGraph {
+        Set<Long> edgeIds = new HashSet<>();
+        Set<Long> nodeIds = new HashSet<>();
+    }
+
     private long labelKeyIdCounter = 0;
     private final Map<String, String> labelKeyIdMap = new HashMap<>();
+    private final List<Property> properties = new ArrayList<>();
 
     @Override
-    public boolean write(OutputStream stream, Graph graph) {
+    public boolean write(final Workspace workspace, final DataSource dataSource, final Graph graph) {
         labelKeyIdCounter = 0;
         labelKeyIdMap.clear();
+        properties.clear();
         try {
-            XMLStreamWriter writer = createXMLStreamWriter(stream);
-            writer.writeStartDocument();
-            writeRootStart(writer);
-            writeGraph(writer, graph);
-            writer.writeEndElement();
-            writer.writeEndDocument();
-        } catch (XMLStreamException | ExporterException e) {
+            generateProperties(graph);
+            List<SubGraph> subGraphs = findSubGraphs(graph);
+            if (subGraphs.size() == 1) {
+                FileOutputStream outputStream = new FileOutputStream(
+                        dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.GraphML));
+                writeSubGraphFile(outputStream, graph, subGraphs.get(0));
+            } else {
+                int partIndex = 1;
+                for (SubGraph subGraph : subGraphs) {
+                    FileOutputStream outputStream = new FileOutputStream(
+                            dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.GraphML, partIndex));
+                    writeSubGraphFile(outputStream, graph, subGraph);
+                    partIndex++;
+                }
+            }
+        } catch (XMLStreamException | ExporterException | FileNotFoundException e) {
             e.printStackTrace();
             return false;
         }
         return true;
     }
 
-    private static XMLStreamWriter createXMLStreamWriter(OutputStream outputStream) throws XMLStreamException {
-        XMLOutputFactory factory = XMLOutputFactory.newInstance();
-        XMLStreamWriter writer = factory.createXMLStreamWriter(outputStream, "UTF-8");
-        return new IndentingXMLStreamWriter(writer);
-    }
-
-    private void writeRootStart(XMLStreamWriter writer) throws XMLStreamException {
-        writer.writeStartElement("graphml");
-        writer.writeAttribute("xmlns", "http://graphml.graphdrawing.org/xmlns");
-        writer.writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-        writer.writeAttribute("xsi:schemaLocation", "http://graphml.graphdrawing.org/xmlns " +
-                                                    "http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd");
-    }
-
-    private void writeGraph(XMLStreamWriter writer, Graph graph) throws XMLStreamException, ExporterException {
-        writeNodeProperties(writer, graph);
-        writeEdgeProperties(writer, graph);
-        writer.writeStartElement("graph");
-        writer.writeAttribute("id", "G");
-        writer.writeAttribute("edgedefault", "directed");
-        for (Node node : graph.getNodes())
-            writeNode(writer, node);
-        long edgeId = 0;
-        for (Edge edge : graph.getEdges()) {
-            writeEdge(writer, edge, edgeId);
-            edgeId += 1;
-        }
-        writer.writeEndElement();
-    }
-
-    private void writeNodeProperties(XMLStreamWriter writer, Graph graph) throws XMLStreamException, ExporterException {
+    private void generateProperties(Graph graph) throws ExporterException {
         Map<String, Class<?>> nodePropertyKeyTypes = collectAllNodePropertyKeyTypes(graph.getNodes());
         for (String key : nodePropertyKeyTypes.keySet())
-            writePropertyKey(writer, key, nodePropertyKeyTypes.get(key), "node");
+            properties.add(generateProperty(key, nodePropertyKeyTypes.get(key), "node"));
+        Map<String, Class<?>> edgePropertyKeyTypes = collectAllEdgePropertyKeyTypes(graph.getEdges());
+        for (String key : edgePropertyKeyTypes.keySet())
+            properties.add(generateProperty(key, edgePropertyKeyTypes.get(key), "edge"));
     }
 
     private Map<String, Class<?>> collectAllNodePropertyKeyTypes(Iterable<Node> nodes) {
@@ -98,39 +100,31 @@ public class GraphMLGraphWriter extends GraphWriter {
         return labelKeyIdMap.get(labelKey);
     }
 
-    private void writePropertyKey(XMLStreamWriter writer, String key, Class<?> type,
-                                  String propertyFor) throws XMLStreamException {
-        writer.writeStartElement("key");
-        writer.writeAttribute("id", key);
-        writer.writeAttribute("for", propertyFor);
+    private Property generateProperty(String key, Class<?> type, String forType) {
+        Property p = new Property();
+        p.id = key;
+        p.forType = forType;
         if (labelKeyIdMap.containsValue(key)) {
             Optional<Map.Entry<String, String>> entry = labelKeyIdMap.entrySet().stream().filter(
                     e -> e.getValue().equals(key)).findFirst();
             if (entry.isPresent()) {
                 String[] parts = StringUtils.split(entry.get().getKey(), "|");
-                writer.writeAttribute("attr.name", parts[parts.length - 1]);
+                p.name = parts[parts.length - 1];
             } else
-                writer.writeAttribute("attr.name", key);
+                p.name = key;
         } else
-            writer.writeAttribute("attr.name", key);
+            p.name = key;
         if (type.isArray()) {
-            String arrayType = getTypeName(type.getComponentType());
-            writer.writeAttribute("attr.list", arrayType);
+            p.list = getTypeName(type.getComponentType());
             type = String.class;
         }
         // Allowed types: boolean, int, long, float, double, string
-        writer.writeAttribute("attr.type", getTypeName(type));
-        writer.writeEndElement();
+        p.type = getTypeName(type);
+        return p;
     }
 
     private String getTypeName(Class<?> type) {
         return type.getSimpleName().toLowerCase(Locale.US).replace("integer", "int");
-    }
-
-    private void writeEdgeProperties(XMLStreamWriter writer, Graph graph) throws XMLStreamException, ExporterException {
-        Map<String, Class<?>> edgePropertyKeyTypes = collectAllEdgePropertyKeyTypes(graph.getEdges());
-        for (String key : edgePropertyKeyTypes.keySet())
-            writePropertyKey(writer, key, edgePropertyKeyTypes.get(key), "edge");
     }
 
     private Map<String, Class<?>> collectAllEdgePropertyKeyTypes(Iterable<Edge> edges) {
@@ -156,6 +150,120 @@ public class GraphMLGraphWriter extends GraphWriter {
             labelKeyIdCounter++;
         }
         return labelKeyIdMap.get(labelKey);
+    }
+
+    private List<SubGraph> findSubGraphs(Graph graph) throws ExporterException {
+        Map<Long, SubGraph> nodeIdSubGraphMap = new HashMap<>();
+        for (Edge e : graph.getEdges()) {
+            boolean hasFrom = nodeIdSubGraphMap.containsKey(e.getFromId());
+            boolean hasTo = nodeIdSubGraphMap.containsKey(e.getToId());
+            if (!hasFrom && !hasTo) {
+                SubGraph subGraph = new SubGraph();
+                subGraph.edgeIds.add(e.getId());
+                subGraph.nodeIds.add(e.getFromId());
+                subGraph.nodeIds.add(e.getToId());
+                nodeIdSubGraphMap.put(e.getFromId(), subGraph);
+                nodeIdSubGraphMap.put(e.getToId(), subGraph);
+            } else if (hasFrom && !hasTo) {
+                SubGraph subGraph = nodeIdSubGraphMap.get(e.getFromId());
+                subGraph.edgeIds.add(e.getId());
+                subGraph.nodeIds.add(e.getToId());
+                nodeIdSubGraphMap.put(e.getToId(), subGraph);
+            } else if (!hasFrom) {
+                SubGraph subGraph = nodeIdSubGraphMap.get(e.getToId());
+                subGraph.edgeIds.add(e.getId());
+                subGraph.nodeIds.add(e.getFromId());
+                nodeIdSubGraphMap.put(e.getFromId(), subGraph);
+            } else {
+                SubGraph subGraphFrom = nodeIdSubGraphMap.get(e.getFromId());
+                SubGraph subGraphTo = nodeIdSubGraphMap.get(e.getToId());
+                if (subGraphFrom != subGraphTo) {
+                    subGraphFrom.edgeIds.addAll(subGraphTo.edgeIds);
+                    subGraphFrom.nodeIds.addAll(subGraphTo.nodeIds);
+                    for (Long nodeId : subGraphTo.nodeIds)
+                        nodeIdSubGraphMap.put(nodeId, subGraphFrom);
+                }
+                subGraphFrom.edgeIds.add(e.getId());
+            }
+        }
+        final int NodeSizeThreshold = 100000;
+        List<SubGraph> uniqueSubGraphs = new ArrayList<>(new HashSet<>(nodeIdSubGraphMap.values()));
+        SubGraph orphanSubGraph = null;
+        for (long i = 1; i <= graph.getNumberOfNodes(); i++) {
+            if (nodeIdSubGraphMap.containsKey(i))
+                continue;
+            if (orphanSubGraph == null || orphanSubGraph.nodeIds.size() == NodeSizeThreshold) {
+                orphanSubGraph = new SubGraph();
+                uniqueSubGraphs.add(orphanSubGraph);
+            }
+            orphanSubGraph.nodeIds.add(i);
+        }
+        for (int i = 0; i < uniqueSubGraphs.size() - 1; i++) {
+            SubGraph mergeSubGraph = uniqueSubGraphs.get(i);
+            if (mergeSubGraph.nodeIds.size() >= NodeSizeThreshold)
+                continue;
+            for (int j = uniqueSubGraphs.size() - 1; j > i; j--) {
+                SubGraph subGraph = uniqueSubGraphs.get(j);
+                if (mergeSubGraph.nodeIds.size() + subGraph.nodeIds.size() < NodeSizeThreshold) {
+                    mergeSubGraph.nodeIds.addAll(subGraph.nodeIds);
+                    mergeSubGraph.edgeIds.addAll(subGraph.edgeIds);
+                    uniqueSubGraphs.remove(j);
+                }
+            }
+        }
+        return uniqueSubGraphs;
+    }
+
+    private void writeSubGraphFile(OutputStream outputStream, Graph graph,
+                                   SubGraph subGraph) throws XMLStreamException, ExporterException {
+        XMLStreamWriter writer = createXMLStreamWriter(outputStream);
+        writer.writeStartDocument();
+        writeRootStart(writer);
+        writeGraph(writer, graph, subGraph);
+        writer.writeEndElement();
+        writer.writeEndDocument();
+    }
+
+    private static XMLStreamWriter createXMLStreamWriter(OutputStream outputStream) throws XMLStreamException {
+        XMLOutputFactory factory = XMLOutputFactory.newInstance();
+        XMLStreamWriter writer = factory.createXMLStreamWriter(outputStream, "UTF-8");
+        return new IndentingXMLStreamWriter(writer);
+    }
+
+    private void writeRootStart(XMLStreamWriter writer) throws XMLStreamException {
+        writer.writeStartElement("graphml");
+        writer.writeAttribute("xmlns", "http://graphml.graphdrawing.org/xmlns");
+        writer.writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+        writer.writeAttribute("xsi:schemaLocation", "http://graphml.graphdrawing.org/xmlns " +
+                                                    "http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd");
+    }
+
+    private void writeGraph(XMLStreamWriter writer, Graph graph,
+                            SubGraph subGraph) throws XMLStreamException, ExporterException {
+        writeProperties(writer);
+        writer.writeStartElement("graph");
+        writer.writeAttribute("id", "G");
+        writer.writeAttribute("edgedefault", "directed");
+        for (Node node : graph.getNodes())
+            if (subGraph.nodeIds.contains(node.getId()))
+                writeNode(writer, node);
+        for (Edge edge : graph.getEdges())
+            if (subGraph.edgeIds.contains(edge.getId()))
+                writeEdge(writer, edge);
+        writer.writeEndElement();
+    }
+
+    private void writeProperties(XMLStreamWriter writer) throws XMLStreamException {
+        for (Property p : properties) {
+            writer.writeStartElement("key");
+            writer.writeAttribute("id", p.id);
+            writer.writeAttribute("for", p.forType);
+            writer.writeAttribute("attr.name", p.name);
+            if (p.list != null)
+                writer.writeAttribute("attr.list", p.list);
+            writer.writeAttribute("attr.type", p.type);
+            writer.writeEndElement();
+        }
     }
 
     private void writeNode(XMLStreamWriter writer, Node node) throws XMLStreamException {
@@ -186,23 +294,20 @@ public class GraphMLGraphWriter extends GraphWriter {
 
     private String getPropertyStringRepresentation(Object property) {
         return property.getClass().isArray() ? getArrayPropertyStringRepresentation((Object[]) property) :
-               replaceInvalidXmlCharacters(property.toString());
+               replaceInvalidXmlCharacters(property.toString(), false);
     }
 
-    private static String replaceInvalidXmlCharacters(String s) {
-        //s = s.replace("&", "&amp;");
-        //s = s.replace("\"", "&quot;");
-        //s = s.replace("\'", "&apos;");
-        //s = s.replace("<", "&lt;");
-        //s = s.replace(">", "&gt;");
-        s = s.replaceAll("[\\x01\\x02\\x04\\x08\\x1d\\x18]", "").replace("\"", "\\\"");
+    private static String replaceInvalidXmlCharacters(String s, boolean escapeQuotes) {
+        s = s.replaceAll("[\\x01\\x02\\x03\\x04\\x08\\x1d\\x18]", "");
+        if (escapeQuotes)
+            s = s.replace("\"", "\\\"");
         return s;
     }
 
     private String getArrayPropertyStringRepresentation(Object[] property) {
         String[] arrayValues = new String[property.length];
         for (int i = 0; i < arrayValues.length; i++)
-            arrayValues[i] = replaceInvalidXmlCharacters(property[i].toString());
+            arrayValues[i] = replaceInvalidXmlCharacters(property[i].toString(), true);
         Collector<CharSequence, ?, String> collector = isArrayPropertyStringArray(property) ? Collectors.joining(
                 "\",\"", "[\"", "\"]") : Collectors.joining(",", "[", "]");
         return Arrays.stream(arrayValues).collect(collector);
@@ -212,9 +317,9 @@ public class GraphMLGraphWriter extends GraphWriter {
         return property.length > 0 && property[0] instanceof CharSequence;
     }
 
-    private void writeEdge(XMLStreamWriter writer, Edge edge, long edgeId) throws XMLStreamException {
+    private void writeEdge(XMLStreamWriter writer, Edge edge) throws XMLStreamException {
         writer.writeStartElement("edge");
-        writer.writeAttribute("id", "e" + edgeId);
+        writer.writeAttribute("id", "e" + edge.getId());
         writer.writeAttribute("source", "n" + edge.getFromId());
         writer.writeAttribute("target", "n" + edge.getToId());
         writer.writeAttribute("label", edge.getLabel());

@@ -6,9 +6,8 @@ import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.List;
 
 public abstract class GraphExporter<D extends DataSource> {
     public final boolean export(final Workspace workspace, final D dataSource) throws ExporterException {
@@ -31,14 +30,7 @@ public abstract class GraphExporter<D extends DataSource> {
     }
 
     private boolean trySaveGraphToFile(final Workspace workspace, final D dataSource, final Graph g) {
-        try {
-            FileOutputStream outputStream = new FileOutputStream(
-                    dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.GraphML));
-            return new GraphMLGraphWriter().write(outputStream, g);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
+        return new GraphMLGraphWriter().write(workspace, dataSource, g);
     }
 
     protected final <T> Node createNodeFromModel(final Graph g, final T obj) throws ExporterException {
@@ -51,6 +43,10 @@ public abstract class GraphExporter<D extends DataSource> {
 
     protected final Node createNode(final Graph g, final String... labels) throws ExporterException {
         return g.addNode(labels);
+    }
+
+    protected final Node createNode(final Graph g, final List<String> labels) throws ExporterException {
+        return g.addNode(labels.toArray(new String[0]));
     }
 
     private <T> void addPropertyToNode(final T obj, final Node node, final Field field) throws ExporterException {

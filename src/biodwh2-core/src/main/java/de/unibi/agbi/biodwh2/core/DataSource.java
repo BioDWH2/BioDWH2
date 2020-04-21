@@ -148,6 +148,11 @@ public abstract class DataSource {
         return Paths.get(workspace.getSourcesDirectory(), getId(), fileName).toString();
     }
 
+    public final String getIntermediateGraphFilePath(Workspace workspace, GraphFileFormat format, int part) {
+        String fileName = "intermediate_part" + part + "." + format.extension;
+        return Paths.get(workspace.getSourcesDirectory(), getId(), fileName).toString();
+    }
+
     public final String resolveSourceFilePath(Workspace workspace, String filePath) {
         return Paths.get(workspace.getSourcesDirectory(), getId(), SourceDirectoryName, filePath).toString();
     }
