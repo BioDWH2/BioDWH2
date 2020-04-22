@@ -7,7 +7,7 @@ import de.unibi.agbi.biodwh2.sider.SiderDataSource;
 
 public class SiderParser extends Parser<SiderDataSource> {
     @Override
-    public boolean parse(Workspace workspace, SiderDataSource dataSource) throws ParserException {
-        return false;
+    public boolean parse(final Workspace workspace, final SiderDataSource dataSource) throws ParserException {
+        return true;
     }
 }

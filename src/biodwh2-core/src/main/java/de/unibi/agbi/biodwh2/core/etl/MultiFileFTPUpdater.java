@@ -10,13 +10,19 @@ import de.unibi.agbi.biodwh2.core.net.AnonymousFTPClient;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-public abstract class SingleFileFTPUpdater<D extends DataSource> extends Updater<D> {
+public abstract class MultiFileFTPUpdater<D extends DataSource> extends Updater<D> {
     @Override
     public final Version getNewestVersion() throws UpdaterException {
         AnonymousFTPClient ftpClient = connectToFTP();
-        LocalDateTime dateTime = ftpClient.getModificationTimeFromServer(getFTPFilePath());
+        Version latestVersion = null;
+        for (String filePath : getFTPFilePaths()) {
+            LocalDateTime dateTime = ftpClient.getModificationTimeFromServer(filePath);
+            Version fileVersion = convertDateTimeToVersion(dateTime);
+            if (latestVersion == null || fileVersion.compareTo(latestVersion) > 0)
+                latestVersion = fileVersion;
+        }
         ftpClient.tryDisconnect();
-        return dateTime != null ? convertDateTimeToVersion(dateTime) : null;
+        return latestVersion;
     }
 
     private AnonymousFTPClient connectToFTP() throws UpdaterConnectionException {
@@ -34,21 +40,23 @@ public abstract class SingleFileFTPUpdater<D extends DataSource> extends Updater
 
     protected abstract String getFTPAddress();
 
-    protected abstract String getFTPFilePath();
+    protected abstract String[] getFTPFilePaths();
 
     @Override
-    protected final boolean tryUpdateFiles(Workspace workspace, D dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(Workspace workspace, D dataSource) throws UpdaterException {
         AnonymousFTPClient ftpClient = connectToFTP();
-        boolean success;
-        try {
-            String sourceFilePath = dataSource.resolveSourceFilePath(workspace, getTargetFileName());
-            success = ftpClient.downloadFile(getFTPFilePath(), sourceFilePath);
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download '" + getTargetFileName() + "'", e);
+        boolean success = true;
+        for (int i = 0; i < getFTPFilePaths().length; i++) {
+            try {
+                String sourceFilePath = dataSource.resolveSourceFilePath(workspace, getTargetFileNames()[i]);
+                success = success && ftpClient.downloadFile(getFTPFilePaths()[i], sourceFilePath);
+            } catch (IOException e) {
+                throw new UpdaterConnectionException("Failed to download '" + getTargetFileNames()[i] + "'", e);
+            }
         }
         ftpClient.tryDisconnect();
         return success;
     }
 
-    protected abstract String getTargetFileName();
+    protected abstract String[] getTargetFileNames();
 }

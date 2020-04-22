@@ -1,16 +1,16 @@
 package de.unibi.agbi.biodwh2.ndfrt.etl;
 
-import de.unibi.agbi.biodwh2.core.etl.SingleFileFTPWebUpdater;
+import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPWebUpdater;
 import de.unibi.agbi.biodwh2.ndfrt.NDFRTDataSource;
 
-public class NDFRTUpdater extends SingleFileFTPWebUpdater<NDFRTDataSource> {
+public class NDFRTUpdater extends MultiFileFTPWebUpdater<NDFRTDataSource> {
     @Override
     protected String getFTPIndexUrl() {
         return "https://evs.nci.nih.gov/ftp1/NDF-RT/Archive/";
     }
 
     @Override
-    protected String getFileName() {
-        return "NDFRT_Public_All%202018-02-05.zip";
+    protected String[] getFileNames() {
+        return new String[]{"NDFRT_Public_All%202018-02-05.zip"};
     }
 }

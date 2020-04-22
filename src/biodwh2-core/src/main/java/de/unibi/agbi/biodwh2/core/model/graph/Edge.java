@@ -65,9 +65,7 @@ public class Edge {
     }
 
     void setProperty(String key, Object value, boolean persist) throws ExporterException {
-        if (value == null)
-            properties.put(key, null);
-        else {
+        if (value != null) {
             Class<?> valueType = value.getClass();
             if (valueType.isArray())
                 valueType = valueType.getComponentType();
