@@ -1,29 +1,23 @@
 package de.unibi.agbi.biodwh2.sider.etl;
 
 import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.sider.SiderDataSource;
 import de.unibi.agbi.biodwh2.sider.model.*;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
+import java.util.stream.Collectors;
 
 /**
  * MedDRA concept types are hierarchical: PT - Represents a single medical concept LLT - Lowest level of the
@@ -39,7 +33,7 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
         addAllDrugAtcCodes(workspace, dataSource, graph);
         addAllIndications(workspace, dataSource, graph);
         addAllSideEffects(workspace, dataSource, graph);
-        addAllFrequencies(workspace, dataSource, graph);
+        addAllSideEffectFrequencies(workspace, dataSource, graph);
         return true;
     }
 
@@ -58,25 +52,10 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
                                                 final String fileName,
                                                 final Class<T> typeClass) throws ExporterException {
         try {
-            String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8));
-            return parseTsvFile(typeClass, reader);
+            return FileUtils.openTsv(workspace, dataSource, fileName, typeClass);
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to parse the file '" + fileName + "'", e);
         }
-    }
-
-    private <T> MappingIterator<T> parseTsvFile(final Class<T> typeClass,
-                                                final BufferedReader inputReader) throws IOException {
-        ObjectReader reader = getFormatReader(typeClass);
-        return reader.readValues(inputReader);
-    }
-
-    private <T> ObjectReader getFormatReader(final Class<T> typeClass) {
-        CsvMapper csvMapper = new CsvMapper();
-        CsvSchema schema = csvMapper.schemaFor(typeClass).withColumnSeparator('\t').withNullValue("");
-        return csvMapper.readerFor(typeClass).with(schema);
     }
 
     private void addAllDrugAtcCodes(final Workspace workspace, final DataSource dataSource,
@@ -95,16 +74,13 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
 
     private void addAllIndications(final Workspace workspace, final DataSource dataSource,
                                    final Graph graph) throws ExporterException {
-        MappingIterator<Indication> iterator = parseGzipTsvFile(workspace, dataSource,
-                                                                "meddra_all_label_indications.tsv.gz",
-                                                                Indication.class);
-        while (iterator.hasNext()) {
-            Indication indication = iterator.next();
-            Node meddraTermNode = getOrAddmeddraTermNode(graph, indication.meddraUmlsConceptId);
+        List<Indication> indications = parseGzipTsvFile(workspace, dataSource, "meddra_all_label_indications.tsv.gz",
+                                                        Indication.class);
+        for (Indication indication : indications) {
+            Node meddraTermNode = getOrAddmeddraTermNode(graph, indication.getConceptId());
             if (!indication.umlsConceptId.equals(indication.meddraUmlsConceptId))
                 meddraTermNode.setProperty("umls_concept_id", indication.umlsConceptId);
             meddraTermNode.setProperty("concept_name", indication.conceptName);
-            updateConceptTypeIfPreviouslyLLTOrEmpty(meddraTermNode, indication.meddraConceptType);
             meddraTermNode.setProperty("meddra_concept_name", indication.meddraConceptName);
             Long drugNodeId = getOrAddDrugNode(graph, indication.stereoCompoundId);
             Edge edge = graph.addEdge(drugNodeId, meddraTermNode, "indicates");
@@ -113,21 +89,13 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
         }
     }
 
-    private Node getOrAddmeddraTermNode(final Graph graph, final String meddraUmlsConceptId) throws ExporterException {
-        Node meddraTermNode = graph.findNode("meddraTerm", "id", meddraUmlsConceptId);
+    private Node getOrAddmeddraTermNode(final Graph graph, final String conceptId) throws ExporterException {
+        Node meddraTermNode = graph.findNode("meddraTerm", "id", conceptId);
         if (meddraTermNode == null) {
             meddraTermNode = createNode(graph, "meddraTerm");
-            meddraTermNode.setProperty("id", meddraUmlsConceptId);
+            meddraTermNode.setProperty("id", conceptId);
         }
         return meddraTermNode;
-    }
-
-    private void updateConceptTypeIfPreviouslyLLTOrEmpty(final Node meddraTermNode,
-                                                         final String conceptType) throws ExporterException {
-        if (meddraTermNode.hasProperty("meddra_concept_type") && conceptType.equals("PT"))
-            meddraTermNode.setProperty("meddra_concept_type", conceptType);
-        else
-            meddraTermNode.setProperty("meddra_concept_type", conceptType);
     }
 
     private Long getOrAddDrugNode(final Graph graph, final String compoundId) throws ExporterException {
@@ -140,33 +108,24 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
         return drugNodeId;
     }
 
-    private <T> MappingIterator<T> parseGzipTsvFile(final Workspace workspace, final DataSource dataSource,
-                                                    final String fileName,
-                                                    final Class<T> typeClass) throws ExporterException {
+    private <T> List<T> parseGzipTsvFile(final Workspace workspace, final DataSource dataSource, final String fileName,
+                                         final Class<T> typeClass) throws ExporterException {
         try {
-            String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
-            BufferedReader reader = getReaderForGzipTsvFile(filePath);
-            return parseTsvFile(typeClass, reader);
+            return FileUtils.openGzipTsv(workspace, dataSource, fileName, typeClass).readAll().stream().distinct()
+                            .collect(Collectors.toList());
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to parse the file '" + fileName + "'", e);
         }
     }
 
-    private BufferedReader getReaderForGzipTsvFile(final String filePath) throws IOException {
-        GZIPInputStream zipStream = new GZIPInputStream(new FileInputStream(filePath));
-        return new BufferedReader(new InputStreamReader(zipStream, StandardCharsets.UTF_8));
-    }
-
     private void addAllSideEffects(final Workspace workspace, final DataSource dataSource,
                                    final Graph graph) throws ExporterException {
-        MappingIterator<SideEffect> iterator = parseGzipTsvFile(workspace, dataSource, "meddra_all_label_se.tsv.gz",
-                                                                SideEffect.class);
-        while (iterator.hasNext()) {
-            SideEffect sideEffect = iterator.next();
-            Node meddraTermNode = getOrAddmeddraTermNode(graph, sideEffect.meddraUmlsConceptId);
+        List<SideEffect> sideEffects = parseGzipTsvFile(workspace, dataSource, "meddra_all_label_se.tsv.gz",
+                                                        SideEffect.class);
+        for (SideEffect sideEffect : sideEffects) {
+            Node meddraTermNode = getOrAddmeddraTermNode(graph, sideEffect.getConceptId());
             if (!sideEffect.umlsConceptId.equals(sideEffect.meddraUmlsConceptId))
                 meddraTermNode.setProperty("umls_concept_id", sideEffect.umlsConceptId);
-            updateConceptTypeIfPreviouslyLLTOrEmpty(meddraTermNode, sideEffect.meddraConceptType);
             meddraTermNode.setProperty("meddra_concept_name", sideEffect.sideEffectName);
             Long drugNodeId = getOrAddDrugNode(graph, sideEffect.stereoCompoundId);
             Edge edge = graph.addEdge(drugNodeId, meddraTermNode, "has_side_effect");
@@ -174,16 +133,14 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
         }
     }
 
-    private void addAllFrequencies(final Workspace workspace, final DataSource dataSource,
-                                   final Graph graph) throws ExporterException {
-        MappingIterator<Frequency> iterator = parseGzipTsvFile(workspace, dataSource, "meddra_freq.tsv.gz",
-                                                               Frequency.class);
-        while (iterator.hasNext()) {
-            Frequency frequency = iterator.next();
-            Node meddraTermNode = getOrAddmeddraTermNode(graph, frequency.meddraUmlsConceptId);
+
+    private void addAllSideEffectFrequencies(final Workspace workspace, final DataSource dataSource,
+                                             final Graph graph) throws ExporterException {
+        List<Frequency> frequencies = parseGzipTsvFile(workspace, dataSource, "meddra_freq.tsv.gz", Frequency.class);
+        for (Frequency frequency : frequencies) {
+            Node meddraTermNode = getOrAddmeddraTermNode(graph, frequency.getConceptId());
             if (!frequency.umlsConceptId.equals(frequency.meddraUmlsConceptId))
                 meddraTermNode.setProperty("umls_concept_id", frequency.umlsConceptId);
-            updateConceptTypeIfPreviouslyLLTOrEmpty(meddraTermNode, frequency.meddraConceptType);
             meddraTermNode.setProperty("meddra_concept_name", frequency.sideEffectName);
             Long drugNodeId = getOrAddDrugNode(graph, frequency.stereoCompoundId);
             Edge edge = graph.addEdge(drugNodeId, meddraTermNode, "has_side_effect");

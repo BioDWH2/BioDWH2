@@ -17,18 +17,16 @@ public final class Graph {
     private static final String UnescapedQuotes = "'";
     private static final String EscapedQuotes = "''";
     private static final String UnescapedComma = ",";
-    private static final String FindNodeQuery = "SELECT * FROM nodes WHERE __labels='%s' AND %s='%s';";
-    private static final String FindNodeIdQuery = "SELECT __id FROM nodes WHERE __labels='%s' AND %s='%s';";
-    private static final String FindNodeInStringArrayQuery = "SELECT * FROM nodes WHERE __labels='%s' AND %s LIKE '%%%s%%';";
-    private static final String FindNodeInNonStringArrayQuery = "SELECT * FROM nodes WHERE __labels='%s' AND %s REGEXP '^.*\\|(.*,)?%s(,.*)?$';";
-    private static final String FindNodeIdInStringArrayQuery = "SELECT __id FROM nodes WHERE __labels='%s' AND %s LIKE '%%%s%%';";
-    private static final String FindNodeIdInNonStringArrayQuery = "SELECT __id FROM nodes WHERE __labels='%s' AND %s REGEXP '^.*\\|(.*,)?%s(,.*)?$';";
-    private static final String FindNodeWithoutLabelQuery = "SELECT * FROM nodes WHERE %s='%s';";
-    private static final String FindNodeIdWithoutLabelQuery = "SELECT __id FROM nodes WHERE %s='%s';";
-    private static final String FindNodeInStringArrayWithoutLabelQuery = "SELECT * FROM nodes WHERE %s LIKE '%%%s%%';";
-    private static final String FindNodeInNonStringArrayWithoutLabelQuery = "SELECT * FROM nodes WHERE %s REGEXP '^.*\\|(.*,)?%s(,.*)?$';";
-    private static final String FindNodeIdInStringArrayWithoutLabelQuery = "SELECT __id FROM nodes WHERE %s LIKE '%%%s%%';";
-    private static final String FindNodeIdInNonStringArrayWithoutLabelQuery = "SELECT __id FROM nodes WHERE %s REGEXP '^.*\\|(.*,)?%s(,.*)?$';";
+
+    private static final String FindNodeQueryStart = "SELECT * FROM nodes WHERE __labels='%s'";
+    private static final String FindNodeIdQueryStart = "SELECT __id FROM nodes WHERE __labels='%s'";
+    private static final String FindNodeWithoutLabelQueryStart = "SELECT * FROM nodes";
+    private static final String FindNodeIdWithoutLabelQueryStart = "SELECT __id FROM nodes";
+    private static final String FindQueryParam = "%s='%s'";
+    private static final String FindNullQueryParam = "%s IS NULL";
+    private static final String FindInStringArrayQueryParam = "%s LIKE '%%%s%%'";
+    private static final String FindInNonStringArrayQueryParam = "%s REGEXP '^.*\\|(.*,)?%s(,.*)?$'";
+
     private long nextNodeId = 1;
     private long nextEdgeId = 1;
     private final Connection connection;
@@ -423,52 +421,71 @@ public final class Graph {
         return findNode(label, propertyName, value, false);
     }
 
+    public Node findNode(String label, String propertyName1, Object value1, String propertyName2, Object value2) {
+        return findNode(label, new String[]{propertyName1, propertyName2}, new Object[]{value1, value2},
+                        new boolean[]{false, false});
+    }
+
+    public Node findNode(String label, String propertyName1, Object value1, String propertyName2, Object value2,
+                         String propertyName3, Object value3) {
+        return findNode(label, new String[]{propertyName1, propertyName2, propertyName3},
+                        new Object[]{value1, value2, value3}, new boolean[]{false, false, false});
+    }
+
     public Node findNode(String label, String propertyName, Object value, boolean inArray) {
-        if (value == null)
-            return null;
-        Node memoryNode = findNodeInMemory(label, propertyName, value);
+        return findNode(label, new String[]{propertyName}, new Object[]{value}, new boolean[]{inArray});
+    }
+
+    private Node findNode(String label, String[] propertyNames, Object[] values, boolean[] inArrays) {
+        Node memoryNode = findNodeInMemory(label, propertyNames, values);
         if (memoryNode != null)
             return memoryNode;
-        String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
-        String sql;
-        if (label == null) {
-            if (inArray) {
-                if (value.getClass() == String.class)
-                    sql = String.format(FindNodeInStringArrayWithoutLabelQuery, propertyName, packedValue);
-                else
-                    sql = String.format(FindNodeInNonStringArrayWithoutLabelQuery, propertyName, packedValue);
+        String sql = label != null ? String.format(FindNodeQueryStart, label) : FindNodeWithoutLabelQueryStart;
+        boolean addedCondition = label != null;
+        for (int i = 0; i < values.length; i++) {
+            sql += addedCondition ? " AND " : " WHERE ";
+            addedCondition = true;
+            if (values[i] != null) {
+                String packedValue = StringUtils.replace(packValue(values[i]), UnescapedQuotes, EscapedQuotes);
+                if (inArrays[i]) {
+                    sql += String.format(values[i].getClass() == String.class ? FindInStringArrayQueryParam :
+                                         FindInNonStringArrayQueryParam, propertyNames[i], packedValue);
+                } else
+                    sql += String.format(FindQueryParam, propertyNames[i], packedValue);
             } else
-                sql = String.format(FindNodeWithoutLabelQuery, propertyName, packedValue);
-        } else {
-            if (inArray) {
-                if (value.getClass() == String.class)
-                    sql = String.format(FindNodeInStringArrayQuery, label, propertyName, packedValue);
-                else
-                    sql = String.format(FindNodeInNonStringArrayQuery, label, propertyName, packedValue);
-            } else
-                sql = String.format(FindNodeQuery, label, propertyName, packedValue);
+                sql += String.format(FindNullQueryParam, propertyNames[i]);
         }
         try (ResultSet result = connection.createStatement().executeQuery(sql)) {
             if (result.next()) {
                 Node node = createNodeFromResultSet(result);
                 addNodeToMemoryCache(node);
+                if (result.next())
+                    System.out.println("Warning, more nodes available for sql: " + sql);
                 return node;
             }
         } catch (SQLException | ExporterException ignored) {
-            //System.out.println("Failed to find node: " + sql);
         }
         return null;
     }
 
-    private Node findNodeInMemory(String label, String propertyName, Object value) {
+    private Node findNodeInMemory(String label, String[] propertyNames, Object[] values) {
         if (label == null) {
-            for (Node n : nodeCache.values())
-                if (n.hasProperty(propertyName) && n.getProperty(propertyName).equals(value))
+            for (Node n : nodeCache.values()) {
+                boolean success = true;
+                for (int i = 0; i < propertyNames.length; i++)
+                    if (!n.hasProperty(propertyNames[i]) || !Objects.equals(values[i], n.getProperty(propertyNames[i])))
+                        success = false;
+                if (success)
                     return n;
+            }
         } else if (nodeLabelIdMap.containsKey(label))
             for (Long nodeId : nodeLabelIdMap.get(label)) {
                 Node n = nodeCache.get(nodeId);
-                if (n.hasProperty(propertyName) && n.getProperty(propertyName).equals(value))
+                boolean success = true;
+                for (int i = 0; i < propertyNames.length; i++)
+                    if (!n.hasProperty(propertyNames[i]) || !Objects.equals(values[i], n.getProperty(propertyNames[i])))
+                        success = false;
+                if (success)
                     return n;
             }
         return null;
@@ -487,40 +504,50 @@ public final class Graph {
     }
 
     public Long findNodeId(String label, String propertyName, Object value) {
-        return findNodeId(label, propertyName, value, false);
+        return findNodeId(label, new String[]{propertyName}, new Object[]{value}, new boolean[]{false});
+    }
+
+    public Long findNodeId(String label, String propertyName1, Object value1, String propertyName2, Object value2) {
+        return findNodeId(label, new String[]{propertyName1, propertyName2}, new Object[]{value1, value2},
+                          new boolean[]{false, false});
+    }
+
+    public Long findNodeId(String label, String propertyName1, Object value1, String propertyName2, Object value2,
+                           String propertyName3, Object value3) {
+        return findNodeId(label, new String[]{propertyName1, propertyName2, propertyName3},
+                          new Object[]{value1, value2, value3}, new boolean[]{false, false, false});
     }
 
     public Long findNodeId(String label, String propertyName, Object value, boolean inArray) {
-        if (value == null)
-            return null;
-        Node memoryNode = findNodeInMemory(label, propertyName, value);
+        return findNodeId(label, new String[]{propertyName}, new Object[]{value}, new boolean[]{inArray});
+    }
+
+    private Long findNodeId(String label, String[] propertyNames, Object[] values, boolean[] inArrays) {
+        Node memoryNode = findNodeInMemory(label, propertyNames, values);
         if (memoryNode != null)
             return memoryNode.getId();
-        String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
-        String sql;
-        if (label == null) {
-            if (inArray) {
-                if (value.getClass() == String.class)
-                    sql = String.format(FindNodeIdInStringArrayWithoutLabelQuery, propertyName, packedValue);
-                else
-                    sql = String.format(FindNodeIdInNonStringArrayWithoutLabelQuery, propertyName, packedValue);
+        String sql = label != null ? String.format(FindNodeIdQueryStart, label) : FindNodeIdWithoutLabelQueryStart;
+        boolean addedCondition = label != null;
+        for (int i = 0; i < values.length; i++) {
+            sql += addedCondition ? " AND " : " WHERE ";
+            addedCondition = true;
+            if (values[i] != null) {
+                String packedValue = StringUtils.replace(packValue(values[i]), UnescapedQuotes, EscapedQuotes);
+                if (inArrays[i]) {
+                    sql += String.format(values[i].getClass() == String.class ? FindInStringArrayQueryParam :
+                                         FindInNonStringArrayQueryParam, propertyNames[i], packedValue);
+                } else
+                    sql += String.format(FindQueryParam, propertyNames[i], packedValue);
             } else
-                sql = String.format(FindNodeIdWithoutLabelQuery, propertyName, packedValue);
-        } else {
-            if (inArray) {
-                if (value.getClass() == String.class)
-                    sql = String.format(FindNodeIdInStringArrayQuery, label, propertyName, packedValue);
-                else
-                    sql = String.format(FindNodeIdInNonStringArrayQuery, label, propertyName, packedValue);
-            } else
-                sql = String.format(FindNodeIdQuery, label, propertyName, packedValue);
+                sql += String.format(FindNullQueryParam, propertyNames[i]);
         }
         Long id = null;
         try (ResultSet result = connection.createStatement().executeQuery(sql)) {
             if (result.next())
                 id = result.getLong(1);
+            if (result.next())
+                System.out.println("Warning, more nodes available for sql: " + sql);
         } catch (SQLException ignored) {
-            //System.out.println("Failed to find node: " + sql);
         }
         return id;
     }

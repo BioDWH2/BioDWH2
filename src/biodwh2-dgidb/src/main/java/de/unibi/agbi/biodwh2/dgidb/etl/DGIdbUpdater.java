@@ -11,8 +11,10 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterMalformedVersionException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.dgidb.DGIdbDataSource;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 
 public class DGIdbUpdater extends Updater<DGIdbDataSource> {
     @Override
@@ -46,7 +48,22 @@ public class DGIdbUpdater extends Updater<DGIdbDataSource> {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, DGIdbDataSource dataSource) throws UpdaterException {
-        return false;
+    protected boolean tryUpdateFiles(final Workspace workspace,
+                                     final DGIdbDataSource dataSource) throws UpdaterException {
+        downloadFile(workspace, dataSource, "http://www.dgidb.org/data/interactions.tsv");
+        downloadFile(workspace, dataSource, "http://www.dgidb.org/data/drugs.tsv");
+        downloadFile(workspace, dataSource, "http://www.dgidb.org/data/genes.tsv");
+        downloadFile(workspace, dataSource, "http://www.dgidb.org/data/categories.tsv");
+        return true;
+    }
+
+    private void downloadFile(final Workspace workspace, final DataSource dataSource,
+                              final String url) throws UpdaterException {
+        try {
+            String fileName = url.substring(StringUtils.lastIndexOf(url, "/") + 1);
+            HTTPClient.downloadFileAsBrowser(url, dataSource.resolveSourceFilePath(workspace, fileName));
+        } catch (IOException e) {
+            throw new UpdaterConnectionException("Failed to download file \"" + url + "\"", e);
+        }
     }
 }

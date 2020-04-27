@@ -1,16 +1,12 @@
 package de.unibi.agbi.biodwh2.core.etl;
 
 import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
-import de.unibi.agbi.biodwh2.core.exceptions.ParserFileNotFoundException;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserFormatException;
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -29,13 +25,10 @@ public abstract class SingleFileCsvParser<D extends DataSource, T> extends Parse
 
     @Override
     public boolean parse(Workspace workspace, D dataSource) throws ParserException {
-        String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
-        File sourceFile = new File(filePath);
-        if (!sourceFile.exists())
-            throw new ParserFileNotFoundException(fileName);
-        ObjectReader reader = getFormatReader();
         try {
-            MappingIterator<T> iterator = reader.readValues(sourceFile);
+            MappingIterator<T> iterator = type == CsvType.CSV ? FileUtils.openCsv(workspace, dataSource, fileName,
+                                                                                  typeVariableClass) :
+                                          FileUtils.openTsv(workspace, dataSource, fileName, typeVariableClass);
             if (hasHeader)
                 iterator.next();
             storeResults(dataSource, iterator.readAll());
@@ -43,22 +36,6 @@ public abstract class SingleFileCsvParser<D extends DataSource, T> extends Parse
             throw new ParserFormatException("Failed to parse the file '" + fileName + "'", e);
         }
         return true;
-    }
-
-    private ObjectReader getFormatReader() {
-        CsvMapper csvMapper = new CsvMapper();
-        CsvSchema schema = csvMapper.schemaFor(typeVariableClass).withColumnSeparator(getSeparator()).withNullValue("");
-        return csvMapper.readerFor(typeVariableClass).with(schema);
-    }
-
-    private char getSeparator() {
-        switch (type) {
-            default:
-            case CSV:
-                return ',';
-            case TSV:
-                return '\t';
-        }
     }
 
     protected abstract void storeResults(D dataSource, List<T> results);
