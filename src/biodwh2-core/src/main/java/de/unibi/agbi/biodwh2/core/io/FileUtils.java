@@ -38,7 +38,7 @@ public final class FileUtils {
         return openSeparatedValuesFile(stream, typeClass, ',');
     }
 
-    private static <T> MappingIterator<T> openSeparatedValuesFile(final InputStream stream, final Class<T> typeClass,
+    public static <T> MappingIterator<T> openSeparatedValuesFile(final InputStream stream, final Class<T> typeClass,
                                                                   final char separator) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
         return getFormatReader(typeClass, separator).readValues(reader);

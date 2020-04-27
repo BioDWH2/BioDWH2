@@ -298,7 +298,7 @@ public class GraphMLGraphWriter extends GraphWriter {
     }
 
     private static String replaceInvalidXmlCharacters(String s, boolean escapeQuotes) {
-        s = s.replaceAll("[\\x01\\x02\\x03\\x04\\x08\\x1d\\x18]", "");
+        s = s.replaceAll("[\\x01\\x02\\x03\\x04\\x08\\x1d\\x12\\x14\\x18]", "");
         if (escapeQuotes)
             s = s.replace("\"", "\\\"");
         return s;
