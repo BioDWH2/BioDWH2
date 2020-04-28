@@ -4,8 +4,6 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.exceptions.MergerException;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -14,21 +12,19 @@ import java.util.List;
 public class Merger {
     public final boolean merge(Workspace workspace, List<DataSource> dataSources,
                                PrintWriter writer) throws MergerException {
-        try {
-            String line;
-            for (DataSource dataSource : dataSources) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(
-                        dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.RDFTurtle)),
-                                                                                 StandardCharsets.UTF_8));
-                while ((line = reader.readLine()) != null) {
+        String line;
+        for (DataSource dataSource : dataSources) {
+            String filePath = dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.RDFTurtle);
+            try {
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8));
+                while ((line = reader.readLine()) != null)
                     writer.println(line);
-
-                }
-                dataSource.getMetadata().mergeSuccessful = true;
+            } catch (IOException e) {
+                throw new MergerException("Failed to merge RDF graphs", e);
             }
-            return true;
-        } catch (IOException e) {
-            return false;
+            dataSource.getMetadata().mergeSuccessful = true;
         }
+        return true;
     }
 }

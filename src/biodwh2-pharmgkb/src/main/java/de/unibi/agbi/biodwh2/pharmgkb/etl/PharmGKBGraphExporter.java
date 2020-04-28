@@ -267,8 +267,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         }
     }
 
-    private Node addVariantIfNotExists(final Graph graph, final String variantId,
-                                       String variantName) throws ExporterException {
+    private Node addVariantIfNotExists(final Graph graph, final String variantId, String variantName) {
         if (existingIds.contains(variantId))
             return graph.findNode("Variant", "id", variantId);
         if (variantId.startsWith("rs")) {
@@ -284,8 +283,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         return node;
     }
 
-    private Node addHaplotypeIfNotExists(final Graph graph, final String haplotypeId,
-                                         final String haplotypeName) throws ExporterException {
+    private Node addHaplotypeIfNotExists(final Graph graph, final String haplotypeId, final String haplotypeName) {
         if (existingIds.contains(haplotypeId))
             return graph.findNode("Haplotype", "id", haplotypeId);
         Node node = createNode(graph, "Haplotype");
@@ -295,8 +293,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         return node;
     }
 
-    private Node addHaplotypeSetIfNotExists(final Graph graph, final String haplotypeId,
-                                            final String haplotypeName) throws ExporterException {
+    private Node addHaplotypeSetIfNotExists(final Graph graph, final String haplotypeId, final String haplotypeName) {
         if (existingIds.contains(haplotypeId))
             return graph.findNode("HaplotypeSet", "id", haplotypeId);
         Node node = createNode(graph, "HaplotypeSet");
@@ -347,8 +344,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         }
     }
 
-    private Node addChemicalIfNotExists(final Graph graph, final String chemicalId,
-                                        final String chemicalName) throws ExporterException {
+    private Node addChemicalIfNotExists(final Graph graph, final String chemicalId, final String chemicalName) {
         if (existingIds.contains(chemicalId))
             return graph.findNode("Chemical", "id", chemicalId);
         Node node = createNode(graph, "Chemical");

@@ -16,7 +16,7 @@ public enum ExperimentalPropertyKind {
     Molecular_Formula("Molecular Formula"),
     Radioactivity("Radioactivity");
 
-    private ExperimentalPropertyKind(String value) {
+    ExperimentalPropertyKind(String value) {
         this.value = value;
     }
 

@@ -14,7 +14,6 @@ import de.unibi.agbi.biodwh2.dgidb.DGIdbDataSource;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 
 public class DGIdbUpdater extends Updater<DGIdbDataSource> {
     @Override

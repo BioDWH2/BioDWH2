@@ -6,14 +6,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
-public class FactoryTest {
+class FactoryTest {
     @Test
-    public void instanceTest() {
+    void instanceTest() {
         assertNotNull(Factory.getInstance());
     }
 
     @Test
-    public void getInterfaceImplementationsTest() {
+    void getInterfaceImplementationsTest() {
         List<Class<TestInterface>> result = Factory.getInstance().getImplementations(TestInterface.class);
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -22,22 +22,25 @@ public class FactoryTest {
     }
 
     @Test
-    public void getClassImplementationsTest() {
+    void getClassImplementationsTest() {
         List<Class<TestClass>> result = Factory.getInstance().getImplementations(TestClass.class);
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertTrue(result.get(0).equals(TestClass3.class));
+        assertEquals(result.get(0), TestClass3.class);
     }
 
     private interface TestInterface {
     }
 
+    @SuppressWarnings("InnerClassMayBeStatic")
     private abstract class TestClass {
     }
 
+    @SuppressWarnings("InnerClassMayBeStatic")
     private class TestClass1 implements TestInterface {
     }
 
+    @SuppressWarnings("InnerClassMayBeStatic")
     private class TestClass2 implements TestInterface {
     }
 

@@ -7,7 +7,7 @@ public enum State {
     Liquid("liquid"),
     Gas("gas");
 
-    private State(String value) {
+    State(String value) {
         this.value = value;
     }
 

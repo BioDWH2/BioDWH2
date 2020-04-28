@@ -11,7 +11,7 @@ public enum Group {
     Investigational("investigational"),
     Vet_Approved("vet_approved");
 
-    private Group(String value) {
+    Group(String value) {
         this.value = value;
     }
 

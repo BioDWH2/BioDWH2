@@ -36,9 +36,8 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 /**
- * A filter that indents an XML stream. To apply it, construct a filter that
- * contains another {@link XMLStreamWriter}, which you pass to the constructor.
- * Then call methods of the filter instead of the contained stream. For example:
+ * A filter that indents an XML stream. To apply it, construct a filter that contains another {@link XMLStreamWriter},
+ * which you pass to the constructor. Then call methods of the filter instead of the contained stream. For example:
  * <p>
  * <pre>
  * {@link XMLStreamWriter} stream = ...
@@ -48,9 +47,8 @@ import javax.xml.stream.XMLStreamWriter;
  * </pre>
  * <p>
  * <p>
- * The filter inserts characters to format the document as an outline, with
- * nested elements indented. Basically, it inserts a line break and whitespace
- * before:
+ * The filter inserts characters to format the document as an outline, with nested elements indented. Basically, it
+ * inserts a line break and whitespace before:
  * <ul>
  * <li>each DTD, processing instruction or comment that's not preceded by data</li>
  * <li>each starting tag that's not preceded by data</li>
@@ -74,8 +72,7 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
      */
     private static final String INDENT = "  ";
     /**
-     * "\n"; the normalized representation of end-of-line in <a
-     * href="http://www.w3.org/TR/xml11/#sec-line-ends">XML</a>.
+     * "\n"; the normalized representation of end-of-line in <a href="http://www.w3.org/TR/xml11/#sec-line-ends">XML</a>.
      */
     private static final String NEW_LINE = "\n";
     private static final int WROTE_MARKUP = 1;
@@ -156,8 +153,7 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
         afterMarkup();
     }
 
-    public void writeEmptyElement(String prefix, String localName, String namespaceURI)
-            throws XMLStreamException {
+    public void writeEmptyElement(String prefix, String localName, String namespaceURI) throws XMLStreamException {
         beforeMarkup();
         out.writeEmptyElement(prefix, localName, namespaceURI);
         afterMarkup();
@@ -175,8 +171,7 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
         afterStartElement();
     }
 
-    public void writeStartElement(String prefix, String localName, String namespaceURI)
-            throws XMLStreamException {
+    public void writeStartElement(String prefix, String localName, String namespaceURI) throws XMLStreamException {
         beforeStartElement();
         out.writeStartElement(prefix, localName, namespaceURI);
         afterStartElement();
@@ -210,9 +205,8 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
 
     public void writeEndDocument() throws XMLStreamException {
         try {
-            while (depth > 0) {
+            while (depth > 0)
                 writeEndElement(); // indented
-            }
         } catch (Exception ignored) {
         }
         out.writeEndDocument();
@@ -224,17 +218,14 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
      */
     private void beforeMarkup() {
         int soFar = stack[depth];
-        if ((soFar & WROTE_DATA) == 0 // no data in this scope
-                && (depth > 0 || soFar != 0)) // not the first line
-        {
+        // no data in this scope & not the first line
+        if ((soFar & WROTE_DATA) == 0 && (depth > 0 || soFar != 0))
             try {
                 writeNewLine(depth);
-                if (depth > 0 && INDENT.length() > 0) {
+                if (depth > 0 && INDENT.length() > 0)
                     afterMarkup(); // indentation was written
-                }
             } catch (Exception ignored) {
             }
-        }
     }
 
     /**
@@ -262,7 +253,8 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
             System.arraycopy(stack, 0, newStack, 0, stack.length);
             stack = newStack;
         }
-        stack[depth + 1] = 0; // nothing written yet
+        // nothing written yet
+        stack[depth + 1] = 0;
     }
 
     /**
@@ -277,34 +269,34 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
      * Prepare to end an element, by writing a new line and indentation.
      */
     private void beforeEndElement() {
-        if (depth > 0 && stack[depth] == WROTE_MARKUP) { // but not data
+        // but not data
+        if (depth > 0 && stack[depth] == WROTE_MARKUP)
             try {
                 writeNewLine(depth - 1);
             } catch (Exception ignored) {
             }
-        }
     }
 
     /**
      * Note that an element was ended.
      */
     private void afterEndElement() {
-        if (depth > 0) {
+        if (depth > 0)
             --depth;
-        }
     }
 
     /**
      * Note that a document was ended.
      */
     private void afterEndDocument() {
-        if (stack[depth = 0] == WROTE_MARKUP) { // but not data
+        // but not data
+        if (stack[depth = 0] == WROTE_MARKUP)
             try {
                 writeNewLine(0);
             } catch (Exception ignored) {
             }
-        }
-        stack[depth] = 0; // start fresh
+        // start fresh
+        stack[depth] = 0;
     }
 
     /**
@@ -314,16 +306,14 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
         final int newLineLength = NEW_LINE.length();
         final int prefixLength = newLineLength + (INDENT.length() * indentation);
         if (prefixLength > 0) {
-            if (linePrefix == null) {
+            if (linePrefix == null)
                 linePrefix = (NEW_LINE + INDENT).toCharArray();
-            }
             while (prefixLength > linePrefix.length) {
                 // make linePrefix longer:
-                char[] newPrefix = new char[newLineLength
-                        + ((linePrefix.length - newLineLength) * 2)];
+                char[] newPrefix = new char[newLineLength + ((linePrefix.length - newLineLength) * 2)];
                 System.arraycopy(linePrefix, 0, newPrefix, 0, linePrefix.length);
                 System.arraycopy(linePrefix, newLineLength, newPrefix, linePrefix.length,
-                        linePrefix.length - newLineLength);
+                                 linePrefix.length - newLineLength);
                 linePrefix = newPrefix;
             }
             out.writeCharacters(linePrefix, 0, prefixLength);
@@ -366,13 +356,12 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
         out.writeAttribute(localName, value);
     }
 
-    public void writeAttribute(String namespaceURI, String localName, String value)
-            throws XMLStreamException {
+    public void writeAttribute(String namespaceURI, String localName, String value) throws XMLStreamException {
         out.writeAttribute(namespaceURI, localName, value);
     }
 
-    public void writeAttribute(String prefix, String namespaceURI, String localName, String value)
-            throws XMLStreamException {
+    public void writeAttribute(String prefix, String namespaceURI, String localName,
+                               String value) throws XMLStreamException {
         out.writeAttribute(prefix, namespaceURI, localName, value);
     }
 

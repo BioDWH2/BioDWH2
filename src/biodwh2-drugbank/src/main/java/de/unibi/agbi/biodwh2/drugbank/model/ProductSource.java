@@ -7,7 +7,7 @@ public enum ProductSource {
     DPD("DPD"),
     EMA("EMA");
 
-    private ProductSource(String value) {
+    ProductSource(String value) {
         this.value = value;
     }
 

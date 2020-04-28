@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DrugbankMetaboliteIdTest {
+class DrugbankMetaboliteIdTest {
     private void assertValid(String value) {
         DrugbankMetaboliteId id = new DrugbankMetaboliteId();
         id.value = value;
@@ -18,11 +18,12 @@ public class DrugbankMetaboliteIdTest {
     }
 
     @Test
-    public void isValid() {
+    void isValid() {
         assertInvalid(null);
         assertInvalid("");
         assertInvalid("invalid");
         assertValid("DBMET12345");
+        assertValid("DBMET54132");
         assertInvalid("DBMET1234");
         assertInvalid("DBMET123456");
     }

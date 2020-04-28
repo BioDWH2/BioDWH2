@@ -7,7 +7,7 @@ public enum ExternalLinkResource {
     PDRhealth("PDRhealth"),
     Drugs_Com("Drugs.com");
 
-    private ExternalLinkResource(String value) {
+    ExternalLinkResource(String value) {
         this.value = value;
     }
 

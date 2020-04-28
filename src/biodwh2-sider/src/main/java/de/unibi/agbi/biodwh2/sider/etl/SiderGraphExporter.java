@@ -89,7 +89,7 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
         }
     }
 
-    private Node getOrAddmeddraTermNode(final Graph graph, final String conceptId) throws ExporterException {
+    private Node getOrAddmeddraTermNode(final Graph graph, final String conceptId) {
         Node meddraTermNode = graph.findNode("meddraTerm", "id", conceptId);
         if (meddraTermNode == null) {
             meddraTermNode = createNode(graph, "meddraTerm");
@@ -98,7 +98,7 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
         return meddraTermNode;
     }
 
-    private Long getOrAddDrugNode(final Graph graph, final String compoundId) throws ExporterException {
+    private Long getOrAddDrugNode(final Graph graph, final String compoundId) {
         Long drugNodeId = graph.findNodeId("Drug", "id", compoundId);
         if (drugNodeId == null) {
             Node drugNode = createNode(graph, "Drug");

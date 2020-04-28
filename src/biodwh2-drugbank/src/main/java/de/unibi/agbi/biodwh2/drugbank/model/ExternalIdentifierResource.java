@@ -22,7 +22,7 @@ public enum ExternalIdentifierResource {
     IUPHAR("IUPHAR"),
     Guide_To_Pharmacology("Guide to Pharmacology");
 
-    private ExternalIdentifierResource(String value) {
+    ExternalIdentifierResource(String value) {
         this.value = value;
     }
 

@@ -1,7 +1,6 @@
 package de.unibi.agbi.biodwh2.ndfrt.etl;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;

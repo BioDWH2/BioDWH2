@@ -25,7 +25,7 @@ public abstract class GraphExporter<D extends DataSource> {
     protected abstract boolean exportGraph(final Workspace workspace, final D dataSource,
                                            final Graph graph) throws ExporterException;
 
-    private void addDataSourcePrefixToGraphNodes(final DataSource dataSource, final Graph g) throws ExporterException {
+    private void addDataSourcePrefixToGraphNodes(final DataSource dataSource, final Graph g) {
         g.prefixAllLabels(dataSource.getId());
     }
 
@@ -41,11 +41,11 @@ public abstract class GraphExporter<D extends DataSource> {
         return node;
     }
 
-    protected final Node createNode(final Graph g, final String... labels) throws ExporterException {
+    protected final Node createNode(final Graph g, final String... labels) {
         return g.addNode(labels);
     }
 
-    protected final Node createNode(final Graph g, final List<String> labels) throws ExporterException {
+    protected final Node createNode(final Graph g, final List<String> labels) {
         return g.addNode(labels.toArray(new String[0]));
     }
 

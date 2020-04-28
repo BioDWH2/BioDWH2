@@ -27,8 +27,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
         return true;
     }
 
-    private void createUniiNode(final Graph graph, final List<UNIIEntry> entries,
-                                final UNIIDataEntry dataEntry) throws ExporterException {
+    private void createUniiNode(final Graph graph, final List<UNIIEntry> entries, final UNIIDataEntry dataEntry) {
         Node uniiNode = createNode(graph, "UNII");
         uniiNode.setProperty("id", dataEntry.unii);
         uniiNode.setProperty("cas", dataEntry.rn);

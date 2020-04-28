@@ -1,6 +1,6 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
-import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
+import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
 import org.apache.commons.lang3.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,11 +56,11 @@ public class Node {
         return (T) properties.get(key);
     }
 
-    public void setProperty(String key, Object value) throws ExporterException {
+    public void setProperty(String key, Object value) throws GraphCacheException {
         setProperty(key, value, true, true);
     }
 
-    void setProperty(String key, Object value, boolean persist, boolean modified) throws ExporterException {
+    void setProperty(String key, Object value, boolean persist, boolean modified) throws GraphCacheException {
         this.modified = modified;
         if (value != null) {
             Class<?> valueType = value.getClass();
