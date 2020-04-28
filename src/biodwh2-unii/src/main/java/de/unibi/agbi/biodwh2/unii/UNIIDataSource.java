@@ -37,4 +37,10 @@ public class UNIIDataSource extends DataSource {
     public GraphExporter<UNIIDataSource> getGraphExporter() {
         return new UNIIGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+        uniiEntries = null;
+        uniiDataEntries = null;
+    }
 }

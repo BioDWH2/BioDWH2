@@ -31,4 +31,8 @@ public class SiderDataSource extends DataSource {
     protected GraphExporter getGraphExporter() {
         return new SiderGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+    }
 }

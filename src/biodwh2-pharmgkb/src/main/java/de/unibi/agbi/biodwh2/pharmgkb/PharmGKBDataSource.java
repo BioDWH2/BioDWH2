@@ -51,4 +51,25 @@ public class PharmGKBDataSource extends DataSource {
     public GraphExporter<PharmGKBDataSource> getGraphExporter() {
         return new PharmGKBGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+        genes = null;
+        chemicals = null;
+        drugs = null;
+        phenotyps = null;
+        variants = null;
+        automatedAnnotations = null;
+        clinicalAnnotations = null;
+        clinicalAnnotationMetadata = null;
+        clinicalVariants = null;
+        drugLabels = null;
+        drugLabelsByGenes = null;
+        occurrences = null;
+        studyParameters = null;
+        variantDrugAnnotations = null;
+        variantFunctionalAnalysisAnnotations = null;
+        variantPhenotypeAnnotations = null;
+        pathways = null;
+    }
 }

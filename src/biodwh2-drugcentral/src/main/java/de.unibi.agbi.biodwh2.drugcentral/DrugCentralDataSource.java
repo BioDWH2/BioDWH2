@@ -29,4 +29,8 @@ public class DrugCentralDataSource extends DataSource {
     public GraphExporter<DrugCentralDataSource> getGraphExporter() {
         return new DrugCentralGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+    }
 }

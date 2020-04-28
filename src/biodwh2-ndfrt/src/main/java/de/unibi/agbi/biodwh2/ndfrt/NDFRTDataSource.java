@@ -32,4 +32,9 @@ public class NDFRTDataSource extends DataSource {
     public GraphExporter<NDFRTDataSource> getGraphExporter() {
         return new NDFRTGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+        terminology = null;
+    }
 }

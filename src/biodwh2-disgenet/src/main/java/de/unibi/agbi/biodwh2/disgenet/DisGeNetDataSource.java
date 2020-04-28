@@ -31,4 +31,8 @@ public class DisGeNetDataSource extends DataSource {
     protected GraphExporter getGraphExporter() {
         return new DisGeNetGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+    }
 }

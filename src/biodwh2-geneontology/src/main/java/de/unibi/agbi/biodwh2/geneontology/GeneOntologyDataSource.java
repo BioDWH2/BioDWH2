@@ -31,4 +31,8 @@ public class GeneOntologyDataSource extends DataSource {
     protected GraphExporter getGraphExporter() {
         return new GeneOntologyGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+    }
 }

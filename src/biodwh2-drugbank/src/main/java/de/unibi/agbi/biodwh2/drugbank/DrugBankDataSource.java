@@ -36,4 +36,10 @@ public class DrugBankDataSource extends DataSource {
     public GraphExporter<DrugBankDataSource> getGraphExporter() {
         return new DrugBankGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+        drugBankData = null;
+        metabolites = null;
+    }
 }

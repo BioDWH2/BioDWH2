@@ -117,6 +117,7 @@ public abstract class DataSource {
     final void export(Workspace workspace) {
         exportRdf(workspace);
         exportGraphML(workspace);
+        unloadData();
     }
 
     private void exportRdf(Workspace workspace) {
@@ -138,6 +139,8 @@ public abstract class DataSource {
             metadata.exportGraphMLSuccessful = false;
         }
     }
+
+    protected abstract void unloadData();
 
     public final String getGraphDatabaseFilePath(Workspace workspace) {
         return Paths.get(workspace.getSourcesDirectory(), getId(), PersistentGraphFileName).toString();

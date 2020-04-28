@@ -40,4 +40,12 @@ public class DGIdbDataSource extends DataSource {
     public GraphExporter<DGIdbDataSource> getGraphExporter() {
         return new DGIdbGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+        drugs = null;
+        categories = null;
+        interactions = null;
+        genes = null;
+    }
 }

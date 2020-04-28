@@ -32,4 +32,9 @@ public class MEDRTDataSource extends DataSource {
     public GraphExporter<MEDRTDataSource> getGraphExporter() {
         return new MEDRTGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+        terminology = null;
+    }
 }

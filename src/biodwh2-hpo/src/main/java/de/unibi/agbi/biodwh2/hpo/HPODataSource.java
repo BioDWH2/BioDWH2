@@ -31,4 +31,8 @@ public class HPODataSource extends DataSource {
     protected GraphExporter getGraphExporter() {
         return new HPOGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+    }
 }

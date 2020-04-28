@@ -34,4 +34,9 @@ public class HGNCDataSource extends DataSource {
     public GraphExporter<HGNCDataSource> getGraphExporter() {
         return new HGNCGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+        genes = null;
+    }
 }

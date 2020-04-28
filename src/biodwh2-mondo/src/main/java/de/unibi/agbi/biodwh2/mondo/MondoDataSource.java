@@ -31,4 +31,8 @@ public class MondoDataSource extends DataSource {
     protected GraphExporter getGraphExporter() {
         return new MondoGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+    }
 }

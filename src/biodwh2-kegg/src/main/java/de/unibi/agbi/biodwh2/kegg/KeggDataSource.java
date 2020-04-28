@@ -40,4 +40,13 @@ public class KeggDataSource extends DataSource {
     protected GraphExporter<KeggDataSource> getGraphExporter() {
         return new KeggGraphExporter();
     }
+
+    @Override
+    protected void unloadData() {
+        drugGroups = null;
+        diseases = null;
+        drugs = null;
+        networks = null;
+        variants = null;
+    }
 }
