@@ -48,9 +48,11 @@ public final class Graph {
         if (!reopen)
             deleteOldDatabaseFile(databaseFilePath);
         connection = openDatabaseConnection(databaseFilePath);
-        if (!reopen)
-            prepareDatabaseTables(connection);
         prepareStatements();
+        if (reopen)
+            loadNextIds();
+        else
+            prepareDatabaseTables(connection);
         nodeCache = new HashMap<>();
         nodeLabelIdMap = new HashMap<>();
     }
@@ -110,6 +112,18 @@ public final class Graph {
                     "INSERT INTO edges (__id, __label, __from_id, __to_id) VALUES (?, ?, ?, ?);");
         } catch (SQLException e) {
             throw new ExporterException("Failed to prepare statements", e);
+        }
+    }
+
+    private void loadNextIds() {
+        try {
+            ResultSet result = connection.createStatement().executeQuery(
+                    "SELECT * FROM (SELECT MAX(__id) + 1 as next_node_id FROM nodes as a), (SELECT MAX(__id) + 1 as next_edge_id FROM edges as b)");
+            nextNodeId = result.getLong("next_node_id");
+            nextEdgeId = result.getLong("next_edge_id");
+            maxDumpedId = nextNodeId - 1;
+        } catch (SQLException e) {
+            throw new GraphCacheException("Failed to load next ids from persisted graph", e);
         }
     }
 
