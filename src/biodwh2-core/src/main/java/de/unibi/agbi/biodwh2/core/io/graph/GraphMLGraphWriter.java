@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -43,6 +44,7 @@ public class GraphMLGraphWriter extends GraphWriter {
         labelKeyIdCounter = 0;
         labelKeyIdMap.clear();
         properties.clear();
+        removeOldExports(workspace, dataSource);
         try {
             generateProperties(graph);
             List<SubGraph> subGraphs = findSubGraphs(graph);
@@ -64,6 +66,20 @@ public class GraphMLGraphWriter extends GraphWriter {
             return false;
         }
         return true;
+    }
+
+    private void removeOldExports(final Workspace workspace, final DataSource dataSource) {
+        removeOldExport(dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.GraphML));
+        int i = 1;
+        while (removeOldExport(dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.GraphML, i)))
+            i++;
+    }
+
+    private boolean removeOldExport(final String filePath) {
+        File file = new File(filePath);
+        if (!file.exists())
+            return false;
+        return file.delete();
     }
 
     private void generateProperties(Graph graph) throws ExporterException {

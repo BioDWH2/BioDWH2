@@ -10,21 +10,21 @@ public final class Version implements Comparable<Version> {
     private int build = -1;
     private int revision = -1;
 
-    public Version(int major, int minor, int build, int revision) {
+    public Version(final int major, final int minor, final int build, final int revision) {
         this(major, minor, build);
         if (revision < 0)
             throw new IllegalArgumentException("revision version must be greater or equal zero");
         this.revision = revision;
     }
 
-    public Version(int major, int minor, int build) {
+    public Version(final int major, final int minor, final int build) {
         this(major, minor);
         if (build < 0)
             throw new IllegalArgumentException("build version must be greater or equal zero");
         this.build = build;
     }
 
-    public Version(int major, int minor) {
+    public Version(final int major, final int minor) {
         if (major < 0)
             throw new IllegalArgumentException("major version must be greater or equal zero");
         if (minor < 0)
@@ -53,7 +53,7 @@ public final class Version implements Comparable<Version> {
     }
 
     @Override
-    public int compareTo(Version v) {
+    public int compareTo(final Version v) {
         if (v == null)
             return 1;
         if (major != v.major)
@@ -68,7 +68,7 @@ public final class Version implements Comparable<Version> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (!(o instanceof Version))
             return false;
         Version v = (Version) o;
@@ -92,7 +92,7 @@ public final class Version implements Comparable<Version> {
         return versionString.toString();
     }
 
-    public static Version tryParse(String input) {
+    public static Version tryParse(final String input) {
         try {
             return parse(input);
         } catch (NullPointerException | NumberFormatException ex) {
@@ -101,7 +101,7 @@ public final class Version implements Comparable<Version> {
         return null;
     }
 
-    public static Version parse(String input) throws NullPointerException, NumberFormatException {
+    public static Version parse(final String input) throws NullPointerException, NumberFormatException {
         if (input == null)
             throw new NullPointerException("input must not be null");
         String[] versionStringParts = input.split(Pattern.quote(SEPARATOR));

@@ -46,12 +46,12 @@ public final class Factory {
         }
     }
 
-    private static boolean isValidJarFile(File file) {
+    private static boolean isValidJarFile(final File file) {
         String fileName = file.getName().toLowerCase(Locale.US);
         return file.isFile() && fileName.endsWith(".jar") && IGNORED_JARS.stream().noneMatch(fileName::contains);
     }
 
-    private void iterateFileSystem(File directory, String rootPath) {
+    private void iterateFileSystem(final File directory, final String rootPath) {
         File[] files = directory.listFiles();
         if (files != null) {
             for (File file : files) {
@@ -63,12 +63,12 @@ public final class Factory {
         }
     }
 
-    private void addUriIfValidClassPath(String uri) {
+    private void addUriIfValidClassPath(final String uri) {
         if (isUriClassInBioDWH(uri))
             allClassPaths.add(getClassPathFromUri(uri));
     }
 
-    private void iterateJarFile(File file) {
+    private void iterateJarFile(final File file) {
         Enumeration<JarEntry> je = tryGetJarFileEntries(file);
         while (je.hasMoreElements()) {
             JarEntry j = je.nextElement();
@@ -77,7 +77,7 @@ public final class Factory {
         }
     }
 
-    private Enumeration<JarEntry> tryGetJarFileEntries(File file) {
+    private Enumeration<JarEntry> tryGetJarFileEntries(final File file) {
         try {
             return new JarFile(file).entries();
         } catch (IOException e) {
@@ -86,15 +86,15 @@ public final class Factory {
         }
     }
 
-    private static boolean isUriClassInBioDWH(String uri) {
+    private static boolean isUriClassInBioDWH(final String uri) {
         return uri.endsWith(".class") && uri.contains("de/unibi/agbi/biodwh2");
     }
 
-    private static String getClassPathFromUri(String uri) {
+    private static String getClassPathFromUri(final String uri) {
         return uri.replace("/", ".").replace(".class", "");
     }
 
-    private void loadClassPath(ClassLoader classLoader, String classPath) {
+    private void loadClassPath(final ClassLoader classLoader, final String classPath) {
         Class<?> c = tryLoadClass(classLoader, classPath);
         if (c != null) {
             linkClassToParentInterfaces(c);
@@ -102,7 +102,7 @@ public final class Factory {
         }
     }
 
-    private static Class<?> tryLoadClass(ClassLoader classLoader, String classPath) {
+    private static Class<?> tryLoadClass(final ClassLoader classLoader, final String classPath) {
         try {
             return classLoader.loadClass(classPath);
         } catch (ClassNotFoundException e) {
@@ -111,18 +111,18 @@ public final class Factory {
         return null;
     }
 
-    private void linkClassToParentInterfaces(Class<?> c) {
+    private void linkClassToParentInterfaces(final Class<?> c) {
         for (Class<?> classInterface : c.getInterfaces())
             linkClassToParentInterface(c, classInterface.getName());
     }
 
-    private void linkClassToParentInterface(Class<?> c, String interfaceName) {
+    private void linkClassToParentInterface(final Class<?> c, final String interfaceName) {
         if (!interfaceToImplementationsMap.containsKey(interfaceName))
             interfaceToImplementationsMap.put(interfaceName, new ArrayList<>());
         interfaceToImplementationsMap.get(interfaceName).add(c);
     }
 
-    private void linkClassToSuperclass(Class<?> c) {
+    private void linkClassToSuperclass(final Class<?> c) {
         if (c.getSuperclass() != null) {
             String superclassName = c.getSuperclass().getName();
             if (!baseClassToImplementationsMap.containsKey(superclassName))
@@ -132,7 +132,7 @@ public final class Factory {
     }
 
     @SuppressWarnings("WeakerAccess")
-    public <T> List<Class<T>> getImplementations(Class<T> type) {
+    public <T> List<Class<T>> getImplementations(final Class<T> type) {
         String typeName = type.getName();
         if (interfaceToImplementationsMap.containsKey(typeName))
             return mapImplementationsToType(interfaceToImplementationsMap.get(typeName));
@@ -141,7 +141,7 @@ public final class Factory {
         return Collections.emptyList();
     }
 
-    private static <T> List<Class<T>> mapImplementationsToType(List<Class<?>> classes) {
+    private static <T> List<Class<T>> mapImplementationsToType(final List<Class<?>> classes) {
         List<Class<T>> result = new ArrayList<>();
         for (Class<?> class_ : classes) {
             //noinspection unchecked

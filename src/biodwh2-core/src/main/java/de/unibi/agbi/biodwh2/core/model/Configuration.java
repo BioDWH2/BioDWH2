@@ -12,11 +12,15 @@ public final class Configuration {
     public int version;
     public String creationDateTime;
     public List<String> dataSourceIds;
+    public boolean rdfEnabled;
+    public boolean graphEnabled;
 
     public Configuration() {
         version = Workspace.Version;
         creationDateTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         dataSourceIds = new ArrayList<>();
+        rdfEnabled = true;
+        graphEnabled = true;
     }
 
     @JsonIgnore

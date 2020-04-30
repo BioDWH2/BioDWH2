@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import de.unibi.agbi.biodwh2.core.etl.Merger;
+import de.unibi.agbi.biodwh2.core.etl.RDFMerger;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
@@ -36,6 +36,8 @@ public final class Workspace {
         createWorkingDirectoryIfNotExists();
         configuration = createOrLoadConfiguration();
         logger.info("Using data sources " + configuration.dataSourceIds);
+        logger.info("Export and merge of RDF format is " + (configuration.rdfEnabled ? "enabled" : "disabled"));
+        logger.info("Export and merge of Graph formats is " + (configuration.graphEnabled ? "enabled" : "disabled"));
         dataSources = resolveUsedDataSources();
     }
 
@@ -71,7 +73,7 @@ public final class Workspace {
         return dataSources;
     }
 
-    private DataSource tryInstantiateDataSource(Class<DataSource> dataSourceClass) {
+    private DataSource tryInstantiateDataSource(final Class<DataSource> dataSourceClass) {
         try {
             return dataSourceClass.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
@@ -80,7 +82,7 @@ public final class Workspace {
         return null;
     }
 
-    private boolean isDataSourceUsed(DataSource dataSource) {
+    private boolean isDataSourceUsed(final DataSource dataSource) {
         return configuration.dataSourceIds.contains(dataSource.getId());
     }
 
@@ -113,7 +115,7 @@ public final class Workspace {
         return sourcesUpToDate;
     }
 
-    private Version getLatestVersion(DataSource dataSource) {
+    private Version getLatestVersion(final DataSource dataSource) {
         try {
             return dataSource.getUpdater().getNewestVersion();
         } catch (UpdaterException e) {
@@ -122,7 +124,7 @@ public final class Workspace {
         }
     }
 
-    private String createStateTable(Map<String, Boolean> sourcesUpToDate, boolean verbose) {
+    private String createStateTable(final Map<String, Boolean> sourcesUpToDate, final boolean verbose) {
         String heading;
         final String separator = StringUtils.repeat("-", verbose ? 150 : 120);
         if (verbose)
@@ -190,7 +192,7 @@ public final class Workspace {
             logger.info("Running parser");
             dataSource.parse(this);
             logger.info("Running exporter");
-            dataSource.export(this);
+            dataSource.export(this, configuration.rdfEnabled, configuration.graphEnabled);
         }
         dataSource.trySaveMetadata(this);
         logger.info("Processing of data source '" + dataSource.getId() + "' finished");
@@ -198,16 +200,27 @@ public final class Workspace {
 
     private void mergeDataSources() {
         logger.info("Merging of data sources started");
-        Merger merger = new Merger();
+        if (configuration.rdfEnabled)
+            mergeRDFDataSources();
+        if (configuration.graphEnabled)
+            mergeGraphDataSources();
+        logger.info("Merging of data sources finished");
+    }
+
+    private void mergeRDFDataSources() {
+        RDFMerger rdfMerger = new RDFMerger();
         String mergedFilePath = Paths.get(getSourcesDirectory(), MergedGraphRdfFileName).toString();
         try {
             PrintWriter writer = new PrintWriter(mergedFilePath);
-            merger.merge(this, dataSources, writer);
+            rdfMerger.merge(this, dataSources, writer);
         } catch (FileNotFoundException e) {
             logger.error("Failed to create merge file '" + mergedFilePath + "'", e);
         } catch (MergerException e) {
             logger.error("Failed to merge data sources", e);
         }
-        logger.info("Merging of data sources finished");
+    }
+
+    private void mergeGraphDataSources() {
+
     }
 }

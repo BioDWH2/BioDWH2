@@ -9,7 +9,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-public class Merger {
+public class RDFMerger {
     public final boolean merge(Workspace workspace, List<DataSource> dataSources,
                                PrintWriter writer) throws MergerException {
         String line;

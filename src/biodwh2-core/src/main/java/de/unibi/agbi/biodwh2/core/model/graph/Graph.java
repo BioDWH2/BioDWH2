@@ -48,11 +48,11 @@ public final class Graph {
         if (!reopen)
             deleteOldDatabaseFile(databaseFilePath);
         connection = openDatabaseConnection(databaseFilePath);
-        prepareStatements();
         if (reopen)
             loadNextIds();
         else
             prepareDatabaseTables(connection);
+        prepareStatements();
         nodeCache = new HashMap<>();
         nodeLabelIdMap = new HashMap<>();
     }

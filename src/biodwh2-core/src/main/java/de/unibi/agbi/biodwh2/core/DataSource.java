@@ -39,7 +39,7 @@ public abstract class DataSource {
 
     protected abstract GraphExporter getGraphExporter();
 
-    void prepare(Workspace workspace) throws DataSourceException {
+    void prepare(final Workspace workspace) throws DataSourceException {
         try {
             createDirectoryIfNotExists(workspace);
             createOrLoadMetadata(workspace);
@@ -48,7 +48,7 @@ public abstract class DataSource {
         }
     }
 
-    private void createDirectoryIfNotExists(Workspace workspace) throws IOException {
+    private void createDirectoryIfNotExists(final Workspace workspace) throws IOException {
         Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId()));
         Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId(), SourceDirectoryName));
     }
@@ -69,14 +69,14 @@ public abstract class DataSource {
         saveMetadata(workspace);
     }
 
-    private void saveMetadata(Workspace workspace) throws IOException {
+    private void saveMetadata(final Workspace workspace) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         Path path = Paths.get(workspace.getSourcesDirectory(), getId(), MetadataFileName);
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         objectMapper.writeValue(path.toFile(), metadata);
     }
 
-    final void trySaveMetadata(Workspace workspace) {
+    final void trySaveMetadata(final Workspace workspace) {
         try {
             saveMetadata(workspace);
         } catch (IOException e) {
@@ -84,7 +84,7 @@ public abstract class DataSource {
         }
     }
 
-    final void updateAutomatic(Workspace workspace) {
+    final void updateAutomatic(final Workspace workspace) {
         try {
             //noinspection unchecked
             metadata.updateSuccessful = getUpdater().update(workspace, this);
@@ -99,12 +99,12 @@ public abstract class DataSource {
         }
     }
 
-    final void updateManually(Workspace workspace, String version) {
+    final void updateManually(final Workspace workspace, final String version) {
         //noinspection unchecked
         metadata.updateSuccessful = getUpdater().updateManually(workspace, this, version);
     }
 
-    final void parse(Workspace workspace) {
+    final void parse(final Workspace workspace) {
         try {
             //noinspection unchecked
             metadata.parseSuccessful = getParser().parse(workspace, this);
@@ -114,13 +114,15 @@ public abstract class DataSource {
         }
     }
 
-    final void export(Workspace workspace) {
-        exportRdf(workspace);
-        exportGraphML(workspace);
+    final void export(final Workspace workspace, final boolean rdfEnabled, final boolean graphEnabled) {
+        if (rdfEnabled)
+            exportRdf(workspace);
+        if (graphEnabled)
+            exportGraphML(workspace);
         unloadData();
     }
 
-    private void exportRdf(Workspace workspace) {
+    private void exportRdf(final Workspace workspace) {
         try {
             //noinspection unchecked
             metadata.exportRDFSuccessful = getRdfExporter().export(workspace, this);
@@ -130,7 +132,7 @@ public abstract class DataSource {
         }
     }
 
-    private void exportGraphML(Workspace workspace) {
+    private void exportGraphML(final Workspace workspace) {
         try {
             //noinspection unchecked
             metadata.exportGraphMLSuccessful = getGraphExporter().export(workspace, this);
@@ -142,25 +144,26 @@ public abstract class DataSource {
 
     protected abstract void unloadData();
 
-    public final String getGraphDatabaseFilePath(Workspace workspace) {
+    public final String getGraphDatabaseFilePath(final Workspace workspace) {
         return Paths.get(workspace.getSourcesDirectory(), getId(), PersistentGraphFileName).toString();
     }
 
-    public final String getIntermediateGraphFilePath(Workspace workspace, GraphFileFormat format) {
+    public final String getIntermediateGraphFilePath(final Workspace workspace, final GraphFileFormat format) {
         String fileName = "intermediate." + format.extension;
         return Paths.get(workspace.getSourcesDirectory(), getId(), fileName).toString();
     }
 
-    public final String getIntermediateGraphFilePath(Workspace workspace, GraphFileFormat format, int part) {
+    public final String getIntermediateGraphFilePath(final Workspace workspace, final GraphFileFormat format,
+                                                     final int part) {
         String fileName = "intermediate_part" + part + "." + format.extension;
         return Paths.get(workspace.getSourcesDirectory(), getId(), fileName).toString();
     }
 
-    public final String resolveSourceFilePath(Workspace workspace, String filePath) {
+    public final String resolveSourceFilePath(final Workspace workspace, final String filePath) {
         return Paths.get(workspace.getSourcesDirectory(), getId(), SourceDirectoryName, filePath).toString();
     }
 
-    public final List<String> listSourceFiles(Workspace workspace) {
+    public final List<String> listSourceFiles(final Workspace workspace) {
         Path sourcePath = Paths.get(workspace.getSourcesDirectory(), getId(), SourceDirectoryName);
         try {
             return Files.walk(sourcePath).filter(Files::isRegularFile).map(sourcePath::relativize).map(Path::toString)
