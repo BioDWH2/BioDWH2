@@ -39,6 +39,21 @@ public class GraphMLGraphWriter extends GraphWriter {
     private final Map<String, String> labelKeyIdMap = new HashMap<>();
     private final List<Property> properties = new ArrayList<>();
 
+    public boolean write(final String outputFilePath, final Graph graph) {
+        labelKeyIdCounter = 0;
+        labelKeyIdMap.clear();
+        properties.clear();
+        try {
+            generateProperties(graph);
+            FileOutputStream outputStream = new FileOutputStream(outputFilePath);
+            writeSubGraphFile(outputStream, graph, null);
+        } catch (XMLStreamException | ExporterException | FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public boolean write(final Workspace workspace, final DataSource dataSource, final Graph graph) {
         labelKeyIdCounter = 0;
@@ -261,10 +276,10 @@ public class GraphMLGraphWriter extends GraphWriter {
         writer.writeAttribute("id", "G");
         writer.writeAttribute("edgedefault", "directed");
         for (Node node : graph.getNodes())
-            if (subGraph.nodeIds.contains(node.getId()))
+            if (subGraph == null || subGraph.nodeIds.contains(node.getId()))
                 writeNode(writer, node);
         for (Edge edge : graph.getEdges())
-            if (subGraph.edgeIds.contains(edge.getId()))
+            if (subGraph == null || subGraph.edgeIds.contains(edge.getId()))
                 writeEdge(writer, edge);
         writer.writeEndElement();
     }

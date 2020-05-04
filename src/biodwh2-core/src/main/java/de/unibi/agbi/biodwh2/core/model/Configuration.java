@@ -13,14 +13,14 @@ public final class Configuration {
     public String creationDateTime;
     public List<String> dataSourceIds;
     public boolean rdfEnabled;
-    public boolean graphEnabled;
+    public boolean graphMLEnabled;
 
     public Configuration() {
         version = Workspace.Version;
         creationDateTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         dataSourceIds = new ArrayList<>();
         rdfEnabled = true;
-        graphEnabled = true;
+        graphMLEnabled = true;
     }
 
     @JsonIgnore

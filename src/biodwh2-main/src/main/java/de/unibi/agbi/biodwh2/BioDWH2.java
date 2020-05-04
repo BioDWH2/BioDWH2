@@ -42,7 +42,7 @@ public final class BioDWH2 {
         String dataSourceId = optionArguments.size() > 1 ? optionArguments.get(1) : null;
         String version = optionArguments.size() > 2 ? optionArguments.get(2) : null;
         Workspace workspace = new Workspace(workspacePath);
-        workspace.updateDataSources(dataSourceId, version, commandLine.skipUpdate);
+        workspace.processDataSources(dataSourceId, version, commandLine.skipUpdate);
     }
 
     private static void printHelp(final CmdArgs commandLine) {

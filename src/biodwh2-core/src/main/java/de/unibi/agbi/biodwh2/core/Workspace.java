@@ -2,18 +2,18 @@ package de.unibi.agbi.biodwh2.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import de.unibi.agbi.biodwh2.core.etl.GraphMerger;
 import de.unibi.agbi.biodwh2.core.etl.RDFMerger;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,7 +25,6 @@ public final class Workspace {
     public static final int Version = 1;
     private static final String SourcesDirectoryName = "sources";
     private static final String ConfigFileName = "config.json";
-    private static final String MergedGraphRdfFileName = "merged.ttl";
 
     private final String workingDirectory;
     private final Configuration configuration;
@@ -37,7 +36,7 @@ public final class Workspace {
         configuration = createOrLoadConfiguration();
         logger.info("Using data sources " + configuration.dataSourceIds);
         logger.info("Export and merge of RDF format is " + (configuration.rdfEnabled ? "enabled" : "disabled"));
-        logger.info("Export and merge of Graph formats is " + (configuration.graphEnabled ? "enabled" : "disabled"));
+        logger.info("Export and merge of GraphML format is " + (configuration.graphMLEnabled ? "enabled" : "disabled"));
         dataSources = resolveUsedDataSources();
     }
 
@@ -165,34 +164,36 @@ public final class Workspace {
         return true;
     }
 
-    public void updateDataSources(final String dataSourceId, final String version, final boolean skipUpdate) {
+    public void processDataSources(final String dataSourceId, final String version, final boolean skipUpdate) {
         if (prepareDataSources()) {
             for (DataSource dataSource : dataSources)
                 if (dataSourceId == null || dataSource.getId().equals(dataSourceId))
-                    updateDataSource(dataSource, version, skipUpdate);
+                    processDataSource(dataSource, version, skipUpdate);
             mergeDataSources();
         }
     }
 
-    private void updateDataSource(final DataSource dataSource, final String version, final boolean skipUpdate) {
+    private void processDataSource(final DataSource dataSource, final String version, final boolean skipUpdate) {
         logger.info("Processing of data source '" + dataSource.getId() + "' started");
-        if (!skipUpdate) {
+        if (skipUpdate) {
+            if (dataSource.getMetadata().updateSuccessful == null) {
+                logger.error("Update was skipped for data source '" + dataSource.getId() +
+                             "' without successful previous update.");
+                return;
+            }
+        } else {
             logger.info("Running updater");
             if (version != null)
                 dataSource.updateManually(this, version);
             else
                 dataSource.updateAutomatic(this);
             dataSource.trySaveMetadata(this);
-        } else if (dataSource.getMetadata().updateSuccessful == null) {
-            logger.error("Update was skipped for data source '" + dataSource.getId() +
-                         "' without successful previous update.");
-            return;
         }
         if (dataSource.getMetadata().updateSuccessful) {
             logger.info("Running parser");
             dataSource.parse(this);
             logger.info("Running exporter");
-            dataSource.export(this, configuration.rdfEnabled, configuration.graphEnabled);
+            dataSource.export(this, configuration.rdfEnabled, configuration.graphMLEnabled);
         }
         dataSource.trySaveMetadata(this);
         logger.info("Processing of data source '" + dataSource.getId() + "' finished");
@@ -202,25 +203,28 @@ public final class Workspace {
         logger.info("Merging of data sources started");
         if (configuration.rdfEnabled)
             mergeRDFDataSources();
-        if (configuration.graphEnabled)
-            mergeGraphDataSources();
+        if (configuration.graphMLEnabled)
+            mergeGraphMLDataSources();
         logger.info("Merging of data sources finished");
     }
 
     private void mergeRDFDataSources() {
-        RDFMerger rdfMerger = new RDFMerger();
-        String mergedFilePath = Paths.get(getSourcesDirectory(), MergedGraphRdfFileName).toString();
         try {
-            PrintWriter writer = new PrintWriter(mergedFilePath);
-            rdfMerger.merge(this, dataSources, writer);
-        } catch (FileNotFoundException e) {
-            logger.error("Failed to create merge file '" + mergedFilePath + "'", e);
+            new RDFMerger().merge(this, dataSources, getMergedOutputFilePath(GraphFileFormat.RDFTurtle));
         } catch (MergerException e) {
-            logger.error("Failed to merge data sources", e);
+            logger.error("Failed to merge RDF data sources", e);
         }
     }
 
-    private void mergeGraphDataSources() {
+    private String getMergedOutputFilePath(final GraphFileFormat format) {
+        return Paths.get(getSourcesDirectory(), "merged." + format.extension).toString();
+    }
 
+    private void mergeGraphMLDataSources() {
+        try {
+            new GraphMerger().merge(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GraphML));
+        } catch (MergerException e) {
+            logger.error("Failed to merge GraphML data sources", e);
+        }
     }
 }

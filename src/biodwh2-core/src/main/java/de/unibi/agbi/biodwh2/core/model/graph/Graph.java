@@ -14,6 +14,8 @@ import java.sql.*;
 import java.util.*;
 
 public final class Graph {
+    private static final String AttachedDatabaseName = "db_to_merge";
+
     private static final String PackedStringArraySplitter = "','";
     private static final String UnescapedQuotes = "'";
     private static final String EscapedQuotes = "''";
@@ -30,7 +32,7 @@ public final class Graph {
 
     private long nextNodeId = 1;
     private long nextEdgeId = 1;
-    private final Connection connection;
+    private Connection connection;
     private PreparedStatement insertNodeStatement;
     private PreparedStatement insertEdgeStatement;
     private final Set<String> nodeColumns = new HashSet<>();
@@ -40,32 +42,36 @@ public final class Graph {
     private long maxDumpedId = 0;
     private String[] indexColumnNames = new String[0];
 
-    public Graph(final String databaseFilePath) throws ExporterException {
+    public Graph(final String databaseFilePath) throws GraphCacheException {
         this(databaseFilePath, false);
     }
 
-    public Graph(final String databaseFilePath, final boolean reopen) throws ExporterException {
+    public Graph(final String databaseFilePath, final boolean reopen) throws GraphCacheException {
         if (!reopen)
             deleteOldDatabaseFile(databaseFilePath);
         connection = openDatabaseConnection(databaseFilePath);
         if (reopen)
-            loadNextIds();
-        else
+            updateReopenedIndices();
+        else {
             prepareDatabaseTables(connection);
+            nodeColumns.addAll(Arrays.asList("__id", "__labels"));
+            edgeColumns.addAll(Arrays.asList("__id", "__label", "__from_id", "__to_id"));
+        }
         prepareStatements();
         nodeCache = new HashMap<>();
         nodeLabelIdMap = new HashMap<>();
     }
 
-    private void deleteOldDatabaseFile(final String databaseFilePath) throws ExporterException {
+    private void deleteOldDatabaseFile(final String databaseFilePath) throws GraphCacheException {
         try {
             Files.deleteIfExists(Paths.get(databaseFilePath));
         } catch (IOException e) {
-            throw new ExporterException("Failed to remove old persistent database file '" + databaseFilePath + "'", e);
+            throw new GraphCacheException("Failed to remove old persistent database file '" + databaseFilePath + "'",
+                                          e);
         }
     }
 
-    private static Connection openDatabaseConnection(final String databaseFilePath) throws ExporterException {
+    private static Connection openDatabaseConnection(final String databaseFilePath) throws GraphCacheException {
         String url = "jdbc:sqlite:" + databaseFilePath;
         try {
             SQLiteConfig config = new SQLiteConfig();
@@ -73,45 +79,69 @@ public final class Graph {
             config.setJournalMode(SQLiteConfig.JournalMode.OFF);
             Connection connection = DriverManager.getConnection(url, config.toProperties());
             if (connection == null)
-                throw new ExporterException(
+                throw new GraphCacheException(
                         "Failed to create persistent graph database file '" + databaseFilePath + "'");
             connection.setAutoCommit(false);
             return connection;
         } catch (SQLException e) {
-            throw new ExporterException("Failed to create persistent graph database file '" + databaseFilePath + "'",
-                                        e);
+            throw new GraphCacheException("Failed to create persistent graph database file '" + databaseFilePath + "'",
+                                          e);
         }
     }
 
-    private static void prepareDatabaseTables(Connection connection) throws ExporterException {
+    private static void prepareDatabaseTables(Connection connection) throws GraphCacheException {
         String sql = "CREATE TABLE nodes (__id integer PRIMARY KEY, __labels TEXT NOT NULL);";
         try (Statement statement = connection.createStatement()) {
             statement.execute(sql);
         } catch (SQLException e) {
-            throw new ExporterException("Failed to create persistent graph database tables", e);
+            throw new GraphCacheException("Failed to create persistent graph database tables", e);
         }
         sql = "CREATE INDEX node_labels ON nodes (__labels);";
         try (Statement statement = connection.createStatement()) {
             statement.execute(sql);
         } catch (SQLException e) {
-            throw new ExporterException("Failed to create persistent graph database tables", e);
+            throw new GraphCacheException("Failed to create persistent graph database tables", e);
         }
         sql = "CREATE TABLE edges (__id integer PRIMARY KEY, __label TEXT NOT NULL, " +
               "__from_id integer NOT NULL, __to_id integer NOT NULL);";
         try (Statement statement = connection.createStatement()) {
             statement.execute(sql);
         } catch (SQLException e) {
-            throw new ExporterException("Failed to create persistent graph database tables", e);
+            throw new GraphCacheException("Failed to create persistent graph database tables", e);
         }
     }
 
-    private void prepareStatements() throws ExporterException {
+    private void prepareStatements() throws GraphCacheException {
         try {
             insertNodeStatement = connection.prepareStatement("INSERT INTO nodes (__id, __labels) VALUES (?, ?);");
             insertEdgeStatement = connection.prepareStatement(
                     "INSERT INTO edges (__id, __label, __from_id, __to_id) VALUES (?, ?, ?, ?);");
         } catch (SQLException e) {
-            throw new ExporterException("Failed to prepare statements", e);
+            throw new GraphCacheException("Failed to prepare statements", e);
+        }
+    }
+
+    private void updateReopenedIndices() {
+        getColumnNamesForTable("nodes", nodeColumns);
+        getColumnNamesForTable("edges", edgeColumns);
+        loadNextIds();
+    }
+
+    private void getColumnNamesForTable(final String tableName, final Set<String> columnNames) {
+        getColumnNamesForTable(null, tableName, columnNames);
+    }
+
+    private void getColumnNamesForTable(final String databaseName, final String tableName,
+                                        final Set<String> columnNames) {
+        try {
+            String tableInfo = databaseName != null ? databaseName + ".table_info" : "table_info";
+            ResultSet result = connection.createStatement().executeQuery(
+                    "PRAGMA " + tableInfo + "(" + tableName + ");");
+            while (result.next())
+                columnNames.add(result.getString("name"));
+            result.close();
+        } catch (SQLException e) {
+            throw new GraphCacheException("Failed to load table column names from persisted graph", e);
         }
     }
 
@@ -122,6 +152,7 @@ public final class Graph {
             nextNodeId = result.getLong("next_node_id");
             nextEdgeId = result.getLong("next_edge_id");
             maxDumpedId = nextNodeId - 1;
+            result.close();
         } catch (SQLException e) {
             throw new GraphCacheException("Failed to load next ids from persisted graph", e);
         }
@@ -444,17 +475,20 @@ public final class Graph {
         return findNode(label, propertyName, value, false);
     }
 
+    @SuppressWarnings("unused")
     public Node findNode(String label, String propertyName1, Object value1, String propertyName2, Object value2) {
         return findNode(label, new String[]{propertyName1, propertyName2}, new Object[]{value1, value2},
                         new boolean[]{false, false});
     }
 
+    @SuppressWarnings("unused")
     public Node findNode(String label, String propertyName1, Object value1, String propertyName2, Object value2,
                          String propertyName3, Object value3) {
         return findNode(label, new String[]{propertyName1, propertyName2, propertyName3},
                         new Object[]{value1, value2, value3}, new boolean[]{false, false, false});
     }
 
+    @SuppressWarnings("WeakerAccess")
     public Node findNode(String label, String propertyName, Object value, boolean inArray) {
         return findNode(label, new String[]{propertyName}, new Object[]{value}, new boolean[]{inArray});
     }
@@ -533,6 +567,7 @@ public final class Graph {
         return findNodeId(label, new String[]{propertyName}, new Object[]{value}, new boolean[]{false});
     }
 
+    @SuppressWarnings("unused")
     public Long findNodeId(String label, String propertyName1, Object value1, String propertyName2, Object value2) {
         return findNodeId(label, new String[]{propertyName1, propertyName2}, new Object[]{value1, value2},
                           new boolean[]{false, false});
@@ -544,6 +579,7 @@ public final class Graph {
                           new Object[]{value1, value2, value3}, new boolean[]{false, false, false});
     }
 
+    @SuppressWarnings("unused")
     public Long findNodeId(String label, String propertyName, Object value, boolean inArray) {
         return findNodeId(label, new String[]{propertyName}, new Object[]{value}, new boolean[]{inArray});
     }
@@ -606,12 +642,52 @@ public final class Graph {
         return nextNodeId - 1;
     }
 
+    public void mergeDatabase(final String filePath) throws GraphCacheException {
+        try {
+            connection.setAutoCommit(true);
+            connection.prepareStatement("ATTACH '" + filePath + "' as " + AttachedDatabaseName).execute();
+            Set<String> mergeNodeColumnNames = new HashSet<>();
+            Set<String> mergeEdgeColumnNames = new HashSet<>();
+            getColumnNamesForTable(AttachedDatabaseName, "nodes", mergeNodeColumnNames);
+            getColumnNamesForTable(AttachedDatabaseName, "edges", mergeEdgeColumnNames);
+            for (String columnName : mergeNodeColumnNames)
+                ensureNodeColumnExists(columnName);
+            for (String columnName : mergeEdgeColumnNames)
+                ensureEdgeColumnExists(columnName);
+            String targetNodeColumnNamesJoined = String.join(", ", mergeNodeColumnNames);
+            String targetEdgeColumnNamesJoined = String.join(", ", mergeEdgeColumnNames);
+            String nodeIdOffsetSelect = "__id + " + (nextNodeId - 1);
+            String edgeIdOffsetSelect = "__id + " + (nextEdgeId - 1);
+            String sourceNodeColumnNamesJoined = targetNodeColumnNamesJoined.replace("__id", nodeIdOffsetSelect);
+            String sourceEdgeColumnNamesJoined = targetEdgeColumnNamesJoined.replace("__id", edgeIdOffsetSelect);
+            connection.prepareStatement(
+                    "INSERT INTO nodes (" + targetNodeColumnNamesJoined + ") SELECT " + sourceNodeColumnNamesJoined +
+                    " FROM " + AttachedDatabaseName + ".nodes").execute();
+            connection.prepareStatement(
+                    "INSERT INTO edges (" + targetEdgeColumnNamesJoined + ") SELECT " + sourceEdgeColumnNamesJoined +
+                    " FROM " + AttachedDatabaseName + ".edges").execute();
+            connection.prepareStatement("DETACH " + AttachedDatabaseName).execute();
+            connection.setAutoCommit(false);
+        } catch (SQLException e) {
+            throw new GraphCacheException("Failed to merge database '" + filePath + "'", e);
+        }
+        updateReopenedIndices();
+    }
+
     public void dispose() {
         try {
             connection.commit();
+        } catch (SQLException ignored) {
+        }
+        try {
+            insertNodeStatement.close();
+            insertEdgeStatement.close();
             connection.close();
         } catch (SQLException ignored) {
         }
+        insertNodeStatement = null;
+        insertEdgeStatement = null;
+        connection = null;
         nodeCache = null;
         nodeLabelIdMap = null;
     }

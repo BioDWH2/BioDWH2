@@ -9,9 +9,15 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-public class RDFMerger {
-    public final boolean merge(Workspace workspace, List<DataSource> dataSources,
-                               PrintWriter writer) throws MergerException {
+public class RDFMerger extends Merger {
+    public final boolean merge(final Workspace workspace, final List<DataSource> dataSources,
+                               final String outputFilePath) throws MergerException {
+        PrintWriter writer;
+        try {
+            writer = new PrintWriter(outputFilePath);
+        } catch (FileNotFoundException e) {
+            throw new MergerException("Failed to create merge file '" + outputFilePath + "'", e);
+        }
         String line;
         for (DataSource dataSource : dataSources) {
             String filePath = dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.RDFTurtle);
