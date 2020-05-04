@@ -1,11 +1,10 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
-import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
+import de.unibi.agbi.biodwh2.core.io.SqliteDatabase;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.sqlite.SQLiteConfig;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,11 +31,9 @@ public final class Graph {
 
     private long nextNodeId = 1;
     private long nextEdgeId = 1;
-    private Connection connection;
+    private SqliteDatabase database;
     private PreparedStatement insertNodeStatement;
     private PreparedStatement insertEdgeStatement;
-    private final Set<String> nodeColumns = new HashSet<>();
-    private final Set<String> edgeColumns = new HashSet<>();
     private Map<Long, Node> nodeCache;
     private Map<String, List<Long>> nodeLabelIdMap;
     private long maxDumpedId = 0;
@@ -49,110 +46,62 @@ public final class Graph {
     public Graph(final String databaseFilePath, final boolean reopen) throws GraphCacheException {
         if (!reopen)
             deleteOldDatabaseFile(databaseFilePath);
-        connection = openDatabaseConnection(databaseFilePath);
+        database = openDatabase(databaseFilePath);
         if (reopen)
-            updateReopenedIndices();
-        else {
-            prepareDatabaseTables(connection);
-            nodeColumns.addAll(Arrays.asList("__id", "__labels"));
-            edgeColumns.addAll(Arrays.asList("__id", "__label", "__from_id", "__to_id"));
-        }
+            loadNextIds();
+        else
+            prepareDatabaseTables(database);
         prepareStatements();
         nodeCache = new HashMap<>();
         nodeLabelIdMap = new HashMap<>();
     }
 
-    private void deleteOldDatabaseFile(final String databaseFilePath) throws GraphCacheException {
+    private void deleteOldDatabaseFile(final String filePath) throws GraphCacheException {
         try {
-            Files.deleteIfExists(Paths.get(databaseFilePath));
+            Files.deleteIfExists(Paths.get(filePath));
         } catch (IOException e) {
-            throw new GraphCacheException("Failed to remove old persistent database file '" + databaseFilePath + "'",
-                                          e);
+            throw new GraphCacheException("Failed to remove old persisted database file '" + filePath + "'", e);
         }
     }
 
-    private static Connection openDatabaseConnection(final String databaseFilePath) throws GraphCacheException {
-        String url = "jdbc:sqlite:" + databaseFilePath;
+    private static SqliteDatabase openDatabase(final String filePath) throws GraphCacheException {
         try {
-            SQLiteConfig config = new SQLiteConfig();
-            config.setTransactionMode(SQLiteConfig.TransactionMode.EXCLUSIVE);
-            config.setJournalMode(SQLiteConfig.JournalMode.OFF);
-            Connection connection = DriverManager.getConnection(url, config.toProperties());
-            if (connection == null)
-                throw new GraphCacheException(
-                        "Failed to create persistent graph database file '" + databaseFilePath + "'");
-            connection.setAutoCommit(false);
-            return connection;
+            return new SqliteDatabase(filePath);
         } catch (SQLException e) {
-            throw new GraphCacheException("Failed to create persistent graph database file '" + databaseFilePath + "'",
-                                          e);
+            throw new GraphCacheException("Failed to create persisted graph database file '" + filePath + "'", e);
         }
     }
 
-    private static void prepareDatabaseTables(Connection connection) throws GraphCacheException {
-        String sql = "CREATE TABLE nodes (__id integer PRIMARY KEY, __labels TEXT NOT NULL);";
-        try (Statement statement = connection.createStatement()) {
-            statement.execute(sql);
+    private static void prepareDatabaseTables(SqliteDatabase database) throws GraphCacheException {
+        try {
+            database.execute("CREATE TABLE nodes (__id integer PRIMARY KEY, __labels TEXT NOT NULL)");
+            database.execute("CREATE TABLE edges (__id integer PRIMARY KEY, __label TEXT NOT NULL, " +
+                             "__from_id integer NOT NULL, __to_id integer NOT NULL);");
+            database.addIndexIfNotExists("nodes", "__labels");
+            database.addIndexIfNotExists("edges", "__label");
+            database.addIndexIfNotExists("edges", "__from_id");
+            database.addIndexIfNotExists("edges", "__to_id");
         } catch (SQLException e) {
-            throw new GraphCacheException("Failed to create persistent graph database tables", e);
+            throw new GraphCacheException("Failed to create persisted graph database tables", e);
         }
-        sql = "CREATE INDEX node_labels ON nodes (__labels);";
-        try (Statement statement = connection.createStatement()) {
-            statement.execute(sql);
-        } catch (SQLException e) {
-            throw new GraphCacheException("Failed to create persistent graph database tables", e);
-        }
-        sql = "CREATE TABLE edges (__id integer PRIMARY KEY, __label TEXT NOT NULL, " +
-              "__from_id integer NOT NULL, __to_id integer NOT NULL);";
-        try (Statement statement = connection.createStatement()) {
-            statement.execute(sql);
-        } catch (SQLException e) {
-            throw new GraphCacheException("Failed to create persistent graph database tables", e);
-        }
+        database.updateCaches();
     }
 
     private void prepareStatements() throws GraphCacheException {
         try {
-            insertNodeStatement = connection.prepareStatement("INSERT INTO nodes (__id, __labels) VALUES (?, ?);");
-            insertEdgeStatement = connection.prepareStatement(
-                    "INSERT INTO edges (__id, __label, __from_id, __to_id) VALUES (?, ?, ?, ?);");
+            insertNodeStatement = database.prepareStatement("INSERT INTO nodes (__id, __labels) VALUES (?, ?)");
+            insertEdgeStatement = database.prepareStatement(
+                    "INSERT INTO edges (__id, __label, __from_id, __to_id) VALUES (?, ?, ?, ?)");
         } catch (SQLException e) {
             throw new GraphCacheException("Failed to prepare statements", e);
         }
     }
 
-    private void updateReopenedIndices() {
-        getColumnNamesForTable("nodes", nodeColumns);
-        getColumnNamesForTable("edges", edgeColumns);
-        loadNextIds();
-    }
-
-    private void getColumnNamesForTable(final String tableName, final Set<String> columnNames) {
-        getColumnNamesForTable(null, tableName, columnNames);
-    }
-
-    private void getColumnNamesForTable(final String databaseName, final String tableName,
-                                        final Set<String> columnNames) {
-        try {
-            String tableInfo = databaseName != null ? databaseName + ".table_info" : "table_info";
-            ResultSet result = connection.createStatement().executeQuery(
-                    "PRAGMA " + tableInfo + "(" + tableName + ");");
-            while (result.next())
-                columnNames.add(result.getString("name"));
-            result.close();
-        } catch (SQLException e) {
-            throw new GraphCacheException("Failed to load table column names from persisted graph", e);
-        }
-    }
-
     private void loadNextIds() {
         try {
-            ResultSet result = connection.createStatement().executeQuery(
-                    "SELECT * FROM (SELECT MAX(__id) + 1 as next_node_id FROM nodes as a), (SELECT MAX(__id) + 1 as next_edge_id FROM edges as b)");
-            nextNodeId = result.getLong("next_node_id");
-            nextEdgeId = result.getLong("next_edge_id");
+            nextNodeId = database.getMaxColumnValue("nodes", "__id") + 1;
+            nextEdgeId = database.getMaxColumnValue("edges", "__id") + 1;
             maxDumpedId = nextNodeId - 1;
-            result.close();
         } catch (SQLException e) {
             throw new GraphCacheException("Failed to load next ids from persisted graph", e);
         }
@@ -163,47 +112,39 @@ public final class Graph {
     }
 
     void setNodeProperty(final Node node, final String key, final Object value) throws GraphCacheException {
+        try {
+            database.addColumnIfNotExists("nodes", key, "TEXT", ArrayUtils.contains(indexColumnNames, key));
+        } catch (SQLException e) {
+            throw new GraphCacheException("Failed to persist graph", e);
+        }
         if (value == null || nodeCache.containsKey(node.getId()))
             return;
-        ensureNodeColumnExists(key);
         String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
-        executeSql("UPDATE nodes SET \"" + key + "\"='" + packedValue + "' WHERE __id=" + node.getId() + ";");
-    }
-
-    private void ensureNodeColumnExists(String columnName) throws GraphCacheException {
-        if (nodeColumns.contains(columnName))
-            return;
-        nodeColumns.add(columnName);
-        executeSql("ALTER TABLE nodes ADD COLUMN \"" + columnName + "\" TEXT;");
-        if (ArrayUtils.contains(indexColumnNames, columnName))
-            executeSql("CREATE INDEX nodes_" + columnName + "_index ON nodes(" + columnName + ");");
+        executeSql("UPDATE nodes SET \"" + key + "\"='" + packedValue + "' WHERE __id=" + node.getId());
     }
 
     private void executeSql(final String sql) throws GraphCacheException {
-        try (Statement statement = connection.createStatement()) {
-            statement.execute(sql);
+        try {
+            database.execute(sql);
         } catch (SQLException e) {
             throw new GraphCacheException("Failed to persist graph at query '" + sql + "'", e);
         }
     }
 
     public void prefixAllLabels(String prefix) throws GraphCacheException {
-        executeSql("UPDATE nodes SET __labels = '" + prefix + "_' || REPLACE(__labels, ';', ';" + prefix + "_');");
+        executeSql("UPDATE nodes SET __labels = '" + prefix + "_' || REPLACE(__labels, ';', ';" + prefix + "_')");
     }
 
     void setEdgeProperty(final Edge edge, final String key, final Object value) throws GraphCacheException {
-        if (value == null)
-            return;
-        ensureEdgeColumnExists(key);
-        String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
-        executeSql("UPDATE edges SET " + key + "='" + packedValue + "' WHERE __id=" + edge.getId() + ";");
-    }
-
-    private void ensureEdgeColumnExists(String columnName) throws GraphCacheException {
-        if (edgeColumns.contains(columnName))
-            return;
-        edgeColumns.add(columnName);
-        executeSql("ALTER TABLE edges ADD COLUMN " + columnName + " TEXT;");
+        try {
+            database.addColumnIfNotExists("edges", key, "TEXT");
+        } catch (SQLException e) {
+            throw new GraphCacheException("Failed to persist graph", e);
+        }
+        if (value != null) {
+            String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
+            executeSql("UPDATE edges SET " + key + "='" + packedValue + "' WHERE __id=" + edge.getId());
+        }
     }
 
     String packValue(Object value) {
@@ -316,7 +257,11 @@ public final class Graph {
                     if (value == null)
                         continue;
                     atLeastOneValueNotNull = true;
-                    ensureNodeColumnExists(key);
+                    try {
+                        database.addColumnIfNotExists("nodes", key, "TEXT", ArrayUtils.contains(indexColumnNames, key));
+                    } catch (SQLException e) {
+                        throw new GraphCacheException("Failed to persist graph", e);
+                    }
                     if (!first)
                         sql.append(", ");
                     first = false;
@@ -325,8 +270,8 @@ public final class Graph {
                 }
                 sql.append(" WHERE __id=").append(node.getId()).append(";");
                 if (atLeastOneValueNotNull)
-                    try (Statement statement = connection.createStatement()) {
-                        statement.execute(sql.toString());
+                    try {
+                        database.execute(sql.toString());
                     } catch (SQLException e) {
                         throw new GraphCacheException("Failed to persist graph at query '" + sql + "'", e);
                     }
@@ -356,51 +301,18 @@ public final class Graph {
     }
 
     public Edge addEdge(Node from, Node to, String label) throws GraphCacheException {
-        Edge edge = new Edge(this, nextEdgeId, from.getId(), to.getId(), label);
-        nextEdgeId++;
-        try {
-            insertEdgeStatement.setLong(1, edge.getId());
-            insertEdgeStatement.setString(2, edge.getLabel());
-            insertEdgeStatement.setLong(3, edge.getFromId());
-            insertEdgeStatement.setLong(4, edge.getToId());
-            insertEdgeStatement.execute();
-        } catch (SQLException e) {
-            throw new GraphCacheException("Failed to persist graph", e);
-        }
-        return edge;
+        return addEdge(from.getId(), to.getId(), label);
     }
 
     public Edge addEdge(Node from, long toId, String label) throws GraphCacheException {
-        Edge edge = new Edge(this, nextEdgeId, from.getId(), toId, label);
-        nextEdgeId++;
-        try {
-            insertEdgeStatement.setLong(1, edge.getId());
-            insertEdgeStatement.setString(2, edge.getLabel());
-            insertEdgeStatement.setLong(3, edge.getFromId());
-            insertEdgeStatement.setLong(4, edge.getToId());
-            insertEdgeStatement.execute();
-        } catch (SQLException e) {
-            throw new GraphCacheException("Failed to persist graph", e);
-        }
-        return edge;
+        return addEdge(from.getId(), toId, label);
     }
 
-    public Edge addEdge(long fromId, Node to, String label) throws ExporterException {
-        Edge edge = new Edge(this, nextEdgeId, fromId, to.getId(), label);
-        nextEdgeId++;
-        try {
-            insertEdgeStatement.setLong(1, edge.getId());
-            insertEdgeStatement.setString(2, edge.getLabel());
-            insertEdgeStatement.setLong(3, edge.getFromId());
-            insertEdgeStatement.setLong(4, edge.getToId());
-            insertEdgeStatement.execute();
-        } catch (SQLException e) {
-            throw new ExporterException("Failed to persist graph", e);
-        }
-        return edge;
+    public Edge addEdge(long fromId, Node to, String label) throws GraphCacheException {
+        return addEdge(fromId, to.getId(), label);
     }
 
-    public Edge addEdge(long fromId, long toId, String label) throws ExporterException {
+    public Edge addEdge(long fromId, long toId, String label) throws GraphCacheException {
         Edge edge = new Edge(this, nextEdgeId, fromId, toId, label);
         nextEdgeId++;
         try {
@@ -410,65 +322,25 @@ public final class Graph {
             insertEdgeStatement.setLong(4, edge.getToId());
             insertEdgeStatement.execute();
         } catch (SQLException e) {
-            throw new ExporterException("Failed to persist graph", e);
+            throw new GraphCacheException("Failed to persist graph", e);
         }
         return edge;
     }
 
     public Iterable<Node> getNodes() throws GraphCacheException {
-        ResultSet result;
         try {
-            result = connection.createStatement().executeQuery("SELECT * FROM nodes");
+            return database.iterateTable("edges", this::createNodeFromResultSet);
         } catch (SQLException e) {
             throw new GraphCacheException("Failed to load nodes from persisted graph", e);
         }
-        return () -> new Iterator<Node>() {
-            @Override
-            public boolean hasNext() {
-                try {
-                    return result.next();
-                } catch (SQLException e) {
-                    throw new GraphCacheException("Failed to load nodes from persisted graph", e);
-                }
-            }
-
-            @Override
-            public Node next() {
-                try {
-                    return createNodeFromResultSet(result);
-                } catch (SQLException | GraphCacheException e) {
-                    throw new GraphCacheException("Failed to load nodes from persisted graph", e);
-                }
-            }
-        };
     }
 
     public Iterable<Edge> getEdges() throws GraphCacheException {
-        ResultSet result;
         try {
-            result = connection.createStatement().executeQuery("SELECT * FROM edges");
+            return database.iterateTable("edges", this::createEdgeFromResultSet);
         } catch (SQLException e) {
             throw new GraphCacheException("Failed to load edges from persisted graph", e);
         }
-        return () -> new Iterator<Edge>() {
-            @Override
-            public boolean hasNext() {
-                try {
-                    return result.next();
-                } catch (SQLException e) {
-                    throw new GraphCacheException("Failed to load edges from persisted graph", e);
-                }
-            }
-
-            @Override
-            public Edge next() {
-                try {
-                    return createEdgeFromResultSet(result);
-                } catch (SQLException | GraphCacheException e) {
-                    throw new GraphCacheException("Failed to load edges from persisted graph", e);
-                }
-            }
-        };
     }
 
     public Node findNode(String label, String propertyName, Object value) {
@@ -515,7 +387,7 @@ public final class Graph {
             } else
                 sql.append(String.format(FindNullQueryParam, propertyNames[i]));
         }
-        try (ResultSet result = connection.createStatement().executeQuery(sql.toString())) {
+        try (ResultSet result = database.executeQuery(sql.toString())) {
             if (result.next()) {
                 Node node = createNodeFromResultSet(result);
                 addNodeToMemoryCache(node);
@@ -551,16 +423,20 @@ public final class Graph {
         return null;
     }
 
-    private Node createNodeFromResultSet(ResultSet result) throws SQLException, GraphCacheException {
-        Node node = new Node(this, result.getLong("__id"), false, result.getString("__labels").split(";"));
-        for (int i = 3; i <= result.getMetaData().getColumnCount(); i++) {
-            String value = result.getString(i);
-            if (value != null) {
-                Object unpackedValue = unpackValue(StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
-                node.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false, false);
+    private Node createNodeFromResultSet(ResultSet result) throws GraphCacheException {
+        try {
+            Node node = new Node(this, result.getLong("__id"), false, result.getString("__labels").split(";"));
+            for (int i = 3; i <= result.getMetaData().getColumnCount(); i++) {
+                String value = result.getString(i);
+                if (value != null) {
+                    Object unpackedValue = unpackValue(StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
+                    node.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false, false);
+                }
             }
+            return node;
+        } catch (SQLException e) {
+            throw new GraphCacheException("Failed to load node from persisted graph", e);
         }
-        return node;
     }
 
     public Long findNodeId(String label, String propertyName, Object value) {
@@ -607,7 +483,7 @@ public final class Graph {
                 sql.append(String.format(FindNullQueryParam, propertyNames[i]));
         }
         Long id = null;
-        try (ResultSet result = connection.createStatement().executeQuery(sql.toString())) {
+        try (ResultSet result = database.executeQuery(sql.toString())) {
             if (result.next())
                 id = result.getLong(1);
             if (result.next())
@@ -617,22 +493,26 @@ public final class Graph {
         return id;
     }
 
-    private Edge createEdgeFromResultSet(ResultSet result) throws SQLException, GraphCacheException {
-        Edge edge = new Edge(this, result.getLong("__id"), result.getLong("__from_id"), result.getLong("__to_id"),
-                             result.getString("__label"));
-        for (int i = 5; i <= result.getMetaData().getColumnCount(); i++) {
-            String value = result.getString(i);
-            if (value != null) {
-                Object unpackedValue = unpackValue(StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
-                edge.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false);
+    private Edge createEdgeFromResultSet(ResultSet result) throws GraphCacheException {
+        try {
+            Edge edge = new Edge(this, result.getLong("__id"), result.getLong("__from_id"), result.getLong("__to_id"),
+                                 result.getString("__label"));
+            for (int i = 5; i <= result.getMetaData().getColumnCount(); i++) {
+                String value = result.getString(i);
+                if (value != null) {
+                    Object unpackedValue = unpackValue(StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
+                    edge.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false);
+                }
             }
+            return edge;
+        } catch (SQLException e) {
+            throw new GraphCacheException("Failed to load edge from persisted graph", e);
         }
-        return edge;
     }
 
     private void tryCommit() throws GraphCacheException {
         try {
-            connection.commit();
+            database.commit();
         } catch (SQLException e) {
             throw new GraphCacheException("Failed to persist graph", e);
         }
@@ -644,50 +524,46 @@ public final class Graph {
 
     public void mergeDatabase(final String filePath) throws GraphCacheException {
         try {
-            connection.setAutoCommit(true);
-            connection.prepareStatement("ATTACH '" + filePath + "' as " + AttachedDatabaseName).execute();
+            database.setAutoCommit(true);
+            database.execute("ATTACH '" + filePath + "' as " + AttachedDatabaseName);
             Set<String> mergeNodeColumnNames = new HashSet<>();
             Set<String> mergeEdgeColumnNames = new HashSet<>();
-            getColumnNamesForTable(AttachedDatabaseName, "nodes", mergeNodeColumnNames);
-            getColumnNamesForTable(AttachedDatabaseName, "edges", mergeEdgeColumnNames);
+            database.getColumnNamesForTable(AttachedDatabaseName + ".nodes", mergeNodeColumnNames);
+            database.getColumnNamesForTable(AttachedDatabaseName + ".edges", mergeEdgeColumnNames);
             for (String columnName : mergeNodeColumnNames)
-                ensureNodeColumnExists(columnName);
+                database.addColumnIfNotExists("nodes", columnName, "TEXT");
             for (String columnName : mergeEdgeColumnNames)
-                ensureEdgeColumnExists(columnName);
+                database.addColumnIfNotExists("edges", columnName, "TEXT");
             String targetNodeColumnNamesJoined = String.join(", ", mergeNodeColumnNames);
             String targetEdgeColumnNamesJoined = String.join(", ", mergeEdgeColumnNames);
             String nodeIdOffsetSelect = "__id + " + (nextNodeId - 1);
             String edgeIdOffsetSelect = "__id + " + (nextEdgeId - 1);
             String sourceNodeColumnNamesJoined = targetNodeColumnNamesJoined.replace("__id", nodeIdOffsetSelect);
             String sourceEdgeColumnNamesJoined = targetEdgeColumnNamesJoined.replace("__id", edgeIdOffsetSelect);
-            connection.prepareStatement(
+            database.execute(
                     "INSERT INTO nodes (" + targetNodeColumnNamesJoined + ") SELECT " + sourceNodeColumnNamesJoined +
-                    " FROM " + AttachedDatabaseName + ".nodes").execute();
-            connection.prepareStatement(
+                    " FROM " + AttachedDatabaseName + ".nodes");
+            database.execute(
                     "INSERT INTO edges (" + targetEdgeColumnNamesJoined + ") SELECT " + sourceEdgeColumnNamesJoined +
-                    " FROM " + AttachedDatabaseName + ".edges").execute();
-            connection.prepareStatement("DETACH " + AttachedDatabaseName).execute();
-            connection.setAutoCommit(false);
+                    " FROM " + AttachedDatabaseName + ".edges");
+            database.execute("DETACH " + AttachedDatabaseName);
+            database.setAutoCommit(false);
         } catch (SQLException e) {
             throw new GraphCacheException("Failed to merge database '" + filePath + "'", e);
         }
-        updateReopenedIndices();
+        loadNextIds();
     }
 
     public void dispose() {
         try {
-            connection.commit();
-        } catch (SQLException ignored) {
-        }
-        try {
             insertNodeStatement.close();
             insertEdgeStatement.close();
-            connection.close();
         } catch (SQLException ignored) {
         }
+        database.dispose();
         insertNodeStatement = null;
         insertEdgeStatement = null;
-        connection = null;
+        database = null;
         nodeCache = null;
         nodeLabelIdMap = null;
     }
