@@ -19,15 +19,15 @@ class GraphTest {
     void testPack() throws ExporterException, IOException {
         Path tempFilePath = Files.createTempFile("graphdb_test", ".sqlite");
         Graph g = new Graph(tempFilePath.toString());
-        assertEquals("java.lang.String|Hello World!", g.packValue("Hello World!"));
-        assertEquals("java.lang.Integer|0", g.packValue((int) 0));
-        assertEquals("java.lang.Integer|0", g.packValue((Integer) 0));
-        assertEquals("java.lang.Long|0", g.packValue((long) 0L));
-        assertEquals("java.lang.Long|0", g.packValue((Long) 0L));
-        assertEquals("java.lang.Byte|1", g.packValue((byte) 1));
-        assertEquals("java.lang.Integer[]|0,1,2,3", g.packValue(TestIntArray));
-        assertEquals("java.lang.Integer[]|0,1,2,3", g.packValue(TestIntegerArray));
-        assertEquals("java.lang.String[]|'abc','123','\"test\",\"test2\"'", g.packValue(TestStringArray));
+        assertEquals("S|Hello World!", g.packValue("Hello World!"));
+        assertEquals("I|0", g.packValue((int) 0));
+        assertEquals("I|0", g.packValue((Integer) 0));
+        assertEquals("L|0", g.packValue((long) 0L));
+        assertEquals("L|0", g.packValue((Long) 0L));
+        assertEquals("B|1", g.packValue((byte) 1));
+        assertEquals("I[]|0,1,2,3", g.packValue(TestIntArray));
+        assertEquals("I[]|0,1,2,3", g.packValue(TestIntegerArray));
+        assertEquals("S[]|'abc','123','\"test\",\"test2\"'", g.packValue(TestStringArray));
     }
 
     @Test
