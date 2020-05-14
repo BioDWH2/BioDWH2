@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.kegg;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.kegg.etl.KeggGraphExporter;
+import de.unibi.agbi.biodwh2.kegg.etl.KeggMappingDescriber;
 import de.unibi.agbi.biodwh2.kegg.etl.KeggParser;
 import de.unibi.agbi.biodwh2.kegg.etl.KeggUpdater;
 import de.unibi.agbi.biodwh2.kegg.model.*;
@@ -39,6 +40,11 @@ public class KeggDataSource extends DataSource {
     @Override
     protected GraphExporter<KeggDataSource> getGraphExporter() {
         return new KeggGraphExporter();
+    }
+
+    @Override
+    public MappingDescriber getMappingDescriber() {
+        return new KeggMappingDescriber();
     }
 
     @Override

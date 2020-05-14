@@ -35,6 +35,9 @@ public class GraphMLGraphWriter extends GraphWriter {
         Set<Long> nodeIds = new HashSet<>();
     }
 
+    private static final String InvalidXmlChars = new String(
+            new char[]{0x01, 0x02, 0x03, 0x04, 0x08, 0x1d, 0x12, 0x14, 0x18});
+
     private long labelKeyIdCounter = 0;
     private final Map<String, String> labelKeyIdMap = new HashMap<>();
     private final List<Property> properties = new ArrayList<>();
@@ -63,10 +66,10 @@ public class GraphMLGraphWriter extends GraphWriter {
         try {
             generateProperties(graph);
             List<SubGraph> subGraphs = findSubGraphs(graph);
-            if (subGraphs.size() == 1) {
+            if (subGraphs.size() < 2) {
                 FileOutputStream outputStream = new FileOutputStream(
                         dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.GraphML));
-                writeSubGraphFile(outputStream, graph, subGraphs.get(0));
+                writeSubGraphFile(outputStream, graph, subGraphs.size() == 1 ? subGraphs.get(0) : null);
             } else {
                 int partIndex = 1;
                 for (SubGraph subGraph : subGraphs) {
@@ -329,9 +332,9 @@ public class GraphMLGraphWriter extends GraphWriter {
     }
 
     private static String replaceInvalidXmlCharacters(String s, boolean escapeQuotes) {
-        s = s.replaceAll("[\\x01\\x02\\x03\\x04\\x08\\x1d\\x12\\x14\\x18]", "");
+        s = StringUtils.replaceChars(s, InvalidXmlChars, "");
         if (escapeQuotes)
-            s = s.replace("\"", "\\\"");
+            s = StringUtils.replace(s, "\"", "\\\"");
         return s;
     }
 

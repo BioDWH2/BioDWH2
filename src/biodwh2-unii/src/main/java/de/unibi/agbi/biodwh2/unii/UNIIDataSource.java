@@ -39,6 +39,11 @@ public class UNIIDataSource extends DataSource {
     }
 
     @Override
+    public MappingDescriber getMappingDescriber() {
+        return new UNIIMappingDescriber();
+    }
+
+    @Override
     protected void unloadData() {
         uniiEntries = null;
         uniiDataEntries = null;

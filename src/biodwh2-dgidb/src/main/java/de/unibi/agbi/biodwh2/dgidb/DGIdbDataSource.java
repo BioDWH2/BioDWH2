@@ -42,6 +42,11 @@ public class DGIdbDataSource extends DataSource {
     }
 
     @Override
+    public MappingDescriber getMappingDescriber() {
+        return new DGIdbMappingDescriber();
+    }
+
+    @Override
     protected void unloadData() {
         drugs = null;
         categories = null;

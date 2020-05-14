@@ -39,6 +39,8 @@ public abstract class DataSource {
 
     protected abstract GraphExporter getGraphExporter();
 
+    public abstract MappingDescriber getMappingDescriber();
+
     void prepare(final Workspace workspace) throws DataSourceException {
         try {
             createDirectoryIfNotExists(workspace);

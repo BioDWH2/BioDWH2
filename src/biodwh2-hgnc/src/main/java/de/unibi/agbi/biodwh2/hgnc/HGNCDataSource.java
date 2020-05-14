@@ -36,6 +36,11 @@ public class HGNCDataSource extends DataSource {
     }
 
     @Override
+    public MappingDescriber getMappingDescriber() {
+        return new HGNCMappingDescriber();
+    }
+
+    @Override
     protected void unloadData() {
         genes = null;
     }

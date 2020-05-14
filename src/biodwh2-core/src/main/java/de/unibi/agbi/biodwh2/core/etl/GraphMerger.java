@@ -21,6 +21,7 @@ public class GraphMerger extends Merger {
             String intermediateGraphFilePath = dataSource.getGraphDatabaseFilePath(workspace);
             mergedGraph.mergeDatabase(intermediateGraphFilePath);
         }
+        mergedGraph.synchronize(true);
         GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
         graphMLWriter.write(outputFilePath, mergedGraph);
         mergedGraph.dispose();

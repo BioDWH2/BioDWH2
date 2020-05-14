@@ -34,6 +34,11 @@ public class NDFRTDataSource extends DataSource {
     }
 
     @Override
+    public MappingDescriber getMappingDescriber() {
+        return new NDFRTMappingDescriber();
+    }
+
+    @Override
     protected void unloadData() {
         terminology = null;
     }

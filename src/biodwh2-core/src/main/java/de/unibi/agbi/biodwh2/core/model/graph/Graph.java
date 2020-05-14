@@ -3,7 +3,6 @@ package de.unibi.agbi.biodwh2.core.model.graph;
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
 import de.unibi.agbi.biodwh2.core.io.SqliteDatabase;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -18,7 +17,7 @@ public final class Graph {
     private static final String PackedStringArraySplitter = "','";
     private static final String UnescapedQuotes = "'";
     private static final String EscapedQuotes = "''";
-    private static final String UnescapedComma = ",";
+    private static final char UnescapedComma = ',';
 
     private static final String FindNodeQueryStart = "SELECT * FROM nodes WHERE __labels='%s'";
     private static final String FindNodeIdQueryStart = "SELECT __id FROM nodes WHERE __labels='%s'";
@@ -26,8 +25,42 @@ public final class Graph {
     private static final String FindNodeIdWithoutLabelQueryStart = "SELECT __id FROM nodes";
     private static final String FindQueryParam = "%s='%s'";
     private static final String FindNullQueryParam = "%s IS NULL";
-    private static final String FindInStringArrayQueryParam = "%s LIKE '%%%s%%'";
-    private static final String FindInNonStringArrayQueryParam = "%s REGEXP '^.*\\|(.*,)?%s(,.*)?$'";
+    private static final String FindInStringArrayQueryParam = "%s REGEXP \"^.*\\|(.*,)?'%s'(,.*)?$\"";
+    private static final String FindInNonStringArrayQueryParam = "%s REGEXP \"^.*\\|(.*,)?%s(,.*)?$\"";
+
+    private static final Map<Class<?>, String> TypePackedPrefixMap = new HashMap<>();
+    private static final Map<String, Class<?>> PackedPrefixTypeMap = new HashMap<>();
+
+    static {
+        TypePackedPrefixMap.put(String.class, "S|");
+        TypePackedPrefixMap.put(int.class, "I|");
+        TypePackedPrefixMap.put(Integer.class, "I|");
+        TypePackedPrefixMap.put(long.class, "L|");
+        TypePackedPrefixMap.put(Long.class, "L|");
+        TypePackedPrefixMap.put(boolean.class, "Bo|");
+        TypePackedPrefixMap.put(Boolean.class, "Bo|");
+        TypePackedPrefixMap.put(byte.class, "B|");
+        TypePackedPrefixMap.put(Byte.class, "B|");
+        TypePackedPrefixMap.put(String[].class, "S[]|");
+        TypePackedPrefixMap.put(int[].class, "I[]|");
+        TypePackedPrefixMap.put(Integer[].class, "I[]|");
+        TypePackedPrefixMap.put(long[].class, "L[]|");
+        TypePackedPrefixMap.put(Long[].class, "L[]|");
+        TypePackedPrefixMap.put(boolean[].class, "Bo[]|");
+        TypePackedPrefixMap.put(Boolean[].class, "Bo[]|");
+        TypePackedPrefixMap.put(byte[].class, "B[]|");
+        TypePackedPrefixMap.put(Byte[].class, "B[]|");
+        PackedPrefixTypeMap.put("S|", String.class);
+        PackedPrefixTypeMap.put("I|", Integer.class);
+        PackedPrefixTypeMap.put("L|", Long.class);
+        PackedPrefixTypeMap.put("Bo|", Boolean.class);
+        PackedPrefixTypeMap.put("B|", Byte.class);
+        PackedPrefixTypeMap.put("S[]|", String[].class);
+        PackedPrefixTypeMap.put("I[]|", Integer[].class);
+        PackedPrefixTypeMap.put("L[]|", Long[].class);
+        PackedPrefixTypeMap.put("Bo[]|", Boolean[].class);
+        PackedPrefixTypeMap.put("B[]|", Byte[].class);
+    }
 
     private long nextNodeId = 1;
     private long nextEdgeId = 1;
@@ -148,85 +181,107 @@ public final class Graph {
     }
 
     String packValue(Object value) {
-        if (value.getClass() == int[].class)
-            value = ArrayUtils.toObject((int[]) value);
-        else if (value.getClass() == long[].class)
-            value = ArrayUtils.toObject((long[]) value);
-        else if (value.getClass() == boolean[].class)
-            value = ArrayUtils.toObject((boolean[]) value);
-        else if (value.getClass() == byte[].class)
-            value = ArrayUtils.toObject((byte[]) value);
-        if (value.getClass().isArray()) {
-            Class<?> valueType = value.getClass().getComponentType();
-            StringBuilder joinedArray = new StringBuilder();
-            Object[] array = (Object[]) value;
+        final String packedPrefix = getTypePackedPrefix(value.getClass());
+        if (!value.getClass().isArray())
+            return packedPrefix + value;
+        if (value instanceof int[])
+            return packedPrefix + StringUtils.join((int[]) value, UnescapedComma);
+        if (value instanceof long[])
+            return packedPrefix + StringUtils.join((long[]) value, UnescapedComma);
+        if (value instanceof byte[])
+            return packedPrefix + StringUtils.join((byte[]) value, UnescapedComma);
+        StringBuilder joinedArray = new StringBuilder();
+        if (value instanceof boolean[]) {
+            boolean[] array = (boolean[]) value;
             for (int i = 0; i < array.length; i++) {
                 if (i > 0)
                     joinedArray.append(UnescapedComma);
-                String elementValue = array[i].toString();
-                if (array[i] instanceof CharSequence)
-                    joinedArray.append(UnescapedQuotes).append(elementValue.replace(UnescapedQuotes, EscapedQuotes))
-                               .append(UnescapedQuotes);
-                else
-                    joinedArray.append(elementValue);
+                joinedArray.append(array[i]);
             }
-            return valueType.getName() + "[]|" + joinedArray;
+            return packedPrefix + joinedArray;
         }
-        return value.getClass().getName() + "|" + value;
+        Object[] array = (Object[]) value;
+        if (array.length == 0)
+            return packedPrefix;
+        if (array[0] instanceof CharSequence) {
+            joinedArray.append(UnescapedQuotes).append(array[0].toString().replace(UnescapedQuotes, EscapedQuotes));
+            for (int i = 1; i < array.length; i++) {
+                joinedArray.append(PackedStringArraySplitter);
+                joinedArray.append(array[i].toString().replace(UnescapedQuotes, EscapedQuotes));
+            }
+            joinedArray.append(UnescapedQuotes);
+        } else {
+            joinedArray.append(array[0].toString());
+            for (int i = 1; i < array.length; i++)
+                joinedArray.append(UnescapedComma).append(array[i].toString());
+        }
+        return packedPrefix + joinedArray;
+    }
+
+    private String getTypePackedPrefix(Class<?> type) {
+        if (!TypePackedPrefixMap.containsKey(type)) {
+            String prefix = type.isArray() ? type.getComponentType().getName() + "[]|" : type.getName() + "|";
+            TypePackedPrefixMap.put(type, prefix);
+            PackedPrefixTypeMap.put(prefix, type);
+        }
+        return TypePackedPrefixMap.get(type);
     }
 
     Object unpackValue(String packedValue) throws GraphCacheException {
-        int typeEndIndex = packedValue.indexOf("|");
+        int prefixEndIndex = packedValue.indexOf("|") + 1;
+        Class<?> type;
         try {
-            String typeName = packedValue.substring(0, typeEndIndex);
-            String value = packedValue.substring(typeEndIndex + 1);
-            Class<?> type = typeName.endsWith("[]") ? Class.forName(
-                    "[L" + typeName.substring(0, typeName.length() - 2) + ";") : Class.forName(typeName);
-            if (type == String.class)
-                return value;
-            if (ClassUtils.isPrimitiveOrWrapper(type)) {
-                if (type == Integer.class)
-                    return Integer.parseInt(value);
-                if (type == Long.class)
-                    return Long.parseLong(value);
-                if (type == Boolean.class)
-                    return Boolean.parseBoolean(value);
-                if (type == Byte.class)
-                    return Byte.parseByte(value);
-            }
-            if (type.isArray()) {
-                Class<?> valueType = type.getComponentType();
-                if (value.length() == 0)
-                    return java.lang.reflect.Array.newInstance(valueType, 0);
-                String[] parts;
-                if (valueType == String.class)
-                    parts = StringUtils.splitByWholeSeparator(value, PackedStringArraySplitter);
-                else
-                    parts = StringUtils.splitByWholeSeparator(value, UnescapedComma);
-                Object[] array = (Object[]) java.lang.reflect.Array.newInstance(valueType, parts.length);
-                if (valueType == String.class)
-                    for (int i = 0; i < parts.length; i++)
-                        array[i] = StringUtils.strip(parts[i], UnescapedQuotes).replace(EscapedQuotes, UnescapedQuotes);
-                if (ClassUtils.isPrimitiveOrWrapper(valueType)) {
-                    if (valueType == Integer.class)
-                        for (int i = 0; i < parts.length; i++)
-                            array[i] = Integer.parseInt(parts[i]);
-                    if (valueType == Long.class)
-                        for (int i = 0; i < parts.length; i++)
-                            array[i] = Long.parseLong(parts[i]);
-                    if (valueType == Boolean.class)
-                        for (int i = 0; i < parts.length; i++)
-                            array[i] = Boolean.parseBoolean(parts[i]);
-                    if (valueType == Byte.class)
-                        for (int i = 0; i < parts.length; i++)
-                            array[i] = Byte.parseByte(parts[i]);
-                }
-                return array;
-            }
+            type = getPackedPrefixType(packedValue.substring(0, prefixEndIndex));
         } catch (ClassNotFoundException e) {
             throw new GraphCacheException("Failed to persist graph", e);
         }
+        String value = packedValue.substring(prefixEndIndex);
+        if (type == String.class)
+            return value;
+        if (type == Integer.class)
+            return Integer.parseInt(value);
+        if (type == Long.class)
+            return Long.parseLong(value);
+        if (type == Boolean.class)
+            return Boolean.parseBoolean(value);
+        if (type == Byte.class)
+            return Byte.parseByte(value);
+        if (type.isArray()) {
+            Class<?> valueType = type.getComponentType();
+            if (value.length() == 0)
+                return java.lang.reflect.Array.newInstance(valueType, 0);
+            if (valueType == String.class) {
+                value = value.substring(1, value.length() - 1).replace(EscapedQuotes, UnescapedQuotes);
+                return StringUtils.splitByWholeSeparator(value, PackedStringArraySplitter);
+            }
+            String[] parts = StringUtils.split(value, UnescapedComma);
+            Object[] array = (Object[]) java.lang.reflect.Array.newInstance(valueType, parts.length);
+            if (valueType == Integer.class)
+                for (int i = 0; i < parts.length; i++)
+                    array[i] = Integer.parseInt(parts[i]);
+            else if (valueType == Long.class)
+                for (int i = 0; i < parts.length; i++)
+                    array[i] = Long.parseLong(parts[i]);
+            else if (valueType == Boolean.class)
+                for (int i = 0; i < parts.length; i++)
+                    array[i] = Boolean.parseBoolean(parts[i]);
+            else if (valueType == Byte.class)
+                for (int i = 0; i < parts.length; i++)
+                    array[i] = Byte.parseByte(parts[i]);
+            return array;
+        }
         return null;
+    }
+
+    private Class<?> getPackedPrefixType(String prefix) throws ClassNotFoundException {
+        if (!PackedPrefixTypeMap.containsKey(prefix)) {
+            String typeName = prefix.substring(0, prefix.length() - 1);
+            Class<?> type = typeName.endsWith("[]") ? Class.forName(
+                    "[L" + typeName.substring(0, typeName.length() - 2) + ";") : Class.forName(typeName);
+            TypePackedPrefixMap.put(type, prefix);
+            PackedPrefixTypeMap.put(prefix, type);
+        }
+        return PackedPrefixTypeMap.get(prefix);
     }
 
     public void synchronize(boolean force) throws GraphCacheException {
@@ -329,7 +384,7 @@ public final class Graph {
 
     public Iterable<Node> getNodes() throws GraphCacheException {
         try {
-            return database.iterateTable("edges", this::createNodeFromResultSet);
+            return database.iterateTable("nodes", this::createNodeFromResultSet);
         } catch (SQLException e) {
             throw new GraphCacheException("Failed to load nodes from persisted graph", e);
         }
@@ -366,28 +421,11 @@ public final class Graph {
     }
 
     private Node findNode(String label, String[] propertyNames, Object[] values, boolean[] inArrays) {
-        Node memoryNode = findNodeInMemory(label, propertyNames, values);
-        if (memoryNode != null)
-            return memoryNode;
-        StringBuilder sql = new StringBuilder(
-                label != null ? String.format(FindNodeQueryStart, label) : FindNodeWithoutLabelQueryStart);
-        boolean addedCondition = label != null;
-        for (int i = 0; i < values.length; i++) {
-            sql.append(addedCondition ? " AND " : " WHERE ");
-            addedCondition = true;
-            if (values[i] != null) {
-                String packedValue = StringUtils.replace(packValue(values[i]), UnescapedQuotes, EscapedQuotes);
-                if (inArrays[i]) {
-                    if (values[i].getClass() == String.class)
-                        sql.append(String.format(FindInStringArrayQueryParam, propertyNames[i], packedValue));
-                    else
-                        sql.append(String.format(FindInNonStringArrayQueryParam, propertyNames[i], packedValue));
-                } else
-                    sql.append(String.format(FindQueryParam, propertyNames[i], packedValue));
-            } else
-                sql.append(String.format(FindNullQueryParam, propertyNames[i]));
-        }
-        try (ResultSet result = database.executeQuery(sql.toString())) {
+        List<Node> memoryNodes = findNodesInMemory(label, propertyNames, values, inArrays, 1);
+        if (memoryNodes != null)
+            return memoryNodes.get(0);
+        String sql = getFindNodeQuery(false, label, propertyNames, values, inArrays);
+        try (ResultSet result = database.executeQuery(sql)) {
             if (result.next()) {
                 Node node = createNodeFromResultSet(result);
                 addNodeToMemoryCache(node);
@@ -400,43 +438,136 @@ public final class Graph {
         return null;
     }
 
-    private Node findNodeInMemory(String label, String[] propertyNames, Object[] values) {
+    private List<Node> findNodesInMemory(final String label, final String[] propertyNames, final Object[] values,
+                                         final boolean[] inArrays, final int limit) {
+        List<Node> result = new ArrayList<>();
         if (label == null) {
-            for (Node n : nodeCache.values()) {
-                boolean success = true;
-                for (int i = 0; i < propertyNames.length; i++)
-                    if (!n.hasProperty(propertyNames[i]) || !Objects.equals(values[i], n.getProperty(propertyNames[i])))
-                        success = false;
-                if (success)
-                    return n;
-            }
-        } else if (nodeLabelIdMap.containsKey(label))
+            for (Node n : nodeCache.values())
+                if (nodeMatchesSearchCriteria(n, propertyNames, values, inArrays)) {
+                    result.add(n);
+                    if (limit != -1 && result.size() == limit)
+                        break;
+                }
+        } else if (nodeLabelIdMap.containsKey(label)) {
+            Node n;
             for (Long nodeId : nodeLabelIdMap.get(label)) {
-                Node n = nodeCache.get(nodeId);
-                boolean success = true;
-                for (int i = 0; i < propertyNames.length; i++)
-                    if (!n.hasProperty(propertyNames[i]) || !Objects.equals(values[i], n.getProperty(propertyNames[i])))
-                        success = false;
-                if (success)
-                    return n;
+                n = nodeCache.get(nodeId);
+                if (nodeMatchesSearchCriteria(n, propertyNames, values, inArrays)) {
+                    result.add(n);
+                    if (limit != -1 && result.size() == limit)
+                        break;
+                }
             }
-        return null;
+        }
+        return result.size() > 0 ? result : null;
+    }
+
+    private static boolean nodeMatchesSearchCriteria(final Node node, final String[] propertyNames,
+                                                     final Object[] values, final boolean[] inArrays) {
+        for (int i = 0; i < propertyNames.length; i++) {
+            if (!node.hasProperty(propertyNames[i]))
+                return false;
+            if (!inArrays[i] && !Objects.equals(values[i], node.getProperty(propertyNames[i])))
+                return false;
+            if (inArrays[i]) {
+                Set<Object> set = new HashSet<>();
+                Collections.addAll(set, node.getProperty(propertyNames[i]));
+                if (!set.contains(values[i]))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    private String getFindNodeQuery(boolean idOnly, String label, String[] propertyNames, Object[] values,
+                                    boolean[] inArrays) {
+        StringBuilder sql = new StringBuilder();
+        if (label != null)
+            sql.append(String.format(idOnly ? FindNodeIdQueryStart : FindNodeQueryStart, label));
+        else
+            sql.append(idOnly ? FindNodeIdWithoutLabelQueryStart : FindNodeWithoutLabelQueryStart);
+        boolean addedCondition = label != null;
+        for (int i = 0; i < values.length; i++) {
+            sql.append(addedCondition ? " AND " : " WHERE ");
+            addedCondition = true;
+            if (values[i] != null) {
+                String packedValue = StringUtils.replace(packValue(values[i]), UnescapedQuotes, EscapedQuotes);
+                if (inArrays[i]) {
+                    String packedArrayValue = StringUtils.replace(values[i].toString(), UnescapedQuotes, EscapedQuotes);
+                    if (values[i].getClass() == String.class)
+                        sql.append(String.format(FindInStringArrayQueryParam, propertyNames[i], packedArrayValue));
+                    else
+                        sql.append(String.format(FindInNonStringArrayQueryParam, propertyNames[i], packedArrayValue));
+                } else
+                    sql.append(String.format(FindQueryParam, propertyNames[i], packedValue));
+            } else
+                sql.append(String.format(FindNullQueryParam, propertyNames[i]));
+        }
+        return sql.toString();
     }
 
     private Node createNodeFromResultSet(ResultSet result) throws GraphCacheException {
         try {
-            Node node = new Node(this, result.getLong("__id"), false, result.getString("__labels").split(";"));
+            String[] labels = StringUtils.split(result.getString("__labels"), ';');
+            Node node = new Node(this, result.getLong("__id"), false, labels);
             for (int i = 3; i <= result.getMetaData().getColumnCount(); i++) {
                 String value = result.getString(i);
                 if (value != null) {
                     Object unpackedValue = unpackValue(StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
-                    node.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false, false);
+                    node.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false, false, false);
                 }
             }
             return node;
         } catch (SQLException e) {
             throw new GraphCacheException("Failed to load node from persisted graph", e);
         }
+    }
+
+    @SuppressWarnings("unused")
+    public List<Node> findNodes(String label, String propertyName, Object value) {
+        return findNodes(label, propertyName, value, false);
+    }
+
+    @SuppressWarnings("unused")
+    public List<Node> findNodes(String label, String propertyName1, Object value1, String propertyName2,
+                                Object value2) {
+        return findNodes(label, new String[]{propertyName1, propertyName2}, new Object[]{value1, value2},
+                         new boolean[]{false, false});
+    }
+
+    @SuppressWarnings("unused")
+    public List<Node> findNodes(String label, String propertyName1, Object value1, String propertyName2, Object value2,
+                                String propertyName3, Object value3) {
+        return findNodes(label, new String[]{propertyName1, propertyName2, propertyName3},
+                         new Object[]{value1, value2, value3}, new boolean[]{false, false, false});
+    }
+
+    public List<Node> findNodes(String label, String propertyName, Object value, boolean inArray) {
+        return findNodes(label, new String[]{propertyName}, new Object[]{value}, new boolean[]{inArray});
+    }
+
+    private List<Node> findNodes(String label, String[] propertyNames, Object[] values, boolean[] inArrays) {
+        List<Node> nodes = findNodesInMemory(label, propertyNames, values, inArrays, -1);
+        if (nodes == null)
+            nodes = new ArrayList<>();
+        String sql = getFindNodeQuery(false, label, propertyNames, values, inArrays);
+        try (ResultSet result = database.executeQuery(sql)) {
+            while (result.next()) {
+                Node node = createNodeFromResultSet(result);
+                boolean alreadyAdded = false;
+                for (Node foundNode : nodes)
+                    if (foundNode.getId() == node.getId()) {
+                        alreadyAdded = true;
+                        break;
+                    }
+                if (!alreadyAdded) {
+                    addNodeToMemoryCache(node);
+                    nodes.add(node);
+                }
+            }
+        } catch (SQLException | GraphCacheException ignored) {
+        }
+        return nodes.size() > 0 ? nodes : null;
     }
 
     public Long findNodeId(String label, String propertyName, Object value) {
@@ -461,29 +592,12 @@ public final class Graph {
     }
 
     private Long findNodeId(String label, String[] propertyNames, Object[] values, boolean[] inArrays) {
-        Node memoryNode = findNodeInMemory(label, propertyNames, values);
-        if (memoryNode != null)
-            return memoryNode.getId();
-        StringBuilder sql = new StringBuilder(
-                label != null ? String.format(FindNodeIdQueryStart, label) : FindNodeIdWithoutLabelQueryStart);
-        boolean addedCondition = label != null;
-        for (int i = 0; i < values.length; i++) {
-            sql.append(addedCondition ? " AND " : " WHERE ");
-            addedCondition = true;
-            if (values[i] != null) {
-                String packedValue = StringUtils.replace(packValue(values[i]), UnescapedQuotes, EscapedQuotes);
-                if (inArrays[i]) {
-                    if (values[i].getClass() == String.class)
-                        sql.append(String.format(FindInStringArrayQueryParam, propertyNames[i], packedValue));
-                    else
-                        sql.append(String.format(FindInNonStringArrayQueryParam, propertyNames[i], packedValue));
-                } else
-                    sql.append(String.format(FindQueryParam, propertyNames[i], packedValue));
-            } else
-                sql.append(String.format(FindNullQueryParam, propertyNames[i]));
-        }
+        List<Node> memoryNodes = findNodesInMemory(label, propertyNames, values, inArrays, 1);
+        if (memoryNodes != null)
+            return memoryNodes.get(0).getId();
+        String sql = getFindNodeQuery(true, label, propertyNames, values, inArrays);
         Long id = null;
-        try (ResultSet result = database.executeQuery(sql.toString())) {
+        try (ResultSet result = database.executeQuery(sql)) {
             if (result.next())
                 id = result.getLong(1);
             if (result.next())
@@ -520,6 +634,14 @@ public final class Graph {
 
     public long getNumberOfNodes() {
         return nextNodeId - 1;
+    }
+
+    public void mergeNodes(Node first, Node second) {
+        executeSql("UPDATE edges SET __from_id=" + first.getId() + " WHERE __from_id=" + second.getId());
+        executeSql("UPDATE edges SET __to_id=" + first.getId() + " WHERE __to_id=" + second.getId());
+        // TODO: properties
+        nodeCache.remove(second.getId());
+        executeSql("DELETE FROM nodes WHERE __id=" + second.getId());
     }
 
     public void mergeDatabase(final String filePath) throws GraphCacheException {

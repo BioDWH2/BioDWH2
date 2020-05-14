@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import de.unibi.agbi.biodwh2.core.etl.GraphMapper;
 import de.unibi.agbi.biodwh2.core.etl.GraphMerger;
 import de.unibi.agbi.biodwh2.core.etl.RDFMerger;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
@@ -223,8 +224,14 @@ public final class Workspace {
     private void mergeGraphMLDataSources() {
         try {
             new GraphMerger().merge(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GraphML));
+            new GraphMapper().map(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GraphML),
+                                  getMappedOutputFilePath(GraphFileFormat.GraphML));
         } catch (MergerException e) {
             logger.error("Failed to merge GraphML data sources", e);
         }
+    }
+
+    private String getMappedOutputFilePath(final GraphFileFormat format) {
+        return Paths.get(getSourcesDirectory(), "mapped." + format.extension).toString();
     }
 }

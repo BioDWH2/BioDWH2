@@ -14,6 +14,10 @@ public class Mock1GraphExporter extends GraphExporter<Mock1DataSource> {
         graph.setIndexColumnNames("hgnc_id");
         Node node = createNode(graph, "Gene");
         node.setProperty("hgnc_id", "TLR4");
+        node.setProperty("array_test", new String[]{"value1", "value2", "value3"});
+        node.setProperty("string_test", "value1");
+        node.setProperty("int_test", 10);
+        node.setProperty("bool_test", true);
         node.setProperty("test_type_mismatch", 10);
         node = createNode(graph, "Gene");
         node.setProperty("hgnc_id", "IL10");

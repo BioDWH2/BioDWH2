@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class Node {
     private static final Logger logger = LoggerFactory.getLogger(Graph.class);
@@ -56,23 +57,27 @@ public class Node {
         return (T) properties.get(key);
     }
 
-    public void setProperty(String key, Object value) throws GraphCacheException {
-        setProperty(key, value, true, true);
+    public void setProperty(final String key, final Object value) throws GraphCacheException {
+        setProperty(key, value, true, true, true);
     }
 
-    void setProperty(String key, Object value, boolean persist, boolean modified) throws GraphCacheException {
+    void setProperty(final String key, final Object value, final boolean persist, final boolean modified,
+                     final boolean checkType) throws GraphCacheException {
         this.modified = modified;
         if (value != null) {
-            Class<?> valueType = value.getClass();
-            if (valueType.isArray())
-                valueType = valueType.getComponentType();
-            if (ClassUtils.isPrimitiveOrWrapper(valueType) || valueType == String.class)
+            if (checkType) {
+                Class<?> valueType = value.getClass();
+                if (valueType.isArray())
+                    valueType = valueType.getComponentType();
+                if (ClassUtils.isPrimitiveOrWrapper(valueType) || valueType == String.class)
+                    properties.put(key, value);
+                else {
+                    logger.warn("Type '" + valueType.toString() + "' is not allowed as a node property. Using the " +
+                                "toString representation for now '" + value.toString() + "'");
+                    properties.put(key, value.toString());
+                }
+            } else
                 properties.put(key, value);
-            else {
-                logger.warn("Type '" + valueType.toString() + "' is not allowed as a node property. Using the " +
-                            "toString representation for now '" + value.toString() + "'");
-                properties.put(key, value.toString());
-            }
             if (persist)
                 graph.setNodeProperty(this, key, value);
         } else
@@ -81,5 +86,20 @@ public class Node {
 
     public boolean hasProperty(String propertyName) {
         return properties.containsKey(propertyName);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Node node = (Node) o;
+        return id == node.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

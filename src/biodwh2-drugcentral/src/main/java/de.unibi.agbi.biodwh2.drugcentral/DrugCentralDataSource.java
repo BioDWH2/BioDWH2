@@ -31,6 +31,11 @@ public class DrugCentralDataSource extends DataSource {
     }
 
     @Override
+    public MappingDescriber getMappingDescriber() {
+        return new DrugCentralMappingDescriber();
+    }
+
+    @Override
     protected void unloadData() {
     }
 }

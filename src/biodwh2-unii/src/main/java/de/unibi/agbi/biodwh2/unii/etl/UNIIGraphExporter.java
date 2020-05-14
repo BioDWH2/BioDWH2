@@ -23,28 +23,14 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
             uniiEntriesMap.get(entry.unii).add(entry);
         }
         for (String unii : uniiEntriesMap.keySet())
-            createUniiNode(graph, uniiEntriesMap.get(unii), dataSource.uniiDataEntries.get(unii));
+            createUNIINode(graph, uniiEntriesMap.get(unii), dataSource.uniiDataEntries.get(unii));
         return true;
     }
 
-    private void createUniiNode(final Graph graph, final List<UNIIEntry> entries, final UNIIDataEntry dataEntry) {
-        Node uniiNode = createNode(graph, "UNII");
-        uniiNode.setProperty("id", dataEntry.unii);
-        uniiNode.setProperty("cas", dataEntry.rn);
-        uniiNode.setProperty("ec", dataEntry.ec);
-        uniiNode.setProperty("ncit", dataEntry.ncit);
-        uniiNode.setProperty("rx_cui", dataEntry.rxCui);
-        uniiNode.setProperty("pubchem_cid", dataEntry.pubchem);
-        uniiNode.setProperty("itis_taxonomy_id", dataEntry.itis);
-        uniiNode.setProperty("ncbi_taxonomy_organism_id", dataEntry.ncbi);
-        uniiNode.setProperty("usda_plants_organism_id", dataEntry.plants);
-        uniiNode.setProperty("usda_grin_nomen_id", dataEntry.grin);
-        uniiNode.setProperty("mpns", dataEntry.mpns);
-        uniiNode.setProperty("inn_id", dataEntry.innId);
-        uniiNode.setProperty("molecular_formula", dataEntry.mf);
-        uniiNode.setProperty("inchi_key", dataEntry.inchikey);
-        uniiNode.setProperty("smiles", dataEntry.smiles);
-        uniiNode.setProperty("ingredient_Type", dataEntry.ingredientType);
+    private void createUNIINode(final Graph graph, final List<UNIIEntry> entries,
+                                final UNIIDataEntry dataEntry) throws ExporterException {
+        Node uniiNode = createNodeFromModel(graph, dataEntry);
+        // TODO: dataEntry.pt
         uniiNode.setProperty("name", entries.get(0).displayName);
         uniiNode.setProperty("official_names", getNameArrayOfTypeFromEntries(entries, "of"));
         uniiNode.setProperty("systematic_names", getNameArrayOfTypeFromEntries(entries, "sys"));

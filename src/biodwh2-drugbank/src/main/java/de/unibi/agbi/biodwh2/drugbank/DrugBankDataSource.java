@@ -38,6 +38,11 @@ public class DrugBankDataSource extends DataSource {
     }
 
     @Override
+    public MappingDescriber getMappingDescriber() {
+        return new DrugBankMappingDescriber();
+    }
+
+    @Override
     protected void unloadData() {
         drugBankData = null;
         metabolites = null;

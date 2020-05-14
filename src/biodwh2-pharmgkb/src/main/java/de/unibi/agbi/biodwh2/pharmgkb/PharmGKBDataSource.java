@@ -53,6 +53,11 @@ public class PharmGKBDataSource extends DataSource {
     }
 
     @Override
+    public MappingDescriber getMappingDescriber() {
+        return new PharmGKBMappingDescriber();
+    }
+
+    @Override
     protected void unloadData() {
         genes = null;
         chemicals = null;

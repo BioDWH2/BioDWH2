@@ -31,6 +31,11 @@ public class Mock1DataSource extends DataSource {
     }
 
     @Override
+    public MappingDescriber getMappingDescriber() {
+        return new Mock1MappingDescriber();
+    }
+
+    @Override
     protected void unloadData() {
     }
 }

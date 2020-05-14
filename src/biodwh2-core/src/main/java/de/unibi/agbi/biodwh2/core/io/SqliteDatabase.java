@@ -107,13 +107,12 @@ public final class SqliteDatabase {
 
     public <T> Iterable<T> iterateTable(final String tableName,
                                         final Function<ResultSet, T> mapCallback) throws SQLException {
-        ResultSet result;
-        result = executeQuery("SELECT * FROM " + tableName);
+        ResultSet result = executeQuery("SELECT * FROM " + tableName);
         return () -> new Iterator<T>() {
             @Override
             public boolean hasNext() {
                 try {
-                    if (!result.isAfterLast())
+                    if (result.next())
                         return true;
                     result.close();
                 } catch (SQLException e) {
@@ -124,12 +123,7 @@ public final class SqliteDatabase {
 
             @Override
             public T next() {
-                try {
-                    result.next();
-                    return mapCallback.apply(result);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
+                return mapCallback.apply(result);
             }
         };
     }
