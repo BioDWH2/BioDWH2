@@ -68,7 +68,7 @@ public final class Graph {
     private PreparedStatement insertNodeStatement;
     private PreparedStatement insertEdgeStatement;
     private Map<Long, Node> nodeCache;
-    private Map<String, List<Long>> nodeLabelIdMap;
+    private Map<String, Set<Long>> nodeLabelIdMap;
     private long maxDumpedId = 0;
     private String[] indexColumnNames = new String[0];
 
@@ -334,7 +334,7 @@ public final class Graph {
         }
         maxDumpedId = maxId;
         nodeCache.clear();
-        nodeLabelIdMap.replaceAll((l, v) -> new ArrayList<>());
+        nodeLabelIdMap.replaceAll((l, v) -> new HashSet<>());
         tryCommit();
     }
 
@@ -350,7 +350,7 @@ public final class Graph {
         nodeCache.put(node.getId(), node);
         for (String label : node.getLabels()) {
             if (!nodeLabelIdMap.containsKey(label))
-                nodeLabelIdMap.put(label, new ArrayList<>());
+                nodeLabelIdMap.put(label, new HashSet<>());
             nodeLabelIdMap.get(label).add(node.getId());
         }
     }
@@ -467,14 +467,10 @@ public final class Graph {
         for (int i = 0; i < propertyNames.length; i++) {
             if (!node.hasProperty(propertyNames[i]))
                 return false;
-            if (!inArrays[i] && !Objects.equals(values[i], node.getProperty(propertyNames[i])))
+            if (!inArrays[i] && !node.propertyEquals(propertyNames[i], values[i]))
                 return false;
-            if (inArrays[i]) {
-                Set<Object> set = new HashSet<>();
-                Collections.addAll(set, node.getProperty(propertyNames[i]));
-                if (!set.contains(values[i]))
-                    return false;
-            }
+            if (inArrays[i] && !node.propertyArrayContains(propertyNames[i], values[i]))
+                return false;
         }
         return true;
     }
@@ -634,6 +630,21 @@ public final class Graph {
 
     public long getNumberOfNodes() {
         return nextNodeId - 1;
+    }
+
+    public Node getNode(long id) {
+        if (nodeCache.containsKey(id))
+            return nodeCache.get(id);
+        String sql = "SELECT * FROM nodes WHERE __id=" + id;
+        try (ResultSet result = database.executeQuery(sql)) {
+            if (result.next()) {
+                Node node = createNodeFromResultSet(result);
+                addNodeToMemoryCache(node);
+                return node;
+            }
+        } catch (SQLException | GraphCacheException ignored) {
+        }
+        return null;
     }
 
     public void mergeNodes(Node first, Node second) {

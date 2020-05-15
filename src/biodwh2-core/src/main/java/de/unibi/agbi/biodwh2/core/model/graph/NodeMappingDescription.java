@@ -2,10 +2,7 @@ package de.unibi.agbi.biodwh2.core.model.graph;
 
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public final class NodeMappingDescription {
     public enum NodeType {
@@ -26,6 +23,14 @@ public final class NodeMappingDescription {
         if (!identifier.containsKey(type))
             identifier.put(type, new HashSet<>());
         identifier.get(type).add(value);
+    }
+
+    public List<String> getIdentifiers() {
+        List<String> result = new ArrayList<>();
+        for (IdentifierType identifierType : identifier.keySet())
+            for (String id : identifier.get(identifierType))
+                result.add(identifierType.prefix + ":" + id);
+        return result;
     }
 
     public boolean matches(NodeMappingDescription other) {

@@ -5,10 +5,7 @@ import org.apache.commons.lang3.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Node {
     private static final Logger logger = LoggerFactory.getLogger(Graph.class);
@@ -17,6 +14,7 @@ public class Node {
     private final long id;
     private final String[] labels;
     private final Map<String, Object> properties;
+    private final Map<String, Set<?>> propertiesSetCache;
     private boolean modified;
 
     Node(Graph graph, long id, boolean modified, String... labels) {
@@ -25,6 +23,7 @@ public class Node {
         this.modified = modified;
         this.labels = labels;
         properties = new HashMap<>();
+        propertiesSetCache = new HashMap<>();
     }
 
     public long getId() {
@@ -82,10 +81,24 @@ public class Node {
                 graph.setNodeProperty(this, key, value);
         } else
             properties.put(key, null);
+        propertiesSetCache.remove(key);
     }
 
-    public boolean hasProperty(String propertyName) {
+    public boolean hasProperty(final String propertyName) {
         return properties.containsKey(propertyName);
+    }
+
+    public <T> boolean propertyEquals(final String propertyName, final T value) {
+        return Objects.equals(value, properties.get(propertyName));
+    }
+
+    public <T> boolean propertyArrayContains(final String propertyName, final T value) {
+        if (!propertiesSetCache.containsKey(propertyName)) {
+            Set<Object> set = new HashSet<>();
+            Collections.addAll(set, properties.get(propertyName));
+            propertiesSetCache.put(propertyName, set);
+        }
+        return propertiesSetCache.get(propertyName).contains(value);
     }
 
     @Override

@@ -43,40 +43,39 @@ public class PharmGKBParser extends Parser<PharmGKBDataSource> {
             if (filePath.contains("pathways") && zipEntryName.startsWith("PA")) {
                 List<Pathway> tmpList = parseTSV(stream, Pathway.class);
                 dataSource.pathways.put(zipEntry.getName().split("\\.")[0], tmpList);
-            } else if (zipEntryName.equals("chemicals.tsv")) {
+            } else if (zipEntryName.equals("chemicals.tsv"))
                 dataSource.chemicals = parseTSV(stream, Chemical.class);
-            } else if (zipEntryName.equals("drugs.tsv")) {
+            else if (zipEntryName.equals("drugs.tsv"))
                 dataSource.drugs = parseTSV(stream, Drug.class);
-            } else if (zipEntryName.equals("genes.tsv")) {
+            else if (zipEntryName.equals("genes.tsv"))
                 dataSource.genes = parseTSV(stream, Gene.class);
-            } else if (zipEntryName.equals("phenotypes.tsv")) {
+            else if (zipEntryName.equals("phenotypes.tsv"))
                 dataSource.phenotyps = parseTSV(stream, Phenotype.class);
-            } else if (zipEntryName.equals("variants.tsv")) {
+            else if (zipEntryName.equals("variants.tsv"))
                 dataSource.variants = parseTSV(stream, Variant.class);
-            } else if (zipEntryName.equals("clinical_ann.tsv")) {
+            else if (zipEntryName.equals("clinical_ann.tsv"))
                 dataSource.clinicalAnnotations = parseTSV(stream, ClinicalAnnotation.class);
-            } else if (zipEntryName.equals("clinical_ann_metadata.tsv")) {
+            else if (zipEntryName.equals("clinical_ann_metadata.tsv"))
                 dataSource.clinicalAnnotationMetadata = parseTSV(stream, ClinicalAnnotationMetadata.class);
-            } else if (zipEntryName.equals("study_parameters.tsv")) {
+            else if (zipEntryName.equals("study_parameters.tsv"))
                 dataSource.studyParameters = parseTSV(stream, StudyParameters.class);
-            } else if (zipEntryName.equals("var_drug_ann.tsv")) {
+            else if (zipEntryName.equals("var_drug_ann.tsv"))
                 dataSource.variantDrugAnnotations = parseTSV(stream, VariantDrugAnnotation.class);
-            } else if (zipEntryName.equals("var_fa_ann.tsv")) {
+            else if (zipEntryName.equals("var_fa_ann.tsv"))
                 dataSource.variantFunctionalAnalysisAnnotations = parseTSV(stream,
                                                                            VariantFunctionalAnalysisAnnotation.class);
-            } else if (zipEntryName.equals("var_pheno_ann.tsv")) {
+            else if (zipEntryName.equals("var_pheno_ann.tsv"))
                 dataSource.variantPhenotypeAnnotations = parseTSV(stream, VariantPhenotypeAnnotation.class);
-            } else if (zipEntryName.equals("automated_annotations.tsv")) {
+            else if (zipEntryName.equals("automated_annotations.tsv"))
                 dataSource.automatedAnnotations = parseTSV(stream, AutomatedAnnotation.class);
-            } else if (zipEntryName.equals("clinicalVariants.tsv")) {
+            else if (zipEntryName.equals("clinicalVariants.tsv"))
                 dataSource.clinicalVariants = parseTSV(stream, ClinicalVariant.class);
-            } else if (zipEntryName.equals("drugLabels.byGene.tsv")) {
+            else if (zipEntryName.equals("drugLabels.byGene.tsv"))
                 dataSource.drugLabelsByGenes = parseTSV(stream, DrugLabelsByGene.class);
-            } else if (zipEntryName.equals("drugLabels.tsv")) {
+            else if (zipEntryName.equals("drugLabels.tsv"))
                 dataSource.drugLabels = parseTSV(stream, DrugLabel.class);
-            } else if (zipEntryName.equals("occurrences.tsv")) {
+            else if (zipEntryName.equals("occurrences.tsv"))
                 dataSource.occurrences = parseTSV(stream, Occurrence.class);
-            }
         }
     }
 

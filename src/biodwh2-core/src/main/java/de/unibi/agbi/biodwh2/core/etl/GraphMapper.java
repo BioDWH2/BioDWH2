@@ -3,7 +3,6 @@ package de.unibi.agbi.biodwh2.core.etl;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
-import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeMappingDescription;
@@ -19,12 +18,13 @@ public final class GraphMapper extends Mapper {
         final Map<String, MappingDescriber> dataSourceDescriberMap = new HashMap<>();
         for (DataSource dataSource : dataSources)
             dataSourceDescriberMap.put(dataSource.getId(), dataSource.getMappingDescriber());
+        final Map<String, Set<Long>> idNodeIdMap = new HashMap<>();
         for (Node node : inputGraph.getNodes()) {
             String dataSourceId = StringUtils.split(node.getLabels()[0], "_")[0];
             NodeMappingDescription mappingDescription = dataSourceDescriberMap.get(dataSourceId).describe(inputGraph,
                                                                                                           node);
             if (mappingDescription != null)
-                mergeMatchingNodes(outputGraph, mappingDescription);
+                mergeMatchingNodes(outputGraph, mappingDescription, idNodeIdMap);
         }
         inputGraph.dispose();
         outputGraph.synchronize(true);
@@ -33,29 +33,35 @@ public final class GraphMapper extends Mapper {
         outputGraph.dispose();
     }
 
-    private void mergeMatchingNodes(final Graph graph, final NodeMappingDescription description) {
-        Set<Node> matchedNodes = new HashSet<>();
-        Set<String> ids = new HashSet<>();
-        for (IdentifierType identifierType : description.identifier.keySet())
-            for (String id : description.identifier.get(identifierType))
-                ids.add(identifierType.prefix + ":" + id);
-        for (String id : ids) {
-            List<Node> nodes = graph.findNodes(description.type.toString(), "ids", id, true);
-            if (nodes != null)
-                matchedNodes.addAll(nodes);
-        }
+    private void mergeMatchingNodes(final Graph graph, final NodeMappingDescription description,
+                                    final Map<String, Set<Long>> idNodeIdMap) {
+        Set<String> ids = new HashSet<>(description.getIdentifiers());
+        Set<Long> matchedNodeIds = new HashSet<>();
+        for (String id : ids)
+            if (idNodeIdMap.containsKey(id))
+                matchedNodeIds.addAll(idNodeIdMap.get(id));
         Node mergedNode = null;
-        if (matchedNodes.size() == 0) {
+        if (matchedNodeIds.size() == 0)
             mergedNode = graph.addNode(description.type.toString());
-        } else {
-            for (Node node : matchedNodes)
+        else {
+            for (Long nodeId : matchedNodeIds) {
+                Node matchedNode = graph.getNode(nodeId);
+                String[] nodeIds = matchedNode.getProperty("ids");
+                Collections.addAll(ids, nodeIds);
                 if (mergedNode == null)
-                    mergedNode = node;
+                    mergedNode = matchedNode;
                 else {
-                    Collections.addAll(ids, node.<String[]>getProperty("ids"));
-                    graph.mergeNodes(mergedNode, node);
+                    graph.mergeNodes(mergedNode, matchedNode);
+                    for (String id : nodeIds)
+                        idNodeIdMap.get(id).remove(nodeId);
                 }
+            }
         }
         mergedNode.setProperty("ids", ids.toArray(new String[0]));
+        for (String id : ids) {
+            if (!idNodeIdMap.containsKey(id))
+                idNodeIdMap.put(id, new HashSet<>());
+            idNodeIdMap.get(id).add(mergedNode.getId());
+        }
     }
 }
