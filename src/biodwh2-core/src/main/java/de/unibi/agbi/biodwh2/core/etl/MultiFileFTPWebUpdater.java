@@ -8,14 +8,24 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updater<D> {
     @Override
     public Version getNewestVersion() throws UpdaterException {
         try {
-            String source = HTTPClient.getWebsiteSource(getFTPIndexUrl());
+            Map<String, String> prefixSourceMap = new HashMap<>();
             Version latestVersion = null;
-            for (String fileName : getFileNames()) {
+            String separator = System.getProperty("file.separator");
+            for (String fileName : getFilePaths()) {
+                Path parentPath = Paths.get(fileName).getParent();
+                String prefix = parentPath != null ? parentPath.toString().replace(separator, "/") : "";
+                if (!prefixSourceMap.containsKey(prefix))
+                    prefixSourceMap.put(prefix, HTTPClient.getWebsiteSource(getFTPIndexUrl() + fileName));
+                String source = prefixSourceMap.get(prefix);
                 Version fileVersion = getVersionForFileName(source, fileName);
                 if (latestVersion == null || (fileVersion != null && fileVersion.compareTo(latestVersion) > 0))
                     latestVersion = fileVersion;
@@ -39,9 +49,11 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace, final D dataSource) throws UpdaterException {
         try {
-            for (String fileName : getFileNames())
-                HTTPClient.downloadFileAsBrowser(getFTPIndexUrl() + fileName,
-                                                 dataSource.resolveSourceFilePath(workspace, fileName));
+            for (String fileName : getFilePaths()) {
+                String localFileName = Paths.get(fileName).getFileName().toString();
+                String resolvedFilePath = dataSource.resolveSourceFilePath(workspace, localFileName);
+                HTTPClient.downloadFileAsBrowser(getFTPIndexUrl() + fileName, resolvedFilePath);
+            }
             return true;
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
@@ -50,5 +62,5 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
 
     protected abstract String getFTPIndexUrl();
 
-    protected abstract String[] getFileNames();
+    protected abstract String[] getFilePaths();
 }

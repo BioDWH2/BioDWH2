@@ -10,7 +10,7 @@ public class MEDRTUpdater extends MultiFileFTPWebUpdater<MEDRTDataSource> {
     }
 
     @Override
-    protected String[] getFileNames() {
+    protected String[] getFilePaths() {
         return new String[]{"Core_MEDRT_XML.zip"};
     }
 }
