@@ -538,6 +538,7 @@ public final class Graph {
                          new Object[]{value1, value2, value3}, new boolean[]{false, false, false});
     }
 
+    @SuppressWarnings("WeakerAccess")
     public List<Node> findNodes(String label, String propertyName, Object value, boolean inArray) {
         return findNodes(label, new String[]{propertyName}, new Object[]{value}, new boolean[]{inArray});
     }
@@ -667,16 +668,16 @@ public final class Graph {
                 database.addColumnIfNotExists("nodes", columnName, "TEXT");
             for (String columnName : mergeEdgeColumnNames)
                 database.addColumnIfNotExists("edges", columnName, "TEXT");
-            String targetNodeColumnNamesJoined = String.join(", ", mergeNodeColumnNames);
-            String targetEdgeColumnNamesJoined = String.join(", ", mergeEdgeColumnNames);
+            String targetNodeColumnNamesJoined = "\"" + String.join("\", \"", mergeNodeColumnNames) + "\"";
+            String targetEdgeColumnNamesJoined = "\"" + String.join("\", \"", mergeEdgeColumnNames) + "\"";
             String nodeIdOffsetSelect = "__id + " + (nextNodeId - 1);
             String edgeIdOffsetSelect = "__id + " + (nextEdgeId - 1);
             String edgeFromIdOffsetSelect = "__from_id + " + (nextNodeId - 1);
             String edgeToIdOffsetSelect = "__to_id + " + (nextNodeId - 1);
-            String sourceNodeColumnNamesJoined = targetNodeColumnNamesJoined.replace("__id", nodeIdOffsetSelect);
-            String sourceEdgeColumnNamesJoined = targetEdgeColumnNamesJoined.replace("__id", edgeIdOffsetSelect);
-            sourceEdgeColumnNamesJoined = sourceEdgeColumnNamesJoined.replace("__from_id", edgeFromIdOffsetSelect);
-            sourceEdgeColumnNamesJoined = sourceEdgeColumnNamesJoined.replace("__to_id", edgeToIdOffsetSelect);
+            String sourceNodeColumnNamesJoined = targetNodeColumnNamesJoined.replace("\"__id\"", nodeIdOffsetSelect);
+            String sourceEdgeColumnNamesJoined = targetEdgeColumnNamesJoined.replace("\"__id\"", edgeIdOffsetSelect);
+            sourceEdgeColumnNamesJoined = sourceEdgeColumnNamesJoined.replace("\"__from_id\"", edgeFromIdOffsetSelect);
+            sourceEdgeColumnNamesJoined = sourceEdgeColumnNamesJoined.replace("\"__to_id\"", edgeToIdOffsetSelect);
             database.execute(
                     "INSERT INTO nodes (" + targetNodeColumnNamesJoined + ") SELECT " + sourceNodeColumnNamesJoined +
                     " FROM " + AttachedDatabaseName + ".nodes");

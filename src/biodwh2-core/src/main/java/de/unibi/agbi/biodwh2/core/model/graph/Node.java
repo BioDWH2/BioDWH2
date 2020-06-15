@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class Node {
+public class Node implements PropertyContainer {
     private static final Logger logger = LoggerFactory.getLogger(Graph.class);
 
     private final Graph graph;

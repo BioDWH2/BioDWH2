@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Edge {
+public class Edge implements PropertyContainer {
     private static final Logger logger = LoggerFactory.getLogger(Graph.class);
 
     private final Graph graph;
@@ -55,12 +55,12 @@ public class Edge {
         return keyTypeMap;
     }
 
-    public <T> T getProperty(String key) {
+    public <T> T getProperty(final String key) {
         //noinspection unchecked
         return (T) properties.get(key);
     }
 
-    public void setProperty(String key, Object value) throws GraphCacheException {
+    public void setProperty(final String key, final Object value) throws GraphCacheException {
         setProperty(key, value, true);
     }
 
