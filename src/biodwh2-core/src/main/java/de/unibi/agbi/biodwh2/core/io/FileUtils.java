@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.core.io;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
@@ -39,7 +40,7 @@ public final class FileUtils {
     }
 
     public static <T> MappingIterator<T> openSeparatedValuesFile(final InputStream stream, final Class<T> typeClass,
-                                                                  final char separator) throws IOException {
+                                                                 final char separator) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
         return getFormatReader(typeClass, separator).readValues(reader);
     }
@@ -47,6 +48,8 @@ public final class FileUtils {
     private static <T> ObjectReader getFormatReader(final Class<T> typeClass, final char separator) {
         CsvMapper csvMapper = new CsvMapper();
         CsvSchema schema = csvMapper.schemaFor(typeClass).withColumnSeparator(separator).withNullValue("");
+        if (typeClass == String[].class)
+            csvMapper.enable(CsvParser.Feature.WRAP_AS_ARRAY);
         return csvMapper.readerFor(typeClass).with(schema);
     }
 

@@ -3,12 +3,15 @@ package de.unibi.agbi.biodwh2.core.etl;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
+import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public abstract class Updater<D extends DataSource> {
     private static final Logger logger = LoggerFactory.getLogger(Updater.class);
@@ -50,10 +53,12 @@ public abstract class Updater<D extends DataSource> {
 
     protected abstract boolean tryUpdateFiles(Workspace workspace, D dataSource) throws UpdaterException;
 
-    final void updateDataSourceMetadata(Workspace workspace, D dataSource, Version version) {
-        dataSource.getMetadata().version = version;
-        dataSource.getMetadata().setUpdateDateTimeNow();
-        dataSource.getMetadata().sourceFileNames = dataSource.listSourceFiles(workspace);
+    private void updateDataSourceMetadata(Workspace workspace, D dataSource, Version version) {
+        DataSourceMetadata metadata = dataSource.getMetadata();
+        metadata.version = version;
+        metadata.setUpdateDateTimeNow();
+        metadata.sourceFileNames = new ArrayList<>();
+        Collections.addAll(metadata.sourceFileNames, dataSource.listSourceFiles(workspace));
     }
 
     protected static Version convertDateTimeToVersion(LocalDateTime dateTime) {

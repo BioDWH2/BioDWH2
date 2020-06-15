@@ -13,9 +13,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public abstract class DataSource {
     private static final Logger logger = LoggerFactory.getLogger(DataSource.class);
@@ -165,14 +162,14 @@ public abstract class DataSource {
         return Paths.get(workspace.getSourcesDirectory(), getId(), SourceDirectoryName, filePath).toString();
     }
 
-    public final List<String> listSourceFiles(final Workspace workspace) {
+    public final String[] listSourceFiles(final Workspace workspace) {
         Path sourcePath = Paths.get(workspace.getSourcesDirectory(), getId(), SourceDirectoryName);
         try {
             return Files.walk(sourcePath).filter(Files::isRegularFile).map(sourcePath::relativize).map(Path::toString)
-                        .collect(Collectors.toList());
+                        .toArray(String[]::new);
         } catch (IOException e) {
             logger.error("Failed to list files of data source '" + getId() + "'", e);
         }
-        return new ArrayList<>();
+        return new String[0];
     }
 }
