@@ -6,6 +6,7 @@ import java.util.*;
 
 public final class NodeMappingDescription {
     public enum NodeType {
+        Dummy,
         Unknown,
         Gene,
         Drug,

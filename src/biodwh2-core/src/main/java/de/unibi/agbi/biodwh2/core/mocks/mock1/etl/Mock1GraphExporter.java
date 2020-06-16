@@ -21,6 +21,11 @@ public class Mock1GraphExporter extends GraphExporter<Mock1DataSource> {
         node.setProperty("test_type_mismatch", 10);
         node = createNode(graph, "Gene");
         node.setProperty("hgnc_id", "IL10");
+        node = createNode(graph, "Dummy1");
+        node.setProperty("id", "A");
+        node.setProperty("id2", "B");
+        node = createNode(graph, "Dummy1");
+        node.setProperty("id", "C");
         return true;
     }
 }

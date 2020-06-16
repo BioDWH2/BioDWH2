@@ -13,28 +13,26 @@ import java.util.*;
 public final class GraphMapper extends Mapper {
     public void map(final Workspace workspace, final List<DataSource> dataSources, final String inputGraphFilePath,
                     final String outputGraphFilePath) {
-        final Graph inputGraph = new Graph(inputGraphFilePath.replace("graphml", "sqlite"), true);
-        final Graph outputGraph = new Graph(outputGraphFilePath.replace("graphml", "sqlite"));
+        final Graph graph = new Graph(inputGraphFilePath.replace("graphml", "sqlite"), true);
         final Map<String, MappingDescriber> dataSourceDescriberMap = new HashMap<>();
         for (DataSource dataSource : dataSources)
             dataSourceDescriberMap.put(dataSource.getId(), dataSource.getMappingDescriber());
         final Map<String, Set<Long>> idNodeIdMap = new HashMap<>();
-        for (Node node : inputGraph.getNodes()) {
+        for (Node node : graph.getNodes()) {
             String dataSourceId = StringUtils.split(node.getLabels()[0], "_")[0];
-            NodeMappingDescription mappingDescription = dataSourceDescriberMap.get(dataSourceId).describe(inputGraph,
-                                                                                                          node);
+            MappingDescriber dataSourceDescriber = dataSourceDescriberMap.get(dataSourceId);
+            NodeMappingDescription mappingDescription = dataSourceDescriber.describe(graph, node);
             if (mappingDescription != null)
-                mergeMatchingNodes(outputGraph, mappingDescription, idNodeIdMap);
+                mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId());
         }
-        inputGraph.dispose();
-        outputGraph.synchronize(true);
+        graph.synchronize(true);
         GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
-        graphMLWriter.write(outputGraphFilePath, outputGraph);
-        outputGraph.dispose();
+        graphMLWriter.write(outputGraphFilePath, graph);
+        graph.dispose();
     }
 
     private void mergeMatchingNodes(final Graph graph, final NodeMappingDescription description,
-                                    final Map<String, Set<Long>> idNodeIdMap) {
+                                    final Map<String, Set<Long>> idNodeIdMap, final long mappedNodeId) {
         Set<String> ids = new HashSet<>(description.getIdentifiers());
         Set<Long> matchedNodeIds = new HashSet<>();
         for (String id : ids)
@@ -57,6 +55,7 @@ public final class GraphMapper extends Mapper {
                 }
             }
         }
+        graph.addEdge(mappedNodeId, mergedNode.getId(), "MAPPED_TO");
         mergedNode.setProperty("ids", ids.toArray(new String[0]));
         for (String id : ids) {
             if (!idNodeIdMap.containsKey(id))

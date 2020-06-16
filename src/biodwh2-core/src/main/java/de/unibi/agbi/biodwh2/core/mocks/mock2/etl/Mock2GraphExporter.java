@@ -15,6 +15,9 @@ public class Mock2GraphExporter extends GraphExporter<Mock2DataSource> {
         Node node = createNode(graph, "Gene");
         node.setProperty("id", "HGNC:TLR4");
         node.setProperty("test_type_mismatch", "10");
+        node = createNode(graph, "Dummy2");
+        node.setProperty("id", "B");
+        node.setProperty("id2", "C");
         return true;
     }
 }

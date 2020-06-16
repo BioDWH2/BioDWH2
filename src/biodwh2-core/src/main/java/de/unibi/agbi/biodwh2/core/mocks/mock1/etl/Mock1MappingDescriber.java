@@ -11,6 +11,11 @@ public class Mock1MappingDescriber extends MappingDescriber {
         if (node.getLabels()[0].endsWith("Gene")) {
             description.type = NodeMappingDescription.NodeType.Gene;
             description.addIdentifier(IdentifierType.HGNCSymbol, node.getProperty("hgnc_id"));
+        } else if (node.getLabels()[0].endsWith("Dummy1")) {
+            description.type = NodeMappingDescription.NodeType.Dummy;
+            description.addIdentifier(IdentifierType.Dummy, node.getProperty("id"));
+            if (node.hasProperty("id2"))
+                description.addIdentifier(IdentifierType.Dummy, node.getProperty("id2"));
         }
         return description;
     }
