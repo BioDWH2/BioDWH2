@@ -95,13 +95,13 @@
         <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
-            <version>4.1.4</version>
+            <version>4.3.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.5.1</version>
+            <version>5.6.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
