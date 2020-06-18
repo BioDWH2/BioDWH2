@@ -649,7 +649,26 @@ public final class Graph {
         return null;
     }
 
-    public void mergeNodes(Node first, Node second) {
+    public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId, final String edgeLabel) {
+        final Set<Long> nodeIds = new HashSet<>();
+        final String sql =
+                "SELECT __from_id, __to_id FROM edges WHERE (__from_id = " + nodeId + " OR __to_id = " + nodeId +
+                ") AND __label = '" + edgeLabel + "'";
+        try (ResultSet result = database.executeQuery(sql)) {
+            while (result.next()) {
+                long id1 = result.getLong(1);
+                if (id1 != nodeId)
+                    nodeIds.add(id1);
+                long id2 = result.getLong(2);
+                if (id2 != nodeId)
+                    nodeIds.add(id2);
+            }
+        } catch (SQLException | GraphCacheException ignored) {
+        }
+        return nodeIds.toArray(new Long[0]);
+    }
+
+    public void mergeNodes(final Node first, final Node second) {
         executeSql("UPDATE edges SET __from_id=" + first.getId() + " WHERE __from_id=" + second.getId());
         executeSql("UPDATE edges SET __to_id=" + first.getId() + " WHERE __to_id=" + second.getId());
         // TODO: properties

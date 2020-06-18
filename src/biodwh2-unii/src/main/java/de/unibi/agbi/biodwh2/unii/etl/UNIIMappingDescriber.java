@@ -7,8 +7,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.*;
 public class UNIIMappingDescriber extends MappingDescriber {
     @Override
     public NodeMappingDescription describe(Graph graph, Node node) {
-        NodeMappingDescription description = new NodeMappingDescription();
         if (node.getLabels()[0].endsWith("UNII")) {
+            NodeMappingDescription description = new NodeMappingDescription();
             description.type = NodeMappingDescription.NodeType.Compound;
             description.addIdentifier(IdentifierType.UNII, node.getProperty("id"));
             if (node.hasProperty("cas") && node.getProperty("cas") != null)
@@ -20,8 +20,9 @@ public class UNIIMappingDescriber extends MappingDescriber {
             if (node.hasProperty("rx_cui") && node.getProperty("rx_cui") != null)
                 description.addIdentifier(IdentifierType.RxNormCUI, node.getProperty("rx_cui"));
             // TODO: more ids
+            return description;
         }
-        return description;
+        return null;
     }
 
     @Override

@@ -4,6 +4,7 @@ public enum IdentifierType {
     Dummy("Dummy"),
     HGNCSymbol("HGNC_Symbol"),
     HGNCId("HGNC"),
+    DrugBank("DrugBank"),
     UNII("UNII"),
     CAS("CAS"),
     EuropeanChemicalsAgencyEC("ECA_EC"),
