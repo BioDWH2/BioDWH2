@@ -78,8 +78,11 @@ public final class GraphMapper extends Mapper {
                     Long[] mappedFromNodeIds = graph.getAdjacentNodeIdsForEdgeLabel(edge.getFromId(),
                                                                                     MappedToEdgeLabel);
                     Long[] mappedToNodeIds = graph.getAdjacentNodeIdsForEdgeLabel(edge.getToId(), MappedToEdgeLabel);
-                    if (mappedFromNodeIds.length > 0 && mappedToNodeIds.length > 0)
-                        graph.addEdge(mappedFromNodeIds[0], mappedToNodeIds[0], mappingDescription.type.name());
+                    if (mappedFromNodeIds.length > 0 && mappedToNodeIds.length > 0) {
+                        Edge mappedEdge = graph.addEdge(mappedFromNodeIds[0], mappedToNodeIds[0],
+                                                        mappingDescription.type.name());
+                        mappedEdge.setProperty("source", dataSourceId);
+                    }
                 }
             }
         }

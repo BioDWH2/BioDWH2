@@ -8,6 +8,7 @@ public enum IdentifierType {
     UNII("UNII"),
     CAS("CAS"),
     EuropeanChemicalsAgencyEC("ECA_EC"),
+    OMIM("OMIM"),
     RxNormCUI("RxNorm_CUI"),
     PubChemCompound("PubChem_CID"),
     PubChemSubstance("PubChem_SID"),
