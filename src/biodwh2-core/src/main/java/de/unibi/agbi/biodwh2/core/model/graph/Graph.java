@@ -166,6 +166,7 @@ public final class Graph {
 
     public void prefixAllLabels(String prefix) throws GraphCacheException {
         executeSql("UPDATE nodes SET __labels = '" + prefix + "_' || REPLACE(__labels, ';', ';" + prefix + "_')");
+        executeSql("UPDATE edges SET __label = '" + prefix + "_' || __label");
     }
 
     void setEdgeProperty(final Edge edge, final String key, final Object value) throws GraphCacheException {

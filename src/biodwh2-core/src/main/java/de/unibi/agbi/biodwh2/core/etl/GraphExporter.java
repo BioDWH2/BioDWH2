@@ -37,7 +37,7 @@ public abstract class GraphExporter<D extends DataSource> {
         boolean exportSuccessful = exportGraph(workspace, dataSource, g);
         g.synchronize(true);
         if (exportSuccessful) {
-            addDataSourcePrefixToGraphNodes(dataSource, g);
+            addDataSourcePrefixToGraph(dataSource, g);
             exportSuccessful = trySaveGraphToFile(workspace, dataSource, g);
         }
         g.dispose();
@@ -47,7 +47,7 @@ public abstract class GraphExporter<D extends DataSource> {
     protected abstract boolean exportGraph(final Workspace workspace, final D dataSource,
                                            final Graph graph) throws ExporterException;
 
-    private void addDataSourcePrefixToGraphNodes(final DataSource dataSource, final Graph g) {
+    private void addDataSourcePrefixToGraph(final DataSource dataSource, final Graph g) {
         g.prefixAllLabels(dataSource.getId());
     }
 
