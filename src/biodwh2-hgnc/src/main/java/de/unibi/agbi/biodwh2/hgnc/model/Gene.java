@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
+@SuppressWarnings({"unused", "SpellCheckingInspection"})
 @JsonPropertyOrder(value = {
         "hgnc_id", "symbol", "name", "locus_group", "locus_type", "status", "location", "location_sortable",
         "alias_symbol", "alias_name", "prev_symbol", "prev_name", "gene_family", "gene_family_id",
@@ -41,10 +42,8 @@ public final class Gene {
     @GraphProperty("location_sortable")
     public String locationSortable;
     @JsonProperty("alias_symbol")
-    @GraphProperty("alias_symbol")
     public String aliasSymbol;
     @JsonProperty("alias_name")
-    @GraphProperty("alias_name")
     public String aliasName;
     @JsonProperty("prev_symbol")
     @GraphProperty("prev_symbol")
@@ -128,6 +127,7 @@ public final class Gene {
     @GraphProperty("orphanet")
     public String orphanet;
     @JsonProperty("pseudogene.org")
+    @GraphProperty("pseudogene_org")
     public String pseudogeneOrg;
     @JsonProperty("horde_id")
     @GraphProperty("horde_id")
@@ -145,6 +145,7 @@ public final class Gene {
     @GraphProperty("kznf_gene_catalog")
     public String kznfGeneCatalog;
     @JsonProperty("mamit-trnadb")
+    @GraphProperty("mamit_trnadb")
     public String mamitTrnaDb;
     @JsonProperty("cd")
     @GraphProperty("cd")

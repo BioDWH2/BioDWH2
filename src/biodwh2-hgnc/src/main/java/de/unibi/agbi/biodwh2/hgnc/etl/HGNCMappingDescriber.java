@@ -12,6 +12,8 @@ public class HGNCMappingDescriber extends MappingDescriber {
             description.type = NodeMappingDescription.NodeType.Gene;
             description.addIdentifier(IdentifierType.HGNCId, node.<String>getProperty("hgnc_id").replace("HGNC:", ""));
             description.addIdentifier(IdentifierType.HGNCSymbol, node.getProperty("symbol"));
+            if (node.hasProperty("omim_id"))
+                description.addIdentifier(IdentifierType.OMIM, node.getProperty("omim_id"));
             // TODO: more ids
             return description;
         }
