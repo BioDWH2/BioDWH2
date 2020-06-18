@@ -8,6 +8,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.unii.UNIIDataSource;
 import de.unibi.agbi.biodwh2.unii.model.UNIIDataEntry;
 import de.unibi.agbi.biodwh2.unii.model.UNIIEntry;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -40,6 +41,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
     }
 
     private static String[] getNameArrayOfTypeFromEntries(final List<UNIIEntry> entries, final String type) {
-        return entries.stream().filter(e -> e.type.equals(type)).map(e -> e.name).toArray(String[]::new);
+        return entries.stream().filter(e -> e.type.equals(type)).map(e -> StringUtils.strip(e.name, "\\")).toArray(
+                String[]::new);
     }
 }

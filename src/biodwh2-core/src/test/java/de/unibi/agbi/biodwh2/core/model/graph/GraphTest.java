@@ -1,13 +1,8 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
-import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 @SuppressWarnings("RedundantCast")
 class GraphTest {
@@ -16,9 +11,8 @@ class GraphTest {
     private static final String[] TestStringArray = new String[]{"abc", "123", "\"test\",\"test2\""};
 
     @Test
-    void testPack() throws ExporterException, IOException {
-        Path tempFilePath = Files.createTempFile("graphdb_test", ".sqlite");
-        Graph g = new Graph(tempFilePath.toString());
+    void testPack() throws Exception {
+        Graph g = Graph.createTempGraph();
         assertEquals("S|Hello World!", g.packValue("Hello World!"));
         assertEquals("I|0", g.packValue((int) 0));
         assertEquals("I|0", g.packValue((Integer) 0));
@@ -31,9 +25,8 @@ class GraphTest {
     }
 
     @Test
-    void testUnpack() throws ExporterException, IOException {
-        Path tempFilePath = Files.createTempFile("graphdb_test", ".sqlite");
-        Graph g = new Graph(tempFilePath.toString());
+    void testUnpack() throws Exception {
+        Graph g = Graph.createTempGraph();
         assertEquals("Hello World!", g.unpackValue(g.packValue("Hello World!")));
         assertEquals(0, g.unpackValue(g.packValue(0)));
         assertEquals(1L, g.unpackValue(g.packValue(1L)));

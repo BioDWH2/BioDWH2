@@ -7,26 +7,35 @@ import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public abstract class GraphExporter<D extends DataSource> {
     private static class ClassMapping {
-        String[] labels;
-        Field[] fields;
-        String[] fieldPropertyNames;
+        final String[] labels;
+        final ClassMappingField[] fields;
 
-        ClassMapping(Class<?> type) {
+        ClassMapping(final Class<?> type) {
             labels = type.getAnnotation(NodeLabels.class).value();
-            fields = type.getDeclaredFields();
-            fieldPropertyNames = new String[fields.length];
-            for (int i = 0; i < fields.length; i++) {
-                Field field = fields[i];
-                field.setAccessible(true);
-                fieldPropertyNames[i] = field.isAnnotationPresent(GraphProperty.class) ? field.getAnnotation(
-                        GraphProperty.class).value() : field.getName();
-            }
+            List<ClassMappingField> fieldsList = new ArrayList<>();
+            for (Field field : type.getDeclaredFields())
+                if (field.isAnnotationPresent(GraphProperty.class)) {
+                    field.setAccessible(true);
+                    fieldsList.add(new ClassMappingField(field, field.getAnnotation(GraphProperty.class).value()));
+                }
+            fields = fieldsList.toArray(new ClassMappingField[0]);
+        }
+    }
+
+    private static class ClassMappingField {
+        final Field field;
+        final String propertyName;
+
+        ClassMappingField(final Field field, final String propertyName) {
+            this.field = field;
+            this.propertyName = propertyName;
         }
     }
 
@@ -55,19 +64,27 @@ public abstract class GraphExporter<D extends DataSource> {
         return new GraphMLGraphWriter().write(workspace, dataSource, g);
     }
 
-    protected final <T> Node createNodeFromModel(final Graph g, final T obj) throws ExporterException {
-        Class<?> type = obj.getClass();
+    protected final Node createNodeFromModel(final Graph g, final Object obj) throws ExporterException {
+        ClassMapping mapping = getClassMappingFromCache(obj.getClass());
+        Node node = createNode(g, mapping.labels);
+        setNodePropertiesFromClassMapping(node, mapping, obj);
+        return node;
+    }
+
+    private ClassMapping getClassMappingFromCache(Class<?> type) {
         if (!classMappingsCache.containsKey(type))
             classMappingsCache.put(type, new ClassMapping(type));
-        ClassMapping mapping = classMappingsCache.get(type);
-        Node node = createNode(g, mapping.labels);
+        return classMappingsCache.get(type);
+    }
+
+    private void setNodePropertiesFromClassMapping(final Node node, final ClassMapping mapping,
+                                                   final Object obj) throws ExporterException {
         try {
-            for (int i = 0; i < mapping.fields.length; i++)
-                node.setProperty(mapping.fieldPropertyNames[i], mapping.fields[i].get(obj));
+            for (ClassMappingField field : mapping.fields)
+                node.setProperty(field.propertyName, field.field.get(obj));
         } catch (IllegalAccessException e) {
             throw new ExporterException(e);
         }
-        return node;
     }
 
     protected final Node createNode(final Graph g, final String... labels) {

@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.*;
 import java.util.*;
@@ -724,5 +725,10 @@ public final class Graph {
         database = null;
         nodeCache = null;
         nodeLabelIdMap = null;
+    }
+
+    public static Graph createTempGraph() throws IOException {
+        Path tempFilePath = Files.createTempFile("graphdb_test", ".sqlite");
+        return new Graph(tempFilePath.toString());
     }
 }
