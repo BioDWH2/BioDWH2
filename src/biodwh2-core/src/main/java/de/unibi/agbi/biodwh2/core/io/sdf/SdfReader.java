@@ -9,6 +9,7 @@ public final class SdfReader implements Iterable<SdfEntry> {
     private BufferedReader reader;
     private SdfEntry lastEntry;
 
+    @SuppressWarnings("unused")
     public SdfReader(final String filePath, final String charsetName) throws IOException {
         this(FileUtils.openInputStream(new File(filePath)), charsetName);
     }
@@ -23,13 +24,8 @@ public final class SdfReader implements Iterable<SdfEntry> {
         return new Iterator<SdfEntry>() {
             @Override
             public boolean hasNext() {
-                try {
-                    lastEntry = readNextEntry();
-                    return lastEntry != null;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return false;
-                }
+                lastEntry = readNextEntry();
+                return lastEntry != null;
             }
 
             @Override
@@ -39,7 +35,7 @@ public final class SdfReader implements Iterable<SdfEntry> {
         };
     }
 
-    private SdfEntry readNextEntry() throws IOException {
+    private SdfEntry readNextEntry() {
         SdfEntry entry = new SdfEntry();
         entry.title = readLineSafe();
         if (entry.title == null)
@@ -56,7 +52,7 @@ public final class SdfReader implements Iterable<SdfEntry> {
         StringBuilder connectionTable = new StringBuilder();
         while ((line = readLineSafe()) != null) {
             if (inConnectionTable) {
-                if (line.equals("M  END")) {
+                if (line.trim().equals("M  END")) {
                     inConnectionTable = false;
                     entry.connectionTable = connectionTable.toString();
                 } else {
@@ -64,6 +60,9 @@ public final class SdfReader implements Iterable<SdfEntry> {
                         connectionTable.append("\n");
                     connectionTable.append(line);
                 }
+            } else if (line.trim().equals("$$$$")) {
+                trimSdfPropertiesCarriageReturn(entry);
+                return entry;
             } else {
                 if (line.startsWith("> ")) {
                     lastPropertyKey = line.substring(line.indexOf("<") + 1, line.length() - 1);
@@ -71,10 +70,6 @@ public final class SdfReader implements Iterable<SdfEntry> {
                 } else if (lastPropertyKey != null) {
                     entry.properties.put(lastPropertyKey, entry.properties.get(lastPropertyKey) + "\n" + line);
                 }
-            }
-            if (line.trim().equals("$$$$")) {
-                trimSdfPropertiesCarriageReturn(entry);
-                return entry;
             }
         }
         return null;

@@ -6,6 +6,8 @@ import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserFileNotFoundException;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserFormatException;
+import de.unibi.agbi.biodwh2.core.io.sdf.SdfEntry;
+import de.unibi.agbi.biodwh2.core.io.sdf.SdfReader;
 import de.unibi.agbi.biodwh2.drugbank.DrugBankDataSource;
 import de.unibi.agbi.biodwh2.drugbank.model.Drugbank;
 import de.unibi.agbi.biodwh2.drugbank.model.DrugbankMetaboliteId;
@@ -87,71 +89,34 @@ public class DrugBankParser extends Parser<DrugBankDataSource> {
     }
 
     private static boolean isZipEntryMetaboliteSdf(String name) {
-        return name.equals("metabolite-structures.sdf");
+        return name.endsWith(".sdf");
     }
 
     private List<Metabolite> parseMetabolitesFromZipStream(InputStream stream) throws IOException {
         List<Metabolite> metabolites = new ArrayList<>();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-        Metabolite lastMetabolite = new Metabolite();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            if (line.startsWith("> ")) {
-                parseMetaboliteProperty(reader, lastMetabolite, line.substring(2).trim());
-            } else if (line.trim().equals("$$$$")) {
-                metabolites.add(lastMetabolite);
-                lastMetabolite = new Metabolite();
-            }
-        }
+        SdfReader reader = new SdfReader(stream, "UTF-8");
+        for (SdfEntry entry : reader)
+            metabolites.add(metaboliteFromSdfEntry(entry));
         logger.info("NUM METABOLITES " + metabolites.size());
         return metabolites;
     }
 
-    private void parseMetaboliteProperty(BufferedReader reader, Metabolite metabolite, String line) throws IOException {
-        switch (line) {
-            case "<DATABASE_ID>":
-                metabolite.databaseId = reader.readLine();
-                break;
-            case "<DATABASE_NAME>":
-                metabolite.databaseName = reader.readLine();
-                break;
-            case "<SMILES>":
-                metabolite.smiles = reader.readLine();
-                break;
-            case "<INCHI_IDENTIFIER>":
-                metabolite.inchiId = reader.readLine();
-                break;
-            case "<INCHI_KEY>":
-                metabolite.inchiKey = reader.readLine();
-                break;
-            case "<FORMULA>":
-                metabolite.formula = reader.readLine();
-                break;
-            case "<MOLECULAR_WEIGHT>":
-                metabolite.molecularWeight = reader.readLine();
-                break;
-            case "<EXACT_MASS>":
-                metabolite.exactMass = reader.readLine();
-                break;
-            case "<JCHEM_IUPAC>":
-                metabolite.iupac = reader.readLine();
-                break;
-            case "<JCHEM_TRADITIONAL_IUPAC>":
-                metabolite.traditionalIupac = reader.readLine();
-                break;
-            case "<DRUGBANK_ID>":
-                metabolite.drugbankId = new DrugbankMetaboliteId();
-                metabolite.drugbankId.value = reader.readLine();
-                metabolite.drugbankId.primary = true;
-                break;
-            case "<NAME>":
-                metabolite.name = reader.readLine();
-                break;
-            case "<UNII>":
-                metabolite.unii = reader.readLine();
-                break;
-            default:
-                reader.readLine();
-        }
+    private Metabolite metaboliteFromSdfEntry(final SdfEntry entry) {
+        Metabolite metabolite = new Metabolite();
+        metabolite.databaseId = entry.properties.get("DATABASE_ID");
+        metabolite.databaseName = entry.properties.get("DATABASE_NAME");
+        metabolite.smiles = entry.properties.get("SMILES");
+        metabolite.inchiId = entry.properties.get("INCHI_IDENTIFIER");
+        metabolite.inchiKey = entry.properties.get("INCHI_KEY");
+        metabolite.formula = entry.properties.get("FORMULA");
+        metabolite.molecularWeight = entry.properties.get("MOLECULAR_WEIGHT");
+        metabolite.exactMass = entry.properties.get("EXACT_MASS");
+        metabolite.iupac = entry.properties.get("JCHEM_IUPAC");
+        metabolite.traditionalIupac = entry.properties.get("JCHEM_TRADITIONAL_IUPAC");
+        metabolite.drugbankId = new DrugbankMetaboliteId();
+        metabolite.drugbankId.value = entry.properties.get("DRUGBANK_ID");
+        metabolite.drugbankId.primary = true;
+        metabolite.name = entry.properties.get("GENERIC_NAME");
+        return metabolite;
     }
 }

@@ -13,5 +13,4 @@ public class Metabolite {
     public String traditionalIupac;
     public DrugbankMetaboliteId drugbankId;
     public String name;
-    public String unii;
 }
