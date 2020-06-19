@@ -75,6 +75,10 @@ public final class Workspace {
         return configuration.dataSourceIds.contains(dataSource.getId());
     }
 
+    public Configuration getConfiguration() {
+        return configuration;
+    }
+
     public void checkState(final boolean verbose) {
         if (prepareDataSources()) {
             Map<String, Boolean> sourcesUpToDate = createSourcesUpToDate();

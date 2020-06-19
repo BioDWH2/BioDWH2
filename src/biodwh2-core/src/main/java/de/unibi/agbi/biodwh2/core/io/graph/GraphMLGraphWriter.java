@@ -65,7 +65,8 @@ public class GraphMLGraphWriter extends GraphWriter {
         removeOldExports(workspace, dataSource);
         try {
             generateProperties(graph);
-            List<SubGraph> subGraphs = findSubGraphs(graph);
+            List<SubGraph> subGraphs = workspace.getConfiguration().splitIntoSubGraphs ? findSubGraphs(graph) :
+                                       new ArrayList<>();
             if (subGraphs.size() < 2) {
                 FileOutputStream outputStream = new FileOutputStream(
                         dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.GraphML));
