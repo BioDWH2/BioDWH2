@@ -10,7 +10,7 @@ import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
-import org.apache.commons.lang3.StringUtils;
+import de.unibi.agbi.biodwh2.core.text.TableFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,32 +125,24 @@ public final class Workspace {
     }
 
     private String createStateTable(final Map<String, Boolean> sourcesUpToDate, final boolean verbose) {
-        String heading;
-        final String separator = StringUtils.repeat("-", verbose ? 150 : 120);
+        final List<String> headers = new ArrayList<>();
+        Collections.addAll(headers, "SourceID", "Version is up-to-date", "Version", "new Version",
+                           "Time of latest update");
         if (verbose)
-            heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s%-28s\n%s\n", separator, "SourceID",
-                                    "Version is up-to-date", "Version", "new Version", "Time of latest update", "Files",
-                                    separator);
-        else
-            heading = String.format("\n%s\n%-15s%-33s%-23s%-25s%-37s\n%s\n", separator, "SourceID",
-                                    "Version is up-to-date", "Version", "new Version", "Time of latest update",
-                                    separator);
-        String state = "";
+            headers.add("Files");
+        final List<List<String>> rows = new ArrayList<>();
         for (DataSource dataSource : dataSources) {
-            final DataSourceMetadata meta = dataSource.getMetadata();
-            state = String.format("%s%-23s%-21s%-25s%-25s%-35s", state, dataSource.getId(),
-                                  sourcesUpToDate.get(dataSource.getId()), meta.version, getLatestVersion(dataSource),
-                                  meta.getLocalUpdateDateTime());
-            if (verbose) {
-                final String spacer = StringUtils.repeat(" ", 129);
-                final List<String> existingFiles = meta.sourceFileNames;
-                state = String.format("%s%-30s\n", state, existingFiles.get(0));
-                for (int i = 1; i < existingFiles.size(); i++)
-                    state = String.format("%s%s%s\n", state, spacer, existingFiles.get(i));
-            } else
-                state += "\n";
+            final List<String> row = new ArrayList<>();
+            rows.add(row);
+            final DataSourceMetadata metadata = dataSource.getMetadata();
+            Version latestVersion = getLatestVersion(dataSource);
+            Collections.addAll(row, dataSource.getId(), sourcesUpToDate.get(dataSource.getId()).toString(),
+                               metadata.version.toString(), latestVersion != null ? latestVersion.toString() : null,
+                               metadata.getLocalUpdateDateTime().toString());
+            if (verbose)
+                row.add(String.join(", ", metadata.sourceFileNames));
         }
-        return heading + state + separator;
+        return new TableFormatter().format(headers, rows);
     }
 
     private boolean prepareDataSources() {
