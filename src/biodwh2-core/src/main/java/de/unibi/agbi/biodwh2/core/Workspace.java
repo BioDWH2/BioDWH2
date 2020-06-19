@@ -64,22 +64,11 @@ public final class Workspace {
 
     private List<DataSource> resolveUsedDataSources() {
         List<DataSource> dataSources = new ArrayList<>();
-        List<Class<DataSource>> availableDataSourceClasses = Factory.getInstance().getImplementations(DataSource.class);
-        for (Class<DataSource> dataSourceClass : availableDataSourceClasses) {
-            DataSource dataSource = tryInstantiateDataSource(dataSourceClass);
-            if (dataSource != null && isDataSourceUsed(dataSource))
+        DataSourceLoader loader = new DataSourceLoader();
+        for (DataSource dataSource : loader.getDataSources())
+            if (isDataSourceUsed(dataSource))
                 dataSources.add(dataSource);
-        }
         return dataSources;
-    }
-
-    private DataSource tryInstantiateDataSource(final Class<DataSource> dataSourceClass) {
-        try {
-            return dataSourceClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            logger.error("Failed to instantiate data source '" + dataSourceClass.getName() + "'", e);
-        }
-        return null;
     }
 
     private boolean isDataSourceUsed(final DataSource dataSource) {

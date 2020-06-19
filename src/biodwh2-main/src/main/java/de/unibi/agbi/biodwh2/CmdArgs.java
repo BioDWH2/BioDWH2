@@ -4,9 +4,12 @@ import picocli.CommandLine;
 
 import java.util.List;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class CmdArgs {
     @CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "print this message")
     public boolean help;
+    @CommandLine.Option(names = {"-ds", "--data-sources"}, description = "List all available data sources")
+    public boolean listDataSources;
     @CommandLine.Option(names = {
             "-c", "--create"
     }, arity = "1", paramLabel = "<workspacePath>", description = "Create a new empty workspace")

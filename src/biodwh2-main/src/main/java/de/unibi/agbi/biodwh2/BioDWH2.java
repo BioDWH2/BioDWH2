@@ -1,14 +1,24 @@
 package de.unibi.agbi.biodwh2;
 
+import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DataSourceLoader;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class BioDWH2 {
+    private static final Logger logger = LoggerFactory.getLogger(BioDWH2.class);
+
     public static void main(final String[] args) throws Exception {
         CmdArgs commandLine = parseCommandLine(args);
-        if (commandLine.create != null)
+        if (commandLine.listDataSources)
+            listDataSources(commandLine);
+        else if (commandLine.create != null)
             createWorkspace(commandLine);
         else if (commandLine.status != null)
             checkWorkspaceState(commandLine);
@@ -23,6 +33,13 @@ public final class BioDWH2 {
         CommandLine cmd = new CommandLine(result);
         cmd.parseArgs(args);
         return result;
+    }
+
+    private static void listDataSources(final CmdArgs commandLine) throws Exception {
+        DataSourceLoader loader = new DataSourceLoader();
+        String dataSourceIds = Arrays.stream(loader.getDataSources()).map(DataSource::getId).collect(
+                Collectors.joining(", "));
+        logger.info("Available data source IDs: " + dataSourceIds);
     }
 
     private static void createWorkspace(final CmdArgs commandLine) throws Exception {
