@@ -12,9 +12,13 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.drugbank.DrugBankDataSource;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.Map;
 
 public class DrugBankUpdater extends Updater<DrugBankDataSource> {
+    private static final String FullDatabaseUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-full-database";
+    private static final String StructuresUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-structures";
+
     @Override
     public Version getNewestVersion() throws UpdaterException {
         String source;
@@ -54,6 +58,26 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(Workspace workspace, DrugBankDataSource dataSource) throws UpdaterException {
+        if (workspace.getConfiguration().dataSourceProperties.containsKey("DrugBank")) {
+            Map<String, String> drugBankProperties = workspace.getConfiguration().dataSourceProperties.get("DrugBank");
+            if (drugBankProperties != null) {
+                final String username = drugBankProperties.getOrDefault("username", null);
+                final String password = drugBankProperties.getOrDefault("password", null);
+                if (username != null && username.length() > 0 && password != null && password.length() > 0) {
+                    try {
+                        String filePath = dataSource.resolveSourceFilePath(workspace,
+                                                                           "drugbank_all_full_database.xml.zip");
+                        HTTPClient.downloadFileAsBrowser(FullDatabaseUrl, filePath, username, password);
+                        filePath = dataSource.resolveSourceFilePath(workspace,
+                                                                    "drugbank_all_metabolite-structures.sdf.zip");
+                        HTTPClient.downloadFileAsBrowser(StructuresUrl, filePath, username, password);
+                        return true;
+                    } catch (IOException e) {
+                        throw new UpdaterConnectionException("Failed to download files", e);
+                    }
+                }
+            }
+        }
         throw new UpdaterOnlyManuallyException();
     }
 }

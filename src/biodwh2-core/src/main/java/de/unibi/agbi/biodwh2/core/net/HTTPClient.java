@@ -1,31 +1,45 @@
 package de.unibi.agbi.biodwh2.core.net;
 
+import org.apache.commons.net.util.Base64;
+
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 
+@SuppressWarnings("WeakerAccess")
 public final class HTTPClient {
-    private static final String UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11";
+    @SuppressWarnings("SpellCheckingInspection")
+    public static final String UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11";
 
     private HTTPClient() {
     }
 
-    public static void downloadFile(String uri, String filePath) throws IOException {
+    @SuppressWarnings("unused")
+    public static void downloadFile(final String uri, final String filePath) throws IOException {
         ReadableByteChannel urlByteChannel = Channels.newChannel(new URL(uri).openStream());
         FileOutputStream outputStream = new FileOutputStream(filePath);
         outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
     }
 
-    public static void downloadFileAsBrowser(String uri, String filePath) throws IOException {
+    public static void downloadFileAsBrowser(final String uri, final String filePath) throws IOException {
         ReadableByteChannel urlByteChannel = Channels.newChannel(getUrlInputStream(uri));
         FileOutputStream outputStream = new FileOutputStream(filePath);
         outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
     }
 
-    public static String getWebsiteSource(String url) throws IOException {
+    @SuppressWarnings("unused")
+    public static void downloadFileAsBrowser(final String uri, final String filePath, final String username,
+                                             final String password) throws IOException {
+        ReadableByteChannel urlByteChannel = Channels.newChannel(getUrlInputStream(uri, username, password));
+        FileOutputStream outputStream = new FileOutputStream(filePath);
+        outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
+    }
+
+    public static String getWebsiteSource(final String url) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         InputStreamReader inputReader = new InputStreamReader(getUrlInputStream(url), StandardCharsets.UTF_8);
         BufferedReader bufferedReader = new BufferedReader(inputReader);
@@ -36,10 +50,23 @@ public final class HTTPClient {
         return stringBuilder.toString();
     }
 
-    public static InputStream getUrlInputStream(String url) throws IOException {
-        URL urlObject = new URL(url);
-        URLConnection urlConnection = urlObject.openConnection();
+    public static InputStream getUrlInputStream(final String url) throws IOException {
+        URLConnection urlConnection = new URL(url).openConnection();
         urlConnection.setRequestProperty("User-Agent", UserAgent);
+        return urlConnection.getInputStream();
+    }
+
+    public static InputStream getUrlInputStream(final String url, final String username,
+                                                final String password) throws IOException {
+        HttpURLConnection urlConnection = (HttpURLConnection) new URL(url).openConnection();
+        String credentials = username + ":" + password;
+        String basicAuth = "Basic " + Base64.encodeBase64String(credentials.getBytes(StandardCharsets.UTF_8)).trim();
+        urlConnection.setRequestProperty("Authorization", basicAuth);
+        urlConnection.setInstanceFollowRedirects(false);
+        urlConnection.connect();
+        String target = urlConnection.getHeaderField("location");
+        if (target != null)
+            urlConnection = (HttpURLConnection) new URL(target).openConnection();
         return urlConnection.getInputStream();
     }
 }

@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.core.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import de.unibi.agbi.biodwh2.core.Workspace;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.List;
 
 @SuppressWarnings("WeakerAccess")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class Configuration {
     public int version;
     public String creationDateTime;
