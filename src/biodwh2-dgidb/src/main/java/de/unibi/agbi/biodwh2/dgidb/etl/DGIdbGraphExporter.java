@@ -33,7 +33,7 @@ public class DGIdbGraphExporter extends GraphExporter<DGIdbDataSource> {
                 categoryNodeIdMap.put(category.category, categoryNode.getId());
             }
             Long geneId = graph.findNodeId("Gene", "claim_name", category.entrezGeneSymbol);
-            Edge edge = graph.addEdge(geneId, categoryNodeIdMap.get(category.category), "in_category");
+            Edge edge = graph.addEdge(geneId, categoryNodeIdMap.get(category.category), "IN_CATEGORY");
             edge.setProperty("sources", StringUtils.split(category.categorySources, ","));
         }
         for (Interaction interaction : dataSource.interactions) {
@@ -41,7 +41,7 @@ public class DGIdbGraphExporter extends GraphExporter<DGIdbDataSource> {
                                                interaction.drugChemblId, "name", interaction.drugName);
             Long geneNodeId = graph.findNodeId("Gene", "claim_name", interaction.geneClaimName, "entrez_id",
                                                interaction.entrezId, "name", interaction.geneName);
-            Edge edge = graph.addEdge(drugNodeId, geneNodeId, "targets");
+            Edge edge = graph.addEdge(drugNodeId, geneNodeId, "TARGETS");
             edge.setProperty("claim_source", interaction.interactionClaimSource);
             edge.setProperty("types", StringUtils.split(interaction.interactionTypes));
             edge.setProperty("pmids", StringUtils.split(interaction.pmids, ","));
