@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DrugbankMetaboliteIdTest {
+class DrugbankMetaboliteStructureIdTest {
     private void assertValid(String value) {
         DrugbankMetaboliteId id = new DrugbankMetaboliteId();
         id.value = value;

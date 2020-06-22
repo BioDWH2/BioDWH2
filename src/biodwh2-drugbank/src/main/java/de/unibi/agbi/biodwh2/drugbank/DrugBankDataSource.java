@@ -3,14 +3,16 @@ package de.unibi.agbi.biodwh2.drugbank;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.drugbank.etl.*;
+import de.unibi.agbi.biodwh2.drugbank.model.DrugStructure;
 import de.unibi.agbi.biodwh2.drugbank.model.Drugbank;
-import de.unibi.agbi.biodwh2.drugbank.model.Metabolite;
+import de.unibi.agbi.biodwh2.drugbank.model.MetaboliteStructure;
 
 import java.util.List;
 
 public class DrugBankDataSource extends DataSource {
     public Drugbank drugBankData;
-    public List<Metabolite> metabolites;
+    public List<DrugStructure> drugStructures;
+    public List<MetaboliteStructure> metaboliteStructures;
 
     @Override
     public String getId() {
@@ -45,6 +47,6 @@ public class DrugBankDataSource extends DataSource {
     @Override
     protected void unloadData() {
         drugBankData = null;
-        metabolites = null;
+        metaboliteStructures = null;
     }
 }

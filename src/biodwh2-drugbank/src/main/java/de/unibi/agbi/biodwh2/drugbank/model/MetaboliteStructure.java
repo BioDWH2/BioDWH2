@@ -1,6 +1,6 @@
 package de.unibi.agbi.biodwh2.drugbank.model;
 
-public class Metabolite {
+public class MetaboliteStructure {
     public String databaseId;
     public String databaseName;
     public String smiles;
@@ -13,4 +13,5 @@ public class Metabolite {
     public String traditionalIupac;
     public DrugbankMetaboliteId drugbankId;
     public String name;
+    public String unii;
 }

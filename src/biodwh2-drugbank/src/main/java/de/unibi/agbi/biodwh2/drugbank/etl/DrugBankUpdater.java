@@ -17,7 +17,8 @@ import java.util.Map;
 
 public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     private static final String FullDatabaseUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-full-database";
-    private static final String StructuresUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-structures";
+    private static final String DrugStructuresUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-structures";
+    private static final String MetaboliteStructuresUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-metabolite-structures";
 
     @Override
     public Version getNewestVersion() throws UpdaterException {
@@ -68,9 +69,11 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
                         String filePath = dataSource.resolveSourceFilePath(workspace,
                                                                            "drugbank_all_full_database.xml.zip");
                         HTTPClient.downloadFileAsBrowser(FullDatabaseUrl, filePath, username, password);
+                        filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_structures.sdf.zip");
+                        HTTPClient.downloadFileAsBrowser(DrugStructuresUrl, filePath, username, password);
                         filePath = dataSource.resolveSourceFilePath(workspace,
                                                                     "drugbank_all_metabolite-structures.sdf.zip");
-                        HTTPClient.downloadFileAsBrowser(StructuresUrl, filePath, username, password);
+                        HTTPClient.downloadFileAsBrowser(MetaboliteStructuresUrl, filePath, username, password);
                         return true;
                     } catch (IOException e) {
                         throw new UpdaterConnectionException("Failed to download files", e);
