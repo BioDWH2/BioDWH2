@@ -8,6 +8,6 @@ import de.unibi.agbi.biodwh2.geneontology.GeneOntologyDataSource;
 public class GeneOntologyParser extends Parser<GeneOntologyDataSource> {
     @Override
     public boolean parse(Workspace workspace, GeneOntologyDataSource dataSource) throws ParserException {
-        return false;
+        return true;
     }
 }
