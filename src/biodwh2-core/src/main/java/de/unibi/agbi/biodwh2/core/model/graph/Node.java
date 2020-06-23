@@ -1,7 +1,7 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
-import org.apache.commons.lang3.ClassUtils;
+import de.unibi.agbi.biodwh2.core.io.ValuePacker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,14 +65,11 @@ public class Node implements PropertyContainer {
         this.modified = modified;
         if (value != null) {
             if (checkType) {
-                Class<?> valueType = value.getClass();
-                if (valueType.isArray())
-                    valueType = valueType.getComponentType();
-                if (ClassUtils.isPrimitiveOrWrapper(valueType) || valueType == String.class)
+                if (ValuePacker.isValuePackable(value))
                     properties.put(key, value);
                 else {
-                    logger.warn("Type '" + valueType.toString() + "' is not allowed as a node property. Using the " +
-                                "toString representation for now '" + value.toString() + "'");
+                    logger.warn("Type '" + value.getClass().toString() + "' is not allowed as a node property." +
+                                " Using the toString representation for now '" + value.toString() + "'");
                     properties.put(key, value.toString());
                 }
             } else

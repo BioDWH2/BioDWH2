@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core.model.graph;
 
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
 import de.unibi.agbi.biodwh2.core.io.SqliteDatabase;
+import de.unibi.agbi.biodwh2.core.io.ValuePacker;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,10 +16,8 @@ import java.util.*;
 public final class Graph {
     private static final String AttachedDatabaseName = "db_to_merge";
 
-    private static final String PackedStringArraySplitter = "','";
     private static final String UnescapedQuotes = "'";
     private static final String EscapedQuotes = "''";
-    private static final char UnescapedComma = ',';
 
     private static final String FindNodeQueryStart = "SELECT * FROM nodes WHERE __labels='%s'";
     private static final String FindNodeIdQueryStart = "SELECT __id FROM nodes WHERE __labels='%s'";
@@ -29,40 +28,7 @@ public final class Graph {
     private static final String FindInStringArrayQueryParam = "%s REGEXP \"^.*\\|(.*,)?'%s'(,.*)?$\"";
     private static final String FindInNonStringArrayQueryParam = "%s REGEXP \"^.*\\|(.*,)?%s(,.*)?$\"";
 
-    private static final Map<Class<?>, String> TypePackedPrefixMap = new HashMap<>();
-    private static final Map<String, Class<?>> PackedPrefixTypeMap = new HashMap<>();
-
-    static {
-        TypePackedPrefixMap.put(String.class, "S|");
-        TypePackedPrefixMap.put(int.class, "I|");
-        TypePackedPrefixMap.put(Integer.class, "I|");
-        TypePackedPrefixMap.put(long.class, "L|");
-        TypePackedPrefixMap.put(Long.class, "L|");
-        TypePackedPrefixMap.put(boolean.class, "Bo|");
-        TypePackedPrefixMap.put(Boolean.class, "Bo|");
-        TypePackedPrefixMap.put(byte.class, "B|");
-        TypePackedPrefixMap.put(Byte.class, "B|");
-        TypePackedPrefixMap.put(String[].class, "S[]|");
-        TypePackedPrefixMap.put(int[].class, "I[]|");
-        TypePackedPrefixMap.put(Integer[].class, "I[]|");
-        TypePackedPrefixMap.put(long[].class, "L[]|");
-        TypePackedPrefixMap.put(Long[].class, "L[]|");
-        TypePackedPrefixMap.put(boolean[].class, "Bo[]|");
-        TypePackedPrefixMap.put(Boolean[].class, "Bo[]|");
-        TypePackedPrefixMap.put(byte[].class, "B[]|");
-        TypePackedPrefixMap.put(Byte[].class, "B[]|");
-        PackedPrefixTypeMap.put("S|", String.class);
-        PackedPrefixTypeMap.put("I|", Integer.class);
-        PackedPrefixTypeMap.put("L|", Long.class);
-        PackedPrefixTypeMap.put("Bo|", Boolean.class);
-        PackedPrefixTypeMap.put("B|", Byte.class);
-        PackedPrefixTypeMap.put("S[]|", String[].class);
-        PackedPrefixTypeMap.put("I[]|", Integer[].class);
-        PackedPrefixTypeMap.put("L[]|", Long[].class);
-        PackedPrefixTypeMap.put("Bo[]|", Boolean[].class);
-        PackedPrefixTypeMap.put("B[]|", Byte[].class);
-    }
-
+    private final Map<Class<?>, ClassMapping> classMappingsCache = new HashMap<>();
     private long nextNodeId = 1;
     private long nextEdgeId = 1;
     private SqliteDatabase database;
@@ -141,6 +107,29 @@ public final class Graph {
         }
     }
 
+    public final <T> Node createNodeFromModel(final T obj) throws GraphCacheException {
+        ClassMapping mapping = getClassMappingFromCache(obj.getClass());
+        Node node = addNode(mapping.labels);
+        setNodePropertiesFromClassMapping(node, mapping, obj);
+        return node;
+    }
+
+    private ClassMapping getClassMappingFromCache(Class<?> type) {
+        if (!classMappingsCache.containsKey(type))
+            classMappingsCache.put(type, new ClassMapping(type));
+        return classMappingsCache.get(type);
+    }
+
+    private void setNodePropertiesFromClassMapping(final Node node, final ClassMapping mapping,
+                                                   final Object obj) throws GraphCacheException {
+        try {
+            for (ClassMapping.ClassMappingField field : mapping.fields)
+                node.setProperty(field.propertyName, field.field.get(obj), true, true, false);
+        } catch (IllegalAccessException e) {
+            throw new GraphCacheException(e);
+        }
+    }
+
     public void setIndexColumnNames(String... names) {
         indexColumnNames = names;
     }
@@ -153,7 +142,7 @@ public final class Graph {
         }
         if (value == null || nodeCache.containsKey(node.getId()))
             return;
-        String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
+        String packedValue = StringUtils.replace(ValuePacker.packValue(value), UnescapedQuotes, EscapedQuotes);
         executeSql("UPDATE nodes SET \"" + key + "\"='" + packedValue + "' WHERE __id=" + node.getId());
     }
 
@@ -177,113 +166,9 @@ public final class Graph {
             throw new GraphCacheException("Failed to persist graph", e);
         }
         if (value != null) {
-            String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
+            String packedValue = StringUtils.replace(ValuePacker.packValue(value), UnescapedQuotes, EscapedQuotes);
             executeSql("UPDATE edges SET " + key + "='" + packedValue + "' WHERE __id=" + edge.getId());
         }
-    }
-
-    String packValue(Object value) {
-        final String packedPrefix = getTypePackedPrefix(value.getClass());
-        if (!value.getClass().isArray())
-            return packedPrefix + value;
-        if (value instanceof int[])
-            return packedPrefix + StringUtils.join((int[]) value, UnescapedComma);
-        if (value instanceof long[])
-            return packedPrefix + StringUtils.join((long[]) value, UnescapedComma);
-        if (value instanceof byte[])
-            return packedPrefix + StringUtils.join((byte[]) value, UnescapedComma);
-        StringBuilder joinedArray = new StringBuilder();
-        if (value instanceof boolean[]) {
-            boolean[] array = (boolean[]) value;
-            for (int i = 0; i < array.length; i++) {
-                if (i > 0)
-                    joinedArray.append(UnescapedComma);
-                joinedArray.append(array[i]);
-            }
-            return packedPrefix + joinedArray;
-        }
-        Object[] array = (Object[]) value;
-        if (array.length == 0)
-            return packedPrefix;
-        if (array[0] instanceof CharSequence) {
-            joinedArray.append(UnescapedQuotes).append(array[0].toString().replace(UnescapedQuotes, EscapedQuotes));
-            for (int i = 1; i < array.length; i++) {
-                joinedArray.append(PackedStringArraySplitter);
-                joinedArray.append(array[i].toString().replace(UnescapedQuotes, EscapedQuotes));
-            }
-            joinedArray.append(UnescapedQuotes);
-        } else {
-            joinedArray.append(array[0].toString());
-            for (int i = 1; i < array.length; i++)
-                joinedArray.append(UnescapedComma).append(array[i].toString());
-        }
-        return packedPrefix + joinedArray;
-    }
-
-    private String getTypePackedPrefix(Class<?> type) {
-        if (!TypePackedPrefixMap.containsKey(type)) {
-            String prefix = type.isArray() ? type.getComponentType().getName() + "[]|" : type.getName() + "|";
-            TypePackedPrefixMap.put(type, prefix);
-            PackedPrefixTypeMap.put(prefix, type);
-        }
-        return TypePackedPrefixMap.get(type);
-    }
-
-    Object unpackValue(String packedValue) throws GraphCacheException {
-        int prefixEndIndex = packedValue.indexOf("|") + 1;
-        Class<?> type;
-        try {
-            type = getPackedPrefixType(packedValue.substring(0, prefixEndIndex));
-        } catch (ClassNotFoundException e) {
-            throw new GraphCacheException("Failed to persist graph", e);
-        }
-        String value = packedValue.substring(prefixEndIndex);
-        if (type == String.class)
-            return value;
-        if (type == Integer.class)
-            return Integer.parseInt(value);
-        if (type == Long.class)
-            return Long.parseLong(value);
-        if (type == Boolean.class)
-            return Boolean.parseBoolean(value);
-        if (type == Byte.class)
-            return Byte.parseByte(value);
-        if (type.isArray()) {
-            Class<?> valueType = type.getComponentType();
-            if (value.length() == 0)
-                return java.lang.reflect.Array.newInstance(valueType, 0);
-            if (valueType == String.class) {
-                value = value.substring(1, value.length() - 1).replace(EscapedQuotes, UnescapedQuotes);
-                return StringUtils.splitByWholeSeparator(value, PackedStringArraySplitter);
-            }
-            String[] parts = StringUtils.split(value, UnescapedComma);
-            Object[] array = (Object[]) java.lang.reflect.Array.newInstance(valueType, parts.length);
-            if (valueType == Integer.class)
-                for (int i = 0; i < parts.length; i++)
-                    array[i] = Integer.parseInt(parts[i]);
-            else if (valueType == Long.class)
-                for (int i = 0; i < parts.length; i++)
-                    array[i] = Long.parseLong(parts[i]);
-            else if (valueType == Boolean.class)
-                for (int i = 0; i < parts.length; i++)
-                    array[i] = Boolean.parseBoolean(parts[i]);
-            else if (valueType == Byte.class)
-                for (int i = 0; i < parts.length; i++)
-                    array[i] = Byte.parseByte(parts[i]);
-            return array;
-        }
-        return null;
-    }
-
-    private Class<?> getPackedPrefixType(String prefix) throws ClassNotFoundException {
-        if (!PackedPrefixTypeMap.containsKey(prefix)) {
-            String typeName = prefix.substring(0, prefix.length() - 1);
-            Class<?> type = typeName.endsWith("[]") ? Class.forName(
-                    "[L" + typeName.substring(0, typeName.length() - 2) + ";") : Class.forName(typeName);
-            TypePackedPrefixMap.put(type, prefix);
-            PackedPrefixTypeMap.put(prefix, type);
-        }
-        return PackedPrefixTypeMap.get(prefix);
     }
 
     public void synchronize(boolean force) throws GraphCacheException {
@@ -322,7 +207,8 @@ public final class Graph {
                     if (!first)
                         sql.append(", ");
                     first = false;
-                    String packedValue = StringUtils.replace(packValue(value), UnescapedQuotes, EscapedQuotes);
+                    String packedValue = StringUtils.replace(ValuePacker.packValue(value), UnescapedQuotes,
+                                                             EscapedQuotes);
                     sql.append("\"").append(key).append("\"='").append(packedValue).append(UnescapedQuotes);
                 }
                 sql.append(" WHERE __id=").append(node.getId()).append(";");
@@ -515,7 +401,8 @@ public final class Graph {
             sql.append(addedCondition ? " AND " : " WHERE ");
             addedCondition = true;
             if (values[i] != null) {
-                String packedValue = StringUtils.replace(packValue(values[i]), UnescapedQuotes, EscapedQuotes);
+                String packedValue = StringUtils.replace(ValuePacker.packValue(values[i]), UnescapedQuotes,
+                                                         EscapedQuotes);
                 if (inArrays[i]) {
                     String packedArrayValue = StringUtils.replace(values[i].toString(), UnescapedQuotes, EscapedQuotes);
                     if (values[i].getClass() == String.class)
@@ -537,7 +424,8 @@ public final class Graph {
             for (int i = 3; i <= result.getMetaData().getColumnCount(); i++) {
                 String value = result.getString(i);
                 if (value != null) {
-                    Object unpackedValue = unpackValue(StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
+                    Object unpackedValue = ValuePacker.unpackValue(
+                            StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
                     node.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false, false, false);
                 }
             }
@@ -639,7 +527,8 @@ public final class Graph {
             for (int i = 5; i <= result.getMetaData().getColumnCount(); i++) {
                 String value = result.getString(i);
                 if (value != null) {
-                    Object unpackedValue = unpackValue(StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
+                    Object unpackedValue = ValuePacker.unpackValue(
+                            StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
                     edge.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false);
                 }
             }
