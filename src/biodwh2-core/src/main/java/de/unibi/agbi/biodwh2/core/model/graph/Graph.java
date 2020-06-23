@@ -12,6 +12,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 public final class Graph {
     private static final String AttachedDatabaseName = "db_to_merge";
@@ -104,29 +106,6 @@ public final class Graph {
             maxDumpedId = nextNodeId - 1;
         } catch (SQLException e) {
             throw new GraphCacheException("Failed to load next ids from persisted graph", e);
-        }
-    }
-
-    public final <T> Node createNodeFromModel(final T obj) throws GraphCacheException {
-        ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        Node node = addNode(mapping.labels);
-        setNodePropertiesFromClassMapping(node, mapping, obj);
-        return node;
-    }
-
-    private ClassMapping getClassMappingFromCache(Class<?> type) {
-        if (!classMappingsCache.containsKey(type))
-            classMappingsCache.put(type, new ClassMapping(type));
-        return classMappingsCache.get(type);
-    }
-
-    private void setNodePropertiesFromClassMapping(final Node node, final ClassMapping mapping,
-                                                   final Object obj) throws GraphCacheException {
-        try {
-            for (ClassMapping.ClassMappingField field : mapping.fields)
-                node.setProperty(field.propertyName, field.field.get(obj), true, true, false);
-        } catch (IllegalAccessException e) {
-            throw new GraphCacheException(e);
         }
     }
 
@@ -226,7 +205,7 @@ public final class Graph {
         tryCommit();
     }
 
-    public Node addNode(String... labels) throws GraphCacheException {
+    public Node addNode(final String... labels) throws GraphCacheException {
         synchronize(false);
         Node node = new Node(this, nextNodeId, true, labels);
         nextNodeId++;
@@ -234,7 +213,7 @@ public final class Graph {
         return node;
     }
 
-    private void addNodeToMemoryCache(Node node) {
+    private void addNodeToMemoryCache(final Node node) {
         nodeCache.put(node.getId(), node);
         for (String label : node.getLabels()) {
             if (!nodeLabelIdMap.containsKey(label))
@@ -243,19 +222,85 @@ public final class Graph {
         }
     }
 
-    public Edge addEdge(Node from, Node to, String label) throws GraphCacheException {
+    public final <T> Node createNodeFromModel(final T obj) throws GraphCacheException {
+        ClassMapping mapping = getClassMappingFromCache(obj.getClass());
+        Node node = addNode(mapping.labels);
+        setNodePropertiesFromClassMapping(node, mapping, obj);
+        return node;
+    }
+
+    private ClassMapping getClassMappingFromCache(final Class<?> type) {
+        if (!classMappingsCache.containsKey(type))
+            classMappingsCache.put(type, new ClassMapping(type));
+        return classMappingsCache.get(type);
+    }
+
+    private void setNodePropertiesFromClassMapping(final Node node, final ClassMapping mapping,
+                                                   final Object obj) throws GraphCacheException {
+        try {
+            for (ClassMapping.ClassMappingField field : mapping.fields)
+                node.setProperty(field.propertyName, field.field.get(obj), true, true, false);
+        } catch (IllegalAccessException e) {
+            throw new GraphCacheException(e);
+        }
+    }
+
+    public final <T> void createNodeBatchFromModels(final Iterable<T> objects,
+                                                    final int batchSize) throws GraphCacheException {
+        List<T> batch = new ArrayList<>();
+        ClassMapping mapping = null;
+        for (T obj : objects) {
+            if (mapping == null)
+                mapping = getClassMappingFromCache(obj.getClass());
+            batch.add(obj);
+            if (batch.size() == batchSize) {
+                Node[] nodes = addNodeBatch(batchSize, mapping.labels);
+                for (int i = 0; i < nodes.length; i++)
+                    setNodePropertiesFromClassMapping(nodes[i], mapping, batch.get(i));
+                batch.clear();
+            }
+        }
+        if (batch.size() > 0) {
+            Node[] nodes = addNodeBatch(batch.size(), mapping.labels);
+            for (int i = 0; i < nodes.length; i++)
+                setNodePropertiesFromClassMapping(nodes[i], mapping, batch.get(i));
+        }
+    }
+
+    private Node[] addNodeBatch(final int batchSize, final String... labels) throws GraphCacheException {
+        synchronize(false);
+        List<Long> ids = LongStream.rangeClosed(nextNodeId, nextNodeId + batchSize - 1).boxed().collect(
+                Collectors.toList());
+        Node[] result = new Node[batchSize];
+        int index = 0;
+        for (long id : ids) {
+            Node node = new Node(this, id, true, labels);
+            result[index] = node;
+            index++;
+            nodeCache.put(id, node);
+        }
+        nextNodeId += batchSize;
+        for (String label : labels) {
+            if (!nodeLabelIdMap.containsKey(label))
+                nodeLabelIdMap.put(label, new HashSet<>());
+            nodeLabelIdMap.get(label).addAll(ids);
+        }
+        return result;
+    }
+
+    public Edge addEdge(final Node from, final Node to, final String label) throws GraphCacheException {
         return addEdge(from.getId(), to.getId(), label);
     }
 
-    public Edge addEdge(Node from, long toId, String label) throws GraphCacheException {
+    public Edge addEdge(final Node from, final long toId, final String label) throws GraphCacheException {
         return addEdge(from.getId(), toId, label);
     }
 
-    public Edge addEdge(long fromId, Node to, String label) throws GraphCacheException {
+    public Edge addEdge(final long fromId, final Node to, final String label) throws GraphCacheException {
         return addEdge(fromId, to.getId(), label);
     }
 
-    public Edge addEdge(long fromId, long toId, String label) throws GraphCacheException {
+    public Edge addEdge(final long fromId, final long toId, final String label) throws GraphCacheException {
         Edge edge = new Edge(this, nextEdgeId, fromId, toId, label);
         nextEdgeId++;
         try {
@@ -270,19 +315,19 @@ public final class Graph {
         return edge;
     }
 
-    public void addEdgeFast(Node from, Node to, String label) throws GraphCacheException {
+    public void addEdgeFast(final Node from, final Node to, final String label) throws GraphCacheException {
         addEdgeFast(from.getId(), to.getId(), label);
     }
 
-    public void addEdgeFast(Node from, long toId, String label) throws GraphCacheException {
+    public void addEdgeFast(final Node from, final long toId, final String label) throws GraphCacheException {
         addEdgeFast(from.getId(), toId, label);
     }
 
-    public void addEdgeFast(long fromId, Node to, String label) throws GraphCacheException {
+    public void addEdgeFast(final long fromId, final Node to, final String label) throws GraphCacheException {
         addEdgeFast(fromId, to.getId(), label);
     }
 
-    public void addEdgeFast(long fromId, long toId, String label) throws GraphCacheException {
+    public void addEdgeFast(final long fromId, final long toId, final String label) throws GraphCacheException {
         long edgeId = nextEdgeId;
         nextEdgeId++;
         try {

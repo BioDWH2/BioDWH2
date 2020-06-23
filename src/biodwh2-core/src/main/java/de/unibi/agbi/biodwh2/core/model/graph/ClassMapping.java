@@ -4,10 +4,10 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClassMapping {
-    public static class ClassMappingField {
-        public final Field field;
-        public final String propertyName;
+class ClassMapping {
+    static class ClassMappingField {
+        final Field field;
+        final String propertyName;
 
         private ClassMappingField(final Field field, final String propertyName) {
             this.field = field;
@@ -15,10 +15,10 @@ public class ClassMapping {
         }
     }
 
-    public final String[] labels;
-    public final ClassMappingField[] fields;
+    final String[] labels;
+    final ClassMappingField[] fields;
 
-    public ClassMapping(final Class<?> type) {
+    ClassMapping(final Class<?> type) {
         labels = type.getAnnotation(NodeLabels.class).value();
         List<ClassMappingField> fieldsList = new ArrayList<>();
         for (Field field : type.getDeclaredFields())

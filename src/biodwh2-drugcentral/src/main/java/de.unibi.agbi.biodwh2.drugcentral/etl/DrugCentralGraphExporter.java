@@ -187,8 +187,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     private <T> void createNodesFromTsvFile(final Workspace workspace, final DrugCentralDataSource dataSource,
                                             final Graph g, final Class<T> dataType,
                                             final String fileName) throws ExporterException {
-        for (T entry : parseTsvFile(workspace, dataSource, dataType, fileName))
-            createNodeFromModel(g, entry);
+        g.createNodeBatchFromModels(parseTsvFile(workspace, dataSource, dataType, fileName), 1000);
     }
 
     private <T> Iterable<T> parseTsvFile(final Workspace workspace, final DrugCentralDataSource dataSource,
