@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {"id", "type", "description"})
+@SuppressWarnings("unused")
+@JsonPropertyOrder({"id", "type", "description"})
 @NodeLabels({"StructTypeDef"})
 public final class StructTypeDef {
     @JsonProperty("id")

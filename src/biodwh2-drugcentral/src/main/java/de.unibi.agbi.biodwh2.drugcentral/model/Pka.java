@@ -5,15 +5,15 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {"id", "struct_id", "pka_level", "value", "pka_type"})
+@SuppressWarnings("unused")
+@JsonPropertyOrder({"id", "struct_id", "pka_level", "value", "pka_type"})
 @NodeLabels({"PKA"})
 public final class Pka {
     @JsonProperty("id")
     @GraphProperty("id")
     public String id;
     @JsonProperty("struct_id")
-    @GraphProperty("struct_id")
-    public String structId;
+    public Integer structId;
     @JsonProperty("pka_level")
     @GraphProperty("pka_level")
     public String pkaLevel;

@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {"id", "appl_type", "appl_no", "product_no", "exclusivity_code", "exclusivity_date"})
+@SuppressWarnings("unused")
+@JsonPropertyOrder({"id", "appl_type", "appl_no", "product_no", "exclusivity_code", "exclusivity_date"})
 @NodeLabels({"ObExclusivity"})
 public final class ObExclusivity {
     @JsonProperty("id")
@@ -21,7 +22,6 @@ public final class ObExclusivity {
     @GraphProperty("product_no")
     public String productNo;
     @JsonProperty("exclusivity_code")
-    @GraphProperty("exclusivity_code")
     public String exclusivityCode;
     @JsonProperty("exclusivity_date")
     @GraphProperty("exclusivity_date")

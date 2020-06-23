@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {
+@SuppressWarnings("unused")
+@JsonPropertyOrder({
         "id", "struct_id", "meddra_name", "meddra_code", "level", "llr", "llr_threshold", "drug_ae", "drug_no_ae",
         "no_drug_ae", "no_drug_no_ae"
 })
@@ -15,8 +16,7 @@ public final class Faers {
     @GraphProperty("id")
     public String id;
     @JsonProperty("struct_id")
-    @GraphProperty("struct_id")
-    public String structId;
+    public Integer structId;
     @JsonProperty("meddra_name")
     @GraphProperty("meddra_name")
     public String meddraName;

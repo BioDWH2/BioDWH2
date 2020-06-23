@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {
+@SuppressWarnings("unused")
+@JsonPropertyOrder({
         "id", "struct_id1", "struct_id2", "is_parent1", "is_parent2", "cell_id", "rmsd", "rmsd_norm", "pearson",
         "euclid"
 })

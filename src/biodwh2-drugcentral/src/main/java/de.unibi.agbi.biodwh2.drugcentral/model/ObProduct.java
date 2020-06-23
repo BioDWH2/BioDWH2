@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {
+@SuppressWarnings("unused")
+@JsonPropertyOrder({
         "id", "ingredient", "trade_name", "applicant", "strength", "appl_type", "appl_no", "te_code", "approval_date",
         "rld", "applicant_full_name", "dose_form", "route", "product_no"
 })
@@ -47,7 +48,7 @@ public final class ObProduct {
     @JsonProperty("applicant_full_name")
     @GraphProperty("applicant_full_name")
     public String applicantFullName;
-    @JsonProperty("doseForm")
+    @JsonProperty("dose_form")
     @GraphProperty("dose_form")
     public String doseForm;
     @JsonProperty("route")

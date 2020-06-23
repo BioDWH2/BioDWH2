@@ -36,18 +36,28 @@ public final class FileUtils {
     public static <T> MappingIterator<T> openCsv(final Workspace workspace, final DataSource dataSource,
                                                  final String fileName, final Class<T> typeClass) throws IOException {
         InputStream stream = open(workspace, dataSource, fileName);
-        return openSeparatedValuesFile(stream, typeClass, ',');
+        return openSeparatedValuesFile(stream, typeClass, ',', false);
+    }
+
+    public static <T> MappingIterator<T> openCsvWithHeader(final Workspace workspace, final DataSource dataSource,
+                                                           final String fileName,
+                                                           final Class<T> typeClass) throws IOException {
+        InputStream stream = open(workspace, dataSource, fileName);
+        return openSeparatedValuesFile(stream, typeClass, ',', true);
     }
 
     public static <T> MappingIterator<T> openSeparatedValuesFile(final InputStream stream, final Class<T> typeClass,
-                                                                 final char separator) throws IOException {
+                                                                 final char separator,
+                                                                 final boolean withHeader) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
-        return getFormatReader(typeClass, separator).readValues(reader);
+        return getFormatReader(typeClass, separator, withHeader).readValues(reader);
     }
 
-    private static <T> ObjectReader getFormatReader(final Class<T> typeClass, final char separator) {
+    private static <T> ObjectReader getFormatReader(final Class<T> typeClass, final char separator,
+                                                    final boolean withHeader) {
         CsvMapper csvMapper = new CsvMapper();
-        CsvSchema schema = csvMapper.schemaFor(typeClass).withColumnSeparator(separator).withNullValue("");
+        CsvSchema schema = csvMapper.schemaFor(typeClass).withColumnSeparator(separator).withNullValue("")
+                                    .withUseHeader(withHeader);
         if (typeClass == String[].class)
             csvMapper.enable(CsvParser.Feature.WRAP_AS_ARRAY);
         return csvMapper.readerFor(typeClass).with(schema);
@@ -57,27 +67,40 @@ public final class FileUtils {
                                                      final String fileName,
                                                      final Class<T> typeClass) throws IOException {
         InputStream stream = openGzip(workspace, dataSource, fileName);
-        return openSeparatedValuesFile(stream, typeClass, ',');
+        return openSeparatedValuesFile(stream, typeClass, ',', false);
+    }
+
+    public static <T> MappingIterator<T> openGzipCsvWithHeader(final Workspace workspace, final DataSource dataSource,
+                                                               final String fileName,
+                                                               final Class<T> typeClass) throws IOException {
+        InputStream stream = openGzip(workspace, dataSource, fileName);
+        return openSeparatedValuesFile(stream, typeClass, ',', true);
     }
 
     public static <T> MappingIterator<T> openTsv(final Workspace workspace, final DataSource dataSource,
                                                  final String fileName, final Class<T> typeClass) throws IOException {
         InputStream stream = open(workspace, dataSource, fileName);
-        return openSeparatedValuesFile(stream, typeClass, '\t');
+        return openSeparatedValuesFile(stream, typeClass, '\t', false);
     }
 
     public static <T> MappingIterator<T> openTsvWithHeader(final Workspace workspace, final DataSource dataSource,
                                                            final String fileName,
                                                            final Class<T> typeClass) throws IOException {
-        MappingIterator<T> iterator = openTsv(workspace, dataSource, fileName, typeClass);
-        iterator.next();
-        return iterator;
+        InputStream stream = open(workspace, dataSource, fileName);
+        return openSeparatedValuesFile(stream, typeClass, '\t', true);
     }
 
     public static <T> MappingIterator<T> openGzipTsv(final Workspace workspace, final DataSource dataSource,
                                                      final String fileName,
                                                      final Class<T> typeClass) throws IOException {
         InputStream stream = openGzip(workspace, dataSource, fileName);
-        return openSeparatedValuesFile(stream, typeClass, '\t');
+        return openSeparatedValuesFile(stream, typeClass, '\t', false);
+    }
+
+    public static <T> MappingIterator<T> openGzipTsvWithHeader(final Workspace workspace, final DataSource dataSource,
+                                                               final String fileName,
+                                                               final Class<T> typeClass) throws IOException {
+        InputStream stream = openGzip(workspace, dataSource, fileName);
+        return openSeparatedValuesFile(stream, typeClass, '\t', true);
     }
 }

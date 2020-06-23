@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {
+@SuppressWarnings("unused")
+@JsonPropertyOrder({
         "id", "pmid", "doi", "document_id", "type", "authors", "title", "isbn10", "url", "journal", "volume", "issue",
         "dp_year", "pages"
 })

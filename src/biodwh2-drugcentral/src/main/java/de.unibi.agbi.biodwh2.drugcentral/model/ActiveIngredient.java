@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {
+@SuppressWarnings("unused")
+@JsonPropertyOrder({
         "id", "active_moiety_unii", "active_moiety_name", "unit", "quantity", "substance_unii", "substance_name",
         "ndc_product_code", "struct_id", "quantity_denom_unit", "quantity_denom_value"
 })
@@ -16,10 +17,10 @@ public final class ActiveIngredient {
     public String id;
     @JsonProperty("active_moiety_unii")
     @GraphProperty("active_moiety_unii")
-    public String unii;
+    public String activeMoietyUnii;
     @JsonProperty("active_moiety_name")
     @GraphProperty("active_moiety_name")
-    public String name;
+    public String activeMoietyName;
     @JsonProperty("unit")
     @GraphProperty("unit")
     public String unit;
@@ -33,11 +34,9 @@ public final class ActiveIngredient {
     @GraphProperty("substance_name")
     public String substanceName;
     @JsonProperty("ndc_product_code")
-    @GraphProperty("ndc_product_code")
     public String ndcProductCode;
     @JsonProperty("struct_id")
-    @GraphProperty("struct_id")
-    public String structId;
+    public Integer structId;
     @JsonProperty("quantity_denom_unit")
     @GraphProperty("quantity_denom_unit")
     public String quantityDenomUnit;

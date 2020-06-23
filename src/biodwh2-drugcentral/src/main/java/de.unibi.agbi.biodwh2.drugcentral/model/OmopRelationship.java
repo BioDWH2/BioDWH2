@@ -5,9 +5,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {
+@SuppressWarnings("unused")
+@JsonPropertyOrder({
         "id", "struct_id", "concept_id", "relationship_name", "concept_name", "umls_cui", "snomed_full_name",
-        "cui_semantic_type", "snomed_concept_id"
+        "cui_semantic_type", "snomed_conceptid"
 })
 @NodeLabels({"OmopRelationship"})
 public final class OmopRelationship {
@@ -15,8 +16,7 @@ public final class OmopRelationship {
     @GraphProperty("id")
     public String id;
     @JsonProperty("struct_id")
-    @GraphProperty("struct_id")
-    public String structId;
+    public Integer structId;
     @JsonProperty("concept_id")
     @GraphProperty("concept_id")
     public String conceptId;
@@ -35,7 +35,7 @@ public final class OmopRelationship {
     @JsonProperty("cui_semantic_type")
     @GraphProperty("cui_semantic_type")
     public String cuiSemanticType;
-    @JsonProperty("snomed_concept_id")
+    @JsonProperty("snomed_conceptid")
     @GraphProperty("snomed_concept_id")
     public String snomedConceptId;
 }

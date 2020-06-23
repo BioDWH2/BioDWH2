@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {"id", "accession", "swissprot", "organism", "name", "gene", "geneid", "tdl"})
+@SuppressWarnings("unused")
+// id	accession	swissprot	organism	name	gene	geneid	tdl
+@JsonPropertyOrder({"id", "accession", "swissprot", "organism", "name", "gene", "geneid", "tdl"})
 @NodeLabels({"TargetComponent"})
 public final class TargetComponent {
     @JsonProperty("id")
@@ -16,7 +18,7 @@ public final class TargetComponent {
     public String accession;
     @JsonProperty("swissprot")
     @GraphProperty("swissprot")
-    public String swissprot;
+    public String swissProt;
     @JsonProperty("organism")
     @GraphProperty("organism")
     public String organism;

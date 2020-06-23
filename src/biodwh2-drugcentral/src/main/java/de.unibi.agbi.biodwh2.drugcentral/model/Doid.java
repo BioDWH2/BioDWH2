@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {"id", "label", "doid", "url"})
+@SuppressWarnings("unused")
+@JsonPropertyOrder({"id", "label", "doid", "url"})
 @NodeLabels({"Doid"})
 public final class Doid {
     @JsonProperty("id")

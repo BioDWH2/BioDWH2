@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {
+@SuppressWarnings("unused")
+@JsonPropertyOrder({
         "act_id", "struct_id", "target_id", "target_name", "target_class", "accession", "gene", "swissprot",
         "act_value", "act_unit", "act_type", "act_comment", "act_source", "relation", "moa", "moa_source",
         "act_source_url", "moa_source_url", "action_type", "first_in_class", "tdl", "act_ref_id", "moa_ref_id",
@@ -17,10 +18,8 @@ public final class ActTableFull {
     @GraphProperty("act_id")
     public String actId;
     @JsonProperty("struct_id")
-    @GraphProperty("struct_id")
-    public String structId;
+    public Integer structId;
     @JsonProperty("target_id")
-    @GraphProperty("target_id")
     public String targetId;
     @JsonProperty("target_name")
     @GraphProperty("target_name")
@@ -36,7 +35,7 @@ public final class ActTableFull {
     public String gene;
     @JsonProperty("swissprot")
     @GraphProperty("swissprot")
-    public String swissprot;
+    public String swissProt;
     @JsonProperty("act_value")
     @GraphProperty("act_value")
     public String actValue;
@@ -68,7 +67,6 @@ public final class ActTableFull {
     @GraphProperty("moa_source_url")
     public String moaSourceUrl;
     @JsonProperty("action_type")
-    @GraphProperty("action_type")
     public String actionType;
     @JsonProperty("first_in_class")
     @GraphProperty("first_in_class")
@@ -77,10 +75,8 @@ public final class ActTableFull {
     @GraphProperty("tdl")
     public String tdl;
     @JsonProperty("act_ref_id")
-    @GraphProperty("act_ref_id")
     public String actRefId;
     @JsonProperty("moa_ref_id")
-    @GraphProperty("moa_ref_id")
     public String moaRefId;
     @JsonProperty("organism")
     @GraphProperty("organism")

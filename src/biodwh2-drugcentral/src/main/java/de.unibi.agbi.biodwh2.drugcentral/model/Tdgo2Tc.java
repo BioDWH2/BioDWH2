@@ -3,8 +3,7 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder(value = {"id", "go_id", "component_id"})
-
+@JsonPropertyOrder({"id", "go_id", "component_id"})
 public final class Tdgo2Tc {
     @JsonProperty("id")
     public String id;

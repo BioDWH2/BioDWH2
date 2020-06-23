@@ -5,15 +5,16 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {"id", "act_code", "ddd", "unit_type", "route", "comment", "struct_id"})
+@SuppressWarnings("unused")
+@JsonPropertyOrder({"id", "atc_code", "ddd", "unit_type", "route", "comment", "struct_id"})
 @NodeLabels({"AtcDDD"})
 public final class AtcDdd {
     @JsonProperty("id")
     @GraphProperty("id")
     public String id;
-    @JsonProperty("act_code")
-    @GraphProperty("act_code")
-    public String actCode;
+    @JsonProperty("atc_code")
+    @GraphProperty("atc_code")
+    public String atcCode;
     @JsonProperty("ddd")
     @GraphProperty("ddd")
     public String ddd;
@@ -27,6 +28,5 @@ public final class AtcDdd {
     @GraphProperty("comment")
     public String comment;
     @JsonProperty("struct_id")
-    @GraphProperty("struct_id")
-    public String structId;
+    public Integer structId;
 }

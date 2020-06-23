@@ -64,7 +64,7 @@ public abstract class GraphExporter<D extends DataSource> {
         return new GraphMLGraphWriter().write(workspace, dataSource, g);
     }
 
-    protected final Node createNodeFromModel(final Graph g, final Object obj) throws ExporterException {
+    protected final <T> Node createNodeFromModel(final Graph g, final T obj) throws ExporterException {
         ClassMapping mapping = getClassMappingFromCache(obj.getClass());
         Node node = createNode(g, mapping.labels);
         setNodePropertiesFromClassMapping(node, mapping, obj);

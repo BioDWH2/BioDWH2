@@ -5,8 +5,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {
-        "cdId", "name", "cas_reg_no", "inchi", "nostereo_inchi", "molfile", "molimg", "smiles", "inchi_key"
+@SuppressWarnings("unused")
+@JsonPropertyOrder({
+        "cd_id", "name", "cas_reg_no", "inchi", "nostereo_inchi", "molfile", "molimg", "smiles", "inchikey"
 })
 @NodeLabels({"Parentmol"})
 public final class Parentmol {
@@ -29,12 +30,11 @@ public final class Parentmol {
     @GraphProperty("molfile")
     public String molfile;
     @JsonProperty("molimg")
-    @GraphProperty("molimg")
     public String molimg;
     @JsonProperty("smiles")
     @GraphProperty("smiles")
     public String smiles;
-    @JsonProperty("inchi_key")
+    @JsonProperty("inchikey")
     @GraphProperty("inchi_key")
     public String inchiKey;
 }

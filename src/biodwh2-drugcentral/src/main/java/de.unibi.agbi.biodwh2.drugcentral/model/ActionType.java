@@ -5,14 +5,15 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {"id", "action_type", "description", "parent_type"})
+@SuppressWarnings("unused")
+@JsonPropertyOrder({"id", "action_type", "description", "parent_type"})
 @NodeLabels({"ActionType"})
 public final class ActionType {
     @JsonProperty("id")
     @GraphProperty("id")
     public String id;
     @JsonProperty("action_type")
-    @GraphProperty("action_type")
+    @GraphProperty("type")
     public String actionType;
     @JsonProperty("description")
     @GraphProperty("description")

@@ -58,8 +58,6 @@ public class UNIIParser extends Parser<UNIIDataSource> {
     }
 
     private <T> List<T> parseZipStream(final ZipInputStream zipInputStream, Class<T> typeClass) throws IOException {
-        MappingIterator<T> iterator = FileUtils.openSeparatedValuesFile(zipInputStream, typeClass, '\t');
-        iterator.next();
-        return iterator.readAll();
+        return FileUtils.openSeparatedValuesFile(zipInputStream, typeClass, '\t', true).readAll();
     }
 }

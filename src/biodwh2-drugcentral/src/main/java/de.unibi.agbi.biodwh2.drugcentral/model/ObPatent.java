@@ -5,8 +5,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {
-        "id", "appl_type", "appl_no", "product_no", "parent_no", "patent_expire_date", "drug_substance_flag",
+@SuppressWarnings("unused")
+@JsonPropertyOrder({
+        "id", "appl_type", "appl_no", "product_no", "patent_no", "patent_expire_date", "drug_substance_flag",
         "drug_product_flag", "patent_use_code", "delist_flag"
 })
 @NodeLabels({"ObPatent"})
@@ -23,9 +24,9 @@ public final class ObPatent {
     @JsonProperty("product_no")
     @GraphProperty("product_no")
     public String productNo;
-    @JsonProperty("parent_no")
-    @GraphProperty("parent_no")
-    public String parentNo;
+    @JsonProperty("patent_no")
+    @GraphProperty("patent_no")
+    public String patentNo;
     @JsonProperty("patent_expire_date")
     @GraphProperty("patent_expire_date")
     public String patentExpireDate;

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {"id", "struct_id", "type"})
+@JsonPropertyOrder({"id", "struct_id", "type"})
 @NodeLabels({"StructureType"})
 public final class StructureType {
     @JsonProperty("id")
@@ -13,7 +13,7 @@ public final class StructureType {
     public String id;
     @JsonProperty("struct_id")
     @GraphProperty("struct_id")
-    public String structId;
+    public Integer structId;
     @JsonProperty("type")
     @GraphProperty("type")
     public String type;

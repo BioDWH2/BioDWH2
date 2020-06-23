@@ -335,7 +335,7 @@ public final class Graph {
             }
         }
         maxDumpedId = maxId;
-        nodeCache.clear();
+        nodeCache = new HashMap<>();
         nodeLabelIdMap.replaceAll((l, v) -> new HashSet<>());
         tryCommit();
     }
@@ -382,6 +382,32 @@ public final class Graph {
             throw new GraphCacheException("Failed to persist graph", e);
         }
         return edge;
+    }
+
+    public void addEdgeFast(Node from, Node to, String label) throws GraphCacheException {
+        addEdgeFast(from.getId(), to.getId(), label);
+    }
+
+    public void addEdgeFast(Node from, long toId, String label) throws GraphCacheException {
+        addEdgeFast(from.getId(), toId, label);
+    }
+
+    public void addEdgeFast(long fromId, Node to, String label) throws GraphCacheException {
+        addEdgeFast(fromId, to.getId(), label);
+    }
+
+    public void addEdgeFast(long fromId, long toId, String label) throws GraphCacheException {
+        long edgeId = nextEdgeId;
+        nextEdgeId++;
+        try {
+            insertEdgeStatement.setLong(1, edgeId);
+            insertEdgeStatement.setString(2, label);
+            insertEdgeStatement.setLong(3, fromId);
+            insertEdgeStatement.setLong(4, toId);
+            insertEdgeStatement.execute();
+        } catch (SQLException e) {
+            throw new GraphCacheException("Failed to persist graph", e);
+        }
     }
 
     public Iterable<Node> getNodes() throws GraphCacheException {

@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {"code", "description"})
+@SuppressWarnings("unused")
+@JsonPropertyOrder({"code", "description"})
 @NodeLabels({"ObPatentUseCode"})
 public final class ObPatentUseCode {
     @JsonProperty("code")

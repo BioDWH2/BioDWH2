@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@JsonPropertyOrder(value = {"src_id", "source_name"})
+@SuppressWarnings("unused")
+@JsonPropertyOrder({"src_id", "source_name"})
 @NodeLabels({"DataSource"})
 public final class DataSource {
     @JsonProperty("src_id")
