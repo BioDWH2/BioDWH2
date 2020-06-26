@@ -1,18 +1,14 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
-import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Date;
 
 class EdgeTest {
     @Test
-    void testSetProperty() throws ExporterException, IOException {
-        Path tempFilePath = Files.createTempFile("graphdb_test", ".sqlite");
-        Graph g = new Graph(tempFilePath.toString());
+    void testSetProperty() throws IOException {
+        Graph g = Graph.createTempGraph();
         Node a = new Node(g, 1, true);
         Node b = new Node(g, 2, true);
         Edge e = new Edge(g, 1, a.getId(), b.getId(), "TEST");

@@ -113,18 +113,6 @@ public final class Graph {
         indexColumnNames = names;
     }
 
-    void setNodeProperty(final Node node, final String key, final Object value) throws GraphCacheException {
-        try {
-            database.addColumnIfNotExists("nodes", key, "TEXT", ArrayUtils.contains(indexColumnNames, key));
-        } catch (SQLException e) {
-            throw new GraphCacheException("Failed to persist graph", e);
-        }
-        if (value == null || nodeCache.containsKey(node.getId()))
-            return;
-        String packedValue = StringUtils.replace(ValuePacker.packValue(value), UnescapedQuotes, EscapedQuotes);
-        executeSql("UPDATE nodes SET \"" + key + "\"='" + packedValue + "' WHERE __id=" + node.getId());
-    }
-
     private void executeSql(final String sql) throws GraphCacheException {
         try {
             database.execute(sql);
@@ -213,7 +201,9 @@ public final class Graph {
         return node;
     }
 
-    private void addNodeToMemoryCache(final Node node) {
+    void addNodeToMemoryCache(final Node node) {
+        if (nodeCache.containsKey(node.getId()))
+            return;
         nodeCache.put(node.getId(), node);
         for (String label : node.getLabels()) {
             if (!nodeLabelIdMap.containsKey(label))
@@ -239,7 +229,7 @@ public final class Graph {
                                                    final Object obj) throws GraphCacheException {
         try {
             for (ClassMapping.ClassMappingField field : mapping.fields)
-                node.setProperty(field.propertyName, field.field.get(obj), true, true, false);
+                node.setProperty(field.propertyName, field.field.get(obj), true, false);
         } catch (IllegalAccessException e) {
             throw new GraphCacheException(e);
         }
@@ -247,23 +237,25 @@ public final class Graph {
 
     public final <T> void createNodeBatchFromModels(final Iterable<T> objects,
                                                     final int batchSize) throws GraphCacheException {
-        List<T> batch = new ArrayList<>();
+        Object[] batch = new Object[batchSize];
+        int currentBatchSize = 0;
         ClassMapping mapping = null;
         for (T obj : objects) {
             if (mapping == null)
                 mapping = getClassMappingFromCache(obj.getClass());
-            batch.add(obj);
-            if (batch.size() == batchSize) {
+            batch[currentBatchSize] = obj;
+            currentBatchSize++;
+            if (currentBatchSize == batchSize) {
                 Node[] nodes = addNodeBatch(batchSize, mapping.labels);
                 for (int i = 0; i < nodes.length; i++)
-                    setNodePropertiesFromClassMapping(nodes[i], mapping, batch.get(i));
-                batch.clear();
+                    setNodePropertiesFromClassMapping(nodes[i], mapping, batch[i]);
+                currentBatchSize = 0;
             }
         }
-        if (batch.size() > 0) {
-            Node[] nodes = addNodeBatch(batch.size(), mapping.labels);
+        if (currentBatchSize > 0) {
+            Node[] nodes = addNodeBatch(currentBatchSize, mapping.labels);
             for (int i = 0; i < nodes.length; i++)
-                setNodePropertiesFromClassMapping(nodes[i], mapping, batch.get(i));
+                setNodePropertiesFromClassMapping(nodes[i], mapping, batch[i]);
         }
     }
 
@@ -471,7 +463,7 @@ public final class Graph {
                 if (value != null) {
                     Object unpackedValue = ValuePacker.unpackValue(
                             StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
-                    node.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false, false, false);
+                    node.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false, false);
                 }
             }
             return node;
@@ -593,6 +585,10 @@ public final class Graph {
 
     public long getNumberOfNodes() {
         return nextNodeId - 1;
+    }
+
+    long getNumberOfCachedNodes() {
+        return nodeCache.size();
     }
 
     public Node getNode(long id) {

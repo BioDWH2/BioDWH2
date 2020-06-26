@@ -57,10 +57,10 @@ public class Node implements PropertyContainer {
     }
 
     public void setProperty(final String key, final Object value) throws GraphCacheException {
-        setProperty(key, value, true, true, true);
+        setProperty(key, value, true, true);
     }
 
-    void setProperty(final String key, final Object value, final boolean persist, final boolean modified,
+    void setProperty(final String key, final Object value, final boolean modified,
                      final boolean checkType) throws GraphCacheException {
         this.modified = modified;
         if (value != null) {
@@ -74,11 +74,10 @@ public class Node implements PropertyContainer {
                 }
             } else
                 properties.put(key, value);
-            if (persist)
-                graph.setNodeProperty(this, key, value);
         } else
             properties.put(key, null);
         propertiesSetCache.remove(key);
+        graph.addNodeToMemoryCache(this);
     }
 
     public boolean hasProperty(final String propertyName) {
