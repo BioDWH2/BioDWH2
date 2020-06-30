@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
 public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
-    private static final String DownloadPageUrl = "http://drugcentral.org/download";
+    private static final String DownloadPageUrl = "http://drugcentral.org/ActiveDownload";
 
     @Override
     public Version getNewestVersion() throws UpdaterException {
@@ -49,6 +49,7 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
     protected boolean tryUpdateFiles(Workspace workspace, DrugCentralDataSource dataSource) throws UpdaterException {
         final String dumpFilePath = dataSource.resolveSourceFilePath(workspace, "rawDrugCentral.sql.gz");
         downloadDrugCentralDatabase(dumpFilePath);
+        removeOldExtractedTsvFiles(workspace, dataSource);
         extractTsvFilesFromDatabaseDump(workspace, dataSource, dumpFilePath);
         return true;
     }
@@ -73,6 +74,14 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
             throw new UpdaterConnectionException(e);
         }
         throw new UpdaterConnectionException("Failed to get database download URL from download page");
+    }
+
+    private void removeOldExtractedTsvFiles(final Workspace workspace, final DataSource dataSource) {
+        String[] files = dataSource.listSourceFiles(workspace);
+        for (String file : files)
+            if (file.endsWith(".tsv"))
+                //noinspection ResultOfMethodCallIgnored
+                new File(dataSource.resolveSourceFilePath(workspace, file)).delete();
     }
 
     private void extractTsvFilesFromDatabaseDump(final Workspace workspace, final DrugCentralDataSource dataSource,

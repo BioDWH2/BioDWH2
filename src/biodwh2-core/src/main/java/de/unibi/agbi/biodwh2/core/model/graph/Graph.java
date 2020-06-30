@@ -349,6 +349,24 @@ public final class Graph {
         }
     }
 
+    private Edge createEdgeFromResultSet(ResultSet result) throws GraphCacheException {
+        try {
+            Edge edge = new Edge(this, result.getLong("__id"), result.getLong("__from_id"), result.getLong("__to_id"),
+                                 result.getString("__label"));
+            for (int i = 5; i <= result.getMetaData().getColumnCount(); i++) {
+                String value = result.getString(i);
+                if (value != null) {
+                    Object unpackedValue = ValuePacker.unpackValue(
+                            StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
+                    edge.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false);
+                }
+            }
+            return edge;
+        } catch (SQLException e) {
+            throw new GraphCacheException("Failed to load edge from persisted graph", e);
+        }
+    }
+
     public Node findNode(String label, String propertyName, Object value) {
         return findNode(label, propertyName, value, false);
     }
@@ -555,24 +573,6 @@ public final class Graph {
         } catch (SQLException ignored) {
         }
         return id;
-    }
-
-    private Edge createEdgeFromResultSet(ResultSet result) throws GraphCacheException {
-        try {
-            Edge edge = new Edge(this, result.getLong("__id"), result.getLong("__from_id"), result.getLong("__to_id"),
-                                 result.getString("__label"));
-            for (int i = 5; i <= result.getMetaData().getColumnCount(); i++) {
-                String value = result.getString(i);
-                if (value != null) {
-                    Object unpackedValue = ValuePacker.unpackValue(
-                            StringUtils.replace(value, EscapedQuotes, UnescapedQuotes));
-                    edge.setProperty(result.getMetaData().getColumnName(i), unpackedValue, false);
-                }
-            }
-            return edge;
-        } catch (SQLException e) {
-            throw new GraphCacheException("Failed to load edge from persisted graph", e);
-        }
     }
 
     private void tryCommit() throws GraphCacheException {
