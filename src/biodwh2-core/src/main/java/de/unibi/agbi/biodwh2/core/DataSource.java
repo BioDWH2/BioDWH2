@@ -18,7 +18,7 @@ public abstract class DataSource {
     private static final Logger logger = LoggerFactory.getLogger(DataSource.class);
     private static final String SourceDirectoryName = "source";
     private static final String MetadataFileName = "metadata.json";
-    private static final String PersistentGraphFileName = "graphdb.sqlite";
+    private static final String PersistentGraphFileName = "graph.db";
 
     private DataSourceMetadata metadata;
 

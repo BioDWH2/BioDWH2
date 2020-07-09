@@ -23,7 +23,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     @Override
     protected boolean exportGraph(final Workspace workspace, final DrugCentralDataSource dataSource,
                                   final Graph g) throws ExporterException {
-        g.setIndexColumnNames("id", "code", "doid", "ndc_product_code", "cd_id", "type", "stem", "name");
+        g.setNodeIndexPropertyKeys("id", "code", "doid", "ndc_product_code", "cd_id", "type", "stem", "name");
         // "ddi_risk.tsv", "approval_type.tsv", "target_class.tsv", "ref_type.tsv", "protein_type.tsv", "id_type.tsv"
         // are ignored because no necessary additional info is included
         createNodesFromTsvFile(workspace, dataSource, g, InnStem.class, "inn_stem.tsv");
@@ -52,134 +52,132 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         for (ActiveIngredient activeIngredient : parseTsvFile(workspace, dataSource, ActiveIngredient.class,
                                                               "active_ingredient.tsv")) {
             Node activeIngredientNode = createNodeFromModel(g, activeIngredient);
-            Long productNodeId = g.findNodeId("Product", "ndc_product_code", activeIngredient.ndcProductCode);
-            Long structureNodeId = g.findNodeId("Structure", "id", activeIngredient.structId);
-            g.addEdgeFast(activeIngredientNode, productNodeId, "IN_PRODUCT");
-            g.addEdgeFast(activeIngredientNode, structureNodeId, "HAS_STRUCTURE");
+            Node productNode = g.findNode("Product", "ndc_product_code", activeIngredient.ndcProductCode);
+            Node structureNode = g.findNode("Structure", "id", activeIngredient.structId);
+            g.addEdge(activeIngredientNode, productNode, "IN_PRODUCT");
+            g.addEdge(activeIngredientNode, structureNode, "HAS_STRUCTURE");
         }
         for (ActTableFull entry : parseTsvFile(workspace, dataSource, ActTableFull.class, "act_table_full.tsv")) {
             Node actTableFullNode = createNodeFromModel(g, entry);
             if (entry.actionType != null)
-                g.addEdgeFast(actTableFullNode, g.findNodeId("ActionType", "type", entry.actionType),
-                              "HAS_ACTION_TYPE");
+                g.addEdge(actTableFullNode, g.findNode("ActionType", "type", entry.actionType), "HAS_ACTION_TYPE");
             if (entry.structId != null)
-                g.addEdgeFast(actTableFullNode, g.findNodeId("Structure", "id", entry.structId), "HAS_STRUCTURE");
+                g.addEdge(actTableFullNode, g.findNode("Structure", "id", entry.structId), "HAS_STRUCTURE");
             if (entry.targetId != null)
-                g.addEdgeFast(actTableFullNode, g.findNodeId("TargetDictionary", "id", entry.targetId),
-                              "HAS_TARGET_DICTIONARY");
+                g.addEdge(actTableFullNode, g.findNode("TargetDictionary", "id", entry.targetId),
+                          "HAS_TARGET_DICTIONARY");
             if (entry.actRefId != null)
-                g.addEdgeFast(actTableFullNode, g.findNodeId("Reference", "id", entry.actRefId), "HAS_ACT_REFERENCE");
+                g.addEdge(actTableFullNode, g.findNode("Reference", "id", entry.actRefId), "HAS_ACT_REFERENCE");
             if (entry.moaRefId != null)
-                g.addEdgeFast(actTableFullNode, g.findNodeId("Reference", "id", entry.moaRefId), "HAS_MOA_REFERENCE");
+                g.addEdge(actTableFullNode, g.findNode("Reference", "id", entry.moaRefId), "HAS_MOA_REFERENCE");
         }
         for (Approval approval : parseTsvFile(workspace, dataSource, Approval.class, "approval.tsv")) {
             Node approvalNode = createNodeFromModel(g, approval);
             if (approval.structId != null)
-                g.addEdgeFast(approvalNode, g.findNodeId("Structure", "id", approval.structId), "HAS_STRUCTURE");
+                g.addEdge(approvalNode, g.findNode("Structure", "id", approval.structId), "HAS_STRUCTURE");
         }
         for (AtcDdd atcDdd : parseTsvFile(workspace, dataSource, AtcDdd.class, "atc_ddd.tsv")) {
             Node atcDddNode = createNodeFromModel(g, atcDdd);
-            g.addEdgeFast(g.findNodeId("ATC", "code", atcDdd.atcCode), atcDddNode, "HAS_DDD");
-            g.addEdgeFast(atcDddNode, g.findNodeId("Structure", "id", atcDdd.structId), "HAS_STRUCTURE");
+            g.addEdge(g.findNode("ATC", "code", atcDdd.atcCode), atcDddNode, "HAS_DDD");
+            g.addEdge(atcDddNode, g.findNode("Structure", "id", atcDdd.structId), "HAS_STRUCTURE");
         }
         for (Ddi ddi : parseTsvFile(workspace, dataSource, Ddi.class, "ddi.tsv")) {
             Node ddiNode = createNodeFromModel(g, ddi);
-            g.addEdgeFast(ddiNode, g.findNodeId("DrugClass", "name", ddi.drugClass1), "HAS_DRUG_CLASS");
-            g.addEdgeFast(ddiNode, g.findNodeId("DrugClass", "name", ddi.drugClass2), "HAS_DRUG_CLASS");
+            g.addEdge(ddiNode, g.findNode("DrugClass", "name", ddi.drugClass1), "HAS_DRUG_CLASS");
+            g.addEdge(ddiNode, g.findNode("DrugClass", "name", ddi.drugClass2), "HAS_DRUG_CLASS");
         }
         for (DoidXref doidXref : parseTsvFile(workspace, dataSource, DoidXref.class, "doid_xref.tsv")) {
             Node doidXrefNode = createNodeFromModel(g, doidXref);
             if (doidXref.doid != null)
-                g.addEdgeFast(g.findNodeId("Doid", "doid", doidXref.doid), doidXrefNode, "HAS_XREF");
+                g.addEdge(g.findNode("Doid", "doid", doidXref.doid), doidXrefNode, "HAS_XREF");
         }
         for (Faers faers : parseTsvFile(workspace, dataSource, Faers.class, "faers.tsv")) {
             Node faersNode = createNodeFromModel(g, faers);
-            g.addEdgeFast(faersNode, g.findNodeId("Structure", "id", faers.structId), "HAS_STRUCTURE");
+            g.addEdge(faersNode, g.findNode("Structure", "id", faers.structId), "HAS_STRUCTURE");
         }
         for (Identifier identifier : parseTsvFile(workspace, dataSource, Identifier.class, "identifier.tsv")) {
             Node identifierNode = createNodeFromModel(g, identifier);
-            g.addEdgeFast(g.findNodeId("Structure", "id", identifier.structId), identifierNode, "HAS_IDENTIFIER");
+            g.addEdge(g.findNode("Structure", "id", identifier.structId), identifierNode, "HAS_IDENTIFIER");
         }
         for (ObExclusivity obExclusivity : parseTsvFile(workspace, dataSource, ObExclusivity.class,
                                                         "ob_exclusivity.tsv")) {
             Node obExclusivityNode = createNodeFromModel(g, obExclusivity);
             if (obExclusivity.exclusivityCode != null)
-                g.addEdgeFast(obExclusivityNode,
-                              g.findNodeId("ObExclusivityCode", "code", obExclusivity.exclusivityCode),
-                              "HAS_OB_EXCLUSIVITY_CODE");
+                g.addEdge(obExclusivityNode, g.findNode("ObExclusivityCode", "code", obExclusivity.exclusivityCode),
+                          "HAS_OB_EXCLUSIVITY_CODE");
         }
         for (OmopRelationship omopRelationship : parseTsvFile(workspace, dataSource, OmopRelationship.class,
                                                               "omop_relationship.tsv")) {
             Node omopRelationshipNode = createNodeFromModel(g, omopRelationship);
-            g.addEdgeFast(g.findNodeId("Structure", "id", omopRelationship.structId), omopRelationshipNode,
-                          "RELATES_TO");
+            g.addEdge(g.findNode("Structure", "id", omopRelationship.structId), omopRelationshipNode, "RELATES_TO");
         }
         for (Pdb pdb : parseTsvFile(workspace, dataSource, Pdb.class, "pdb.tsv")) {
             Node pdbNode = createNodeFromModel(g, pdb);
-            g.addEdgeFast(g.findNodeId("Structure", "id", pdb.structId), pdbNode, "HAS_PDB");
+            g.addEdge(g.findNode("Structure", "id", pdb.structId), pdbNode, "HAS_PDB");
         }
         for (PharmaClass pharmaClass : parseTsvFile(workspace, dataSource, PharmaClass.class, "pharma_class.tsv")) {
             Node pharmaClassNode = createNodeFromModel(g, pharmaClass);
-            g.addEdgeFast(g.findNodeId("Structure", "id", pharmaClass.structId), pharmaClassNode, "BELONGS_TO");
+            g.addEdge(g.findNode("Structure", "id", pharmaClass.structId), pharmaClassNode, "BELONGS_TO");
         }
         for (Pka pka : parseTsvFile(workspace, dataSource, Pka.class, "pka.tsv")) {
             Node pkaNode = createNodeFromModel(g, pka);
-            g.addEdgeFast(g.findNodeId("Structure", "id", pka.structId), pkaNode, "HAS_PKA");
+            g.addEdge(g.findNode("Structure", "id", pka.structId), pkaNode, "HAS_PKA");
         }
         for (Section section : parseTsvFile(workspace, dataSource, Section.class, "section.tsv")) {
             Node sectionNode = createNodeFromModel(g, section);
-            g.addEdgeFast(g.findNodeId("Label", "id", section.labelId), sectionNode, "HAS_SECTION");
+            g.addEdge(g.findNode("Label", "id", section.labelId), sectionNode, "HAS_SECTION");
         }
         for (Synonyms synonyms : parseTsvFile(workspace, dataSource, Synonyms.class, "synonyms.tsv")) {
             Node synonymsNode = createNodeFromModel(g, synonyms);
             if (synonyms.parentId != null)
-                g.addEdgeFast(synonymsNode, g.findNodeId("Parentmol", "cd_id", synonyms.parentId), "HAS_PARENTMOL");
+                g.addEdge(synonymsNode, g.findNode("Parentmol", "cd_id", synonyms.parentId), "HAS_PARENTMOL");
             if (synonyms.id != null)
-                g.addEdgeFast(g.findNodeId("Structure", "id", synonyms.id), synonymsNode, "HAS_SYNONYM");
+                g.addEdge(g.findNode("Structure", "id", synonyms.id), synonymsNode, "HAS_SYNONYM");
         }
         for (Struct2Atc struct2Atc : parseTsvFile(workspace, dataSource, Struct2Atc.class, "struct2atc.tsv")) {
-            Long structNodeId = g.findNodeId("Structure", "id", struct2Atc.structId);
-            Long atcNodeId = g.findNodeId("ATC", "code", struct2Atc.atcCode);
-            g.addEdgeFast(structNodeId, atcNodeId, "HAS_ATC_CODE");
+            Node structNode = g.findNode("Structure", "id", struct2Atc.structId);
+            Node atcNode = g.findNode("ATC", "code", struct2Atc.atcCode);
+            g.addEdge(structNode, atcNode, "HAS_ATC_CODE");
         }
         for (Struct2DrgClass struct2DrgClass : parseTsvFile(workspace, dataSource, Struct2DrgClass.class,
                                                             "struct2drgclass.tsv")) {
-            Long structNodeId = g.findNodeId("Structure", "id", struct2DrgClass.structId);
-            Long drugClassNodeId = g.findNodeId("DrugClass", "id", struct2DrgClass.drugClassId);
-            g.addEdgeFast(structNodeId, drugClassNodeId, "BELONGS_TO");
+            Node structNode = g.findNode("Structure", "id", struct2DrgClass.structId);
+            Node drugClassNode = g.findNode("DrugClass", "id", struct2DrgClass.drugClassId);
+            g.addEdge(structNode, drugClassNode, "BELONGS_TO");
         }
         for (Tdgo2Tc tdgo2Tc : parseTsvFile(workspace, dataSource, Tdgo2Tc.class, "tdgo2tc.tsv")) {
-            Long goNodeId = g.findNodeId("TargetGo", "id", tdgo2Tc.goId);
-            Long componentNodeId = g.findNodeId("TargetComponent", "id", tdgo2Tc.componentId);
-            g.addEdgeFast(goNodeId, componentNodeId, "HAS_TARGET_COMPONENT");
+            Node goNode = g.findNode("TargetGo", "id", tdgo2Tc.goId);
+            Node componentNode = g.findNode("TargetComponent", "id", tdgo2Tc.componentId);
+            g.addEdge(goNode, componentNode, "HAS_TARGET_COMPONENT");
         }
         for (Tdkey2Tc tdkey2Tc : parseTsvFile(workspace, dataSource, Tdkey2Tc.class, "tdkey2tc.tsv")) {
-            Long keywordNodeId = g.findNodeId("TargetKeyword", "id", tdkey2Tc.tdKeyId);
-            Long componentNodeId = g.findNodeId("TargetComponent", "id", tdkey2Tc.componentId);
-            g.addEdgeFast(keywordNodeId, componentNodeId, "HAS_TARGET_COMPONENT");
+            Node keywordNode = g.findNode("TargetKeyword", "id", tdkey2Tc.tdKeyId);
+            Node componentNode = g.findNode("TargetComponent", "id", tdkey2Tc.componentId);
+            g.addEdge(keywordNode, componentNode, "HAS_TARGET_COMPONENT");
         }
         for (Prd2Label prd2Label : parseTsvFile(workspace, dataSource, Prd2Label.class, "prd2label.tsv")) {
-            Long productNodeId = g.findNodeId("Product", "ndc_product_code", prd2Label.ndcProductCode);
-            Long labelNodeId = g.findNodeId("Label", "id", prd2Label.labelId);
-            g.addEdgeFast(productNodeId, labelNodeId, "HAS_LABEL");
+            Node productNode = g.findNode("Product", "ndc_product_code", prd2Label.ndcProductCode);
+            Node labelNode = g.findNode("Label", "id", prd2Label.labelId);
+            g.addEdge(productNode, labelNode, "HAS_LABEL");
         }
         for (Struct2ObProd struct2ObProd : parseTsvFile(workspace, dataSource, Struct2ObProd.class,
                                                         "struct2obprod.tsv")) {
-            Long structureNodeId = g.findNodeId("Structure", "id", struct2ObProd.structId);
-            Long obProductNodeId = g.findNodeId("ObProduct", "id", struct2ObProd.prodId);
-            Edge e = g.addEdge(structureNodeId, obProductNodeId, "HAS_OB_PRODUCT");
+            Node structureNode = g.findNode("Structure", "id", struct2ObProd.structId);
+            Node obProductNode = g.findNode("ObProduct", "id", struct2ObProd.prodId);
+            Edge e = g.addEdge(structureNode, obProductNode, "HAS_OB_PRODUCT");
             e.setProperty("strength", struct2ObProd.strength);
+            g.update(e);
         }
         for (Struct2Parent struct2Parent : parseTsvFile(workspace, dataSource, Struct2Parent.class,
                                                         "struct2parent.tsv")) {
-            Long structureNodeId = g.findNodeId("Structure", "id", struct2Parent.structId);
-            Long parentNodeId = g.findNodeId("Parentmol", "cd_id", struct2Parent.parentId);
-            g.addEdgeFast(structureNodeId, parentNodeId, "HAS_PARENTMOL");
+            Node structureNode = g.findNode("Structure", "id", struct2Parent.structId);
+            Node parentNode = g.findNode("Parentmol", "cd_id", struct2Parent.parentId);
+            g.addEdge(structureNode, parentNode, "HAS_PARENTMOL");
         }
         for (Td2Tc td2Tc : parseTsvFile(workspace, dataSource, Td2Tc.class, "td2tc.tsv")) {
-            Long targetNodeId = g.findNodeId("TargetDictionary", "id", td2Tc.targetId);
-            Long componentNodeId = g.findNodeId("TargetComponent", "id", td2Tc.componentId);
-            g.addEdgeFast(targetNodeId, componentNodeId, "HAS_TARGET_COMPONENT");
+            Node targetNode = g.findNode("TargetDictionary", "id", td2Tc.targetId);
+            Node componentNode = g.findNode("TargetComponent", "id", td2Tc.componentId);
+            g.addEdge(targetNode, componentNode, "HAS_TARGET_COMPONENT");
         }
         return true;
     }
@@ -187,7 +185,8 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     private <T> void createNodesFromTsvFile(final Workspace workspace, final DrugCentralDataSource dataSource,
                                             final Graph g, final Class<T> dataType,
                                             final String fileName) throws ExporterException {
-        g.createNodeBatchFromModels(parseTsvFile(workspace, dataSource, dataType, fileName), 1000);
+        for (T entry : parseTsvFile(workspace, dataSource, dataType, fileName))
+            createNodeFromModel(g, entry);
     }
 
     private <T> Iterable<T> parseTsvFile(final Workspace workspace, final DrugCentralDataSource dataSource,
@@ -213,8 +212,9 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
             Node structureNode = createNodeFromModel(g, structure);
             if (structureIdTypeMap.containsKey(structure.id))
                 structureNode.setProperty("type", structureIdTypeMap.get(structure.id));
+            g.update(structureNode);
             if (structure.stem != null)
-                g.addEdgeFast(structureNode, g.findNodeId("InnStem", "stem", structure.stem), "HAS_INN_STEM");
+                g.addEdge(structureNode, g.findNode("InnStem", "stem", structure.stem), "HAS_INN_STEM");
         }
     }
 }

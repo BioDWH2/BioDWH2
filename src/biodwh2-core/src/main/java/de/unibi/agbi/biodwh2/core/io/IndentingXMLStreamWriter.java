@@ -71,33 +71,45 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
      * Two spaces; the default indentation.
      */
     private static final String INDENT = "  ";
+    private static final int INDENT_LENGTH = INDENT.length();
     /**
      * "\n"; the normalized representation of end-of-line in <a href="http://www.w3.org/TR/xml11/#sec-line-ends">XML</a>.
      */
     private static final String NEW_LINE = "\n";
+    private static final int NEW_LINE_LENGTH = NEW_LINE.length();
     private static final int WROTE_MARKUP = 1;
     private static final int WROTE_DATA = 2;
 
-    public IndentingXMLStreamWriter(XMLStreamWriter out) {
-        this.out = out;
-    }
-
     private final XMLStreamWriter out;
-
     /**
      * How deeply nested the current scope is. The root element is depth 1.
      */
     private int depth = 0; // document scope
-
     /**
      * stack[depth] indicates what's been written into the current scope.
      */
     private int[] stack = new int[]{0, 0, 0, 0}; // nothing written yet
-
     /**
      * newLine followed by copies of indent.
      */
-    private char[] linePrefix = null;
+    private char[] linePrefix;
+
+    public IndentingXMLStreamWriter(XMLStreamWriter out) {
+        this.out = out;
+        prepareLinePrefix(NEW_LINE_LENGTH + INDENT_LENGTH * 10);
+    }
+
+    private void prepareLinePrefix(final int prefixLength) {
+        if (linePrefix == null)
+            linePrefix = (NEW_LINE + INDENT).toCharArray();
+        while (prefixLength > linePrefix.length) {
+            char[] newPrefix = new char[NEW_LINE_LENGTH + ((linePrefix.length - NEW_LINE_LENGTH) * 2)];
+            System.arraycopy(linePrefix, 0, newPrefix, 0, linePrefix.length);
+            System.arraycopy(linePrefix, NEW_LINE_LENGTH, newPrefix, linePrefix.length,
+                             linePrefix.length - NEW_LINE_LENGTH);
+            linePrefix = newPrefix;
+        }
+    }
 
     public void writeStartDocument() throws XMLStreamException {
         beforeMarkup();
@@ -219,13 +231,11 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
     private void beforeMarkup() {
         int soFar = stack[depth];
         // no data in this scope & not the first line
-        if ((soFar & WROTE_DATA) == 0 && (depth > 0 || soFar != 0))
-            try {
-                writeNewLine(depth);
-                if (depth > 0 && INDENT.length() > 0)
-                    afterMarkup(); // indentation was written
-            } catch (Exception ignored) {
-            }
+        if ((soFar & WROTE_DATA) == 0 && (depth > 0 || soFar != 0)) {
+            writeNewLine(depth);
+            if (depth > 0)
+                afterMarkup(); // indentation was written
+        }
     }
 
     /**
@@ -271,10 +281,7 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
     private void beforeEndElement() {
         // but not data
         if (depth > 0 && stack[depth] == WROTE_MARKUP)
-            try {
-                writeNewLine(depth - 1);
-            } catch (Exception ignored) {
-            }
+            writeNewLine(depth - 1);
     }
 
     /**
@@ -291,10 +298,7 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
     private void afterEndDocument() {
         // but not data
         if (stack[depth = 0] == WROTE_MARKUP)
-            try {
-                writeNewLine(0);
-            } catch (Exception ignored) {
-            }
+            writeNewLine(0);
         // start fresh
         stack[depth] = 0;
     }
@@ -302,21 +306,14 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
     /**
      * Write a line separator followed by indentation.
      */
-    private void writeNewLine(int indentation) throws XMLStreamException {
-        final int newLineLength = NEW_LINE.length();
-        final int prefixLength = newLineLength + (INDENT.length() * indentation);
+    private void writeNewLine(int indentation) {
+        final int prefixLength = NEW_LINE_LENGTH + (INDENT_LENGTH * indentation);
         if (prefixLength > 0) {
-            if (linePrefix == null)
-                linePrefix = (NEW_LINE + INDENT).toCharArray();
-            while (prefixLength > linePrefix.length) {
-                // make linePrefix longer:
-                char[] newPrefix = new char[newLineLength + ((linePrefix.length - newLineLength) * 2)];
-                System.arraycopy(linePrefix, 0, newPrefix, 0, linePrefix.length);
-                System.arraycopy(linePrefix, newLineLength, newPrefix, linePrefix.length,
-                                 linePrefix.length - newLineLength);
-                linePrefix = newPrefix;
+            prepareLinePrefix(prefixLength);
+            try {
+                out.writeCharacters(linePrefix, 0, prefixLength);
+            } catch (Exception ignored) {
             }
-            out.writeCharacters(linePrefix, 0, prefixLength);
         }
     }
 

@@ -1,100 +1,79 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
-import de.unibi.agbi.biodwh2.core.io.ValuePacker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.dizitart.no2.Document;
+import org.dizitart.no2.NitriteId;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
+import org.dizitart.no2.objects.Id;
+import org.dizitart.no2.objects.ObjectFilter;
+import org.dizitart.no2.objects.filters.ObjectFilters;
 
 import java.util.*;
 
-public class Node implements PropertyContainer {
-    private static final Logger logger = LoggerFactory.getLogger(Graph.class);
+public class Node implements PropertyContainer, Mappable {
+    private static final String IdField = "__id";
+    static final String LabelField = "__label";
+    public static final Set<String> IgnoredFields = new HashSet<>(
+            Arrays.asList(IdField, LabelField, "_modified", "_revision", "_id"));
 
-    private final Graph graph;
-    private final long id;
-    private final String[] labels;
-    private final Map<String, Object> properties;
-    private final Map<String, Set<?>> propertiesSetCache;
-    private boolean modified;
+    @Id
+    private NitriteId __id;
+    private Document document;
 
-    Node(Graph graph, long id, boolean modified, String... labels) {
-        this.graph = graph;
-        this.id = id;
-        this.modified = modified;
-        this.labels = labels;
-        properties = new HashMap<>();
-        propertiesSetCache = new HashMap<>();
+    @SuppressWarnings("unused")
+    private Node() {
     }
 
-    public long getId() {
-        return id;
+    Node(final String label) {
+        document = new Document();
+        document.put(LabelField, label);
     }
 
-    boolean isModified() {
-        return modified;
+    ObjectFilter getEqFilter() {
+        return ObjectFilters.eq(IdField, document.getId());
     }
 
-    public String[] getLabels() {
-        return labels;
+    void resetId() {
+        document.remove(IdField);
+        __id = null;
+    }
+
+    void prefixLabel(final String prefix) {
+        document.put(LabelField, prefix + getLabel());
+    }
+
+    public Long getId() {
+        return __id != null ? __id.getIdValue() : null;
+    }
+
+    public String getLabel() {
+        return (String) document.get(LabelField);
     }
 
     public Collection<String> getPropertyKeys() {
-        return properties.keySet();
+        return document.keySet();
     }
 
     public Map<String, Class<?>> getPropertyKeyTypes() {
         Map<String, Class<?>> keyTypeMap = new HashMap<>();
-        for (String key : properties.keySet()) {
-            Class<?> propertyClass = properties.get(key) != null ? properties.get(key).getClass() : null;
-            keyTypeMap.put(key, propertyClass);
-        }
+        for (String key : document.keySet())
+            if (!IgnoredFields.contains(key))
+                keyTypeMap.put(key, document.get(key) != null ? document.get(key).getClass() : null);
         return keyTypeMap;
     }
 
     public <T> T getProperty(String key) {
         //noinspection unchecked
-        return (T) properties.get(key);
+        return (T) document.get(key);
     }
 
     public void setProperty(final String key, final Object value) throws GraphCacheException {
-        setProperty(key, value, true, true);
+        document.put(key, value);
     }
 
-    void setProperty(final String key, final Object value, final boolean modified,
-                     final boolean checkType) throws GraphCacheException {
-        this.modified = modified;
-        if (value != null) {
-            if (checkType) {
-                if (ValuePacker.isValuePackable(value))
-                    properties.put(key, value);
-                else {
-                    logger.warn("Type '" + value.getClass().toString() + "' is not allowed as a node property." +
-                                " Using the toString representation for now '" + value.toString() + "'");
-                    properties.put(key, value.toString());
-                }
-            } else
-                properties.put(key, value);
-        } else
-            properties.put(key, null);
-        propertiesSetCache.remove(key);
-        graph.addNodeToMemoryCache(this);
-    }
-
-    public boolean hasProperty(final String propertyName) {
-        return properties.containsKey(propertyName);
-    }
-
-    public <T> boolean propertyEquals(final String propertyName, final T value) {
-        return Objects.equals(value, properties.get(propertyName));
-    }
-
-    public <T> boolean propertyArrayContains(final String propertyName, final T value) {
-        if (!propertiesSetCache.containsKey(propertyName)) {
-            Set<Object> set = new HashSet<>();
-            Collections.addAll(set, properties.get(propertyName));
-            propertiesSetCache.put(propertyName, set);
-        }
-        return propertiesSetCache.get(propertyName).contains(value);
+    public boolean hasProperty(final String key) {
+        return document.containsKey(key);
     }
 
     @Override
@@ -104,11 +83,23 @@ public class Node implements PropertyContainer {
         if (o == null || getClass() != o.getClass())
             return false;
         Node node = (Node) o;
-        return id == node.id;
+        return document.getId().equals(node.document.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return document.getId().hashCode();
+    }
+
+    @Override
+    public Document write(NitriteMapper nitriteMapper) {
+        document.put(IdField, __id);
+        return document;
+    }
+
+    @Override
+    public void read(NitriteMapper nitriteMapper, Document document) {
+        this.document = document;
+        __id = NitriteId.createId((long) document.get(IdField));
     }
 }

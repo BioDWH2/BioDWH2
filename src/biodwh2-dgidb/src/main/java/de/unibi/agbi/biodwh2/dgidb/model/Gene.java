@@ -3,11 +3,11 @@ package de.unibi.agbi.biodwh2.dgidb.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
 import java.util.Objects;
 
-@NodeLabels({"Gene"})
+@NodeLabel("Gene")
 @JsonPropertyOrder({"gene_claim_name", "gene_name", "entrez_id", "gene_claim_source"})
 public class Gene {
     @GraphProperty("claim_name")

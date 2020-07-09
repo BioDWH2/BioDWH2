@@ -14,7 +14,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     @Override
     protected boolean exportGraph(final Workspace workspace, final DrugBankDataSource dataSource,
                                   final Graph graph) throws ExporterException {
-        graph.setIndexColumnNames("id");
+        graph.setNodeIndexPropertyKeys("id");
         exportDrugStructures(graph, dataSource.drugStructures);
         exportMetaboliteStructures(graph, dataSource.metaboliteStructures);
         return true;

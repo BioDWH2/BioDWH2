@@ -2,9 +2,9 @@ package de.unibi.agbi.biodwh2.pharmgkb.model;
 
 import com.univocity.parsers.annotations.Parsed;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
-@NodeLabels({"VariantFunctionalAnalysisAnnotation"})
+@NodeLabel("VariantFunctionalAnalysisAnnotation")
 public class VariantFunctionalAnalysisAnnotation {
     @Parsed(field = "Annotation ID")
     @GraphProperty("id")

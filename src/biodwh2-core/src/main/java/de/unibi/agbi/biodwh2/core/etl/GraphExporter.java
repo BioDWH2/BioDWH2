@@ -6,13 +6,10 @@ import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
-import java.util.List;
-
 public abstract class GraphExporter<D extends DataSource> {
     public final boolean export(final Workspace workspace, final D dataSource) throws ExporterException {
-        Graph g = new Graph(dataSource.getGraphDatabaseFilePath(workspace));
+        final Graph g = new Graph(dataSource.getGraphDatabaseFilePath(workspace));
         boolean exportSuccessful = exportGraph(workspace, dataSource, g);
-        g.synchronize(true);
         if (exportSuccessful) {
             addDataSourcePrefixToGraph(dataSource, g);
             exportSuccessful = trySaveGraphToFile(workspace, dataSource, g);
@@ -25,7 +22,7 @@ public abstract class GraphExporter<D extends DataSource> {
                                            final Graph graph) throws ExporterException;
 
     private void addDataSourcePrefixToGraph(final DataSource dataSource, final Graph g) {
-        g.prefixAllLabels(dataSource.getId());
+        g.prefixAllLabels(dataSource.getId() + "_");
     }
 
     private boolean trySaveGraphToFile(final Workspace workspace, final D dataSource, final Graph g) {
@@ -33,14 +30,10 @@ public abstract class GraphExporter<D extends DataSource> {
     }
 
     protected final <T> Node createNodeFromModel(final Graph g, final T obj) {
-        return g.createNodeFromModel(obj);
+        return g.addNodeFromModel(obj);
     }
 
-    protected final Node createNode(final Graph g, final String... labels) {
-        return g.addNode(labels);
-    }
-
-    protected final Node createNode(final Graph g, final List<String> labels) {
-        return g.addNode(labels.toArray(new String[0]));
+    protected final Node createNode(final Graph g, final String label) {
+        return g.addNode(label);
     }
 }

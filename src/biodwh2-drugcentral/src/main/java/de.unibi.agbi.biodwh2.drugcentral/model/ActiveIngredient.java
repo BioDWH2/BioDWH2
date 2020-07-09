@@ -3,14 +3,14 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({
         "id", "active_moiety_unii", "active_moiety_name", "unit", "quantity", "substance_unii", "substance_name",
         "ndc_product_code", "struct_id", "quantity_denom_unit", "quantity_denom_value"
 })
-@NodeLabels({"ActiveIngredient"})
+@NodeLabel("ActiveIngredient")
 public final class ActiveIngredient {
     @JsonProperty("id")
     @GraphProperty("id")

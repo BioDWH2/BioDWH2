@@ -2,7 +2,6 @@ package de.unibi.agbi.biodwh2.unii.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.unii.UNIIDataSource;
@@ -14,9 +13,8 @@ import java.util.*;
 
 public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
     @Override
-    protected boolean exportGraph(final Workspace workspace, final UNIIDataSource dataSource,
-                                  final Graph graph) throws ExporterException {
-        graph.setIndexColumnNames("id");
+    protected boolean exportGraph(final Workspace workspace, final UNIIDataSource dataSource, final Graph graph) {
+        graph.setNodeIndexPropertyKeys("id");
         Map<String, List<UNIIEntry>> uniiEntriesMap = new HashMap<>();
         for (UNIIEntry entry : dataSource.uniiEntries) {
             if (!uniiEntriesMap.containsKey(entry.unii))
@@ -28,8 +26,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
         return true;
     }
 
-    private void createUNIINode(final Graph graph, final List<UNIIEntry> entries,
-                                final UNIIDataEntry dataEntry) throws ExporterException {
+    private void createUNIINode(final Graph graph, final List<UNIIEntry> entries, final UNIIDataEntry dataEntry) {
         Node uniiNode = createNodeFromModel(graph, dataEntry);
         // TODO: dataEntry.pt
         uniiNode.setProperty("name", entries.get(0).displayName);
@@ -38,6 +35,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
         uniiNode.setProperty("common_names", getNameArrayOfTypeFromEntries(entries, "cn"));
         uniiNode.setProperty("codes", getNameArrayOfTypeFromEntries(entries, "cd"));
         uniiNode.setProperty("brand_names", getNameArrayOfTypeFromEntries(entries, "bn"));
+        graph.update(uniiNode);
     }
 
     private static String[] getNameArrayOfTypeFromEntries(final List<UNIIEntry> entries, final String type) {

@@ -16,7 +16,7 @@ public class GeneOntologyGraphExporter extends GraphExporter<GeneOntologyDataSou
     @Override
     protected boolean exportGraph(final Workspace workspace, final GeneOntologyDataSource dataSource,
                                   final Graph graph) throws ExporterException {
-        graph.setIndexColumnNames("id");
+        graph.setNodeIndexPropertyKeys("id");
         try {
             OboReader reader = new OboReader(dataSource.resolveSourceFilePath(workspace, "go.obo"), "UTF-8");
             for (OboEntry entry : reader)
@@ -36,5 +36,6 @@ public class GeneOntologyGraphExporter extends GraphExporter<GeneOntologyDataSou
         node.setProperty("name", entry.getFirst("name"));
         node.setProperty("namespace", entry.getFirst("namespace"));
         // is_a, disjoint_from, consider
+        graph.update(node);
     }
 }

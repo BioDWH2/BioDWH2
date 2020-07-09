@@ -34,7 +34,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
     @Override
     protected boolean exportGraph(final Workspace workspace, final NCBIDataSource dataSource,
                                   final Graph graph) throws ExporterException {
-        graph.setIndexColumnNames("id");
+        graph.setNodeIndexPropertyKeys("id");
         geneIdNodeIdMap = new HashMap<>();
         try {
             exportGeneDatabase(workspace, dataSource, graph);
@@ -72,6 +72,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             // TODO: mapLocation, symbolFromNomenclatureAuthority, fullNameFromNomenclatureAuthority,
             // TODO: nomenclatureStatus, otherDesignations
             geneIdNodeIdMap.put(geneId, geneNode.getId());
+            graph.update(geneNode);
         }
         logger.info("Exporting gene2accession.gz...");
         MappingIterator<GeneAccession> accessions = FileUtils.openGzipTsv(workspace, dataSource, "gene2accession.gz",
@@ -92,18 +93,19 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             if (!go.taxonomyId.equals("9606"))
                 continue;
             long geneId = Long.parseLong(go.geneId);
-            Long goTermNodeId = graph.findNodeId("GoTerm", "id", go.goId);
-            if (goTermNodeId == null) {
-                Node goTermNode = createNode(graph, "GoTerm");
+            Node goTermNode = graph.findNode("GoTerm", "id", go.goId);
+            if (goTermNode == null) {
+                goTermNode = createNode(graph, "GoTerm");
                 goTermNode.setProperty("id", go.goId);
                 goTermNode.setProperty("category", go.category);
                 goTermNode.setProperty("term", go.goTerm);
-                goTermNodeId = goTermNode.getId();
+                graph.update(goTermNode);
             }
-            Edge edge = graph.addEdge(geneIdNodeIdMap.get(geneId), goTermNodeId, "HAS_GO_TERM");
+            Edge edge = graph.addEdge(geneIdNodeIdMap.get(geneId), goTermNode, "HAS_GO_TERM");
             setPropertyIfNotDash(edge, "evidence", go.evidence);
             setPropertyIfNotDash(edge, "qualifier", go.qualifier);
             setArrayPropertyIfNotDash(edge, "pubmed_ids", go.pubMedIds);
+            graph.update(edge);
         }
         logger.info("Exporting gene_group.gz...");
         MappingIterator<GeneRelationship> groups = FileUtils.openGzipTsv(workspace, dataSource, "gene_group.gz",
@@ -116,6 +118,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             long otherGeneId = Long.parseLong(group.otherGeneId);
             Edge edge = graph.addEdge(geneId, otherGeneId, "RELATED_TO");
             edge.setProperty("type", group.relationship);
+            graph.update(edge);
         }
         logger.info("Exporting gene_orthologs.gz...");
         MappingIterator<GeneRelationship> orthologs = FileUtils.openGzipTsv(workspace, dataSource, "gene_orthologs.gz",
@@ -128,6 +131,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             long otherGeneId = Long.parseLong(ortholog.otherGeneId);
             Edge edge = graph.addEdge(geneId, otherGeneId, "RELATED_TO");
             edge.setProperty("type", ortholog.relationship);
+            graph.update(edge);
         }
         logger.info("Exporting gene2pubmed.gz...");
         MappingIterator<String[]> genePubMed = FileUtils.openGzipTsv(workspace, dataSource, "gene2pubmed.gz",
@@ -143,6 +147,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
                 if (lastGeneId != -1) {
                     Node geneNode = graph.getNode(geneIdNodeIdMap.get(lastGeneId));
                     geneNode.setProperty("pubmed_ids", currentPubMedIds.toArray(new Long[0]));
+                    graph.update(geneNode);
                     currentPubMedIds.clear();
                 }
                 lastGeneId = geneId;
@@ -152,6 +157,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
         if (currentPubMedIds.size() > 0) {
             Node geneNode = graph.getNode(geneIdNodeIdMap.get(lastGeneId));
             geneNode.setProperty("pubmed_ids", currentPubMedIds.toArray(new Long[0]));
+            graph.update(geneNode);
         }
     }
 
@@ -175,6 +181,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
                                  accession.endPositionOnTheGenomicAccession);
         setPropertyIfNotDash(accessionNode, "assembly", accession.assembly);
         setPropertyIfNotDash(accessionNode, "orientation", accession.orientation);
+        graph.update(accessionNode);
         return accessionNode;
     }
 
@@ -219,5 +226,6 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
         node.setProperty("IUPAC_inchi_key", entry.properties.get("PUBCHEM_IUPAC_INCHIKEY"));
         node.setProperty("IUPAC_openeye_canonical_smiles", entry.properties.get("PUBCHEM_OPENEYE_CAN_SMILES"));
         node.setProperty("IUPAC_openeye_iso_smiles", entry.properties.get("PUBCHEM_OPENEYE_ISO_SMILES"));
+        graph.update(node);
     }
 }

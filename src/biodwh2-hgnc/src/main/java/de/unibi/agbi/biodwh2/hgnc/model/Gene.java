@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.hgnc.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
 @SuppressWarnings({"unused", "SpellCheckingInspection"})
 @JsonPropertyOrder(value = {
@@ -15,7 +15,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
         "orphanet", "pseudogene.org", "horde_id", "merops", "imgt", "iuphar", "kznf_gene_catalog", "mamit-trnadb", "cd",
         "lncrnadb", "enzyme_id", "intermediate_filament_db", "rna_central_ids", "lncipedia", "gtrnadb", "agr"
 })
-@NodeLabels({"Gene"})
+@NodeLabel("Gene")
 public final class Gene {
     @JsonProperty("hgnc_id")
     @GraphProperty("hgnc_id")

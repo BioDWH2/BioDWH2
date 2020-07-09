@@ -8,7 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 public class SiderMappingDescriber extends MappingDescriber {
     @Override
     public NodeMappingDescription describe(Graph graph, Node node) {
-        switch (node.getLabels()[0]) {
+        switch (node.getLabel()) {
             case "Drug": {
                 NodeMappingDescription description = new NodeMappingDescription();
                 description.type = NodeMappingDescription.NodeType.Drug;

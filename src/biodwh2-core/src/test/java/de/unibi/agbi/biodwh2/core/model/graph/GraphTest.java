@@ -2,51 +2,53 @@ package de.unibi.agbi.biodwh2.core.model.graph;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class GraphTest {
     @Test
-    void synchronizedNodePropertiesAreLoadedCorrectly() throws IOException {
+    void testFindNode() throws Exception {
         Graph g = Graph.createTempGraph();
-        Node node = g.addNode("Test");
-        node.setProperty("string_array", new String[]{"Hello", "World", "!"});
-        node.setProperty("int", 345);
-        node.setProperty("int_array", new int[]{4, 6, 10});
-        assertEquals(1, g.getNumberOfNodes());
-        assertEquals(1, g.getNumberOfCachedNodes());
-        g.synchronize(true);
-        assertEquals(1, g.getNumberOfNodes());
-        assertEquals(0, g.getNumberOfCachedNodes());
-        node = g.getNode(1);
+        Node node = g.addNode("Gene");
+        node.setProperty("test", "Hello");
+        g.update(node);
+        node = g.findNode("Gene", "test", "Hello");
         assertNotNull(node);
-        assertArrayEquals(new String[]{"Hello", "World", "!"}, node.<String[]>getProperty("string_array"));
-        assertEquals(345, node.<Integer>getProperty("int"));
-        assertArrayEquals(new Integer[]{4, 6, 10}, node.<Integer[]>getProperty("int_array"));
+        assertEquals("Gene", node.getLabel());
+        assertTrue(node.hasProperty("test"));
+        assertEquals("Hello", node.getProperty("test"));
     }
 
     @Test
-    void nodeInstancesCanBeModifiedAfterSynchronization() throws IOException {
+    void nodeKeepsIdOnRetrieve() throws Exception {
         Graph g = Graph.createTempGraph();
-        Node node = g.addNode("Test");
-        // Node is synchronized from memory to disk
-        g.synchronize(true);
-        assertEquals(0, g.getNumberOfCachedNodes());
-        // Set a property on a synchronized instance
-        node.setProperty("property", "value");
-        assertEquals(1, g.getNumberOfCachedNodes());
-        // Assert property on instance
-        assertEquals("value", node.getProperty("property"));
-        // Assert property on instance loaded from memory cache
-        node = g.getNode(1);
-        assertNotNull(node);
-        assertEquals("value", node.getProperty("property"));
-        g.synchronize(true);
-        assertEquals(0, g.getNumberOfCachedNodes());
-        // Assert property on instance loaded from disk cache
-        node = g.getNode(1);
-        assertNotNull(node);
-        assertEquals("value", node.getProperty("property"));
+        Node n = g.addNode("Test");
+        long id = n.getId();
+        n = g.getNodes().iterator().next();
+        assertEquals(id, n.getId());
+    }
+
+    @Test
+    void nodeKeepsIdOnUpdate() throws Exception {
+        Graph g = Graph.createTempGraph();
+        Node n = g.addNode("Test");
+        long id = n.getId();
+        n.setProperty("key", "value");
+        g.update(n);
+        assertEquals(id, n.getId());
+    }
+
+    @Test
+    void nodeKeepsIdOnRetrieveReopenedGraph() throws Exception {
+        Path tempFilePath = Files.createTempFile("graphdb_test", ".db");
+        Graph g = new Graph(tempFilePath.toString());
+        Node n = g.addNode("Test");
+        long id = n.getId();
+        g.dispose();
+        g = new Graph(tempFilePath.toString(), true);
+        n = g.getNodes().iterator().next();
+        assertEquals(id, n.getId());
     }
 }

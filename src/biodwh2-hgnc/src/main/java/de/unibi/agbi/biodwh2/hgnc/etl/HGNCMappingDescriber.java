@@ -7,7 +7,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.*;
 public class HGNCMappingDescriber extends MappingDescriber {
     @Override
     public NodeMappingDescription describe(Graph graph, Node node) {
-        if (node.getLabels()[0].endsWith("Gene")) {
+        if (node.getLabel().endsWith("Gene")) {
             NodeMappingDescription description = new NodeMappingDescription();
             description.type = NodeMappingDescription.NodeType.Gene;
             description.addIdentifier(IdentifierType.HGNCId, node.<String>getProperty("hgnc_id").replace("HGNC:", ""));

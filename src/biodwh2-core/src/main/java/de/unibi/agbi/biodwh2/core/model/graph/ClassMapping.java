@@ -15,11 +15,11 @@ class ClassMapping {
         }
     }
 
-    final String[] labels;
+    final String label;
     final ClassMappingField[] fields;
 
     ClassMapping(final Class<?> type) {
-        labels = type.getAnnotation(NodeLabels.class).value();
+        label = type.getAnnotation(NodeLabel.class).value();
         List<ClassMappingField> fieldsList = new ArrayList<>();
         for (Field field : type.getDeclaredFields())
             if (field.isAnnotationPresent(GraphProperty.class)) {

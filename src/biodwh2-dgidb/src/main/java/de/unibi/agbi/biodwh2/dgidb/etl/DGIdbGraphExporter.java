@@ -21,7 +21,7 @@ public class DGIdbGraphExporter extends GraphExporter<DGIdbDataSource> {
     @Override
     protected boolean exportGraph(final Workspace workspace, final DGIdbDataSource dataSource,
                                   final Graph graph) throws ExporterException {
-        graph.setIndexColumnNames("chembl_id", "entrez_id");
+        graph.setNodeIndexPropertyKeys("chembl_id", "entrez_id");
         for (Drug drug : dataSource.drugs.stream().distinct().collect(Collectors.toList()))
             createNodeFromModel(graph, drug);
         for (Gene gene : dataSource.genes.stream().distinct().collect(Collectors.toList()))
@@ -32,16 +32,16 @@ public class DGIdbGraphExporter extends GraphExporter<DGIdbDataSource> {
                 Node categoryNode = createNode(graph, "GeneCategory");
                 categoryNodeIdMap.put(category.category, categoryNode.getId());
             }
-            Long geneId = graph.findNodeId("Gene", "claim_name", category.entrezGeneSymbol);
-            Edge edge = graph.addEdge(geneId, categoryNodeIdMap.get(category.category), "IN_CATEGORY");
+            Node gene = graph.findNode("Gene", "claim_name", category.entrezGeneSymbol);
+            Edge edge = graph.addEdge(gene, categoryNodeIdMap.get(category.category), "IN_CATEGORY");
             edge.setProperty("sources", StringUtils.split(category.categorySources, ","));
         }
         for (Interaction interaction : dataSource.interactions) {
-            Long drugNodeId = graph.findNodeId("Drug", "claim_name", interaction.drugClaimName, "chembl_id",
-                                               interaction.drugChemblId, "name", interaction.drugName);
-            Long geneNodeId = graph.findNodeId("Gene", "claim_name", interaction.geneClaimName, "entrez_id",
-                                               interaction.entrezId, "name", interaction.geneName);
-            Edge edge = graph.addEdge(drugNodeId, geneNodeId, "TARGETS");
+            Node drugNode = graph.findNode("Drug", "claim_name", interaction.drugClaimName, "chembl_id",
+                                           interaction.drugChemblId, "name", interaction.drugName);
+            Node geneNode = graph.findNode("Gene", "claim_name", interaction.geneClaimName, "entrez_id",
+                                           interaction.entrezId, "name", interaction.geneName);
+            Edge edge = graph.addEdge(drugNode, geneNode, "TARGETS");
             edge.setProperty("claim_source", interaction.interactionClaimSource);
             edge.setProperty("types", StringUtils.split(interaction.interactionTypes));
             edge.setProperty("pmids", StringUtils.split(interaction.pmids, ","));

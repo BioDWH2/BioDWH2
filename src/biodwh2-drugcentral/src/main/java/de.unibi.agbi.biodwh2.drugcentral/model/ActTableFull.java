@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({
@@ -12,7 +12,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
         "act_source_url", "moa_source_url", "action_type", "first_in_class", "tdl", "act_ref_id", "moa_ref_id",
         "organism"
 })
-@NodeLabels({"ActTableFull"})
+@NodeLabel("ActTableFull")
 public final class ActTableFull {
     @JsonProperty("act_id")
     @GraphProperty("act_id")

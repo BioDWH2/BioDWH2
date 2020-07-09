@@ -2,7 +2,6 @@ package de.unibi.agbi.biodwh2.hgnc.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.hgnc.HGNCDataSource;
@@ -11,8 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
     @Override
-    protected boolean exportGraph(final Workspace workspace, final HGNCDataSource dataSource,
-                                  final Graph graph) throws ExporterException {
+    protected boolean exportGraph(final Workspace workspace, final HGNCDataSource dataSource, final Graph graph) {
         for (Gene gene : dataSource.genes) {
             Node node = createNodeFromModel(graph, gene);
             if (gene.aliasSymbol != null && gene.aliasSymbol.length() > 0) {
@@ -23,6 +21,7 @@ public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
                 String[] aliasNames = StringUtils.split(gene.aliasName, "|");
                 node.setProperty("alias_names", aliasNames);
             }
+            graph.update(node);
         }
         return true;
     }

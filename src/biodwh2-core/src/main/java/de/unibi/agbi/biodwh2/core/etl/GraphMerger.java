@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
 import de.unibi.agbi.biodwh2.core.exceptions.MergerException;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
@@ -15,13 +16,16 @@ public class GraphMerger extends Merger {
 
     public final boolean merge(final Workspace workspace, final List<DataSource> dataSources,
                                final String outputFilePath) throws MergerException {
-        Graph mergedGraph = new Graph(outputFilePath.replace("graphml", "sqlite"));
+        Graph mergedGraph = new Graph(outputFilePath.replace("graphml", "db"));
         for (DataSource dataSource : dataSources) {
             logger.info("Merging data source " + dataSource.getId());
             String intermediateGraphFilePath = dataSource.getGraphDatabaseFilePath(workspace);
-            mergedGraph.mergeDatabase(intermediateGraphFilePath);
+            try {
+                mergedGraph.mergeDatabase(intermediateGraphFilePath);
+            } catch (GraphCacheException e) {
+                throw new MergerException("Failed to merge data source " + dataSource.getId(), e);
+            }
         }
-        mergedGraph.synchronize(true);
         GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
         graphMLWriter.write(outputFilePath, mergedGraph);
         mergedGraph.dispose();

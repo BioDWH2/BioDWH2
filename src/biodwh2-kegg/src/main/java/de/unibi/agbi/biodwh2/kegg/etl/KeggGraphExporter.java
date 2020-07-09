@@ -2,7 +2,6 @@ package de.unibi.agbi.biodwh2.kegg.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -27,9 +26,8 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
     }
 
     @Override
-    protected boolean exportGraph(final Workspace workspace, final KeggDataSource dataSource,
-                                  final Graph graph) throws ExporterException {
-        graph.setIndexColumnNames("id", "pmid", "doi", "name");
+    protected boolean exportGraph(final Workspace workspace, final KeggDataSource dataSource, final Graph graph) {
+        graph.setNodeIndexPropertyKeys("id", "pmid", "doi", "name");
         for (Drug drug : dataSource.drugs) {
             Node drugNode = createNodeForKeggEntry(graph, drug);
             drugNode.setProperty("formula", drug.formula);
@@ -43,6 +41,7 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
                 drugNode.setProperty("bracket_original", drug.bracket.original);
                 drugNode.setProperty("bracket_repeat", drug.bracket.repeat);
             }
+            graph.update(drugNode);
             for (Sequence sequence : drug.sequences) {
                 Node sequenceNode = createNodeFromModel(graph, sequence);
                 graph.addEdge(drugNode, sequenceNode, "HAS_SEQUENCE");
@@ -55,6 +54,7 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
                 Node targetNode = getOrCreateNodeForNameIdsPair(graph, interaction.target, "Gene");
                 Edge edge = graph.addEdge(drugNode, targetNode, "INTERACTS_WITH");
                 edge.setProperty("type", interaction.type);
+                graph.update(edge);
             }
             /*
             List<Metabolism> metabolisms
@@ -65,10 +65,12 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
         for (DrugGroup drugGroup : dataSource.drugGroups) {
             Node drugGroupNode = createNodeForKeggEntry(graph, drugGroup);
             drugGroupNode.setProperty("name_stems", drugGroup.nameStems.toArray(new String[0]));
+            graph.update(drugGroupNode);
         }
         for (Variant variant : dataSource.variants) {
             Node variantNode = createNodeForKeggEntry(graph, variant);
             variantNode.setProperty("organism", variant.organism);
+            graph.update(variantNode);
             /*
             Map<String, NameIdsPair> genes
             List<NetworkLink> networks
@@ -78,6 +80,7 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
         for (Network network : dataSource.networks) {
             Node networkNode = createNodeForKeggEntry(graph, network);
             networkNode.setProperty("type", network.type);
+            graph.update(networkNode);
             /*
             String definition
             String expandedDefinition
@@ -93,6 +96,7 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
         for (Disease disease : dataSource.diseases) {
             Node diseaseNode = createNodeForKeggEntry(graph, disease);
             diseaseNode.setProperty("description", disease.description);
+            graph.update(diseaseNode);
             for (NameIdsPair pathogen : disease.pathogens) {
                 Node pathogenNode = getOrCreateNodeForNameIdsPair(graph, pathogen, "Pathogen");
                 graph.addEdge(diseaseNode, pathogenNode, "HAS_PATHOGEN");
@@ -107,11 +111,10 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
             }
             for (NetworkLink network : disease.networks) {
                 if (network.network != null)
-                    graph.addEdge(diseaseNode, graph.findNodeId("Network", "id", network.network.ids.get(0)),
+                    graph.addEdge(diseaseNode, graph.findNode("Network", "id", network.network.ids.get(0)),
                                   "ASSOCIATED_WITH");
                 for (NameIdsPair element : network.elements)
-                    graph.addEdge(diseaseNode, graph.findNodeId("Network", "id", element.ids.get(0)),
-                                  "ASSOCIATED_WITH");
+                    graph.addEdge(diseaseNode, graph.findNode("Network", "id", element.ids.get(0)), "ASSOCIATED_WITH");
             }
             /*
             List<NameIdsPair> pathogenSignatureModules
@@ -123,23 +126,23 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
             */
         }
         for (Network network : dataSource.networks) {
-            Long networkNodeId = graph.findNodeId("Network", "id", network.id);
+            Node networkNode = graph.findNode("Network", "id", network.id);
             for (NameIdsPair member : network.members)
-                graph.addEdge(networkNodeId, graph.findNodeId("Network", "id", member.ids.get(0)), "HAS_MEMBER");
+                graph.addEdge(networkNode, graph.findNode("Network", "id", member.ids.get(0)), "HAS_MEMBER");
         }
         Map<Long, Set<Long>> hierarchyRelations = new HashMap<>();
         for (Drug drug : dataSource.drugs) {
-            Long drugNodeId = graph.findNodeId("Drug", "id", drug.id);
+            Node drugNode = graph.findNode("Drug", "id", drug.id);
             for (List<NameIdsPair> mixture : drug.mixtures) {
                 Node mixtureNode = createNode(graph, "MixtureComponents");
-                graph.addEdge(drugNodeId, mixtureNode, "HAS_MIXTURE_COMPONENTS");
+                graph.addEdge(drugNode, mixtureNode, "HAS_MIXTURE_COMPONENTS");
                 for (NameIdsPair component : mixture) {
                     Node compoundNode = getOrCreateNodeForNameIdsPair(graph, component);
                     graph.addEdge(mixtureNode, compoundNode, "HAS_COMPOUND");
                 }
             }
             for (NameIdsPair networkTarget : drug.networkTargets)
-                graph.addEdge(drugNodeId, graph.findNodeId("Network", "id", networkTarget.ids.get(0)), "TARGETS");
+                graph.addEdge(drugNode, graph.findNode("Network", "id", networkTarget.ids.get(0)), "TARGETS");
             /*
             for (KeggHierarchicalEntry.ParentChildRelation entry : drug.classes) {
                 Long parentNodeId = null;
@@ -163,9 +166,10 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
         return true;
     }
 
-    private Node createNodeForKeggEntry(final Graph graph, final KeggEntry entry) throws ExporterException {
-        Node node = createNode(graph, entry.tags);
+    private Node createNodeForKeggEntry(final Graph graph, final KeggEntry entry) {
+        Node node = createNode(graph, entry.tags.get(0));
         node.setProperty("id", entry.id);
+        node.setProperty("tags", entry.tags.toArray(new String[0]));
         if (entry.names.size() > 0)
             node.setProperty("names", entry.names.toArray(new String[0]));
         if (entry.externalIds.size() > 0)
@@ -174,12 +178,12 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
             node.setProperty("remarks", entry.remarks.toArray(new String[0]));
         if (entry.comments.size() > 0)
             node.setProperty("comments", entry.comments.toArray(new String[0]));
+        graph.update(node);
         addAllReferencesForNode(graph, entry, node);
         return node;
     }
 
-    private void addAllReferencesForNode(final Graph graph, final KeggEntry entry,
-                                         final Node node) throws ExporterException {
+    private void addAllReferencesForNode(final Graph graph, final KeggEntry entry, final Node node) {
         for (Reference reference : entry.references) {
             Node referenceNode;
             boolean doiAvailable = reference.doi != null && reference.doi.length() > 0;
@@ -197,15 +201,15 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
             }
             Edge edge = graph.addEdge(node, referenceNode, "HAS_REFERENCE");
             edge.setProperty("remarks", reference.remarks);
+            graph.update(edge);
         }
     }
 
-    private Node getOrCreateNodeForNameIdsPair(final Graph graph, final NameIdsPair pair) throws ExporterException {
+    private Node getOrCreateNodeForNameIdsPair(final Graph graph, final NameIdsPair pair) {
         return getOrCreateNodeForNameIdsPair(graph, pair, null);
     }
 
-    private Node getOrCreateNodeForNameIdsPair(final Graph graph, final NameIdsPair pair,
-                                               String nodeLabel) throws ExporterException {
+    private Node getOrCreateNodeForNameIdsPair(final Graph graph, final NameIdsPair pair, String nodeLabel) {
         Node node = null;
         String id = null;
         if (pair.ids.size() > 0) {
@@ -226,6 +230,7 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
             node.setProperty("name", pair.name);
             if (pair.ids.size() > 1)
                 node.setProperty("ids", pair.ids.toArray(new String[0]));
+            graph.update(node);
         }
         return node;
     }

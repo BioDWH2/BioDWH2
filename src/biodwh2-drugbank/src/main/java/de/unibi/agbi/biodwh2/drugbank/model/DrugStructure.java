@@ -1,9 +1,9 @@
 package de.unibi.agbi.biodwh2.drugbank.model;
 
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
-@NodeLabels({"Drug"})
+@NodeLabel("Drug")
 public class DrugStructure {
     @GraphProperty("id")
     public String databaseId;

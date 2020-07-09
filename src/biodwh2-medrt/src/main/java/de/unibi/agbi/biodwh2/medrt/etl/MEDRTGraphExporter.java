@@ -75,6 +75,7 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
             Edge e = g.addEdge(conceptNode, termNode, "HAS_SYNONYM");
             e.setProperty("name", synonym.name);
             e.setProperty("preferred", synonym.preferred);
+            g.update(e);
         }
     }
 
@@ -82,6 +83,7 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
         for (Association association : terminology.associations) {
             Node associationNode = createNodeFromModel(g, association);
             associationNode.setProperty(association.qualifier.name.toLowerCase(Locale.US), association.qualifier.value);
+            g.update(associationNode);
             connectAssociationToConcepts(g, association, associationNode);
             g.addEdge(associationNode, terminologyNode, "IN_TERMINOLOGY");
             g.addEdge(associationNode, g.findNode("Namespace", "name", association.namespace), "IN_NAMESPACE");

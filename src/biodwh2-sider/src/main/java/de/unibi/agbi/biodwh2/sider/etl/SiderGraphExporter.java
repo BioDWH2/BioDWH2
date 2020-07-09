@@ -28,7 +28,7 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
     @Override
     protected boolean exportGraph(final Workspace workspace, final SiderDataSource dataSource,
                                   final Graph graph) throws ExporterException {
-        graph.setIndexColumnNames("id", "flat_id", "stereo_id");
+        graph.setNodeIndexPropertyKeys("id", "flat_id", "stereo_id");
         addAllDrugNames(workspace, dataSource, graph);
         addAllDrugAtcCodes(workspace, dataSource, graph);
         addAllIndications(workspace, dataSource, graph);
@@ -45,6 +45,7 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
             Node drugNode = createNode(graph, "Drug");
             drugNode.setProperty("id", drugName.id);
             drugNode.setProperty("name", drugName.name);
+            graph.update(drugNode);
         }
     }
 
@@ -69,6 +70,7 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
                 Collections.addAll(atcCodes, drugNode.getProperty("atc_codes"));
             atcCodes.add(atcCode.atc);
             drugNode.setProperty("atc_codes", atcCodes.toArray(new String[0]));
+            graph.update(drugNode);
         }
     }
 
@@ -82,10 +84,12 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
                 meddraTermNode.setProperty("umls_concept_id", indication.umlsConceptId);
             meddraTermNode.setProperty("concept_name", indication.conceptName);
             meddraTermNode.setProperty("meddra_concept_name", indication.meddraConceptName);
-            Long drugNodeId = getOrAddDrugNode(graph, indication.stereoCompoundId);
-            Edge edge = graph.addEdge(drugNodeId, meddraTermNode, "INDICATES");
+            graph.update(meddraTermNode);
+            Node drugNode = getOrAddDrugNode(graph, indication.stereoCompoundId);
+            Edge edge = graph.addEdge(drugNode, meddraTermNode, "INDICATES");
             edge.setProperty("label", indication.label);
             edge.setProperty("detection_method", indication.detectionMethod);
+            graph.update(edge);
         }
     }
 
@@ -94,18 +98,19 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
         if (meddraTermNode == null) {
             meddraTermNode = createNode(graph, "meddraTerm");
             meddraTermNode.setProperty("id", conceptId);
+            graph.update(meddraTermNode);
         }
         return meddraTermNode;
     }
 
-    private Long getOrAddDrugNode(final Graph graph, final String compoundId) {
-        Long drugNodeId = graph.findNodeId("Drug", "id", compoundId);
-        if (drugNodeId == null) {
-            Node drugNode = createNode(graph, "Drug");
+    private Node getOrAddDrugNode(final Graph graph, final String compoundId) {
+        Node drugNode = graph.findNode("Drug", "id", compoundId);
+        if (drugNode == null) {
+            drugNode = createNode(graph, "Drug");
             drugNode.setProperty("id", compoundId);
-            drugNodeId = drugNode.getId();
+            graph.update(drugNode);
         }
-        return drugNodeId;
+        return drugNode;
     }
 
     private <T> List<T> parseGzipTsvFile(final Workspace workspace, final DataSource dataSource, final String fileName,
@@ -127,9 +132,11 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
             if (!sideEffect.umlsConceptId.equals(sideEffect.meddraUmlsConceptId))
                 meddraTermNode.setProperty("umls_concept_id", sideEffect.umlsConceptId);
             meddraTermNode.setProperty("meddra_concept_name", sideEffect.sideEffectName);
-            Long drugNodeId = getOrAddDrugNode(graph, sideEffect.stereoCompoundId);
-            Edge edge = graph.addEdge(drugNodeId, meddraTermNode, "HAS_SIDE_EFFECT");
+            graph.update(meddraTermNode);
+            Node drugNode = getOrAddDrugNode(graph, sideEffect.stereoCompoundId);
+            Edge edge = graph.addEdge(drugNode, meddraTermNode, "HAS_SIDE_EFFECT");
             edge.setProperty("label", sideEffect.label);
+            graph.update(edge);
         }
     }
 
@@ -142,13 +149,15 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
             if (!frequency.umlsConceptId.equals(frequency.meddraUmlsConceptId))
                 meddraTermNode.setProperty("umls_concept_id", frequency.umlsConceptId);
             meddraTermNode.setProperty("meddra_concept_name", frequency.sideEffectName);
-            Long drugNodeId = getOrAddDrugNode(graph, frequency.stereoCompoundId);
-            Edge edge = graph.addEdge(drugNodeId, meddraTermNode, "HAS_SIDE_EFFECT");
+            graph.update(meddraTermNode);
+            Node drugNode = getOrAddDrugNode(graph, frequency.stereoCompoundId);
+            Edge edge = graph.addEdge(drugNode, meddraTermNode, "HAS_SIDE_EFFECT");
             edge.setProperty("frequency", frequency.frequency);
             edge.setProperty("frequency_lower_bound", frequency.frequencyLowerBound);
             edge.setProperty("frequency_upper_bound", frequency.frequencyUpperBound);
             if (frequency.placebo != null)
                 edge.setProperty("placebo", frequency.placebo.equalsIgnoreCase("placebo"));
+            graph.update(edge);
         }
     }
 }

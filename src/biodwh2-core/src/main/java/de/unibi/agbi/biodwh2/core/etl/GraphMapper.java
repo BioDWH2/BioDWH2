@@ -13,7 +13,7 @@ public final class GraphMapper extends Mapper {
 
     public void map(final Workspace workspace, final List<DataSource> dataSources, final String inputGraphFilePath,
                     final String outputGraphFilePath) {
-        final Graph graph = new Graph(inputGraphFilePath.replace("graphml", "sqlite"), true);
+        final Graph graph = new Graph(inputGraphFilePath.replace("graphml", "db"), true);
         final Map<String, MappingDescriber> dataSourceDescriberMap = new HashMap<>();
         for (DataSource dataSource : dataSources)
             dataSourceDescriberMap.put(dataSource.getId(), dataSource.getMappingDescriber());
@@ -25,7 +25,7 @@ public final class GraphMapper extends Mapper {
     private void mapNodes(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
         final Map<String, Set<Long>> idNodeIdMap = new HashMap<>();
         for (Node node : graph.getNodes()) {
-            String dataSourceId = StringUtils.split(node.getLabels()[0], "_")[0];
+            String dataSourceId = StringUtils.split(node.getLabel(), "_")[0];
             MappingDescriber dataSourceDescriber = dataSourceDescriberMap.get(dataSourceId);
             if (dataSourceDescriber != null) {
                 NodeMappingDescription mappingDescription = dataSourceDescriber.describe(graph, node);
@@ -61,6 +61,7 @@ public final class GraphMapper extends Mapper {
         }
         graph.addEdge(mappedNodeId, mergedNode.getId(), MappedToEdgeLabel);
         mergedNode.setProperty("ids", ids.toArray(new String[0]));
+        graph.update(mergedNode);
         for (String id : ids) {
             if (!idNodeIdMap.containsKey(id))
                 idNodeIdMap.put(id, new HashSet<>());
@@ -89,7 +90,6 @@ public final class GraphMapper extends Mapper {
     }
 
     private void saveGraph(final Graph graph, final String outputGraphFilePath) {
-        graph.synchronize(true);
         GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
         graphMLWriter.write(outputGraphFilePath, graph);
         graph.dispose();
