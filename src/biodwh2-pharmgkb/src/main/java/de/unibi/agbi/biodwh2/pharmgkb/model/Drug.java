@@ -33,24 +33,33 @@ public class Drug {
     @Parsed(field = "External Vocabulary")
     public String externalVocabulary;
     @Parsed(field = "Clinical Annotation Count")
-    public String clinicalAnnotationCount;
+    @GraphProperty("clinical_annotation_count")
+    public Integer clinicalAnnotationCount;
     @Parsed(field = "Variant Annotation Count")
-    public String variantAnnotationCount;
+    @GraphProperty("variant_annotation_count")
+    public Integer variantAnnotationCount;
     @Parsed(field = "Pathway Count")
-    public String pathwayCount;
+    @GraphProperty("pathway_count")
+    public Integer pathwayCount;
     @Parsed(field = "VIP Count")
-    public String vipCount;
+    @GraphProperty("vip_count")
+    public Integer vipCount;
     @Parsed(field = "Dosing Guideline Sources")
     public String dosingGuidelineSources;
     @Parsed(field = "Top Clinical Annotation Level")
+    @GraphProperty("top_clinical_annotation_level")
     public String topClinicalAnnotationLevel;
     @Parsed(field = "Top FDA Label Testing Level")
+    @GraphProperty("top_fda_label_testing_level")
     public String topFdaLabelTestingLevel;
     @Parsed(field = "Top Any Drug Label Testing Level")
+    @GraphProperty("top_any_drug_label_testing_level")
     public String topAnyDrugLabelTestingLevel;
     @Parsed(field = "Label Has Dosing Info")
+    @GraphProperty("label_has_dosing_info")
     public String labelHasDosingInfo;
     @Parsed(field = "Has Rx Annotation")
+    @GraphProperty("has_rx_annotation")
     public String hasRxAnnotation;
     @Parsed(field = "RxNorm Identifiers")
     public String rxNormIdentifiers;

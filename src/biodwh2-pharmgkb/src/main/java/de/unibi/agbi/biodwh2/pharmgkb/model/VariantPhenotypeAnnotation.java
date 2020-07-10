@@ -8,7 +8,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 public class VariantPhenotypeAnnotation {
     @Parsed(field = "Annotation ID")
     @GraphProperty("id")
-    public String annotation_id;
+    public Integer annotationId;
     @Parsed(field = "Variant")
     public String variant;
     @Parsed(field = "Gene")

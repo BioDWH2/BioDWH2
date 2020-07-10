@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
 import com.univocity.parsers.annotations.Parsed;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
@@ -39,7 +40,8 @@ public class AutomatedAnnotation {
     @GraphProperty("literature_title")
     public String literatureTitle;
     @Parsed(field = "Publication Year")
-    public String publicationYear;
+    @GraphArrayProperty("publication_year")
+    public Integer publicationYear;
     @Parsed(field = "Journal")
     @GraphProperty("journal")
     public String journal;

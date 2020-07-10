@@ -22,8 +22,10 @@ public class DrugLabel {
     @GraphProperty("testing_level")
     public String testingLevel;
     @Parsed(field = "Has Dosing Info")
+    @GraphProperty("has_dosing_info")
     public String hasDosingInfo;
     @Parsed(field = "Has Alternate Drug")
+    @GraphProperty("has_alternate_drug")
     public String hasAlternateDrug;
     @Parsed(field = "Cancer Genome")
     @GraphProperty("cancer_genome")

@@ -13,9 +13,11 @@ public class StudyParameters {
     @GraphProperty("study_type")
     public String studyType;
     @Parsed(field = "Study Cases")
-    public String studyCases;
+    @GraphProperty("study_cases")
+    public Integer studyCases;
     @Parsed(field = "Study Controls")
-    public String studyControls;
+    @GraphProperty("study_controls")
+    public Integer studyControls;
     @Parsed(field = "Characteristics")
     @GraphProperty("characteristics")
     public String characteristics;

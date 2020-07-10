@@ -2,30 +2,57 @@ package de.unibi.agbi.biodwh2.pharmgkb.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.model.graph.Edge;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.pharmgkb.PharmGKBDataSource;
 import de.unibi.agbi.biodwh2.pharmgkb.model.*;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
-    private Set<String> existingIds = new HashSet<>();
+    private static final Logger logger = LoggerFactory.getLogger(PharmGKBGraphExporter.class);
+    private static final String QuotedArrayDelimiter = "\",\"";
+    private static final String EscapedDoubleQuotes = "\"";
+    private static final String IdProperty = "id";
+    private static final String BooleanValueTrue = "yes";
+    private static final String GeneLabel = "Gene";
+    private static final String HaplotypeLabel = "Haplotype";
+    private static final String HaplotypeSetLabel = "HaplotypeSet";
+    private static final String VariantLabel = "Variant";
+    private static final String ChemicalLabel = "Chemical";
+    private static final String PhenotypeLabel = "Phenotype";
+
+    private Map<String, Long> accessionNodeIdMap = new HashMap<>();
+    private Map<Integer, Long> variantAnnotationIdNodeIdMap = new HashMap<>();
 
     @Override
-    protected boolean exportGraph(final Workspace workspace, final PharmGKBDataSource dataSource, final Graph graph) {
-        graph.setNodeIndexPropertyKeys("id");
-        addGenes(graph, dataSource.genes);
-        addChemicals(graph, dataSource.chemicals);
-        addDrugs(graph, dataSource.drugs);
-        addPhenotypes(graph, dataSource.phenotyps);
+    protected boolean exportGraph(final Workspace workspace, final PharmGKBDataSource dataSource,
+                                  final Graph graph) throws ExporterException {
+        graph.setNodeIndexPropertyKeys(IdProperty, "symbol", "name");
+        ExecutorService threadPool = Executors.newFixedThreadPool(5);
+        CountDownLatch latch = new CountDownLatch(7);
+        threadPool.submit(() -> executeParallelWithLatch(latch, () -> addGenes(graph, dataSource.genes)));
+        threadPool.submit(() -> executeParallelWithLatch(latch, () -> addChemicals(graph, dataSource.chemicals)));
+        threadPool.submit(() -> executeParallelWithLatch(latch, () -> addDrugs(graph, dataSource.drugs)));
+        threadPool.submit(() -> executeParallelWithLatch(latch, () -> addPhenotypes(graph, dataSource.phenotyps)));
+        threadPool.submit(() -> executeParallelWithLatch(latch, () -> addDrugLabels(graph, dataSource.drugLabels)));
+        threadPool.submit(
+                () -> executeParallelWithLatch(latch, () -> addStudyParameters(graph, dataSource.studyParameters)));
+        threadPool.submit(() -> executeParallelWithLatch(latch, () -> addPathways(graph, dataSource.pathways)));
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            throw new ExporterException("Failed to export entities concurrently", e);
+        }
+        threadPool.shutdown();
         addVariants(graph, dataSource.variants);
-        for (String keyName : dataSource.pathways.keySet())
-            addPathway(graph, keyName, dataSource.pathways.get(keyName));
-        addDrugLabels(graph, dataSource.drugLabels);
-        addStudyParameters(graph, dataSource.studyParameters);
         addOccurrences(graph, dataSource.occurrences);
         addDrugLabelsByGene(graph, dataSource.drugLabelsByGenes);
         addClinicalAnnotations(graph, dataSource.clinicalAnnotations);
@@ -38,10 +65,16 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         return true;
     }
 
+    private void executeParallelWithLatch(final CountDownLatch latch, final Runnable callback) {
+        callback.run();
+        latch.countDown();
+    }
+
     private void addGenes(final Graph graph, final List<Gene> genes) {
+        logger.info("Add Genes...");
         for (Gene gene : genes) {
-            existingIds.add(gene.pharmgkbAccessionId);
             Node node = createNodeFromModel(graph, gene);
+            accessionNodeIdMap.put(gene.pharmgkbAccessionId, node.getId());
             if (gene.crossReference != null)
                 node.setProperty("cross_references", parseQuotedStringArray(gene.crossReference));
             if (gene.hgncId != null)
@@ -62,28 +95,27 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     }
 
     private String[] parseQuotedStringArray(String arrayString) {
+        if (arrayString == null)
+            return new String[0];
         List<String> result = new ArrayList<>();
-        if (arrayString != null)
-            for (String value : arrayString.split("\",\""))
-                result.add(StringUtils.strip(value, "\""));
+        for (String value : StringUtils.splitByWholeSeparator(arrayString, QuotedArrayDelimiter))
+            result.add(StringUtils.strip(value, EscapedDoubleQuotes));
         return result.toArray(new String[0]);
     }
 
     private boolean parseBoolean(String value) {
-        return value.toLowerCase(Locale.US).equals("yes");
+        return BooleanValueTrue.equalsIgnoreCase(value);
     }
 
     private String[] parseStringArray(String arrayString) {
-        List<String> result = new ArrayList<>();
-        if (arrayString != null)
-            result.addAll(Arrays.asList(arrayString.split("(?<=[^3]),(?=[^ ])")));
-        return result.toArray(new String[0]);
+        return arrayString != null ? arrayString.split("(?<=[^3]),(?=[^ ])") : new String[0];
     }
 
     private void addChemicals(final Graph graph, final List<Chemical> chemicals) {
+        logger.info("Add Chemicals...");
         for (Chemical chemical : chemicals) {
-            existingIds.add(chemical.pharmgkbAccessionId);
             Node node = createNodeFromModel(graph, chemical);
+            accessionNodeIdMap.put(chemical.pharmgkbAccessionId, node.getId());
             if (chemical.type != null)
                 node.setProperty("types", parseQuotedStringArray(chemical.type));
             if (chemical.crossReference != null)
@@ -104,30 +136,17 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             if (chemical.brandMixtures != null)
                 node.setProperty("brand_mixtures", parseQuotedStringArray(chemical.brandMixtures));
             node.setProperty("dosing_guideline", parseBoolean(chemical.dosingGuideline));
-            node.setProperty("clinical_annotation_count", Integer.parseInt(chemical.clinicalAnnotationCount));
-            node.setProperty("variant_annotation_count", Integer.parseInt(chemical.variantAnnotationCount));
-            node.setProperty("pathway_count", Integer.parseInt(chemical.pathwayCount));
-            node.setProperty("vip_count", Integer.parseInt(chemical.vipCount));
             if (chemical.dosingGuidelineSources != null)
                 node.setProperty("dosing_guideline_sources", parseQuotedStringArray(chemical.dosingGuidelineSources));
-            if (chemical.topClinicalAnnotationLevel != null)
-                node.setProperty("top_clinical_annotation_level", chemical.topClinicalAnnotationLevel);
-            if (chemical.topFdaLabelTestingLevel != null)
-                node.setProperty("top_fda_label_testing_level", chemical.topFdaLabelTestingLevel);
-            if (chemical.topAnyDrugLabelTestingLevel != null)
-                node.setProperty("top_any_drug_label_testing_level", chemical.topAnyDrugLabelTestingLevel);
-            if (chemical.labelHasDosingInfo != null)
-                node.setProperty("label_has_dosing_info", chemical.labelHasDosingInfo);
-            if (chemical.hasRxAnnotation != null)
-                node.setProperty("has_rx_annotation", chemical.hasRxAnnotation);
             graph.update(node);
         }
     }
 
     private void addDrugs(final Graph graph, final List<Drug> drugs) {
+        logger.info("Add Drugs...");
         for (Drug drug : drugs) {
-            existingIds.add(drug.pharmgkbAccessionId);
             Node node = createNodeFromModel(graph, drug);
+            accessionNodeIdMap.put(drug.pharmgkbAccessionId, node.getId());
             if (drug.type != null)
                 node.setProperty("types", parseQuotedStringArray(drug.type));
             if (drug.crossReference != null)
@@ -148,30 +167,17 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             if (drug.brandMixtures != null)
                 node.setProperty("brand_mixtures", parseQuotedStringArray(drug.brandMixtures));
             node.setProperty("dosing_guideline", parseBoolean(drug.dosingGuideline));
-            node.setProperty("clinical_annotation_count", Integer.parseInt(drug.clinicalAnnotationCount));
-            node.setProperty("variant_annotation_count", Integer.parseInt(drug.variantAnnotationCount));
-            node.setProperty("pathway_count", Integer.parseInt(drug.pathwayCount));
-            node.setProperty("vip_count", Integer.parseInt(drug.vipCount));
             if (drug.dosingGuidelineSources != null)
                 node.setProperty("dosing_guideline_sources", parseQuotedStringArray(drug.dosingGuidelineSources));
-            if (drug.topClinicalAnnotationLevel != null)
-                node.setProperty("top_clinical_annotation_level", drug.topClinicalAnnotationLevel);
-            if (drug.topFdaLabelTestingLevel != null)
-                node.setProperty("top_fda_label_testing_level", drug.topFdaLabelTestingLevel);
-            if (drug.topAnyDrugLabelTestingLevel != null)
-                node.setProperty("top_any_drug_label_testing_level", drug.topAnyDrugLabelTestingLevel);
-            if (drug.labelHasDosingInfo != null)
-                node.setProperty("label_has_dosing_info", drug.labelHasDosingInfo);
-            if (drug.hasRxAnnotation != null)
-                node.setProperty("has_rx_annotation", drug.hasRxAnnotation);
             graph.update(node);
         }
     }
 
     private void addPhenotypes(final Graph graph, final List<Phenotype> phenotypes) {
+        logger.info("Add Phenotypes...");
         for (Phenotype phenotype : phenotypes) {
-            existingIds.add(phenotype.pharmgkbAccessionId);
             Node node = createNodeFromModel(graph, phenotype);
+            accessionNodeIdMap.put(phenotype.pharmgkbAccessionId, node.getId());
             if (phenotype.crossReference != null)
                 node.setProperty("cross_references", parseQuotedStringArray(phenotype.crossReference));
             if (phenotype.externalVocabulary != null)
@@ -183,372 +189,332 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     }
 
     private void addVariants(final Graph graph, final List<Variant> variants) {
+        logger.info("Add Variants...");
         for (Variant variant : variants) {
-            existingIds.add(variant.variantId);
             Node node = createNodeFromModel(graph, variant);
-            if (variant.geneIds != null) {
-                String[] geneIds = StringUtils.split(variant.geneIds, ",");
-                node.setProperty("gene_ids", geneIds);
-                for (String geneId : geneIds)
-                    graph.addEdge(graph.findNode("Gene", "id", geneId), node, "HAS_VARIANT");
-            }
-            if (variant.geneSymbols != null)
-                node.setProperty("gene_symbols", StringUtils.split(variant.geneSymbols, ","));
+            accessionNodeIdMap.put(variant.variantId, node.getId());
             if (variant.synonyms != null)
                 node.setProperty("synonyms", parseQuotedStringArray(variant.synonyms));
-            node.setProperty("variant_annotation_count", Integer.parseInt(variant.variantAnnotationCount));
-            node.setProperty("clinical_annotation_count", Integer.parseInt(variant.clinicalAnnotationCount));
-            node.setProperty("level12_clinical_annotation_count",
-                             Integer.parseInt(variant.level12ClinicalAnnotationCount));
-            node.setProperty("guideline_annotation_count", Integer.parseInt(variant.guidelineAnnotationCount));
-            node.setProperty("label_annotation_count", Integer.parseInt(variant.labelAnnotationCount));
             graph.update(node);
+            if (variant.geneIds != null)
+                for (String geneId : (String[]) node.getProperty("gene_ids"))
+                    graph.addEdge(accessionNodeIdMap.get(geneId), node, "HAS_VARIANT");
         }
     }
 
-    private void addPathway(Graph graph, String keyName, List<Pathway> pathways) {
-        String[] parts = StringUtils.split(keyName, "-");
-        String pathwayId = parts[0];
-        existingIds.add(pathwayId);
-        Node node = createNode(graph, "Pathway");
-        node.setProperty("id", pathwayId);
-        node.setProperty("name", parts[1].replace("_", " "));
-        graph.update(node);
+    private void addPathways(final Graph graph, final HashMap<String, List<Pathway>> pathways) {
+        logger.info("Add Pathways...");
+        for (String keyName : pathways.keySet())
+            addPathway(graph, keyName, pathways.get(keyName));
+    }
+
+    private void addPathway(final Graph graph, final String keyName, final List<Pathway> pathways) {
+        final String[] parts = StringUtils.split(keyName, "-");
+        final String pathwayId = parts[0];
+        Node node = graph.addNode("Pathway", IdProperty, pathwayId, "name", parts[1].replace("_", " "));
+        accessionNodeIdMap.put(pathwayId, node.getId());
         for (int i = 0; i < pathways.size(); i++) {
             Pathway pathway = pathways.get(i);
             Node stepNode = createNodeFromModel(graph, pathway);
             stepNode.setProperty("step", i);
-            stepNode.setProperty("pmids", StringUtils.split(pathway.pmids, ","));
             graph.update(stepNode);
-            Edge e = graph.addEdge(node, stepNode, "HAS_PATHWAY_STEP");
-            e.setProperty("step", i);
-            graph.update(e);
+            graph.addEdge(node, stepNode, "HAS_PATHWAY_STEP", "step", i);
         }
     }
 
     private void addDrugLabels(final Graph graph, final List<DrugLabel> drugLabels) {
-        for (DrugLabel drugLabel : drugLabels) {
-            Node node = createNodeFromModel(graph, drugLabel);
-            if (drugLabel.hasDosingInfo != null)
-                node.setProperty("has_dosing_info", drugLabel.hasDosingInfo);
-            if (drugLabel.hasAlternateDrug != null)
-                node.setProperty("has_alternate_drug", drugLabel.hasAlternateDrug);
-            graph.update(node);
-        }
+        logger.info("Add DrugLabels...");
+        for (DrugLabel drugLabel : drugLabels)
+            createNodeFromModel(graph, drugLabel);
     }
 
     private void addStudyParameters(final Graph graph, final List<StudyParameters> studyParameters) {
-        for (StudyParameters studyParameter : studyParameters) {
-            Node node = createNodeFromModel(graph, studyParameter);
-            if (studyParameter.studyCases != null)
-                node.setProperty("study_cases", Integer.parseInt(studyParameter.studyCases));
-            if (studyParameter.studyControls != null)
-                node.setProperty("study_controls", Integer.parseInt(studyParameter.studyControls));
-            graph.update(node);
-        }
+        logger.info("Add StudyParameters...");
+        for (StudyParameters studyParameter : studyParameters)
+            createNodeFromModel(graph, studyParameter);
     }
 
     private void addOccurrences(final Graph graph, final List<Occurrence> occurrences) {
+        logger.info("Add Occurrences...");
         for (Occurrence occurrence : occurrences) {
             Node node = createNodeFromModel(graph, occurrence);
             switch (occurrence.objectType) {
-                case "Haplotype":
-                    Node haplotypeNode = addHaplotypeIfNotExists(graph, occurrence.objectId, occurrence.objectName);
-                    graph.addEdge(haplotypeNode, node, "HAS_OCCURRENCE");
+                case HaplotypeLabel:
+                    long haplotypeNodeId = addHaplotypeIfNotExists(graph, occurrence.objectId, occurrence.objectName);
+                    graph.addEdge(haplotypeNodeId, node, "HAS_OCCURRENCE");
                     break;
-                case "HaplotypeSet":
-                    Node haplotypeSetNode = addHaplotypeSetIfNotExists(graph, occurrence.objectId,
-                                                                       occurrence.objectName);
-                    graph.addEdge(haplotypeSetNode, node, "HAS_OCCURRENCE");
+                case HaplotypeSetLabel:
+                    long haplotypeSetNodeId = addHaplotypeSetIfNotExists(graph, occurrence.objectId,
+                                                                         occurrence.objectName);
+                    graph.addEdge(haplotypeSetNodeId, node, "HAS_OCCURRENCE");
                     break;
-                case "Variant":
-                    Node variantNode = addVariantIfNotExists(graph, occurrence.objectId, occurrence.objectName);
-                    graph.addEdge(variantNode, node, "HAS_OCCURRENCE");
+                case VariantLabel:
+                    long variantNodeId = addVariantIfNotExists(graph, occurrence.objectId, occurrence.objectName);
+                    graph.addEdge(variantNodeId, node, "HAS_OCCURRENCE");
                     break;
                 default:
-                    String label = occurrence.objectType.replace("Disease", "Phenotype");
-                    Node objectNode = graph.findNode(label, "id", occurrence.objectId);
-                    graph.addEdge(objectNode, node, "HAS_OCCURRENCE");
+                    long objectNodeId = accessionNodeIdMap.get(occurrence.objectId);
+                    graph.addEdge(objectNodeId, node, "HAS_OCCURRENCE");
                     break;
             }
         }
     }
 
-    private Node addVariantIfNotExists(final Graph graph, final String variantId, String variantName) {
-        if (existingIds.contains(variantId))
-            return graph.findNode("Variant", "id", variantId);
+    private long addVariantIfNotExists(final Graph graph, final String variantId, String variantName) {
+        if (accessionNodeIdMap.containsKey(variantId))
+            return accessionNodeIdMap.get(variantId);
         if (variantId.startsWith("rs")) {
-            Node node = graph.findNode("Variant", "name", variantId);
+            Node node = graph.findNode(VariantLabel, "name", variantId);
             if (node != null)
-                return node;
+                return node.getId();
             variantName = variantName != null ? variantName : variantId;
         }
-        Node node = createNode(graph, "Variant");
-        node.setProperty("id", variantId);
-        node.setProperty("name", variantName);
-        graph.update(node);
-        existingIds.add(variantId);
-        return node;
+        Node node;
+        if (variantName != null)
+            node = graph.addNode(VariantLabel, IdProperty, variantId, "name", variantName);
+        else
+            node = graph.addNode(VariantLabel, IdProperty, variantId);
+        accessionNodeIdMap.put(variantId, node.getId());
+        return node.getId();
     }
 
-    private Node addHaplotypeIfNotExists(final Graph graph, final String haplotypeId, final String haplotypeName) {
-        if (existingIds.contains(haplotypeId))
-            return graph.findNode("Haplotype", "id", haplotypeId);
-        Node node = createNode(graph, "Haplotype");
-        node.setProperty("id", haplotypeId);
-        node.setProperty("name", haplotypeName);
-        graph.update(node);
-        existingIds.add(haplotypeId);
-        return node;
+    private long addHaplotypeIfNotExists(final Graph graph, final String haplotypeId, final String haplotypeName) {
+        if (accessionNodeIdMap.containsKey(haplotypeId))
+            return accessionNodeIdMap.get(haplotypeId);
+        Node node;
+        if (haplotypeName != null)
+            node = graph.addNode(HaplotypeLabel, IdProperty, haplotypeId, "name", haplotypeName);
+        else
+            node = graph.addNode(HaplotypeLabel, IdProperty, haplotypeId);
+        accessionNodeIdMap.put(haplotypeId, node.getId());
+        return node.getId();
     }
 
-    private Node addHaplotypeSetIfNotExists(final Graph graph, final String haplotypeId, final String haplotypeName) {
-        if (existingIds.contains(haplotypeId))
-            return graph.findNode("HaplotypeSet", "id", haplotypeId);
-        Node node = createNode(graph, "HaplotypeSet");
-        node.setProperty("id", haplotypeId);
-        node.setProperty("name", haplotypeName);
-        graph.update(node);
-        existingIds.add(haplotypeId);
-        return node;
+    private long addHaplotypeSetIfNotExists(final Graph graph, final String haplotypeId, final String haplotypeName) {
+        if (accessionNodeIdMap.containsKey(haplotypeId))
+            return accessionNodeIdMap.get(haplotypeId);
+        Node node;
+        if (haplotypeName != null)
+            node = graph.addNode(HaplotypeSetLabel, IdProperty, haplotypeId, "name", haplotypeName);
+        else
+            node = graph.addNode(HaplotypeSetLabel, IdProperty, haplotypeId);
+        accessionNodeIdMap.put(haplotypeId, node.getId());
+        return node.getId();
     }
 
     private void addDrugLabelsByGene(final Graph graph, final List<DrugLabelsByGene> drugLabelsByGenes) {
+        logger.info("Add DrugLabelsByGene...");
         for (DrugLabelsByGene drugLabelsByGene : drugLabelsByGenes) {
             for (String labelId : drugLabelsByGene.labelIds.split(";")) {
-                Node labelNode = graph.findNode("DrugLabel", "id", labelId);
-                Node geneNode = graph.findNode("Gene", "id", drugLabelsByGene.geneId);
+                Node labelNode = graph.findNode("DrugLabel", IdProperty, labelId);
+                Node geneNode = graph.findNode(GeneLabel, IdProperty, drugLabelsByGene.geneId);
                 graph.addEdge(labelNode, geneNode, "ASSOCIATED_WITH");
             }
         }
     }
 
     private void addClinicalAnnotations(final Graph graph, final List<ClinicalAnnotation> annotations) {
+        logger.info("Add ClinicalAnnotations...");
         for (ClinicalAnnotation annotation : annotations)
             createNodeFromModel(graph, annotation);
     }
 
     private void addAutomatedAnnotations(final Graph graph, final List<AutomatedAnnotation> annotations) {
+        logger.info("Add AutomatedAnnotations...");
         for (AutomatedAnnotation annotation : annotations) {
             Node node = createNodeFromModel(graph, annotation);
-            if (annotation.publicationYear != null)
-                node.setProperty("publication_year", Integer.parseInt(annotation.publicationYear));
-            graph.update(node);
             if (annotation.geneIds != null)
                 for (String geneId : StringUtils.split(annotation.geneIds, ","))
-                    graph.addEdge(node, graph.findNode("Gene", "id", geneId), "ASSOCIATED_WITH");
+                    graph.addEdge(node, accessionNodeIdMap.get(geneId), "ASSOCIATED_WITH");
             if (annotation.chemicalId != null) {
-                Node chemicalNode = addChemicalIfNotExists(graph, annotation.chemicalId, annotation.chemicalName);
-                graph.addEdge(node, chemicalNode, "ASSOCIATED_WITH");
+                long chemicalNodeId = addChemicalIfNotExists(graph, annotation.chemicalId, annotation.chemicalName);
+                graph.addEdge(node, chemicalNodeId, "ASSOCIATED_WITH");
             }
             if (annotation.variationId != null) {
-                Node variantNode;
-                if (annotation.variationType.equals("Haplotype"))
-                    variantNode = addHaplotypeIfNotExists(graph, annotation.variationId, annotation.variationName);
+                long targetNodeId;
+                if (annotation.variationType.equals(HaplotypeLabel))
+                    targetNodeId = addHaplotypeIfNotExists(graph, annotation.variationId, annotation.variationName);
                 else
-                    variantNode = addVariantIfNotExists(graph, annotation.variationId, annotation.variationName);
-                graph.addEdge(node, variantNode, "ASSOCIATED_WITH");
+                    targetNodeId = addVariantIfNotExists(graph, annotation.variationId, annotation.variationName);
+                graph.addEdge(node, targetNodeId, "ASSOCIATED_WITH");
             }
         }
     }
 
-    private Node addChemicalIfNotExists(final Graph graph, final String chemicalId, final String chemicalName) {
-        if (existingIds.contains(chemicalId))
-            return graph.findNode("Chemical", "id", chemicalId);
-        Node node = createNode(graph, "Chemical");
-        node.setProperty("id", chemicalId);
-        node.setProperty("name", chemicalName);
-        graph.update(node);
-        existingIds.add(chemicalId);
-        return node;
+    private long addChemicalIfNotExists(final Graph graph, final String chemicalId, final String chemicalName) {
+        if (accessionNodeIdMap.containsKey(chemicalId))
+            return accessionNodeIdMap.get(chemicalId);
+        Node node;
+        if (chemicalName != null)
+            node = graph.addNode(ChemicalLabel, IdProperty, chemicalId, "name", chemicalName);
+        else
+            node = graph.addNode(ChemicalLabel, IdProperty, chemicalId);
+        accessionNodeIdMap.put(chemicalId, node.getId());
+        return node.getId();
     }
 
     private void addClinicalVariants(final Graph graph, final List<ClinicalVariant> clinicalVariants) {
+        logger.info("Add ClinicalVariants...");
         for (ClinicalVariant clinicalVariant : clinicalVariants) {
             Node node = createNodeFromModel(graph, clinicalVariant);
             if (clinicalVariant.gene != null)
                 for (String geneId : StringUtils.split(clinicalVariant.gene, ",")) {
-                    Node geneNode = graph.findNode("Gene", "symbol", geneId);
+                    Node geneNode = graph.findNode(GeneLabel, "symbol", geneId);
                     graph.addEdge(node, geneNode, "ASSOCIATED_WITH");
                 }
             for (String chemical : parseStringArray(clinicalVariant.chemicals)) {
-                Node chemicalNode = addChemicalIfNotExists(graph, chemical, null);
-                graph.addEdge(node, chemicalNode, "ASSOCIATED_WITH");
+                long chemicalNodeId = addChemicalIfNotExists(graph, chemical, null);
+                graph.addEdge(node, chemicalNodeId, "ASSOCIATED_WITH");
             }
             for (String phenotype : parseStringArray(clinicalVariant.phenotypes)) {
-                Node phenotypeNode = graph.findNode("Phenotype", "name", phenotype);
+                Node phenotypeNode = graph.findNode(PhenotypeLabel, "name", phenotype);
                 graph.addEdge(node, phenotypeNode, "ASSOCIATED_WITH");
             }
             for (String variant : parseStringArray(clinicalVariant.variant)) {
-                Node variantNode;
-                if (variant.contains("rs"))
-                    variantNode = addVariantIfNotExists(graph, variant, null);
-                else
-                    variantNode = addHaplotypeIfNotExists(graph, variant, null);
-                graph.addEdge(node, variantNode, "ASSOCIATED_WITH");
+                long targetNodeId = variant.contains("rs") ? addVariantIfNotExists(graph, variant, null) :
+                                    addHaplotypeIfNotExists(graph, variant, null);
+                graph.addEdge(node, targetNodeId, "ASSOCIATED_WITH");
             }
         }
     }
 
     private void addVariantDrugAnnotations(final Graph graph, final List<VariantDrugAnnotation> annotations) {
+        logger.info("Add VariantDrugAnnotations...");
         for (VariantDrugAnnotation annotation : annotations) {
             Node node = createNodeFromModel(graph, annotation);
+            variantAnnotationIdNodeIdMap.put(annotation.annotationId, node.getId());
             if (annotation.phenotypeCategory != null)
                 node.setProperty("phenotype_categories", parseQuotedStringArray(annotation.phenotypeCategory));
             graph.update(node);
             if (annotation.gene != null) {
                 for (String gene : parseQuotedStringArray(annotation.gene)) {
-                    String[] parts = StringUtils.split(gene, "(");
-                    String geneId = parts[parts.length - 1].replace(")", "").trim();
-                    Node geneNode = graph.findNode("Gene", "id", geneId);
-                    graph.addEdge(node, geneNode, "ASSOCIATED_WITH");
+                    long geneNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(gene));
+                    graph.addEdge(node, geneNodeId, "ASSOCIATED_WITH");
                 }
             }
             if (annotation.chemical != null) {
                 for (String chemical : parseQuotedStringArray(annotation.chemical)) {
-                    String[] parts = StringUtils.split(chemical, "(");
-                    String chemicalId = parts[parts.length - 1].replace(")", "").trim();
-                    Node chemicalNode = graph.findNode("Chemical", "id", chemicalId);
-                    graph.addEdge(node, chemicalNode, "ASSOCIATED_WITH");
+                    long chemicalNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(chemical));
+                    graph.addEdge(node, chemicalNodeId, "ASSOCIATED_WITH");
                 }
             }
             if (annotation.studyParameters != null) {
                 for (String studyParametersId : parseQuotedStringArray(annotation.studyParameters)) {
-                    Node studyParametersNode = graph.findNode("StudyParameters", "id", studyParametersId);
+                    Node studyParametersNode = graph.findNode("StudyParameters", IdProperty, studyParametersId);
                     graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
                 }
             }
             for (String variant : parseStringArray(annotation.variant)) {
                 variant = variant.trim();
-                Node variantNode;
-                if (variant.contains("rs"))
-                    variantNode = addVariantIfNotExists(graph, variant, null);
-                else
-                    variantNode = addHaplotypeIfNotExists(graph, variant, null);
-                graph.addEdge(node, variantNode, "ASSOCIATED_WITH");
+                long targetNodeId = variant.contains("rs") ? addVariantIfNotExists(graph, variant, null) :
+                                    addHaplotypeIfNotExists(graph, variant, null);
+                graph.addEdge(node, targetNodeId, "ASSOCIATED_WITH");
             }
         }
     }
 
+    private static String getIdFromNameIdPair(String pair) {
+        String[] parts = StringUtils.split(pair, "(");
+        return parts[parts.length - 1].replace(")", "").trim();
+    }
+
     private void addVariantFunctionalAnalysisAnnotations(final Graph graph,
                                                          final List<VariantFunctionalAnalysisAnnotation> annotations) {
+        logger.info("Add VariantFunctionalAnalysisAnnotations...");
         for (VariantFunctionalAnalysisAnnotation annotation : annotations) {
             Node node = createNodeFromModel(graph, annotation);
+            variantAnnotationIdNodeIdMap.put(annotation.annotationId, node.getId());
             if (annotation.phenotypeCategory != null)
                 node.setProperty("phenotype_categories", parseQuotedStringArray(annotation.phenotypeCategory));
             graph.update(node);
             if (annotation.gene != null) {
                 for (String gene : parseQuotedStringArray(annotation.gene)) {
-                    String[] parts = StringUtils.split(gene, "(");
-                    String geneId = parts[parts.length - 1].replace(")", "").trim();
-                    Node geneNode = graph.findNode("Gene", "id", geneId);
-                    graph.addEdge(node, geneNode, "ASSOCIATED_WITH");
+                    long geneNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(gene));
+                    graph.addEdge(node, geneNodeId, "ASSOCIATED_WITH");
                 }
             }
             if (annotation.chemical != null) {
                 for (String chemical : parseQuotedStringArray(annotation.chemical)) {
-                    String[] parts = StringUtils.split(chemical, "(");
-                    String chemicalId = parts[parts.length - 1].replace(")", "").trim();
-                    Node chemicalNode = graph.findNode("Chemical", "id", chemicalId);
-                    graph.addEdge(node, chemicalNode, "ASSOCIATED_WITH");
+                    long chemicalNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(chemical));
+                    graph.addEdge(node, chemicalNodeId, "ASSOCIATED_WITH");
                 }
             }
             if (annotation.studyParameters != null) {
                 for (String studyParametersId : parseQuotedStringArray(annotation.studyParameters)) {
-                    Node studyParametersNode = graph.findNode("StudyParameters", "id", studyParametersId);
+                    Node studyParametersNode = graph.findNode("StudyParameters", IdProperty, studyParametersId);
                     graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
                 }
             }
             for (String variant : parseStringArray(annotation.variant)) {
                 variant = variant.trim();
-                Node variantNode;
-                if (variant.contains("rs"))
-                    variantNode = addVariantIfNotExists(graph, variant, null);
-                else
-                    variantNode = addHaplotypeIfNotExists(graph, variant, null);
-                graph.addEdge(node, variantNode, "ASSOCIATED_WITH");
+                long targetNodeId = variant.contains("rs") ? addVariantIfNotExists(graph, variant, null) :
+                                    addHaplotypeIfNotExists(graph, variant, null);
+                graph.addEdge(node, targetNodeId, "ASSOCIATED_WITH");
             }
         }
     }
 
     private void addVariantPhenotypeAnnotations(final Graph graph, final List<VariantPhenotypeAnnotation> annotations) {
+        logger.info("Add VariantPhenotypeAnnotations...");
         for (VariantPhenotypeAnnotation annotation : annotations) {
             Node node = createNodeFromModel(graph, annotation);
+            variantAnnotationIdNodeIdMap.put(annotation.annotationId, node.getId());
             if (annotation.phenotypeCategory != null)
                 node.setProperty("phenotype_categories", parseQuotedStringArray(annotation.phenotypeCategory));
             graph.update(node);
             if (annotation.gene != null) {
                 for (String gene : parseQuotedStringArray(annotation.gene)) {
-                    String[] parts = StringUtils.split(gene, "(");
-                    String geneId = parts[parts.length - 1].replace(")", "").trim();
-                    Node geneNode = graph.findNode("Gene", "id", geneId);
-                    graph.addEdge(node, geneNode, "ASSOCIATED_WITH");
+                    long geneNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(gene));
+                    graph.addEdge(node, geneNodeId, "ASSOCIATED_WITH");
                 }
             }
             if (annotation.chemical != null) {
                 for (String chemical : parseQuotedStringArray(annotation.chemical)) {
-                    String[] parts = StringUtils.split(chemical, "(");
-                    String chemicalId = parts[parts.length - 1].replace(")", "").trim();
-                    Node chemicalNode = graph.findNode("Chemical", "id", chemicalId);
-                    graph.addEdge(node, chemicalNode, "ASSOCIATED_WITH");
+                    long chemicalNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(chemical));
+                    graph.addEdge(node, chemicalNodeId, "ASSOCIATED_WITH");
                 }
             }
             if (annotation.studyParameters != null) {
                 for (String studyParametersId : parseQuotedStringArray(annotation.studyParameters)) {
-                    Node studyParametersNode = graph.findNode("StudyParameters", "id", studyParametersId);
+                    Node studyParametersNode = graph.findNode("StudyParameters", IdProperty, studyParametersId);
                     graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
                 }
             }
             for (String variant : parseStringArray(annotation.variant)) {
                 variant = variant.trim();
-                Node variantNode;
-                if (variant.contains("rs"))
-                    variantNode = addVariantIfNotExists(graph, variant, null);
-                else
-                    variantNode = addHaplotypeIfNotExists(graph, variant, null);
-                graph.addEdge(node, variantNode, "ASSOCIATED_WITH");
+                long targetNodeId = variant.contains("rs") ? addVariantIfNotExists(graph, variant, null) :
+                                    addHaplotypeIfNotExists(graph, variant, null);
+                graph.addEdge(node, targetNodeId, "ASSOCIATED_WITH");
             }
         }
     }
 
     private void addClinicalAnnotationMetadata(final Graph graph,
                                                final List<ClinicalAnnotationMetadata> clinicalAnnotationMetadata) {
+        logger.info("Add ClinicalAnnotationMetadata...");
         for (ClinicalAnnotationMetadata metadata : clinicalAnnotationMetadata) {
             Node node = createNodeFromModel(graph, metadata);
-            if (metadata.evidenceCount != null)
-                node.setProperty("evidence_count", Integer.parseInt(metadata.evidenceCount));
-            if (metadata.clinicalAnnotationTypes != null)
-                node.setProperty("clinical_annotation_types", StringUtils.split(metadata.clinicalAnnotationTypes, ";"));
-            if (metadata.pmids != null)
-                node.setProperty("pmids", StringUtils.split(metadata.pmids, ";"));
-            graph.update(node);
             if (metadata.gene != null) {
                 for (String gene : StringUtils.split(metadata.gene, ";")) {
-                    String[] parts = StringUtils.split(gene, "(");
-                    String geneId = parts[parts.length - 1].replace(")", "").trim();
-                    Node geneNode = graph.findNode("Gene", "id", geneId);
-                    graph.addEdge(node, geneNode, "ASSOCIATED_WITH");
+                    long geneNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(gene));
+                    graph.addEdge(node, geneNodeId, "ASSOCIATED_WITH");
                 }
             }
             if (metadata.relatedChemicals != null) {
                 for (String chemical : StringUtils.split(metadata.relatedChemicals, ";")) {
-                    String[] parts = StringUtils.split(chemical, "(");
-                    String chemicalId = parts[parts.length - 1].replace(")", "").trim();
-                    Node chemicalNode = graph.findNode("Chemical", "id", chemicalId);
-                    graph.addEdge(node, chemicalNode, "ASSOCIATED_WITH");
+                    long chemicalNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(chemical));
+                    graph.addEdge(node, chemicalNodeId, "ASSOCIATED_WITH");
                 }
             }
             if (metadata.relatedDiseases != null) {
                 for (String disease : StringUtils.split(metadata.relatedDiseases, ";")) {
-                    String[] parts = StringUtils.split(disease, "(");
-                    String diseaseId = parts[parts.length - 1].replace(")", "").trim();
-                    Node phenotypeNode = graph.findNode("Phenotype", "id", diseaseId);
-                    graph.addEdge(node, phenotypeNode, "ASSOCIATED_WITH");
+                    long phenotypeNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(disease));
+                    graph.addEdge(node, phenotypeNodeId, "ASSOCIATED_WITH");
                 }
             }
             if (metadata.genotypePhenotypesId != null) {
                 for (String genotypePhenotypeId : StringUtils.split(metadata.genotypePhenotypesId, ";")) {
-                    Node annotationNode = graph.findNode("ClinicalAnnotation", "id", genotypePhenotypeId);
+                    Node annotationNode = graph.findNode("ClinicalAnnotation", IdProperty, genotypePhenotypeId);
                     graph.addEdge(node, annotationNode, "ASSOCIATED_WITH");
                 }
             }
@@ -556,14 +522,8 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                 String[] ids = StringUtils.split(metadata.variantAnnotationsId, ";");
                 String[] texts = StringUtils.split(metadata.variantAnnotation, ";");
                 for (int i = 0; i < ids.length; i++) {
-                    Node annotationNode = graph.findNode("VariantDrugAnnotation", "id", ids[i]);
-                    if (annotationNode == null)
-                        annotationNode = graph.findNode("VariantFunctionalAnalysisAnnotation", "id", ids[i]);
-                    if (annotationNode == null)
-                        annotationNode = graph.findNode("VariantPhenotypeAnnotation", "id", ids[i]);
-                    Edge e = graph.addEdge(node, annotationNode, "ASSOCIATED_WITH");
-                    e.setProperty("annotation", texts[i]);
-                    graph.update(e);
+                    long annotationNodeId = variantAnnotationIdNodeIdMap.get(Integer.parseInt(ids[i]));
+                    graph.addEdge(node, annotationNodeId, "ASSOCIATED_WITH", "annotation", texts[i]);
                 }
             }
         }

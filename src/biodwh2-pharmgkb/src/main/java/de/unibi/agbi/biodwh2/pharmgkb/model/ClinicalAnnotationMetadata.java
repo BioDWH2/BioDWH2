@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
 import com.univocity.parsers.annotations.Parsed;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
@@ -18,6 +19,7 @@ public class ClinicalAnnotationMetadata {
     @GraphProperty("level_of_evidence")
     public String levelOfEvidence;
     @Parsed(field = "Clinical Annotation Types")
+    @GraphArrayProperty("clinical_annotation_types")
     public String clinicalAnnotationTypes;
     @Parsed(field = "Genotype-Phenotype IDs")
     public String genotypePhenotypesId;
@@ -29,9 +31,11 @@ public class ClinicalAnnotationMetadata {
     @Parsed(field = "Variant Annotations")
     public String variantAnnotation;
     @Parsed(field = "PMIDs")
+    @GraphArrayProperty("pmids")
     public String pmids;
     @Parsed(field = "Evidence Count")
-    public String evidenceCount;
+    @GraphProperty("evidence_count")
+    public Integer evidenceCount;
     @Parsed(field = "Related Chemicals")
     public String relatedChemicals;
     @Parsed(field = "Related Diseases")
