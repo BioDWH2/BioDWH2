@@ -14,37 +14,43 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public abstract class Updater<D extends DataSource> {
+    public enum UpdateState {
+        Failed,
+        AlreadyUpToDate,
+        Updated
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(Updater.class);
 
     public abstract Version getNewestVersion() throws UpdaterException;
 
-    public final boolean update(Workspace workspace, D dataSource) throws UpdaterException {
+    public final UpdateState update(Workspace workspace, D dataSource) throws UpdaterException {
         Version newestVersion = getNewestVersion();
         Version workspaceVersion = dataSource.getMetadata().version;
         if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
             logger.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
-            return true;
+            return UpdateState.AlreadyUpToDate;
         }
         logger.info("New version of data source '" + dataSource.getId() + "' found (old: " +
                     (workspaceVersion != null ? workspaceVersion : "none") + ", new: " + newestVersion + ")");
         if (tryUpdateFiles(workspace, dataSource)) {
             updateDataSourceMetadata(workspace, dataSource, newestVersion);
-            return true;
+            return UpdateState.Updated;
         }
-        return false;
+        return UpdateState.Failed;
     }
 
-    public final boolean updateManually(Workspace workspace, D dataSource, String version) {
+    public final UpdateState updateManually(Workspace workspace, D dataSource, String version) {
         Version workspaceVersion = dataSource.getMetadata().version;
         Version newestVersion = Version.tryParse(version);
         if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
             logger.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
-            return true;
+            return UpdateState.AlreadyUpToDate;
         }
         logger.info("New version of data source '" + dataSource.getId() + "' found (old: " +
                     (workspaceVersion != null ? workspaceVersion : "none") + ", new: " + newestVersion + ")");
         updateDataSourceMetadata(workspace, dataSource, newestVersion);
-        return true;
+        return UpdateState.Updated;
     }
 
     private boolean isDataSourceUpToDate(Version newestVersion, Version workspaceVersion) {

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import de.unibi.agbi.biodwh2.core.etl.GraphMapper;
 import de.unibi.agbi.biodwh2.core.etl.GraphMerger;
 import de.unibi.agbi.biodwh2.core.etl.RDFMerger;
+import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
@@ -161,7 +162,9 @@ public final class Workspace {
 
     private void processDataSource(final DataSource dataSource, final String version, final boolean skipUpdate) {
         logger.info("Processing of data source '" + dataSource.getId() + "' started");
+        Updater.UpdateState updateState;
         if (skipUpdate) {
+            updateState = Updater.UpdateState.AlreadyUpToDate;
             if (dataSource.getMetadata().updateSuccessful == null) {
                 logger.error("Update was skipped for data source '" + dataSource.getId() +
                              "' without successful previous update.");
@@ -169,20 +172,32 @@ public final class Workspace {
             }
         } else {
             logger.info("Running updater");
-            if (version != null)
-                dataSource.updateManually(this, version);
-            else
-                dataSource.updateAutomatic(this);
+            updateState = version != null ? dataSource.updateManually(this, version) : dataSource.updateAutomatic(this);
             dataSource.trySaveMetadata(this);
         }
-        if (dataSource.getMetadata().updateSuccessful) {
+        if (isExportNeeded(updateState, dataSource.getMetadata())) {
             logger.info("Running parser");
             dataSource.parse(this);
             logger.info("Running exporter");
             dataSource.export(this, configuration.rdfEnabled, configuration.graphMLEnabled);
-        }
+        } else
+            logger.info("Skipping export of data source '" + dataSource.getId() + "' because nothing changed");
         dataSource.trySaveMetadata(this);
         logger.info("Processing of data source '" + dataSource.getId() + "' finished");
+    }
+
+    private boolean isExportNeeded(final Updater.UpdateState updateState, final DataSourceMetadata metadata) {
+        if (updateState == Updater.UpdateState.Updated)
+            return true;
+        boolean exportGraphMLSuccessful = metadata.exportGraphMLSuccessful != null && metadata.exportGraphMLSuccessful;
+        boolean exportRDFSuccessful = metadata.exportRDFSuccessful != null && metadata.exportRDFSuccessful;
+        if (configuration.rdfEnabled && configuration.graphMLEnabled)
+            return !exportRDFSuccessful || !exportGraphMLSuccessful;
+        if (configuration.rdfEnabled)
+            return !exportRDFSuccessful;
+        if (configuration.graphMLEnabled)
+            return !exportGraphMLSuccessful;
+        return false;
     }
 
     private void mergeDataSources() {

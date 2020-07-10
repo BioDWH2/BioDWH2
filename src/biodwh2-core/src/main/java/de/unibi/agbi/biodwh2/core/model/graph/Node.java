@@ -31,7 +31,7 @@ public class Node implements PropertyContainer, Mappable {
     }
 
     ObjectFilter getEqFilter() {
-        return ObjectFilters.eq(IdField, document.getId());
+        return ObjectFilters.eq(IdField, __id);
     }
 
     void resetId() {

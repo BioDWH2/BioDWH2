@@ -22,6 +22,7 @@ public class GraphMerger extends Merger {
             String intermediateGraphFilePath = dataSource.getGraphDatabaseFilePath(workspace);
             try {
                 mergedGraph.mergeDatabase(intermediateGraphFilePath);
+                dataSource.getMetadata().mergeSuccessful = true;
             } catch (GraphCacheException e) {
                 throw new MergerException("Failed to merge data source " + dataSource.getId(), e);
             }

@@ -83,10 +83,12 @@ public abstract class DataSource {
         }
     }
 
-    final void updateAutomatic(final Workspace workspace) {
+    final Updater.UpdateState updateAutomatic(final Workspace workspace) {
         try {
             //noinspection unchecked
-            metadata.updateSuccessful = getUpdater().update(workspace, this);
+            final Updater.UpdateState state = getUpdater().update(workspace, this);
+            metadata.updateSuccessful = state != Updater.UpdateState.Failed;
+            return state;
         } catch (UpdaterOnlyManuallyException e) {
             logger.error("Data source '" + getId() + "' can only be updated manually. Download the new version of " +
                          getId() + " and use the command line parameter -u or --update with the parameters " +
@@ -96,11 +98,14 @@ public abstract class DataSource {
             logger.error("Failed to update data source '" + getId() + "'", e);
             metadata.updateSuccessful = false;
         }
+        return Updater.UpdateState.Failed;
     }
 
-    final void updateManually(final Workspace workspace, final String version) {
+    final Updater.UpdateState updateManually(final Workspace workspace, final String version) {
         //noinspection unchecked
-        metadata.updateSuccessful = getUpdater().updateManually(workspace, this, version);
+        final Updater.UpdateState state = getUpdater().updateManually(workspace, this, version);
+        metadata.updateSuccessful = state != Updater.UpdateState.Failed;
+        return state;
     }
 
     final void parse(final Workspace workspace) {

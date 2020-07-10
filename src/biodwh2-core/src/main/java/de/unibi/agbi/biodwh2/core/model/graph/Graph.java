@@ -80,6 +80,22 @@ public final class Graph {
         return n;
     }
 
+    public Node addNode(final String label, final String propertyKey, final Object propertyValue) {
+        final Node n = new Node(label);
+        n.setProperty(propertyKey, propertyValue);
+        nodes.insert(n);
+        return n;
+    }
+
+    public Node addNode(final String label, final String propertyKey1, final Object propertyValue1,
+                        final String propertyKey2, final Object propertyValue2) {
+        final Node n = new Node(label);
+        n.setProperty(propertyKey1, propertyValue1);
+        n.setProperty(propertyKey2, propertyValue2);
+        nodes.insert(n);
+        return n;
+    }
+
     public final <T> Node addNodeFromModel(final T obj) throws GraphCacheException {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
         final Node node = new Node(mapping.label);
@@ -118,25 +134,42 @@ public final class Graph {
     }
 
     public Edge addEdge(final Node from, final Node to, final String label) {
-        final Edge e = new Edge(from.getId(), to.getId(), label);
-        edges.insert(e);
-        return e;
+        return addEdge(from.getId(), to.getId(), label);
     }
 
     public Edge addEdge(final long fromId, final Node to, final String label) {
-        final Edge e = new Edge(fromId, to.getId(), label);
-        edges.insert(e);
-        return e;
+        return addEdge(fromId, to.getId(), label);
     }
 
     public Edge addEdge(final Node from, final long toId, final String label) {
-        final Edge e = new Edge(from.getId(), toId, label);
-        edges.insert(e);
-        return e;
+        return addEdge(from.getId(), toId, label);
     }
 
     public Edge addEdge(final long fromId, final long toId, final String label) {
         final Edge e = new Edge(fromId, toId, label);
+        edges.insert(e);
+        return e;
+    }
+
+    public Edge addEdge(final Node from, final Node to, final String label, final String propertyKey,
+                        final Object propertyValue) {
+        return addEdge(from.getId(), to.getId(), label, propertyKey, propertyValue);
+    }
+
+    public Edge addEdge(final long fromId, final Node to, final String label, final String propertyKey,
+                        final Object propertyValue) {
+        return addEdge(fromId, to.getId(), label, propertyKey, propertyValue);
+    }
+
+    public Edge addEdge(final Node from, final long toId, final String label, final String propertyKey,
+                        final Object propertyValue) {
+        return addEdge(from.getId(), toId, label, propertyKey, propertyValue);
+    }
+
+    public Edge addEdge(final long fromId, final long toId, final String label, final String propertyKey,
+                        final Object propertyValue) {
+        final Edge e = new Edge(fromId, toId, label);
+        e.setProperty(propertyKey, propertyValue);
         edges.insert(e);
         return e;
     }
