@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
+import org.apache.commons.lang3.StringUtils;
 import org.dizitart.no2.*;
 import org.dizitart.no2.objects.ObjectFilter;
 import org.dizitart.no2.objects.ObjectRepository;
@@ -49,6 +50,10 @@ public final class Graph {
     private void createIndicesIfNotExist() {
         if (!nodes.hasIndex(Node.LabelField))
             nodes.createIndex(Node.LabelField, IndexOptions.indexOptions(IndexType.NonUnique, false));
+        if (!edges.hasIndex(Edge.FromIdField))
+            edges.createIndex(Edge.FromIdField, IndexOptions.indexOptions(IndexType.NonUnique, false));
+        if (!edges.hasIndex(Edge.ToIdField))
+            edges.createIndex(Edge.ToIdField, IndexOptions.indexOptions(IndexType.NonUnique, false));
         if (!edges.hasIndex(Edge.LabelField))
             edges.createIndex(Edge.LabelField, IndexOptions.indexOptions(IndexType.NonUnique, false));
     }
@@ -92,8 +97,17 @@ public final class Graph {
     private void setNodePropertiesFromClassMapping(final Node node, final ClassMapping mapping,
                                                    final Object obj) throws GraphCacheException {
         try {
-            for (ClassMapping.ClassMappingField field : mapping.fields)
-                node.setProperty(field.propertyName, field.field.get(obj));
+            for (ClassMapping.ClassMappingField field : mapping.fields) {
+                Object value = field.field.get(obj);
+                if (value != null)
+                    node.setProperty(field.propertyName, value);
+            }
+            for (ClassMapping.ClassMappingField field : mapping.arrayFields) {
+                Object value = field.field.get(obj);
+                if (value != null)
+                    node.setProperty(field.propertyName,
+                                     StringUtils.splitByWholeSeparator(value.toString(), field.arrayDelimiter));
+            }
         } catch (IllegalAccessException e) {
             throw new GraphCacheException(e);
         }
