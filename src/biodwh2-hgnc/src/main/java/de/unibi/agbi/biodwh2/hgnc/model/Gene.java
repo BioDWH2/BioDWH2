@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.hgnc.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
@@ -42,8 +43,10 @@ public final class Gene {
     @GraphProperty("location_sortable")
     public String locationSortable;
     @JsonProperty("alias_symbol")
+    @GraphArrayProperty(value = "alias_symbols", arrayDelimiter = "|")
     public String aliasSymbol;
     @JsonProperty("alias_name")
+    @GraphArrayProperty(value = "alias_names", arrayDelimiter = "|")
     public String aliasName;
     @JsonProperty("prev_symbol")
     @GraphProperty("prev_symbol")
