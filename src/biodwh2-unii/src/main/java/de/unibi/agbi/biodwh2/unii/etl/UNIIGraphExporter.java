@@ -28,7 +28,6 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
 
     private void createUNIINode(final Graph graph, final List<UNIIEntry> entries, final UNIIDataEntry dataEntry) {
         Node uniiNode = createNodeFromModel(graph, dataEntry);
-        // TODO: dataEntry.pt
         uniiNode.setProperty("name", entries.get(0).displayName);
         uniiNode.setProperty("official_names", getNameArrayOfTypeFromEntries(entries, "of"));
         uniiNode.setProperty("systematic_names", getNameArrayOfTypeFromEntries(entries, "sys"));

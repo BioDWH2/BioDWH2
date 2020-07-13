@@ -15,6 +15,7 @@ public class UNIIDataEntry {
     @GraphProperty("id")
     public String unii;
     @JsonProperty("PT")
+    @GraphProperty("preferred_term")
     public String pt;
     @JsonProperty("RN")
     @GraphProperty("cas")
