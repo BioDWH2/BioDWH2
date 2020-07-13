@@ -175,7 +175,7 @@ public final class Workspace {
             updateState = version != null ? dataSource.updateManually(this, version) : dataSource.updateAutomatic(this);
             dataSource.trySaveMetadata(this);
         }
-        if (isExportNeeded(updateState, dataSource.getMetadata())) {
+        if (isExportNeeded(updateState, dataSource)) {
             logger.info("Running parser");
             dataSource.parse(this);
             logger.info("Running exporter");
@@ -186,11 +186,17 @@ public final class Workspace {
         logger.info("Processing of data source '" + dataSource.getId() + "' finished");
     }
 
-    private boolean isExportNeeded(final Updater.UpdateState updateState, final DataSourceMetadata metadata) {
-        if (updateState == Updater.UpdateState.Updated)
+    private boolean isExportNeeded(final Updater.UpdateState updateState, final DataSource dataSource) {
+        if (updateState == Updater.UpdateState.Updated || isDataSourceExportForced(dataSource))
             return true;
-        boolean exportGraphMLSuccessful = metadata.exportGraphMLSuccessful != null && metadata.exportGraphMLSuccessful;
-        boolean exportRDFSuccessful = metadata.exportRDFSuccessful != null && metadata.exportRDFSuccessful;
+        final DataSourceMetadata metadata = dataSource.getMetadata();
+        boolean exportGraphMLSuccessful =
+                metadata.exportGraphMLSuccessful != null && metadata.exportGraphMLSuccessful && fileDoesExist(
+                        dataSource.getIntermediateGraphFilePath(this, GraphFileFormat.GraphML)) && fileDoesExist(
+                        dataSource.getGraphDatabaseFilePath(this));
+        boolean exportRDFSuccessful =
+                metadata.exportRDFSuccessful != null && metadata.exportRDFSuccessful && fileDoesExist(
+                        dataSource.getIntermediateGraphFilePath(this, GraphFileFormat.RDFTurtle));
         if (configuration.rdfEnabled && configuration.graphMLEnabled)
             return !exportRDFSuccessful || !exportGraphMLSuccessful;
         if (configuration.rdfEnabled)
@@ -198,6 +204,16 @@ public final class Workspace {
         if (configuration.graphMLEnabled)
             return !exportGraphMLSuccessful;
         return false;
+    }
+
+    private boolean isDataSourceExportForced(final DataSource dataSource) {
+        final String id = dataSource.getId();
+        return configuration.dataSourceProperties.containsKey(id) && "true".equalsIgnoreCase(
+                configuration.dataSourceProperties.get(id).getOrDefault("forceExport", ""));
+    }
+
+    private boolean fileDoesExist(final String filePath) {
+        return Files.exists(Paths.get(filePath));
     }
 
     private void mergeDataSources() {
