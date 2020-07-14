@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.schema.GraphSchema;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -20,12 +21,14 @@ public final class GraphMapper extends Mapper {
         mapNodes(graph, dataSourceDescriberMap);
         mapEdges(graph, dataSourceDescriberMap);
         saveGraph(graph, outputGraphFilePath);
+        saveGraphSchema(graph);
+        graph.dispose();
     }
 
     private void mapNodes(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
         final Map<String, Set<Long>> idNodeIdMap = new HashMap<>();
         for (Node node : graph.getNodes()) {
-            String dataSourceId = StringUtils.split(node.getLabel(), "_")[0];
+            String dataSourceId = StringUtils.split(node.getLabel(), GraphExporter.LabelPrefixSeparator)[0];
             MappingDescriber dataSourceDescriber = dataSourceDescriberMap.get(dataSourceId);
             if (dataSourceDescriber != null) {
                 NodeMappingDescription mappingDescription = dataSourceDescriber.describe(graph, node);
@@ -71,7 +74,7 @@ public final class GraphMapper extends Mapper {
 
     private void mapEdges(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
         for (Edge edge : graph.getEdges()) {
-            String dataSourceId = StringUtils.split(edge.getLabel(), "_")[0];
+            String dataSourceId = StringUtils.split(edge.getLabel(), GraphExporter.LabelPrefixSeparator)[0];
             MappingDescriber dataSourceDescriber = dataSourceDescriberMap.get(dataSourceId);
             if (dataSourceDescriber != null) {
                 EdgeMappingDescription mappingDescription = dataSourceDescriber.describe(graph, edge);
@@ -92,6 +95,9 @@ public final class GraphMapper extends Mapper {
     private void saveGraph(final Graph graph, final String outputGraphFilePath) {
         GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
         graphMLWriter.write(outputGraphFilePath, graph);
-        graph.dispose();
+    }
+
+    private void saveGraphSchema(final Graph graph) {
+        // TODO: GraphSchema schema = new GraphSchema(graph);
     }
 }

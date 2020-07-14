@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.Map;
 
 public interface PropertyContainer {
+    String getLabel();
+
     void setProperty(final String key, final Object value) throws GraphCacheException;
 
     boolean hasProperty(final String key);

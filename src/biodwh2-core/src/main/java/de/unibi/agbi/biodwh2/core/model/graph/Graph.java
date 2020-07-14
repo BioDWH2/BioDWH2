@@ -5,6 +5,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.dizitart.no2.*;
 import org.dizitart.no2.objects.ObjectFilter;
 import org.dizitart.no2.objects.ObjectRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,6 +17,7 @@ import java.util.*;
 import static org.dizitart.no2.objects.filters.ObjectFilters.*;
 
 public final class Graph {
+    private static final Logger logger = LoggerFactory.getLogger(Graph.class);
     private static final FindOptions LimitOneOption = FindOptions.limit(0, 1);
 
     private Nitrite database;
@@ -56,11 +59,14 @@ public final class Graph {
             edges.createIndex(Edge.ToIdField, IndexOptions.indexOptions(IndexType.NonUnique, false));
         if (!edges.hasIndex(Edge.LabelField))
             edges.createIndex(Edge.LabelField, IndexOptions.indexOptions(IndexType.NonUnique, false));
+        logger.info("Node indices: " + nodes.listIndices());
+        logger.info("Edge indices: " + edges.listIndices());
     }
 
     public void setNodeIndexPropertyKeys(String... keys) {
         for (String key : keys)
-            nodes.createIndex(key, IndexOptions.indexOptions(IndexType.NonUnique, false));
+            if (!nodes.hasIndex(key))
+                nodes.createIndex(key, IndexOptions.indexOptions(IndexType.NonUnique, false));
     }
 
     public void prefixAllLabels(String prefix) {
@@ -182,8 +188,16 @@ public final class Graph {
         return () -> nodes.find().iterator();
     }
 
+    public Iterable<Node> getNodes(final String label) {
+        return () -> nodes.find(eq(Node.LabelField, label)).iterator();
+    }
+
     public Iterable<Edge> getEdges() {
         return () -> edges.find().iterator();
+    }
+
+    public Iterable<Edge> getEdges(final String label) {
+        return () -> edges.find(eq(Edge.LabelField, label)).iterator();
     }
 
     public long getNumberOfNodes() {
@@ -245,6 +259,12 @@ public final class Graph {
 
     public void mergeDatabase(final String filePath) throws GraphCacheException {
         Graph databaseToMerge = new Graph(filePath, true);
+        for (Index index : databaseToMerge.nodes.listIndices())
+            if (!nodes.hasIndex(index.getField()))
+                nodes.createIndex(index.getField(), IndexOptions.indexOptions(index.getIndexType(), false));
+        for (Index index : databaseToMerge.edges.listIndices())
+            if (!edges.hasIndex(index.getField()))
+                edges.createIndex(index.getField(), IndexOptions.indexOptions(index.getIndexType(), false));
         Map<Long, Long> mapping = new HashMap<>();
         for (Node n : databaseToMerge.nodes.find()) {
             Long oldId = n.getId();

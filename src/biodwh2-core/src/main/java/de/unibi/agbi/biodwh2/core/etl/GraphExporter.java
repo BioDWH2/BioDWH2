@@ -7,6 +7,8 @@ import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 public abstract class GraphExporter<D extends DataSource> {
+    static final String LabelPrefixSeparator = "_";
+
     public final boolean export(final Workspace workspace, final D dataSource) throws ExporterException {
         final Graph g = new Graph(dataSource.getGraphDatabaseFilePath(workspace));
         boolean exportSuccessful = exportGraph(workspace, dataSource, g);
@@ -22,7 +24,7 @@ public abstract class GraphExporter<D extends DataSource> {
                                            final Graph graph) throws ExporterException;
 
     private void addDataSourcePrefixToGraph(final DataSource dataSource, final Graph g) {
-        g.prefixAllLabels(dataSource.getId() + "_");
+        g.prefixAllLabels(dataSource.getId() + LabelPrefixSeparator);
     }
 
     private boolean trySaveGraphToFile(final Workspace workspace, final D dataSource, final Graph g) {

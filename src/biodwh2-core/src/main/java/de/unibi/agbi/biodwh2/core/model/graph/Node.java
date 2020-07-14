@@ -8,10 +8,12 @@ import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.objects.Id;
 import org.dizitart.no2.objects.ObjectFilter;
 import org.dizitart.no2.objects.filters.ObjectFilters;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class Node implements PropertyContainer, Mappable {
+public class Node implements PropertyContainer, Map<String, Object>, Mappable {
     private static final String IdField = "__id";
     static final String LabelField = "__label";
     public static final Set<String> IgnoredFields = new HashSet<>(
@@ -74,6 +76,70 @@ public class Node implements PropertyContainer, Mappable {
 
     public boolean hasProperty(final String key) {
         return document.containsKey(key);
+    }
+
+    @Override
+    public int size() {
+        return document.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return document.isEmpty();
+    }
+
+    @Override
+    public boolean containsKey(Object o) {
+        return document.containsKey(o);
+    }
+
+    @Override
+    public boolean containsValue(Object o) {
+        return document.containsValue(o);
+    }
+
+    @Override
+    public Object get(Object o) {
+        return document.get(o);
+    }
+
+    @Nullable
+    @Override
+    public Object put(String s, Object o) {
+        return document.put(s, o);
+    }
+
+    @Override
+    public Object remove(Object o) {
+        return document.remove(o);
+    }
+
+    @Override
+    public void putAll(@NotNull Map<? extends String, ?> map) {
+        document.putAll(map);
+    }
+
+    @Override
+    public void clear() {
+        throw new RuntimeException("Clear is not permitted on Nodes");
+    }
+
+    @NotNull
+    @Override
+    public Set<String> keySet() {
+        return document.keySet();
+    }
+
+    @NotNull
+    @Override
+    public Collection<Object> values() {
+        return document.values();
+    }
+
+    @NotNull
+    @Override
+    public Set<Entry<String, Object>> entrySet() {
+        return document.entrySet();
     }
 
     @Override

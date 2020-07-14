@@ -14,11 +14,21 @@ public final class NodeMappingDescription {
         Disease,
         SideEffect,
         Variant,
+        Haplotype,
         Pathway
     }
 
-    public NodeType type = NodeType.Unknown;
-    public final Map<IdentifierType, Set<String>> identifier = new HashMap<>();
+    public NodeType type;
+    private final Map<IdentifierType, Set<String>> identifier;
+
+    public NodeMappingDescription() {
+        this(NodeType.Unknown);
+    }
+
+    public NodeMappingDescription(final NodeType type) {
+        this.type = type;
+        identifier = new HashMap<>();
+    }
 
     public void addIdentifier(IdentifierType type, String value) {
         if (!identifier.containsKey(type))
