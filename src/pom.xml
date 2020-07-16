@@ -25,6 +25,7 @@
         <module>biodwh2-disgenet</module>
         <module>biodwh2-unii</module>
         <module>biodwh2-ncbi</module>
+        <module>biodwh2-server</module>
     </modules>
 
     <packaging>pom</packaging>
