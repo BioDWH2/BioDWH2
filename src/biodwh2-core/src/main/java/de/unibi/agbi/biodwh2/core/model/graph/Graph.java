@@ -216,6 +216,10 @@ public final class Graph {
         return edges.getById(NitriteId.createId(edgeId));
     }
 
+    public Node findNode(final String label) {
+        return nodes.find(eq(Node.LabelField, label), LimitOneOption).firstOrDefault();
+    }
+
     public Node findNode(final String label, final String propertyKey, final Object value) {
         return nodes.find(and(eq(Node.LabelField, label), eq(propertyKey, value)), LimitOneOption).firstOrDefault();
     }
@@ -230,6 +234,45 @@ public final class Graph {
                          final Object value2, final String propertyKey3, final Object value3) {
         return nodes.find(and(eq(Node.LabelField, label), eq(propertyKey1, value1), eq(propertyKey2, value2),
                               eq(propertyKey3, value3)), LimitOneOption).firstOrDefault();
+    }
+
+    public Node findNode(final String label, final Map<String, Object> properties) {
+        ObjectFilter[] filter = new ObjectFilter[properties.size() + 1];
+        filter[0] = eq(Node.LabelField, label);
+        int index = 1;
+        for (String propertyKey : properties.keySet())
+            filter[index++] = eq(propertyKey, properties.get(propertyKey));
+        return nodes.find(and(filter), LimitOneOption).firstOrDefault();
+    }
+
+    public Iterable<Node> findNodes(final String label) {
+        return () -> nodes.find(eq(Node.LabelField, label)).iterator();
+    }
+
+    public Iterable<Node> findNodes(final String label, final String propertyKey, final Object value) {
+        return () -> nodes.find(and(eq(Node.LabelField, label), eq(propertyKey, value))).iterator();
+    }
+
+    public Iterable<Node> findNodes(final String label, final String propertyKey1, final Object value1,
+                                    final String propertyKey2, final Object value2) {
+        return () -> nodes.find(and(eq(Node.LabelField, label), eq(propertyKey1, value1), eq(propertyKey2, value2)))
+                          .iterator();
+    }
+
+    public Iterable<Node> findNodes(final String label, final String propertyKey1, final Object value1,
+                                    final String propertyKey2, final Object value2, final String propertyKey3,
+                                    final Object value3) {
+        return () -> nodes.find(and(eq(Node.LabelField, label), eq(propertyKey1, value1), eq(propertyKey2, value2),
+                                    eq(propertyKey3, value3))).iterator();
+    }
+
+    public Iterable<Node> findNodes(final String label, final Map<String, Object> properties) {
+        ObjectFilter[] filter = new ObjectFilter[properties.size() + 1];
+        filter[0] = eq(Node.LabelField, label);
+        int index = 1;
+        for (String propertyKey : properties.keySet())
+            filter[index++] = eq(propertyKey, properties.get(propertyKey));
+        return () -> nodes.find(and(filter)).iterator();
     }
 
     public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId, final String edgeLabel) {

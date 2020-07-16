@@ -31,6 +31,7 @@ public class GraphMLGraphWriter extends GraphWriter {
         Set<Long> nodeIds = new HashSet<>();
     }
 
+    public static final String Extension = "graphml";
     private static final String InvalidXmlChars = new String(
             new char[]{0x01, 0x02, 0x03, 0x04, 0x08, 0x1d, 0x12, 0x14, 0x18});
 

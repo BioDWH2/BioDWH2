@@ -9,20 +9,12 @@ import java.util.*;
 public class GraphSchema {
     public static class NodeType {
         String label;
-        final Set<String> propertyKeys = new HashSet<>();
-
-        public String getLabel() {
-            return label;
-        }
-
-        public String[] getPropertyKeys() {
-            return propertyKeys.toArray(new String[0]);
-        }
+        final Map<String, Class<?>> propertyKeyTypes = new HashMap<>();
     }
 
     public static class EdgeType {
         String label;
-        final Set<String> propertyKeys = new HashSet<>();
+        final Map<String, Class<?>> propertyKeyTypes = new HashMap<>();
         final Set<String> fromLabels = new HashSet<>();
         final Set<String> toLabels = new HashSet<>();
     }
@@ -49,7 +41,10 @@ public class GraphSchema {
             type.label = node.getLabel();
             nodeTypes.put(type.label, type);
         }
-        type.propertyKeys.addAll(node.getPropertyKeys());
+        Map<String, Class<?>> propertyKeyTypes = node.getPropertyKeyTypes();
+        for (String propertyKey : propertyKeyTypes.keySet())
+            if (!propertyKey.equalsIgnoreCase("_modified") && !propertyKey.equalsIgnoreCase("_revision"))
+                type.propertyKeyTypes.put(propertyKey, propertyKeyTypes.get(propertyKey));
     }
 
     private void loadEdgeTypes(final Graph graph) {
@@ -64,7 +59,10 @@ public class GraphSchema {
             type.label = edge.getLabel();
             edgeTypes.put(type.label, type);
         }
-        type.propertyKeys.addAll(edge.getPropertyKeys());
+        Map<String, Class<?>> propertyKeyTypes = edge.getPropertyKeyTypes();
+        for (String propertyKey : propertyKeyTypes.keySet())
+            if (!propertyKey.equalsIgnoreCase("_modified") && !propertyKey.equalsIgnoreCase("_revision"))
+                type.propertyKeyTypes.put(propertyKey, propertyKeyTypes.get(propertyKey));
         Node fromNode = graph.getNode(edge.getFromId());
         Node toNode = graph.getNode(edge.getToId());
         type.fromLabels.add(fromNode.getLabel());
@@ -73,5 +71,9 @@ public class GraphSchema {
 
     public NodeType[] getNodeTypes() {
         return nodeTypes.values().toArray(new NodeType[0]);
+    }
+
+    public EdgeType[] getEdgeTypes() {
+        return edgeTypes.values().toArray(new EdgeType[0]);
     }
 }

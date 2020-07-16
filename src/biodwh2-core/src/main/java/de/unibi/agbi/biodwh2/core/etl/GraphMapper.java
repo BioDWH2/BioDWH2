@@ -4,9 +4,15 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.schema.GraphQLSchemaWriter;
 import de.unibi.agbi.biodwh2.core.schema.GraphSchema;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 public final class GraphMapper extends Mapper {
@@ -14,15 +20,26 @@ public final class GraphMapper extends Mapper {
 
     public void map(final Workspace workspace, final List<DataSource> dataSources, final String inputGraphFilePath,
                     final String outputGraphFilePath) {
-        final Graph graph = new Graph(inputGraphFilePath.replace("graphml", "db"), true);
+        copyGraph(inputGraphFilePath, outputGraphFilePath);
+        final Graph graph = new Graph(outputGraphFilePath.replace(GraphMLGraphWriter.Extension, "db"), true);
         final Map<String, MappingDescriber> dataSourceDescriberMap = new HashMap<>();
         for (DataSource dataSource : dataSources)
             dataSourceDescriberMap.put(dataSource.getId(), dataSource.getMappingDescriber());
         mapNodes(graph, dataSourceDescriberMap);
         mapEdges(graph, dataSourceDescriberMap);
         saveGraph(graph, outputGraphFilePath);
-        saveGraphSchema(graph);
+        saveGraphSchema(graph, outputGraphFilePath.replace(GraphMLGraphWriter.Extension, "graphqls"));
         graph.dispose();
+    }
+
+    private void copyGraph(final String inputGraphFilePath, final String outputGraphFilePath) {
+        Path originalPath = Paths.get(inputGraphFilePath.replace(GraphMLGraphWriter.Extension, "db"));
+        Path copied = Paths.get(outputGraphFilePath.replace(GraphMLGraphWriter.Extension, "db"));
+        try {
+            Files.copy(originalPath, copied, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void mapNodes(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
@@ -97,7 +114,12 @@ public final class GraphMapper extends Mapper {
         graphMLWriter.write(outputGraphFilePath, graph);
     }
 
-    private void saveGraphSchema(final Graph graph) {
-        // TODO: GraphSchema schema = new GraphSchema(graph);
+    private void saveGraphSchema(final Graph graph, final String filePath) {
+        GraphSchema schema = new GraphSchema(graph);
+        try {
+            new GraphQLSchemaWriter(schema).save(filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
