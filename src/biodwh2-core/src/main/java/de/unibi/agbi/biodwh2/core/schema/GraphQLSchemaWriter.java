@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 public final class GraphQLSchemaWriter extends SchemaWriter {
+    public static final String Extension = "graphqls";
+
     public GraphQLSchemaWriter(GraphSchema schema) {
         super(schema);
     }

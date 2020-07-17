@@ -17,6 +17,8 @@ import java.util.*;
 import static org.dizitart.no2.objects.filters.ObjectFilters.*;
 
 public final class Graph {
+    public static final String Extension = "db";
+
     private static final Logger logger = LoggerFactory.getLogger(Graph.class);
     private static final FindOptions LimitOneOption = FindOptions.limit(0, 1);
 

@@ -16,7 +16,7 @@ public class GraphMerger extends Merger {
 
     public final boolean merge(final Workspace workspace, final List<DataSource> dataSources,
                                final String outputFilePath) throws MergerException {
-        Graph mergedGraph = new Graph(outputFilePath.replace(GraphMLGraphWriter.Extension, "db"));
+        Graph mergedGraph = new Graph(outputFilePath.replace(GraphMLGraphWriter.Extension, Graph.Extension));
         for (DataSource dataSource : dataSources) {
             logger.info("Merging data source " + dataSource.getId());
             String intermediateGraphFilePath = dataSource.getGraphDatabaseFilePath(workspace);

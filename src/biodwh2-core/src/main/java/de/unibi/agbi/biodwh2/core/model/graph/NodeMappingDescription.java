@@ -20,6 +20,7 @@ public final class NodeMappingDescription {
 
     public NodeType type;
     private final Map<IdentifierType, Set<String>> identifier;
+    private Set<String> identifierCache;
 
     public NodeMappingDescription() {
         this(NodeType.Unknown);
@@ -34,14 +35,17 @@ public final class NodeMappingDescription {
         if (!identifier.containsKey(type))
             identifier.put(type, new HashSet<>());
         identifier.get(type).add(value);
+        identifierCache = null;
     }
 
-    public List<String> getIdentifiers() {
-        List<String> result = new ArrayList<>();
+    public Set<String> getIdentifiers() {
+        if (identifierCache != null)
+            return identifierCache;
+        identifierCache = new HashSet<>();
         for (IdentifierType identifierType : identifier.keySet())
             for (String id : identifier.get(identifierType))
-                result.add(identifierType.prefix + ":" + id);
-        return result;
+                identifierCache.add(identifierType.prefix + ":" + id);
+        return identifierCache;
     }
 
     public boolean matches(NodeMappingDescription other) {
