@@ -1,6 +1,8 @@
 package de.unibi.agbi.biodwh2.core.exceptions;
 
 public class ParserFormatException extends ParserException {
+    private static final long serialVersionUID = 4976013817813880629L;
+
     public ParserFormatException() {
     }
 

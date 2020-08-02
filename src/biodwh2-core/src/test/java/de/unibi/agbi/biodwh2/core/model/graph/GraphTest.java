@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core.model.graph;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -22,7 +23,7 @@ class GraphTest {
     }
 
     @Test
-    void nodeKeepsIdOnRetrieve() throws Exception {
+    void nodeKeepsIdOnRetrieve() throws IOException {
         Graph g = Graph.createTempGraph();
         Node n = g.addNode("Test");
         long id = n.getId();
@@ -31,7 +32,7 @@ class GraphTest {
     }
 
     @Test
-    void nodeKeepsIdOnUpdate() throws Exception {
+    void nodeKeepsIdOnUpdate() throws IOException {
         Graph g = Graph.createTempGraph();
         Node n = g.addNode("Test");
         long id = n.getId();
@@ -41,7 +42,7 @@ class GraphTest {
     }
 
     @Test
-    void nodeKeepsIdOnRetrieveReopenedGraph() throws Exception {
+    void nodeKeepsIdOnRetrieveReopenedGraph() throws IOException {
         Path tempFilePath = Files.createTempFile("graphdb_test", ".db");
         Graph g = new Graph(tempFilePath.toString());
         Node n = g.addNode("Test");

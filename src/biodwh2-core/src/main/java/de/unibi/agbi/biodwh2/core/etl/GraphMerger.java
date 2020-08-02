@@ -12,14 +12,16 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 public class GraphMerger extends Merger {
-    private static final Logger logger = LoggerFactory.getLogger(Merger.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Merger.class);
 
+    @Override
     public final boolean merge(final Workspace workspace, final List<DataSource> dataSources,
                                final String outputFilePath) throws MergerException {
-        Graph mergedGraph = new Graph(outputFilePath.replace(GraphMLGraphWriter.Extension, Graph.Extension));
-        for (DataSource dataSource : dataSources) {
-            logger.info("Merging data source " + dataSource.getId());
-            String intermediateGraphFilePath = dataSource.getGraphDatabaseFilePath(workspace);
+        final Graph mergedGraph = new Graph(outputFilePath.replace(GraphMLGraphWriter.EXTENSION, Graph.EXTENSION));
+        for (final DataSource dataSource : dataSources) {
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Merging data source " + dataSource.getId());
+            final String intermediateGraphFilePath = dataSource.getGraphDatabaseFilePath(workspace);
             try {
                 mergedGraph.mergeDatabase(intermediateGraphFilePath);
                 dataSource.getMetadata().mergeSuccessful = true;
@@ -27,7 +29,7 @@ public class GraphMerger extends Merger {
                 throw new MergerException("Failed to merge data source " + dataSource.getId(), e);
             }
         }
-        GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
+        final GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
         graphMLWriter.write(outputFilePath, mergedGraph);
         mergedGraph.dispose();
         return true;

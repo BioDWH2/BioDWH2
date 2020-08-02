@@ -13,12 +13,12 @@ import java.util.regex.Pattern;
  */
 @SuppressWarnings("WeakerAccess")
 public final class OboReader implements Iterable<OboEntry> {
-    private static final Pattern QuotedStringPattern = Pattern.compile("\"(\\.|[^\"])*\"");
+    private static final Pattern QUOTED_STRING_PATTERN = Pattern.compile("\"(\\.|[^\"])*\"");
 
     private BufferedReader reader;
     private final OboEntry header;
-    private OboEntry lastEntry;
-    private boolean hasNextEntry;
+    OboEntry lastEntry;
+    boolean hasNextEntry;
     private String nextName;
 
     @SuppressWarnings("unused")
@@ -27,25 +27,25 @@ public final class OboReader implements Iterable<OboEntry> {
     }
 
     public OboReader(final InputStream stream, final String charsetName) throws IOException {
-        InputStream baseStream = new BufferedInputStream(stream);
+        final InputStream baseStream = new BufferedInputStream(stream);
         reader = new BufferedReader(new InputStreamReader(baseStream, charsetName));
         header = readNextEntry();
     }
 
-    private OboEntry readNextEntry() {
-        OboEntry entry = new OboEntry(nextName);
+    OboEntry readNextEntry() {
+        final OboEntry entry = new OboEntry(nextName);
         String line;
         nextName = null;
         hasNextEntry = false;
         while ((line = readLineSafe()) != null) {
-            if (line.startsWith("[")) {
+            if (line.charAt(0) == '[') {
                 nextName = StringUtils.strip(line, "[]");
                 hasNextEntry = true;
                 break;
             }
-            if (line.trim().length() == 0 || line.startsWith("!"))
+            if (StringUtils.isBlank(line) || line.charAt(0) == '!')
                 continue;
-            String[] parts = StringUtils.split(line, ":", 2);
+            final String[] parts = StringUtils.split(line, ":", 2);
             entry.addKeyValuePair(parts[0].trim(), removeComments(parts[1]).trim());
         }
         return entry;
@@ -54,7 +54,7 @@ public final class OboReader implements Iterable<OboEntry> {
     private String readLineSafe() {
         try {
             return reader.readLine();
-        } catch (Exception ignored) {
+        } catch (IOException ignored) {
         }
         return null;
     }
@@ -63,7 +63,7 @@ public final class OboReader implements Iterable<OboEntry> {
         int commentIndex = StringUtils.indexOfIgnoreCase(value, "!");
         if (commentIndex == -1)
             return value;
-        Matcher matcher = QuotedStringPattern.matcher(value);
+        final Matcher matcher = QUOTED_STRING_PATTERN.matcher(value);
         while (matcher.find() && commentIndex != -1) {
             if (commentIndex < matcher.start())
                 return value.substring(0, commentIndex);
@@ -81,7 +81,7 @@ public final class OboReader implements Iterable<OboEntry> {
         return new Iterator<OboEntry>() {
             @Override
             public boolean hasNext() {
-                boolean lastHasNextEntry = hasNextEntry;
+                final boolean lastHasNextEntry = hasNextEntry;
                 lastEntry = readNextEntry();
                 return lastHasNextEntry;
             }

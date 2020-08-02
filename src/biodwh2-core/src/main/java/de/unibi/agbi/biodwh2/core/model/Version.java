@@ -71,7 +71,7 @@ public final class Version implements Comparable<Version> {
     public boolean equals(final Object o) {
         if (!(o instanceof Version))
             return false;
-        Version v = (Version) o;
+        final Version v = (Version) o;
         return this.major == v.major && this.minor == v.minor && this.build == v.build && this.revision == v.revision;
     }
 
@@ -82,9 +82,8 @@ public final class Version implements Comparable<Version> {
 
     @Override
     public String toString() {
-        StringBuilder versionString = new StringBuilder();
-        versionString.append(major);
-        versionString.append(SEPARATOR).append(minor);
+        final StringBuilder versionString = new StringBuilder();
+        versionString.append(major).append(SEPARATOR).append(minor);
         if (build != -1)
             versionString.append(SEPARATOR).append(build);
         if (revision != -1)
@@ -95,24 +94,23 @@ public final class Version implements Comparable<Version> {
     public static Version tryParse(final String input) {
         try {
             return parse(input);
-        } catch (NullPointerException | NumberFormatException ex) {
-            // ignore
+        } catch (NullPointerException | NumberFormatException ignored) {
+            return null;
         }
-        return null;
     }
 
-    public static Version parse(final String input) throws NullPointerException, NumberFormatException {
+    public static Version parse(final String input) {
         if (input == null)
             throw new NullPointerException("input must not be null");
-        String[] versionStringParts = input.split(Pattern.quote(SEPARATOR));
+        final String[] versionStringParts = input.split(Pattern.quote(SEPARATOR));
         if (versionStringParts.length < 2 || versionStringParts.length > 4)
             throw new NumberFormatException("version string requires at least two and at most four parts");
-        int major = Integer.parseInt(versionStringParts[0]);
-        int minor = Integer.parseInt(versionStringParts[1]);
+        final int major = Integer.parseInt(versionStringParts[0]);
+        final int minor = Integer.parseInt(versionStringParts[1]);
         if (versionStringParts.length > 2) {
-            int build = Integer.parseInt(versionStringParts[2]);
+            final int build = Integer.parseInt(versionStringParts[2]);
             if (versionStringParts.length > 3) {
-                int revision = Integer.parseInt(versionStringParts[3]);
+                final int revision = Integer.parseInt(versionStringParts[3]);
                 return new Version(major, minor, build, revision);
             }
             return new Version(major, minor, build);

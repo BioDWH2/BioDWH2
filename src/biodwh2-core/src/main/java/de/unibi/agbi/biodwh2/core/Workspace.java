@@ -22,11 +22,11 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public final class Workspace {
-    private static final Logger logger = LoggerFactory.getLogger(Workspace.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Workspace.class);
 
-    public static final int Version = 1;
-    private static final String SourcesDirectoryName = "sources";
-    private static final String ConfigFileName = "config.json";
+    public static final int VERSION = 1;
+    private static final String SOURCES_DIRECTORY_NAME = "sources";
+    private static final String CONFIG_FILE_NAME = "config.json";
 
     private final String workingDirectory;
     private final Configuration configuration;
@@ -36,37 +36,41 @@ public final class Workspace {
         this.workingDirectory = workingDirectory;
         createWorkingDirectoryIfNotExists();
         configuration = createOrLoadConfiguration();
-        logger.info("Using data sources " + configuration.dataSourceIds);
-        logger.info("Export and merge of RDF format is " + (configuration.rdfEnabled ? "enabled" : "disabled"));
-        logger.info("Export and merge of GraphML format is " + (configuration.graphMLEnabled ? "enabled" : "disabled"));
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Using data sources " + configuration.dataSourceIds);
+            LOGGER.info("Export and merge of RDF format is " + (configuration.rdfEnabled ? "enabled" : "disabled"));
+            LOGGER.info(
+                    "Export and merge of GraphML format is " + (configuration.graphMLEnabled ? "enabled" : "disabled"));
+        }
         dataSources = resolveUsedDataSources();
     }
 
     private void createWorkingDirectoryIfNotExists() throws IOException {
-        logger.info("Using workspace directory '" + workingDirectory + "'");
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Using workspace directory '" + workingDirectory + "'");
         Files.createDirectories(Paths.get(workingDirectory));
         Files.createDirectories(Paths.get(getSourcesDirectory()));
     }
 
     String getSourcesDirectory() {
-        return Paths.get(workingDirectory, SourcesDirectoryName).toString();
+        return Paths.get(workingDirectory, SOURCES_DIRECTORY_NAME).toString();
     }
 
     private Configuration createOrLoadConfiguration() throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Path path = Paths.get(workingDirectory, ConfigFileName);
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final Path path = Paths.get(workingDirectory, CONFIG_FILE_NAME);
         if (Files.exists(path))
             return objectMapper.readValue(path.toFile(), Configuration.class);
-        Configuration configuration = new Configuration();
+        final Configuration configuration = new Configuration();
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         objectMapper.writeValue(path.toFile(), configuration);
         return configuration;
     }
 
     private List<DataSource> resolveUsedDataSources() {
-        List<DataSource> dataSources = new ArrayList<>();
-        DataSourceLoader loader = new DataSourceLoader();
-        for (DataSource dataSource : loader.getDataSources())
+        final List<DataSource> dataSources = new ArrayList<>();
+        final DataSourceLoader loader = new DataSourceLoader();
+        for (final DataSource dataSource : loader.getDataSources())
             if (isDataSourceUsed(dataSource))
                 dataSources.add(dataSource);
         return dataSources;
@@ -81,28 +85,28 @@ public final class Workspace {
     }
 
     public void checkState(final boolean verbose) {
-        if (prepareDataSources()) {
-            Map<String, Boolean> sourcesUpToDate = createSourcesUpToDate();
-            int countUpToDate = Collections.frequency(sourcesUpToDate.values(), true);
-            ArrayList<String> notUpToDate = new ArrayList<>();
-            for (String file : sourcesUpToDate.keySet())
+        if (prepareDataSources() && LOGGER.isInfoEnabled()) {
+            final Map<String, Boolean> sourcesUpToDate = createSourcesUpToDate();
+            final int countUpToDate = Collections.frequency(sourcesUpToDate.values(), true);
+            final ArrayList<String> notUpToDate = new ArrayList<>();
+            for (final String file : sourcesUpToDate.keySet())
                 if (!sourcesUpToDate.get(file))
                     notUpToDate.add(file);
-            String loggerInfo = (countUpToDate == dataSources.size()) ? "all source data are up-to-date." :
-                                countUpToDate + "/" + dataSources.size() + " source data are up-to-date.";
-            String state = createStateTable(sourcesUpToDate, verbose);
-            logger.info(state);
-            logger.info(loggerInfo);
-            logger.info("Data sources to be updated: " + notUpToDate);
+            final String loggerInfo = (countUpToDate == dataSources.size()) ? "all source data are up-to-date." :
+                                      countUpToDate + "/" + dataSources.size() + " source data are up-to-date.";
+            final String state = createStateTable(sourcesUpToDate, verbose);
+            LOGGER.info(state);
+            LOGGER.info(loggerInfo);
+            LOGGER.info("Data sources to be updated: " + notUpToDate);
         }
     }
 
     private Map<String, Boolean> createSourcesUpToDate() {
-        Map<String, Boolean> sourcesUpToDate = new HashMap<>();
-        for (DataSource dataSource : dataSources) {
-            Version workspaceVersion = dataSource.getMetadata().version;
-            Version newestVersion = getLatestVersion(dataSource);
-            boolean isUpToDate = workspaceVersion != null && newestVersion != null && newestVersion.compareTo(
+        final Map<String, Boolean> sourcesUpToDate = new HashMap<>();
+        for (final DataSource dataSource : dataSources) {
+            final Version workspaceVersion = dataSource.getMetadata().version;
+            final Version newestVersion = getLatestVersion(dataSource);
+            final boolean isUpToDate = workspaceVersion != null && newestVersion != null && newestVersion.compareTo(
                     workspaceVersion) == 0;
             sourcesUpToDate.put(dataSource.getId(), isUpToDate);
         }
@@ -113,7 +117,8 @@ public final class Workspace {
         try {
             return dataSource.getUpdater().getNewestVersion();
         } catch (UpdaterException e) {
-            logger.error("Failed to get newest version for data source '" + dataSource.getId() + "'");
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to get newest version for data source '" + dataSource.getId() + "'");
             return null;
         }
     }
@@ -125,11 +130,11 @@ public final class Workspace {
         if (verbose)
             headers.add("Files");
         final List<List<String>> rows = new ArrayList<>();
-        for (DataSource dataSource : dataSources) {
+        for (final DataSource dataSource : dataSources) {
             final List<String> row = new ArrayList<>();
             rows.add(row);
             final DataSourceMetadata metadata = dataSource.getMetadata();
-            Version latestVersion = getLatestVersion(dataSource);
+            final Version latestVersion = getLatestVersion(dataSource);
             Collections.addAll(row, dataSource.getId(), sourcesUpToDate.get(dataSource.getId()).toString(),
                                metadata.version.toString(), latestVersion != null ? latestVersion.toString() : null,
                                metadata.getLocalUpdateDateTime().toString());
@@ -140,11 +145,12 @@ public final class Workspace {
     }
 
     private boolean prepareDataSources() {
-        for (DataSource dataSource : dataSources) {
+        for (final DataSource dataSource : dataSources) {
             try {
                 dataSource.prepare(this);
             } catch (DataSourceException e) {
-                logger.error("Failed to prepare data source '" + dataSource.getId() + "'", e);
+                if (LOGGER.isErrorEnabled())
+                    LOGGER.error("Failed to prepare data source '" + dataSource.getId() + "'", e);
                 return false;
             }
         }
@@ -153,7 +159,7 @@ public final class Workspace {
 
     public void processDataSources(final String dataSourceId, final String version, final boolean skipUpdate) {
         if (prepareDataSources()) {
-            for (DataSource dataSource : dataSources)
+            for (final DataSource dataSource : dataSources)
                 if (dataSourceId == null || dataSource.getId().equals(dataSourceId))
                     processDataSource(dataSource, version, skipUpdate);
             mergeDataSources();
@@ -161,42 +167,48 @@ public final class Workspace {
     }
 
     private void processDataSource(final DataSource dataSource, final String version, final boolean skipUpdate) {
-        logger.info("Processing of data source '" + dataSource.getId() + "' started");
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Processing of data source '" + dataSource.getId() + "' started");
         Updater.UpdateState updateState;
         if (skipUpdate) {
-            updateState = Updater.UpdateState.AlreadyUpToDate;
+            updateState = Updater.UpdateState.ALREADY_UP_TO_DATE;
             if (dataSource.getMetadata().updateSuccessful == null) {
-                logger.error("Update was skipped for data source '" + dataSource.getId() +
-                             "' without successful previous update.");
+                if (LOGGER.isErrorEnabled())
+                    LOGGER.error("Update was skipped for data source '" + dataSource.getId() +
+                                 "' without successful previous update.");
                 return;
             }
         } else {
-            logger.info("Running updater");
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Running updater");
             updateState = version != null ? dataSource.updateManually(this, version) : dataSource.updateAutomatic(this);
             dataSource.trySaveMetadata(this);
         }
         if (isExportNeeded(updateState, dataSource)) {
-            logger.info("Running parser");
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Running parser");
             dataSource.parse(this);
-            logger.info("Running exporter");
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Running exporter");
             dataSource.export(this, configuration.rdfEnabled, configuration.graphMLEnabled);
-        } else
-            logger.info("Skipping export of data source '" + dataSource.getId() + "' because nothing changed");
+        } else if (LOGGER.isInfoEnabled())
+            LOGGER.info("Skipping export of data source '" + dataSource.getId() + "' because nothing changed");
         dataSource.trySaveMetadata(this);
-        logger.info("Processing of data source '" + dataSource.getId() + "' finished");
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Processing of data source '" + dataSource.getId() + "' finished");
     }
 
     private boolean isExportNeeded(final Updater.UpdateState updateState, final DataSource dataSource) {
-        if (updateState == Updater.UpdateState.Updated || isDataSourceExportForced(dataSource))
+        if (updateState == Updater.UpdateState.UPDATED || isDataSourceExportForced(dataSource))
             return true;
         final DataSourceMetadata metadata = dataSource.getMetadata();
-        boolean exportGraphMLSuccessful =
+        final boolean exportGraphMLSuccessful =
                 metadata.exportGraphMLSuccessful != null && metadata.exportGraphMLSuccessful && fileDoesExist(
-                        dataSource.getIntermediateGraphFilePath(this, GraphFileFormat.GraphML)) && fileDoesExist(
+                        dataSource.getIntermediateGraphFilePath(this, GraphFileFormat.GRAPH_ML)) && fileDoesExist(
                         dataSource.getGraphDatabaseFilePath(this));
-        boolean exportRDFSuccessful =
+        final boolean exportRDFSuccessful =
                 metadata.exportRDFSuccessful != null && metadata.exportRDFSuccessful && fileDoesExist(
-                        dataSource.getIntermediateGraphFilePath(this, GraphFileFormat.RDFTurtle));
+                        dataSource.getIntermediateGraphFilePath(this, GraphFileFormat.RDF_TURTLE));
         if (configuration.rdfEnabled && configuration.graphMLEnabled)
             return !exportRDFSuccessful || !exportGraphMLSuccessful;
         if (configuration.rdfEnabled)
@@ -217,19 +229,22 @@ public final class Workspace {
     }
 
     private void mergeDataSources() {
-        logger.info("Merging of data sources started");
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Merging of data sources started");
         if (configuration.rdfEnabled)
             mergeRDFDataSources();
         if (configuration.graphMLEnabled)
             mergeGraphMLDataSources();
-        logger.info("Merging of data sources finished");
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Merging of data sources finished");
     }
 
     private void mergeRDFDataSources() {
         try {
-            new RDFMerger().merge(this, dataSources, getMergedOutputFilePath(GraphFileFormat.RDFTurtle));
+            new RDFMerger().merge(this, dataSources, getMergedOutputFilePath(GraphFileFormat.RDF_TURTLE));
         } catch (MergerException e) {
-            logger.error("Failed to merge RDF data sources", e);
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to merge RDF data sources", e);
         }
     }
 
@@ -239,11 +254,12 @@ public final class Workspace {
 
     private void mergeGraphMLDataSources() {
         try {
-            new GraphMerger().merge(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GraphML));
-            new GraphMapper().map(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GraphML),
-                                  getMappedOutputFilePath(GraphFileFormat.GraphML));
+            new GraphMerger().merge(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GRAPH_ML));
+            new GraphMapper().map(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GRAPH_ML),
+                                  getMappedOutputFilePath(GraphFileFormat.GRAPH_ML));
         } catch (MergerException e) {
-            logger.error("Failed to merge GraphML data sources", e);
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to merge GraphML data sources", e);
         }
     }
 

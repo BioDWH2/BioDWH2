@@ -23,7 +23,7 @@ public final class Configuration {
     public Map<String, Map<String, String>> dataSourceProperties;
 
     public Configuration() {
-        version = Workspace.Version;
+        version = Workspace.VERSION;
         creationDateTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         dataSourceIds = new ArrayList<>();
         rdfEnabled = true;

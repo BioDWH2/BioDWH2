@@ -84,7 +84,7 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
     /**
      * How deeply nested the current scope is. The root element is depth 1.
      */
-    private int depth = 0; // document scope
+    private int depth; // document scope
     /**
      * stack[depth] indicates what's been written into the current scope.
      */
@@ -103,7 +103,7 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
         if (linePrefix == null)
             linePrefix = (NEW_LINE + INDENT).toCharArray();
         while (prefixLength > linePrefix.length) {
-            char[] newPrefix = new char[NEW_LINE_LENGTH + ((linePrefix.length - NEW_LINE_LENGTH) * 2)];
+            final char[] newPrefix = new char[NEW_LINE_LENGTH + ((linePrefix.length - NEW_LINE_LENGTH) * 2)];
             System.arraycopy(linePrefix, 0, newPrefix, 0, linePrefix.length);
             System.arraycopy(linePrefix, NEW_LINE_LENGTH, newPrefix, linePrefix.length,
                              linePrefix.length - NEW_LINE_LENGTH);
@@ -111,115 +111,134 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
         }
     }
 
+    @Override
     public void writeStartDocument() throws XMLStreamException {
         beforeMarkup();
         out.writeStartDocument();
         afterMarkup();
     }
 
+    @Override
     public void writeStartDocument(String version) throws XMLStreamException {
         beforeMarkup();
         out.writeStartDocument(version);
         afterMarkup();
     }
 
+    @Override
     public void writeStartDocument(String encoding, String version) throws XMLStreamException {
         beforeMarkup();
         out.writeStartDocument(encoding, version);
         afterMarkup();
     }
 
+    @Override
     public void writeDTD(String dtd) throws XMLStreamException {
         beforeMarkup();
         out.writeDTD(dtd);
         afterMarkup();
     }
 
+    @Override
     public void writeProcessingInstruction(String target) throws XMLStreamException {
         beforeMarkup();
         out.writeProcessingInstruction(target);
         afterMarkup();
     }
 
+    @Override
     public void writeProcessingInstruction(String target, String data) throws XMLStreamException {
         beforeMarkup();
         out.writeProcessingInstruction(target, data);
         afterMarkup();
     }
 
+    @Override
     public void writeComment(String data) throws XMLStreamException {
         beforeMarkup();
         out.writeComment(data);
         afterMarkup();
     }
 
+    @Override
     public void writeEmptyElement(String localName) throws XMLStreamException {
         beforeMarkup();
         out.writeEmptyElement(localName);
         afterMarkup();
     }
 
+    @Override
     public void writeEmptyElement(String namespaceURI, String localName) throws XMLStreamException {
         beforeMarkup();
         out.writeEmptyElement(namespaceURI, localName);
         afterMarkup();
     }
 
+    @Override
     public void writeEmptyElement(String prefix, String localName, String namespaceURI) throws XMLStreamException {
         beforeMarkup();
         out.writeEmptyElement(prefix, localName, namespaceURI);
         afterMarkup();
     }
 
+    @Override
     public void writeStartElement(String localName) throws XMLStreamException {
         beforeStartElement();
         out.writeStartElement(localName);
         afterStartElement();
     }
 
+    @Override
     public void writeStartElement(String namespaceURI, String localName) throws XMLStreamException {
         beforeStartElement();
         out.writeStartElement(namespaceURI, localName);
         afterStartElement();
     }
 
+    @Override
     public void writeStartElement(String prefix, String localName, String namespaceURI) throws XMLStreamException {
         beforeStartElement();
         out.writeStartElement(prefix, localName, namespaceURI);
         afterStartElement();
     }
 
+    @Override
     public void writeCharacters(String text) throws XMLStreamException {
         out.writeCharacters(text);
         afterData();
     }
 
+    @Override
     public void writeCharacters(char[] text, int start, int len) throws XMLStreamException {
         out.writeCharacters(text, start, len);
         afterData();
     }
 
+    @Override
     public void writeCData(String data) throws XMLStreamException {
         out.writeCData(data);
         afterData();
     }
 
+    @Override
     public void writeEntityRef(String name) throws XMLStreamException {
         out.writeEntityRef(name);
         afterData();
     }
 
+    @Override
     public void writeEndElement() throws XMLStreamException {
         beforeEndElement();
         out.writeEndElement();
         afterEndElement();
     }
 
+    @Override
     public void writeEndDocument() throws XMLStreamException {
         try {
             while (depth > 0)
                 writeEndElement(); // indented
-        } catch (Exception ignored) {
+        } catch (XMLStreamException ignored) {
         }
         out.writeEndDocument();
         afterEndDocument();
@@ -229,7 +248,7 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
      * Prepare to write markup, by writing a new line and indentation.
      */
     private void beforeMarkup() {
-        int soFar = stack[depth];
+        final int soFar = stack[depth];
         // no data in this scope & not the first line
         if ((soFar & WROTE_DATA) == 0 && (depth > 0 || soFar != 0)) {
             writeNewLine(depth);
@@ -259,7 +278,7 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
         beforeMarkup();
         if (stack.length <= depth + 1) {
             // Allocate more space for the stack:
-            int[] newStack = new int[stack.length * 2];
+            final int[] newStack = new int[stack.length * 2];
             System.arraycopy(stack, 0, newStack, 0, stack.length);
             stack = newStack;
         }
@@ -297,7 +316,8 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
      */
     private void afterEndDocument() {
         // but not data
-        if (stack[depth = 0] == WROTE_MARKUP)
+        depth = 0;
+        if (stack[depth] == WROTE_MARKUP)
             writeNewLine(0);
         // start fresh
         stack[depth] = 0;
@@ -312,60 +332,73 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
             prepareLinePrefix(prefixLength);
             try {
                 out.writeCharacters(linePrefix, 0, prefixLength);
-            } catch (Exception ignored) {
+            } catch (XMLStreamException ignored) {
             }
         }
     }
 
-    public Object getProperty(String name) throws IllegalArgumentException {
+    @Override
+    public Object getProperty(String name) {
         return out.getProperty(name);
     }
 
+    @Override
     public NamespaceContext getNamespaceContext() {
         return out.getNamespaceContext();
     }
 
+    @Override
     public void setNamespaceContext(NamespaceContext context) throws XMLStreamException {
         out.setNamespaceContext(context);
     }
 
+    @Override
     public void setDefaultNamespace(String uri) throws XMLStreamException {
         out.setDefaultNamespace(uri);
     }
 
+    @Override
     public void writeDefaultNamespace(String namespaceURI) throws XMLStreamException {
         out.writeDefaultNamespace(namespaceURI);
     }
 
+    @Override
     public void writeNamespace(String prefix, String namespaceURI) throws XMLStreamException {
         out.writeNamespace(prefix, namespaceURI);
     }
 
+    @Override
     public String getPrefix(String uri) throws XMLStreamException {
         return out.getPrefix(uri);
     }
 
+    @Override
     public void setPrefix(String prefix, String uri) throws XMLStreamException {
         out.setPrefix(prefix, uri);
     }
 
+    @Override
     public void writeAttribute(String localName, String value) throws XMLStreamException {
         out.writeAttribute(localName, value);
     }
 
+    @Override
     public void writeAttribute(String namespaceURI, String localName, String value) throws XMLStreamException {
         out.writeAttribute(namespaceURI, localName, value);
     }
 
+    @Override
     public void writeAttribute(String prefix, String namespaceURI, String localName,
                                String value) throws XMLStreamException {
         out.writeAttribute(prefix, namespaceURI, localName, value);
     }
 
+    @Override
     public void flush() throws XMLStreamException {
         out.flush();
     }
 
+    @Override
     public void close() throws XMLStreamException {
         out.close();
     }

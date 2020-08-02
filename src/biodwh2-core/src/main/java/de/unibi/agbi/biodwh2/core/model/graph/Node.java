@@ -14,10 +14,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class Node implements PropertyContainer, Map<String, Object>, Mappable {
-    private static final String IdField = "__id";
-    static final String LabelField = "__label";
-    public static final Set<String> IgnoredFields = new HashSet<>(
-            Arrays.asList(IdField, LabelField, "_modified", "_revision", "_id"));
+    private static final String ID_FIELD = "__id";
+    static final String LABEL_FIELD = "__label";
+    public static final Set<String> IGNORED_FIELDS = new HashSet<>(
+            Arrays.asList(ID_FIELD, LABEL_FIELD, "_modified", "_revision", "_id"));
 
     @Id
     private NitriteId __id;
@@ -29,51 +29,57 @@ public class Node implements PropertyContainer, Map<String, Object>, Mappable {
 
     Node(final String label) {
         document = new Document();
-        document.put(LabelField, label);
+        document.put(LABEL_FIELD, label);
     }
 
     ObjectFilter getEqFilter() {
-        return ObjectFilters.eq(IdField, __id);
+        return ObjectFilters.eq(ID_FIELD, __id);
     }
 
     void resetId() {
-        document.remove(IdField);
+        document.remove(ID_FIELD);
         __id = null;
     }
 
     void prefixLabel(final String prefix) {
-        document.put(LabelField, prefix + getLabel());
+        document.put(LABEL_FIELD, prefix + getLabel());
     }
 
     public Long getId() {
         return __id != null ? __id.getIdValue() : null;
     }
 
+    @Override
     public String getLabel() {
-        return (String) document.get(LabelField);
+        return (String) document.get(LABEL_FIELD);
     }
 
+    @Override
     public Collection<String> getPropertyKeys() {
         return document.keySet();
     }
 
+    @Override
     public Map<String, Class<?>> getPropertyKeyTypes() {
         Map<String, Class<?>> keyTypeMap = new HashMap<>();
         for (String key : document.keySet())
-            if (!IgnoredFields.contains(key))
+            if (!IGNORED_FIELDS.contains(key))
                 keyTypeMap.put(key, document.get(key) != null ? document.get(key).getClass() : null);
         return keyTypeMap;
     }
 
+    @Override
     public <T> T getProperty(String key) {
         //noinspection unchecked
         return (T) document.get(key);
     }
 
-    public void setProperty(final String key, final Object value) throws GraphCacheException {
+    @Override
+    public void setProperty(final String key, final Object value) {
         document.put(key, value);
     }
 
+    @Override
     public boolean hasProperty(final String key) {
         return document.containsKey(key);
     }
@@ -159,13 +165,13 @@ public class Node implements PropertyContainer, Map<String, Object>, Mappable {
 
     @Override
     public Document write(NitriteMapper nitriteMapper) {
-        document.put(IdField, __id);
+        document.put(ID_FIELD, __id);
         return document;
     }
 
     @Override
     public void read(NitriteMapper nitriteMapper, Document document) {
         this.document = document;
-        __id = NitriteId.createId((long) document.get(IdField));
+        __id = NitriteId.createId((long) document.get(ID_FIELD));
     }
 }

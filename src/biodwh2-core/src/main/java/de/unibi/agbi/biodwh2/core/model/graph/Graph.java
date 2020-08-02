@@ -17,21 +17,20 @@ import java.util.*;
 import static org.dizitart.no2.objects.filters.ObjectFilters.*;
 
 public final class Graph {
-    public static final String Extension = "db";
-
-    private static final Logger logger = LoggerFactory.getLogger(Graph.class);
-    private static final FindOptions LimitOneOption = FindOptions.limit(0, 1);
+    public static final String EXTENSION = "db";
+    private static final Logger LOGGER = LoggerFactory.getLogger(Graph.class);
+    private static final FindOptions LIMIT_ONE_OPTION = FindOptions.limit(0, 1);
 
     private Nitrite database;
     private ObjectRepository<Node> nodes;
     private ObjectRepository<Edge> edges;
     private final Map<Class<?>, ClassMapping> classMappingsCache = new HashMap<>();
 
-    public Graph(final String databaseFilePath) throws GraphCacheException {
+    public Graph(final String databaseFilePath) {
         this(databaseFilePath, false);
     }
 
-    public Graph(final String databaseFilePath, final boolean reopen) throws GraphCacheException {
+    public Graph(final String databaseFilePath, final boolean reopen) {
         if (!reopen)
             deleteOldDatabaseFile(databaseFilePath);
         database = openDatabase(databaseFilePath);
@@ -40,7 +39,7 @@ public final class Graph {
         createIndicesIfNotExist();
     }
 
-    private void deleteOldDatabaseFile(final String filePath) throws GraphCacheException {
+    private void deleteOldDatabaseFile(final String filePath) {
         try {
             Files.deleteIfExists(Paths.get(filePath));
         } catch (IOException e) {
@@ -53,25 +52,27 @@ public final class Graph {
     }
 
     private void createIndicesIfNotExist() {
-        if (!nodes.hasIndex(Node.LabelField))
-            nodes.createIndex(Node.LabelField, IndexOptions.indexOptions(IndexType.NonUnique, false));
-        if (!edges.hasIndex(Edge.FromIdField))
-            edges.createIndex(Edge.FromIdField, IndexOptions.indexOptions(IndexType.NonUnique, false));
-        if (!edges.hasIndex(Edge.ToIdField))
-            edges.createIndex(Edge.ToIdField, IndexOptions.indexOptions(IndexType.NonUnique, false));
-        if (!edges.hasIndex(Edge.LabelField))
-            edges.createIndex(Edge.LabelField, IndexOptions.indexOptions(IndexType.NonUnique, false));
-        logger.info("Node indices: " + nodes.listIndices());
-        logger.info("Edge indices: " + edges.listIndices());
+        if (!nodes.hasIndex(Node.LABEL_FIELD))
+            nodes.createIndex(Node.LABEL_FIELD, IndexOptions.indexOptions(IndexType.NonUnique, false));
+        if (!edges.hasIndex(Edge.FROM_ID_FIELD))
+            edges.createIndex(Edge.FROM_ID_FIELD, IndexOptions.indexOptions(IndexType.NonUnique, false));
+        if (!edges.hasIndex(Edge.TO_ID_FIELD))
+            edges.createIndex(Edge.TO_ID_FIELD, IndexOptions.indexOptions(IndexType.NonUnique, false));
+        if (!edges.hasIndex(Edge.LABEL_FIELD))
+            edges.createIndex(Edge.LABEL_FIELD, IndexOptions.indexOptions(IndexType.NonUnique, false));
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Node indices: " + nodes.listIndices());
+            LOGGER.info("Edge indices: " + edges.listIndices());
+        }
     }
 
-    public void setNodeIndexPropertyKeys(String... keys) {
+    public void setNodeIndexPropertyKeys(final String... keys) {
         for (String key : keys)
             if (!nodes.hasIndex(key))
                 nodes.createIndex(key, IndexOptions.indexOptions(IndexType.NonUnique, false));
     }
 
-    public void prefixAllLabels(String prefix) {
+    public void prefixAllLabels(final String prefix) {
         for (Node n : getNodes()) {
             n.prefixLabel(prefix);
             update(n);
@@ -104,7 +105,7 @@ public final class Graph {
         return n;
     }
 
-    public final <T> Node addNodeFromModel(final T obj) throws GraphCacheException {
+    public final <T> Node addNodeFromModel(final T obj) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
         final Node node = new Node(mapping.label);
         setNodePropertiesFromClassMapping(node, mapping, obj);
@@ -118,16 +119,15 @@ public final class Graph {
         return classMappingsCache.get(type);
     }
 
-    private void setNodePropertiesFromClassMapping(final Node node, final ClassMapping mapping,
-                                                   final Object obj) throws GraphCacheException {
+    private void setNodePropertiesFromClassMapping(final Node node, final ClassMapping mapping, final Object obj) {
         try {
-            for (ClassMapping.ClassMappingField field : mapping.fields) {
-                Object value = field.field.get(obj);
+            for (final ClassMapping.ClassMappingField field : mapping.fields) {
+                final Object value = field.field.get(obj);
                 if (value != null)
                     node.setProperty(field.propertyName, value);
             }
-            for (ClassMapping.ClassMappingField field : mapping.arrayFields) {
-                Object value = field.field.get(obj);
+            for (final ClassMapping.ClassMappingField field : mapping.arrayFields) {
+                final Object value = field.field.get(obj);
                 if (value != null)
                     node.setProperty(field.propertyName,
                                      StringUtils.splitByWholeSeparator(value.toString(), field.arrayDelimiter));
@@ -191,7 +191,7 @@ public final class Graph {
     }
 
     public Iterable<Node> getNodes(final String label) {
-        return () -> nodes.find(eq(Node.LabelField, label)).iterator();
+        return () -> nodes.find(eq(Node.LABEL_FIELD, label)).iterator();
     }
 
     public Iterable<Edge> getEdges() {
@@ -199,7 +199,7 @@ public final class Graph {
     }
 
     public Iterable<Edge> getEdges(final String label) {
-        return () -> edges.find(eq(Edge.LabelField, label)).iterator();
+        return () -> edges.find(eq(Edge.LABEL_FIELD, label)).iterator();
     }
 
     public long getNumberOfNodes() {
@@ -219,69 +219,69 @@ public final class Graph {
     }
 
     public Node findNode(final String label) {
-        return nodes.find(eq(Node.LabelField, label), LimitOneOption).firstOrDefault();
+        return nodes.find(eq(Node.LABEL_FIELD, label), LIMIT_ONE_OPTION).firstOrDefault();
     }
 
     public Node findNode(final String label, final String propertyKey, final Object value) {
-        return nodes.find(and(eq(Node.LabelField, label), eq(propertyKey, value)), LimitOneOption).firstOrDefault();
+        return nodes.find(and(eq(Node.LABEL_FIELD, label), eq(propertyKey, value)), LIMIT_ONE_OPTION).firstOrDefault();
     }
 
     public Node findNode(final String label, final String propertyKey1, final Object value1, final String propertyKey2,
                          final Object value2) {
-        return nodes.find(and(eq(Node.LabelField, label), eq(propertyKey1, value1), eq(propertyKey2, value2)),
-                          LimitOneOption).firstOrDefault();
+        return nodes.find(and(eq(Node.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2)),
+                          LIMIT_ONE_OPTION).firstOrDefault();
     }
 
     public Node findNode(final String label, final String propertyKey1, final Object value1, final String propertyKey2,
                          final Object value2, final String propertyKey3, final Object value3) {
-        return nodes.find(and(eq(Node.LabelField, label), eq(propertyKey1, value1), eq(propertyKey2, value2),
-                              eq(propertyKey3, value3)), LimitOneOption).firstOrDefault();
+        return nodes.find(and(eq(Node.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2),
+                              eq(propertyKey3, value3)), LIMIT_ONE_OPTION).firstOrDefault();
     }
 
     public Node findNode(final String label, final Map<String, Object> properties) {
-        ObjectFilter[] filter = new ObjectFilter[properties.size() + 1];
-        filter[0] = eq(Node.LabelField, label);
+        final ObjectFilter[] filter = new ObjectFilter[properties.size() + 1];
+        filter[0] = eq(Node.LABEL_FIELD, label);
         int index = 1;
-        for (String propertyKey : properties.keySet())
+        for (final String propertyKey : properties.keySet())
             filter[index++] = eq(propertyKey, properties.get(propertyKey));
-        return nodes.find(and(filter), LimitOneOption).firstOrDefault();
+        return nodes.find(and(filter), LIMIT_ONE_OPTION).firstOrDefault();
     }
 
     public Iterable<Node> findNodes(final String label) {
-        return () -> nodes.find(eq(Node.LabelField, label)).iterator();
+        return () -> nodes.find(eq(Node.LABEL_FIELD, label)).iterator();
     }
 
     public Iterable<Node> findNodes(final String label, final String propertyKey, final Object value) {
-        return () -> nodes.find(and(eq(Node.LabelField, label), eq(propertyKey, value))).iterator();
+        return () -> nodes.find(and(eq(Node.LABEL_FIELD, label), eq(propertyKey, value))).iterator();
     }
 
     public Iterable<Node> findNodes(final String label, final String propertyKey1, final Object value1,
                                     final String propertyKey2, final Object value2) {
-        return () -> nodes.find(and(eq(Node.LabelField, label), eq(propertyKey1, value1), eq(propertyKey2, value2)))
+        return () -> nodes.find(and(eq(Node.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2)))
                           .iterator();
     }
 
     public Iterable<Node> findNodes(final String label, final String propertyKey1, final Object value1,
                                     final String propertyKey2, final Object value2, final String propertyKey3,
                                     final Object value3) {
-        return () -> nodes.find(and(eq(Node.LabelField, label), eq(propertyKey1, value1), eq(propertyKey2, value2),
+        return () -> nodes.find(and(eq(Node.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2),
                                     eq(propertyKey3, value3))).iterator();
     }
 
     public Iterable<Node> findNodes(final String label, final Map<String, Object> properties) {
-        ObjectFilter[] filter = new ObjectFilter[properties.size() + 1];
-        filter[0] = eq(Node.LabelField, label);
+        final ObjectFilter[] filter = new ObjectFilter[properties.size() + 1];
+        filter[0] = eq(Node.LABEL_FIELD, label);
         int index = 1;
-        for (String propertyKey : properties.keySet())
+        for (final String propertyKey : properties.keySet())
             filter[index++] = eq(propertyKey, properties.get(propertyKey));
         return () -> nodes.find(and(filter)).iterator();
     }
 
     public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId, final String edgeLabel) {
-        Set<Long> nodeIds = new HashSet<>();
-        ObjectFilter filter = and(eq(Edge.LabelField, edgeLabel),
-                                  or(eq(Edge.FromIdField, nodeId), eq(Edge.ToIdField, nodeId)));
-        for (Edge edge : edges.find(filter)) {
+        final Set<Long> nodeIds = new HashSet<>();
+        final ObjectFilter filter = and(eq(Edge.LABEL_FIELD, edgeLabel),
+                                        or(eq(Edge.FROM_ID_FIELD, nodeId), eq(Edge.TO_ID_FIELD, nodeId)));
+        for (final Edge edge : edges.find(filter)) {
             nodeIds.add(edge.getFromId());
             nodeIds.add(edge.getToId());
         }
@@ -290,11 +290,11 @@ public final class Graph {
     }
 
     public void mergeNodes(final Node first, final Node second) {
-        for (Edge edge : edges.find(eq(Edge.FromIdField, second.getId()))) {
+        for (final Edge edge : edges.find(eq(Edge.FROM_ID_FIELD, second.getId()))) {
             edge.setFromId(first.getId());
             update(edge);
         }
-        for (Edge edge : edges.find(eq(Edge.ToIdField, second.getId()))) {
+        for (final Edge edge : edges.find(eq(Edge.TO_ID_FIELD, second.getId()))) {
             edge.setToId(first.getId());
             update(edge);
         }
@@ -302,25 +302,25 @@ public final class Graph {
         nodes.remove(second);
     }
 
-    public void mergeDatabase(final String filePath) throws GraphCacheException {
-        Graph databaseToMerge = new Graph(filePath, true);
-        for (Index index : databaseToMerge.nodes.listIndices())
+    public void mergeDatabase(final String filePath) {
+        final Graph databaseToMerge = new Graph(filePath, true);
+        for (final Index index : databaseToMerge.nodes.listIndices())
             if (!nodes.hasIndex(index.getField()))
                 nodes.createIndex(index.getField(), IndexOptions.indexOptions(index.getIndexType(), false));
-        for (Index index : databaseToMerge.edges.listIndices())
+        for (final Index index : databaseToMerge.edges.listIndices())
             if (!edges.hasIndex(index.getField()))
                 edges.createIndex(index.getField(), IndexOptions.indexOptions(index.getIndexType(), false));
-        Map<Long, Long> mapping = new HashMap<>();
-        for (Node n : databaseToMerge.nodes.find()) {
-            Long oldId = n.getId();
+        final Map<Long, Long> mapping = new HashMap<>();
+        for (final Node n : databaseToMerge.nodes.find()) {
+            final Long oldId = n.getId();
             n.resetId();
             nodes.insert(n);
             mapping.put(oldId, n.getId());
         }
-        for (Edge e : databaseToMerge.edges.find()) {
+        for (final Edge e : databaseToMerge.edges.find()) {
             e.resetId();
-            e.setProperty(Edge.FromIdField, mapping.get(e.getFromId()));
-            e.setProperty(Edge.ToIdField, mapping.get(e.getToId()));
+            e.setProperty(Edge.FROM_ID_FIELD, mapping.get(e.getFromId()));
+            e.setProperty(Edge.TO_ID_FIELD, mapping.get(e.getToId()));
             edges.insert(e);
         }
         databaseToMerge.dispose();
@@ -335,7 +335,7 @@ public final class Graph {
     }
 
     public static Graph createTempGraph() throws IOException {
-        Path tempFilePath = Files.createTempFile("graphdb_test", ".db");
+        final Path tempFilePath = Files.createTempFile("graphdb_test", ".db");
         return new Graph(tempFilePath.toString());
     }
 }

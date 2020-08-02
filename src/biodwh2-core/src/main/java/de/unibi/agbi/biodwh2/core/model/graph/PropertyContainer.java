@@ -8,7 +8,7 @@ import java.util.Map;
 public interface PropertyContainer {
     String getLabel();
 
-    void setProperty(final String key, final Object value) throws GraphCacheException;
+    void setProperty(final String key, final Object value);
 
     boolean hasProperty(final String key);
 

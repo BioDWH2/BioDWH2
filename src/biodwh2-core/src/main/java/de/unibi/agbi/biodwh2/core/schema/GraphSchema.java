@@ -43,7 +43,7 @@ public class GraphSchema {
         }
         Map<String, Class<?>> propertyKeyTypes = node.getPropertyKeyTypes();
         for (String propertyKey : propertyKeyTypes.keySet())
-            if (!propertyKey.equalsIgnoreCase("_modified") && !propertyKey.equalsIgnoreCase("_revision"))
+            if (!"_modified".equalsIgnoreCase(propertyKey) && !"_revision".equalsIgnoreCase(propertyKey))
                 type.propertyKeyTypes.put(propertyKey, propertyKeyTypes.get(propertyKey));
     }
 
@@ -61,7 +61,7 @@ public class GraphSchema {
         }
         Map<String, Class<?>> propertyKeyTypes = edge.getPropertyKeyTypes();
         for (String propertyKey : propertyKeyTypes.keySet())
-            if (!propertyKey.equalsIgnoreCase("_modified") && !propertyKey.equalsIgnoreCase("_revision"))
+            if (!"_modified".equalsIgnoreCase(propertyKey) && !"_revision".equalsIgnoreCase(propertyKey))
                 type.propertyKeyTypes.put(propertyKey, propertyKeyTypes.get(propertyKey));
         Node fromNode = graph.getNode(edge.getFromId());
         Node toNode = graph.getNode(edge.getToId());

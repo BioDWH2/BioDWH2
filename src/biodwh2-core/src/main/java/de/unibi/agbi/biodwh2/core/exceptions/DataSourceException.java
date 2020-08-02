@@ -1,6 +1,8 @@
 package de.unibi.agbi.biodwh2.core.exceptions;
 
 public class DataSourceException extends Exception {
+    private static final long serialVersionUID = 4049753259769090069L;
+
     public DataSourceException() {
     }
 

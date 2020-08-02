@@ -7,7 +7,7 @@ import de.unibi.agbi.biodwh2.core.mocks.mock1.Mock1DataSource;
 
 public class Mock1Parser extends Parser<Mock1DataSource> {
     @Override
-    public boolean parse(Workspace workspace, Mock1DataSource dataSource) throws ParserException {
+    public boolean parse(Workspace workspace, Mock1DataSource dataSource) {
         return true;
     }
 }

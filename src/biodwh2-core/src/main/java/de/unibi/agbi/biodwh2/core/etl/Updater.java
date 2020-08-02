@@ -15,42 +15,46 @@ import java.util.Collections;
 
 public abstract class Updater<D extends DataSource> {
     public enum UpdateState {
-        Failed,
-        AlreadyUpToDate,
-        Updated
+        FAILED,
+        ALREADY_UP_TO_DATE,
+        UPDATED
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(Updater.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Updater.class);
 
     public abstract Version getNewestVersion() throws UpdaterException;
 
     public final UpdateState update(Workspace workspace, D dataSource) throws UpdaterException {
-        Version newestVersion = getNewestVersion();
-        Version workspaceVersion = dataSource.getMetadata().version;
+        final Version newestVersion = getNewestVersion();
+        final Version workspaceVersion = dataSource.getMetadata().version;
         if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
-            logger.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
-            return UpdateState.AlreadyUpToDate;
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
+            return UpdateState.ALREADY_UP_TO_DATE;
         }
-        logger.info("New version of data source '" + dataSource.getId() + "' found (old: " +
-                    (workspaceVersion != null ? workspaceVersion : "none") + ", new: " + newestVersion + ")");
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("New version of data source '" + dataSource.getId() + "' found (old: " +
+                        (workspaceVersion != null ? workspaceVersion : "none") + ", new: " + newestVersion + ")");
         if (tryUpdateFiles(workspace, dataSource)) {
             updateDataSourceMetadata(workspace, dataSource, newestVersion);
-            return UpdateState.Updated;
+            return UpdateState.UPDATED;
         }
-        return UpdateState.Failed;
+        return UpdateState.FAILED;
     }
 
     public final UpdateState updateManually(Workspace workspace, D dataSource, String version) {
-        Version workspaceVersion = dataSource.getMetadata().version;
-        Version newestVersion = Version.tryParse(version);
+        final Version workspaceVersion = dataSource.getMetadata().version;
+        final Version newestVersion = Version.tryParse(version);
         if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
-            logger.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
-            return UpdateState.AlreadyUpToDate;
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
+            return UpdateState.ALREADY_UP_TO_DATE;
         }
-        logger.info("New version of data source '" + dataSource.getId() + "' found (old: " +
-                    (workspaceVersion != null ? workspaceVersion : "none") + ", new: " + newestVersion + ")");
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("New version of data source '" + dataSource.getId() + "' found (old: " +
+                        (workspaceVersion != null ? workspaceVersion : "none") + ", new: " + newestVersion + ")");
         updateDataSourceMetadata(workspace, dataSource, newestVersion);
-        return UpdateState.Updated;
+        return UpdateState.UPDATED;
     }
 
     private boolean isDataSourceUpToDate(Version newestVersion, Version workspaceVersion) {
@@ -60,7 +64,7 @@ public abstract class Updater<D extends DataSource> {
     protected abstract boolean tryUpdateFiles(Workspace workspace, D dataSource) throws UpdaterException;
 
     private void updateDataSourceMetadata(Workspace workspace, D dataSource, Version version) {
-        DataSourceMetadata metadata = dataSource.getMetadata();
+        final DataSourceMetadata metadata = dataSource.getMetadata();
         metadata.version = version;
         metadata.setUpdateDateTimeNow();
         metadata.sourceFileNames = new ArrayList<>();
@@ -68,7 +72,7 @@ public abstract class Updater<D extends DataSource> {
     }
 
     protected static Version convertDateTimeToVersion(LocalDateTime dateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd.HHmmss");
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd.HHmmss");
         return Version.parse(dateTime.format(formatter));
     }
 }

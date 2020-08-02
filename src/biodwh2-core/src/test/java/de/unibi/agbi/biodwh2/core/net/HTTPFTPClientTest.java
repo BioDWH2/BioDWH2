@@ -23,7 +23,7 @@ class HTTPFTPClientTest {
     }
 
     private String getSourceFromResources(final String fileName) throws IOException {
-        ClassLoader classLoader = this.getClass().getClassLoader();
+        final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
         return FileUtils.readFileToString(file, "UTF-8");
     }

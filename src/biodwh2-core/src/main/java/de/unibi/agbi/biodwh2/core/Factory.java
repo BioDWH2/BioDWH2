@@ -1,5 +1,8 @@
 package de.unibi.agbi.biodwh2.core;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -8,6 +11,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public final class Factory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Factory.class);
     private static final List<String> IGNORED_JARS = Arrays.asList("rt.jar", "idea_rt.jar", "aws-java-sdk-ec2",
                                                                    "proto-", "google-cloud-", "google-api-",
                                                                    "openstack4j-core", "selenium-", "google-api-client",
@@ -30,15 +34,15 @@ public final class Factory {
     }
 
     private void loadAllClasses() {
-        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        for (String classPath : allClassPaths)
+        final ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        for (final String classPath : allClassPaths)
             loadClassPath(classLoader, classPath);
     }
 
     private void collectAllClassPaths() {
-        String runtimeClassPath = ManagementFactory.getRuntimeMXBean().getClassPath();
-        for (String classPath : runtimeClassPath.split(File.pathSeparator)) {
-            File file = new File(classPath);
+        final String runtimeClassPath = ManagementFactory.getRuntimeMXBean().getClassPath();
+        for (final String classPath : runtimeClassPath.split(File.pathSeparator)) {
+            final File file = new File(classPath);
             if (file.isDirectory())
                 iterateFileSystem(file, file.toURI().toString());
             else if (isValidJarFile(file))
@@ -47,14 +51,14 @@ public final class Factory {
     }
 
     private static boolean isValidJarFile(final File file) {
-        String fileName = file.getName().toLowerCase(Locale.US);
+        final String fileName = file.getName().toLowerCase(Locale.US);
         return file.isFile() && fileName.endsWith(".jar") && IGNORED_JARS.stream().noneMatch(fileName::contains);
     }
 
     private void iterateFileSystem(final File directory, final String rootPath) {
-        File[] files = directory.listFiles();
+        final File[] files = directory.listFiles();
         if (files != null) {
-            for (File file : files) {
+            for (final File file : files) {
                 if (file.isDirectory())
                     iterateFileSystem(file, rootPath);
                 else if (file.isFile())
@@ -69,11 +73,11 @@ public final class Factory {
     }
 
     private void iterateJarFile(final File file) {
-        Enumeration<JarEntry> je = tryGetJarFileEntries(file);
-        while (je.hasMoreElements()) {
-            JarEntry j = je.nextElement();
-            if (!j.isDirectory())
-                addUriIfValidClassPath(j.getName());
+        Enumeration<JarEntry> entries = tryGetJarFileEntries(file);
+        while (entries.hasMoreElements()) {
+            JarEntry entry = entries.nextElement();
+            if (!entry.isDirectory())
+                addUriIfValidClassPath(entry.getName());
         }
     }
 
@@ -81,7 +85,8 @@ public final class Factory {
         try {
             return new JarFile(file).entries();
         } catch (IOException e) {
-            e.printStackTrace();
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to load JAR entries", e);
             return Collections.emptyEnumeration();
         }
     }
@@ -95,7 +100,7 @@ public final class Factory {
     }
 
     private void loadClassPath(final ClassLoader classLoader, final String classPath) {
-        Class<?> c = tryLoadClass(classLoader, classPath);
+        final Class<?> c = tryLoadClass(classLoader, classPath);
         if (c != null) {
             linkClassToParentInterfaces(c);
             linkClassToSuperclass(c);
@@ -106,13 +111,14 @@ public final class Factory {
         try {
             return classLoader.loadClass(classPath);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to load class '" + classPath + "'", e);
+            return null;
         }
-        return null;
     }
 
     private void linkClassToParentInterfaces(final Class<?> c) {
-        for (Class<?> classInterface : c.getInterfaces())
+        for (final Class<?> classInterface : c.getInterfaces())
             linkClassToParentInterface(c, classInterface.getName());
     }
 
@@ -124,7 +130,7 @@ public final class Factory {
 
     private void linkClassToSuperclass(final Class<?> c) {
         if (c.getSuperclass() != null) {
-            String superclassName = c.getSuperclass().getName();
+            final String superclassName = c.getSuperclass().getName();
             if (!baseClassToImplementationsMap.containsKey(superclassName))
                 baseClassToImplementationsMap.put(superclassName, new ArrayList<>());
             baseClassToImplementationsMap.get(superclassName).add(c);
@@ -133,7 +139,7 @@ public final class Factory {
 
     @SuppressWarnings("WeakerAccess")
     public <T> List<Class<T>> getImplementations(final Class<T> type) {
-        String typeName = type.getName();
+        final String typeName = type.getName();
         if (interfaceToImplementationsMap.containsKey(typeName))
             return mapImplementationsToType(interfaceToImplementationsMap.get(typeName));
         if (baseClassToImplementationsMap.containsKey(typeName))
@@ -142,8 +148,8 @@ public final class Factory {
     }
 
     private static <T> List<Class<T>> mapImplementationsToType(final List<Class<?>> classes) {
-        List<Class<T>> result = new ArrayList<>();
-        for (Class<?> class_ : classes) {
+        final List<Class<T>> result = new ArrayList<>();
+        for (final Class<?> class_ : classes) {
             //noinspection unchecked
             result.add((Class<T>) class_);
         }

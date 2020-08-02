@@ -1,6 +1,8 @@
 package de.unibi.agbi.biodwh2.core.exceptions;
 
 public class GraphCacheException extends RuntimeException {
+    private static final long serialVersionUID = -7886311185762613615L;
+
     public GraphCacheException() {
     }
 

@@ -9,16 +9,16 @@ public class UNIIMappingDescriber extends MappingDescriber {
     public NodeMappingDescription describe(Graph graph, Node node) {
         if (node.getLabel().endsWith("UNII")) {
             NodeMappingDescription description = new NodeMappingDescription();
-            description.type = NodeMappingDescription.NodeType.Compound;
+            description.type = NodeMappingDescription.NodeType.COMPOUND;
             description.addIdentifier(IdentifierType.UNII, node.getProperty("id"));
             if (node.hasProperty("cas") && node.getProperty("cas") != null)
                 description.addIdentifier(IdentifierType.CAS, node.getProperty("cas"));
             if (node.hasProperty("pubchem_cid") && node.getProperty("pubchem_cid") != null)
-                description.addIdentifier(IdentifierType.PubChemCompound, node.getProperty("pubchem_cid"));
+                description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, node.getProperty("pubchem_cid"));
             if (node.hasProperty("ec") && node.getProperty("ec") != null)
-                description.addIdentifier(IdentifierType.EuropeanChemicalsAgencyEC, node.getProperty("ec"));
+                description.addIdentifier(IdentifierType.EUROPEAN_CHEMICALS_AGENCY_EC, node.getProperty("ec"));
             if (node.hasProperty("rx_cui") && node.getProperty("rx_cui") != null)
-                description.addIdentifier(IdentifierType.RxNormCUI, node.getProperty("rx_cui"));
+                description.addIdentifier(IdentifierType.RX_NORM_CUI, node.getProperty("rx_cui"));
             // TODO: more ids
             return description;
         }

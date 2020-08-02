@@ -26,9 +26,9 @@ public abstract class SingleFileCsvParser<D extends DataSource, T> extends Parse
     @Override
     public boolean parse(Workspace workspace, D dataSource) throws ParserException {
         try {
-            MappingIterator<T> iterator = type == CsvType.CSV ? FileUtils.openCsv(workspace, dataSource, fileName,
-                                                                                  typeVariableClass) :
-                                          FileUtils.openTsv(workspace, dataSource, fileName, typeVariableClass);
+            final MappingIterator<T> iterator = type == CsvType.CSV ? FileUtils.openCsv(workspace, dataSource, fileName,
+                                                                                        typeVariableClass) :
+                                                FileUtils.openTsv(workspace, dataSource, fileName, typeVariableClass);
             if (hasHeader)
                 iterator.next();
             storeResults(dataSource, iterator.readAll());

@@ -15,10 +15,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public abstract class DataSource {
-    private static final Logger logger = LoggerFactory.getLogger(DataSource.class);
-    private static final String SourceDirectoryName = "source";
-    private static final String MetadataFileName = "metadata.json";
-    private static final String PersistentGraphFileName = "graph.db";
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataSource.class);
+    private static final String SOURCE_DIRECTORY_NAME = "source";
+    private static final String METADATA_FILE_NAME = "metadata.json";
+    private static final String PERSISTENT_GRAPH_FILE_NAME = "graph.db";
 
     private DataSourceMetadata metadata;
 
@@ -49,19 +49,20 @@ public abstract class DataSource {
 
     private void createDirectoryIfNotExists(final Workspace workspace) throws IOException {
         Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId()));
-        Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId(), SourceDirectoryName));
+        Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId(), SOURCE_DIRECTORY_NAME));
     }
 
     private void createOrLoadMetadata(final Workspace workspace) throws IOException {
-        Path path = Paths.get(workspace.getSourcesDirectory(), getId(), MetadataFileName);
+        final Path path = Paths.get(workspace.getSourcesDirectory(), getId(), METADATA_FILE_NAME);
         if (Files.exists(path)) {
-            ObjectMapper objectMapper = new ObjectMapper();
+            final ObjectMapper objectMapper = new ObjectMapper();
             try {
                 metadata = objectMapper.readValue(path.toFile(), DataSourceMetadata.class);
                 if (metadata != null)
                     return;
             } catch (IOException e) {
-                logger.warn("Failed to load data source '" + getId() + "' metadata. Creating a new one.", e);
+                if (LOGGER.isWarnEnabled())
+                    LOGGER.warn("Failed to load data source '" + getId() + "' metadata. Creating a new one.", e);
             }
         }
         metadata = new DataSourceMetadata();
@@ -69,8 +70,8 @@ public abstract class DataSource {
     }
 
     private void saveMetadata(final Workspace workspace) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Path path = Paths.get(workspace.getSourcesDirectory(), getId(), MetadataFileName);
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final Path path = Paths.get(workspace.getSourcesDirectory(), getId(), METADATA_FILE_NAME);
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         objectMapper.writeValue(path.toFile(), metadata);
     }
@@ -79,32 +80,36 @@ public abstract class DataSource {
         try {
             saveMetadata(workspace);
         } catch (IOException e) {
-            logger.error("Failed to save metadata for data source '" + getId() + "'", e);
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to save metadata for data source '" + getId() + "'", e);
         }
     }
 
     final Updater.UpdateState updateAutomatic(final Workspace workspace) {
+        Updater.UpdateState state = Updater.UpdateState.FAILED;
         try {
             //noinspection unchecked
-            final Updater.UpdateState state = getUpdater().update(workspace, this);
-            metadata.updateSuccessful = state != Updater.UpdateState.Failed;
-            return state;
+            state = getUpdater().update(workspace, this);
+            metadata.updateSuccessful = state != Updater.UpdateState.FAILED;
         } catch (UpdaterOnlyManuallyException e) {
-            logger.error("Data source '" + getId() + "' can only be updated manually. Download the new version of " +
-                         getId() + " and use the command line parameter -u or --update with the parameters " +
-                         "<workspacePath> \"" + getId() + "\" <version>.\n" +
-                         "Help: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error(
+                        "Data source '" + getId() + "' can only be updated manually. Download the new version of " +
+                        getId() + " and use the command line parameter -u or --update with the parameters " +
+                        "<workspacePath> \"" + getId() + "\" <version>.\n" +
+                        "Help: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
         } catch (UpdaterException e) {
-            logger.error("Failed to update data source '" + getId() + "'", e);
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to update data source '" + getId() + "'", e);
             metadata.updateSuccessful = false;
         }
-        return Updater.UpdateState.Failed;
+        return state;
     }
 
     final Updater.UpdateState updateManually(final Workspace workspace, final String version) {
         //noinspection unchecked
         final Updater.UpdateState state = getUpdater().updateManually(workspace, this, version);
-        metadata.updateSuccessful = state != Updater.UpdateState.Failed;
+        metadata.updateSuccessful = state != Updater.UpdateState.FAILED;
         return state;
     }
 
@@ -113,7 +118,8 @@ public abstract class DataSource {
             //noinspection unchecked
             metadata.parseSuccessful = getParser().parse(workspace, this);
         } catch (ParserException e) {
-            logger.error("Failed to parse data source '" + getId() + "'", e);
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to parse data source '" + getId() + "'", e);
             metadata.parseSuccessful = false;
         }
     }
@@ -131,7 +137,8 @@ public abstract class DataSource {
             //noinspection unchecked
             metadata.exportRDFSuccessful = getRdfExporter().export(workspace, this);
         } catch (ExporterException e) {
-            logger.error("Failed to export data source '" + getId() + "' in RDF format", e);
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to export data source '" + getId() + "' in RDF format", e);
             metadata.exportRDFSuccessful = false;
         }
     }
@@ -141,7 +148,8 @@ public abstract class DataSource {
             //noinspection unchecked
             metadata.exportGraphMLSuccessful = getGraphExporter().export(workspace, this);
         } catch (ExporterException e) {
-            logger.error("Failed to export data source '" + getId() + "' in GraphML format", e);
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to export data source '" + getId() + "' in GraphML format", e);
             metadata.exportGraphMLSuccessful = false;
         }
     }
@@ -149,31 +157,32 @@ public abstract class DataSource {
     protected abstract void unloadData();
 
     public final String getGraphDatabaseFilePath(final Workspace workspace) {
-        return Paths.get(workspace.getSourcesDirectory(), getId(), PersistentGraphFileName).toString();
+        return Paths.get(workspace.getSourcesDirectory(), getId(), PERSISTENT_GRAPH_FILE_NAME).toString();
     }
 
     public final String getIntermediateGraphFilePath(final Workspace workspace, final GraphFileFormat format) {
-        String fileName = "intermediate." + format.extension;
+        final String fileName = "intermediate." + format.extension;
         return Paths.get(workspace.getSourcesDirectory(), getId(), fileName).toString();
     }
 
     public final String getIntermediateGraphFilePath(final Workspace workspace, final GraphFileFormat format,
                                                      final int part) {
-        String fileName = "intermediate_part" + part + "." + format.extension;
+        final String fileName = "intermediate_part" + part + "." + format.extension;
         return Paths.get(workspace.getSourcesDirectory(), getId(), fileName).toString();
     }
 
     public final String resolveSourceFilePath(final Workspace workspace, final String filePath) {
-        return Paths.get(workspace.getSourcesDirectory(), getId(), SourceDirectoryName, filePath).toString();
+        return Paths.get(workspace.getSourcesDirectory(), getId(), SOURCE_DIRECTORY_NAME, filePath).toString();
     }
 
     public final String[] listSourceFiles(final Workspace workspace) {
-        Path sourcePath = Paths.get(workspace.getSourcesDirectory(), getId(), SourceDirectoryName);
+        final Path sourcePath = Paths.get(workspace.getSourcesDirectory(), getId(), SOURCE_DIRECTORY_NAME);
         try {
             return Files.walk(sourcePath).filter(Files::isRegularFile).map(sourcePath::relativize).map(Path::toString)
                         .toArray(String[]::new);
         } catch (IOException e) {
-            logger.error("Failed to list files of data source '" + getId() + "'", e);
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to list files of data source '" + getId() + "'", e);
         }
         return new String[0];
     }

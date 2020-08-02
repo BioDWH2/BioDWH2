@@ -2,11 +2,11 @@ package de.unibi.agbi.biodwh2.core.model.graph;
 
 public class EdgeMappingDescription {
     public enum EdgeType {
-        Unknown,
-        Targets,
-        Indicates,
-        Contraindicates
+        UNKNOWN,
+        TARGETS,
+        INDICATES,
+        CONTRAINDICATES
     }
 
-    public EdgeType type = EdgeType.Unknown;
+    public EdgeType type = EdgeType.UNKNOWN;
 }

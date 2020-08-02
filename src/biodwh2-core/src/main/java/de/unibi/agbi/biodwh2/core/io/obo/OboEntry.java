@@ -3,10 +3,11 @@ package de.unibi.agbi.biodwh2.core.io.obo;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class OboEntry {
     private final String name;
-    private final HashMap<String, List<String>> keyValuePairs;
+    private final Map<String, List<String>> keyValuePairs;
 
     public OboEntry(final String name) {
         this.name = name;

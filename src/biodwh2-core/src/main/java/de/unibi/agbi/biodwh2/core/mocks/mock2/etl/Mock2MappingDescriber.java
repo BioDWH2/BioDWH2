@@ -9,15 +9,15 @@ public class Mock2MappingDescriber extends MappingDescriber {
     public NodeMappingDescription describe(Graph graph, Node node) {
         if (node.getLabel().endsWith("Gene")) {
             NodeMappingDescription description = new NodeMappingDescription();
-            description.type = NodeMappingDescription.NodeType.Gene;
-            description.addIdentifier(IdentifierType.HGNCSymbol, node.<String>getProperty("id").replace("HGNC:", ""));
+            description.type = NodeMappingDescription.NodeType.GENE;
+            description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("id").replace("HGNC:", ""));
             return description;
         } else if (node.getLabel().endsWith("Dummy2")) {
             NodeMappingDescription description = new NodeMappingDescription();
-            description.type = NodeMappingDescription.NodeType.Dummy;
-            description.addIdentifier(IdentifierType.Dummy, node.getProperty("id"));
+            description.type = NodeMappingDescription.NodeType.DUMMY;
+            description.addIdentifier(IdentifierType.DUMMY, node.getProperty("id"));
             if (node.hasProperty("id2"))
-                description.addIdentifier(IdentifierType.Dummy, node.getProperty("id2"));
+                description.addIdentifier(IdentifierType.DUMMY, node.getProperty("id2"));
             return description;
         }
         return null;

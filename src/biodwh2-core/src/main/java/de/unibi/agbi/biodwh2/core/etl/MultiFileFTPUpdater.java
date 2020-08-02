@@ -13,11 +13,11 @@ import java.time.LocalDateTime;
 public abstract class MultiFileFTPUpdater<D extends DataSource> extends Updater<D> {
     @Override
     public final Version getNewestVersion() throws UpdaterException {
-        AnonymousFTPClient ftpClient = connectToFTP();
+        final AnonymousFTPClient ftpClient = connectToFTP();
         Version latestVersion = null;
-        for (String filePath : getFTPFilePaths()) {
-            LocalDateTime dateTime = ftpClient.getModificationTimeFromServer(filePath);
-            Version fileVersion = convertDateTimeToVersion(dateTime);
+        for (final String filePath : getFTPFilePaths()) {
+            final LocalDateTime dateTime = ftpClient.getModificationTimeFromServer(filePath);
+            final Version fileVersion = convertDateTimeToVersion(dateTime);
             if (latestVersion == null || fileVersion.compareTo(latestVersion) > 0)
                 latestVersion = fileVersion;
         }
@@ -26,7 +26,7 @@ public abstract class MultiFileFTPUpdater<D extends DataSource> extends Updater<
     }
 
     private AnonymousFTPClient connectToFTP() throws UpdaterConnectionException {
-        AnonymousFTPClient ftpClient = new AnonymousFTPClient();
+        final AnonymousFTPClient ftpClient = new AnonymousFTPClient();
         boolean isConnected;
         try {
             isConnected = ftpClient.connect(getFTPAddress());
@@ -44,11 +44,11 @@ public abstract class MultiFileFTPUpdater<D extends DataSource> extends Updater<
 
     @Override
     protected boolean tryUpdateFiles(Workspace workspace, D dataSource) throws UpdaterException {
-        AnonymousFTPClient ftpClient = connectToFTP();
+        final AnonymousFTPClient ftpClient = connectToFTP();
         boolean success = true;
         for (int i = 0; i < getFTPFilePaths().length; i++) {
             try {
-                String sourceFilePath = dataSource.resolveSourceFilePath(workspace, getTargetFileNames()[i]);
+                final String sourceFilePath = dataSource.resolveSourceFilePath(workspace, getTargetFileNames()[i]);
                 success = success && ftpClient.downloadFile(getFTPFilePaths()[i], sourceFilePath);
             } catch (IOException e) {
                 throw new UpdaterConnectionException("Failed to download '" + getTargetFileNames()[i] + "'", e);

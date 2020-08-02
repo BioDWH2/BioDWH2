@@ -6,16 +6,16 @@ import java.util.*;
 
 public final class NodeMappingDescription {
     public enum NodeType {
-        Dummy,
-        Unknown,
-        Gene,
-        Drug,
-        Compound,
-        Disease,
-        SideEffect,
-        Variant,
-        Haplotype,
-        Pathway
+        DUMMY,
+        UNKNOWN,
+        GENE,
+        DRUG,
+        COMPOUND,
+        DISEASE,
+        SIDE_EFFECT,
+        VARIANT,
+        HAPLOTYPE,
+        PATHWAY
     }
 
     public NodeType type;
@@ -23,7 +23,7 @@ public final class NodeMappingDescription {
     private Set<String> identifierCache;
 
     public NodeMappingDescription() {
-        this(NodeType.Unknown);
+        this(NodeType.UNKNOWN);
     }
 
     public NodeMappingDescription(final NodeType type) {
@@ -31,7 +31,7 @@ public final class NodeMappingDescription {
         identifier = new HashMap<>();
     }
 
-    public void addIdentifier(IdentifierType type, String value) {
+    public void addIdentifier(final IdentifierType type, final String value) {
         if (!identifier.containsKey(type))
             identifier.put(type, new HashSet<>());
         identifier.get(type).add(value);
@@ -48,7 +48,7 @@ public final class NodeMappingDescription {
         return identifierCache;
     }
 
-    public boolean matches(NodeMappingDescription other) {
+    public boolean matches(final NodeMappingDescription other) {
         if (other.type.equals(type))
             for (IdentifierType identifierType : identifier.keySet())
                 if (other.identifier.containsKey(identifierType)) {

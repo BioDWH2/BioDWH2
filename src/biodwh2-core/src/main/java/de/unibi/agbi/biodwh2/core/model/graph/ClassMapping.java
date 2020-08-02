@@ -10,7 +10,7 @@ class ClassMapping {
         final String propertyName;
         final String arrayDelimiter;
 
-        private ClassMappingField(final Field field, final String propertyName, final String arrayDelimiter) {
+        ClassMappingField(final Field field, final String propertyName, final String arrayDelimiter) {
             this.field = field;
             this.propertyName = propertyName;
             this.arrayDelimiter = arrayDelimiter;
@@ -23,9 +23,9 @@ class ClassMapping {
 
     ClassMapping(final Class<?> type) {
         label = type.getAnnotation(NodeLabel.class).value();
-        List<ClassMappingField> fieldsList = new ArrayList<>();
-        List<ClassMappingField> arrayFieldsList = new ArrayList<>();
-        for (Field field : type.getDeclaredFields()) {
+        final List<ClassMappingField> fieldsList = new ArrayList<>();
+        final List<ClassMappingField> arrayFieldsList = new ArrayList<>();
+        for (final Field field : type.getDeclaredFields()) {
             if (field.isAnnotationPresent(GraphProperty.class)) {
                 field.setAccessible(true);
                 final GraphProperty annotation = field.getAnnotation(GraphProperty.class);

@@ -7,15 +7,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class DataSourceLoader {
-    private static final Logger logger = LoggerFactory.getLogger(DataSourceLoader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceLoader.class);
 
     private final List<DataSource> dataSources;
 
     public DataSourceLoader() {
         dataSources = new ArrayList<>();
-        List<Class<DataSource>> availableDataSourceClasses = Factory.getInstance().getImplementations(DataSource.class);
+        final List<Class<DataSource>> availableDataSourceClasses = Factory.getInstance().getImplementations(DataSource.class);
         for (Class<DataSource> dataSourceClass : availableDataSourceClasses) {
-            DataSource dataSource = tryInstantiateDataSource(dataSourceClass);
+            final DataSource dataSource = tryInstantiateDataSource(dataSourceClass);
             if (dataSource != null)
                 dataSources.add(dataSource);
         }
@@ -25,7 +25,8 @@ public final class DataSourceLoader {
         try {
             return dataSourceClass.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            logger.error("Failed to instantiate data source '" + dataSourceClass.getName() + "'", e);
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to instantiate data source '" + dataSourceClass.getName() + "'", e);
         }
         return null;
     }

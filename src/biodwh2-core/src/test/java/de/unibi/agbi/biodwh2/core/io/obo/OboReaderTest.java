@@ -3,6 +3,8 @@ package de.unibi.agbi.biodwh2.core.io.obo;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Iterator;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -10,20 +12,22 @@ import static org.junit.jupiter.api.Assertions.*;
 class OboReaderTest {
     @Test
     void testReadingFromFileStream() throws IOException {
-        ClassLoader classLoader = this.getClass().getClassLoader();
-        File file = new File(classLoader.getResource("test_go.obo").getFile());
+        final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        final String resourceFilePath = classLoader.getResource("test_go.obo").getFile();
+        final File file = new File(resourceFilePath);
         assertTrue(file.exists());
-        InputStream stream = new FileInputStream(file);
-        OboReader reader = new OboReader(stream, "UTF-8");
-        OboEntry header = reader.getHeader();
-        assertNotNull(header);
-        assertEquals("1.2", header.getFirst("format-version"));
-        assertEquals(16, header.get("subsetdef").length);
-        Iterator<OboEntry> entryIterator = reader.iterator();
-        assertTrue(entryIterator.hasNext());
-        OboEntry entry = entryIterator.next();
-        assertEquals("Term", entry.getName());
-        assertEquals("GO:0000001", entry.getFirst("id"));
-        assertEquals("GO:0048308", entry.getFirst("is_a"));
+        try (InputStream stream = Files.newInputStream(Paths.get(resourceFilePath))) {
+            final OboReader reader = new OboReader(stream, "UTF-8");
+            final OboEntry header = reader.getHeader();
+            assertNotNull(header);
+            assertEquals("1.2", header.getFirst("format-version"));
+            assertEquals(16, header.get("subsetdef").length);
+            final Iterator<OboEntry> entryIterator = reader.iterator();
+            assertTrue(entryIterator.hasNext());
+            final OboEntry entry = entryIterator.next();
+            assertEquals("Term", entry.getName());
+            assertEquals("GO:0000001", entry.getFirst("id"));
+            assertEquals("GO:0048308", entry.getFirst("is_a"));
+        }
     }
 }

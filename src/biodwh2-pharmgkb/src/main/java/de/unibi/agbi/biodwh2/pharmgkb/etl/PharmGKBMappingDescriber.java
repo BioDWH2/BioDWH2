@@ -24,12 +24,12 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription describeDrug(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.Drug);
-        description.addIdentifier(IdentifierType.PharmGKB, node.getProperty("id"));
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
         final String[] crossReferences = getCrossReferences(node);
         for (String reference : crossReferences)
             if (reference.startsWith("DrugBank"))
-                description.addIdentifier(IdentifierType.DrugBank, StringUtils.split(reference, ":", 2)[1]);
+                description.addIdentifier(IdentifierType.DRUG_BANK, StringUtils.split(reference, ":", 2)[1]);
             else if (reference.startsWith("KEGG Drug"))
                 description.addIdentifier(IdentifierType.KEGG, StringUtils.split(reference, ":", 2)[1]);
             else if (reference.startsWith("Chemical Abstracts Service"))
@@ -42,46 +42,46 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription describeChemical(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.Compound);
-        description.addIdentifier(IdentifierType.PharmGKB, node.getProperty("id"));
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
         final String[] crossReferences = getCrossReferences(node);
         for (String reference : crossReferences)
             if (reference.startsWith("DrugBank"))
-                description.addIdentifier(IdentifierType.DrugBank, StringUtils.split(reference, ":", 2)[1]);
+                description.addIdentifier(IdentifierType.DRUG_BANK, StringUtils.split(reference, ":", 2)[1]);
             else if (reference.startsWith("PubChem Compound"))
-                description.addIdentifier(IdentifierType.PubChemCompound, StringUtils.split(reference, ":", 2)[1]);
+                description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, StringUtils.split(reference, ":", 2)[1]);
         return description;
     }
 
     private NodeMappingDescription describeHaplotype(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.Haplotype);
-        description.addIdentifier(IdentifierType.PharmGKB, node.getProperty("id"));
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.HAPLOTYPE);
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
         return description;
     }
 
     private NodeMappingDescription describeGene(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.Gene);
-        description.addIdentifier(IdentifierType.PharmGKB, node.getProperty("id"));
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
         final String[] crossReferences = getCrossReferences(node);
         for (String reference : crossReferences)
             if (reference.startsWith("HGNC"))
-                description.addIdentifier(IdentifierType.HGNCId, StringUtils.split(reference, ":", 2)[1]);
+                description.addIdentifier(IdentifierType.HGNC_ID, StringUtils.split(reference, ":", 2)[1]);
             else if (reference.startsWith("GeneCard"))
-                description.addIdentifier(IdentifierType.GeneCard, StringUtils.split(reference, ":", 2)[1]);
+                description.addIdentifier(IdentifierType.GENE_CARD, StringUtils.split(reference, ":", 2)[1]);
             else if (reference.startsWith("GenAtlas"))
-                description.addIdentifier(IdentifierType.GenAtlas, StringUtils.split(reference, ":", 2)[1]);
+                description.addIdentifier(IdentifierType.GEN_ATLAS, StringUtils.split(reference, ":", 2)[1]);
         return description;
     }
 
     private NodeMappingDescription describeVariant(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.Variant);
-        description.addIdentifier(IdentifierType.PharmGKB, node.getProperty("id"));
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.VARIANT);
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
         return description;
     }
 
     private NodeMappingDescription describePathway(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.Pathway);
-        description.addIdentifier(IdentifierType.PharmGKB, node.getProperty("id"));
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PATHWAY);
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
         return description;
     }
 

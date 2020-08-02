@@ -11,21 +11,21 @@ public class SiderMappingDescriber extends MappingDescriber {
         switch (node.getLabel()) {
             case "Drug": {
                 NodeMappingDescription description = new NodeMappingDescription();
-                description.type = NodeMappingDescription.NodeType.Drug;
+                description.type = NodeMappingDescription.NodeType.DRUG;
                 String id = StringUtils.stripStart(node.getProperty("id"), "CID");
-                description.addIdentifier(IdentifierType.PubChemCompound, "" + Long.parseLong(id));
+                description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, "" + Long.parseLong(id));
                 return description;
             }
             case "Disease": {
                 NodeMappingDescription description = new NodeMappingDescription();
-                description.type = NodeMappingDescription.NodeType.Disease;
-                description.addIdentifier(IdentifierType.UMLSCui, node.getProperty("id"));
+                description.type = NodeMappingDescription.NodeType.DISEASE;
+                description.addIdentifier(IdentifierType.UMLS_CUI, node.getProperty("id"));
                 return description;
             }
             case "SideEffect": {
                 NodeMappingDescription description = new NodeMappingDescription();
-                description.type = NodeMappingDescription.NodeType.SideEffect;
-                description.addIdentifier(IdentifierType.UMLSCui, node.getProperty("id"));
+                description.type = NodeMappingDescription.NodeType.SIDE_EFFECT;
+                description.addIdentifier(IdentifierType.UMLS_CUI, node.getProperty("id"));
                 return description;
             }
         }

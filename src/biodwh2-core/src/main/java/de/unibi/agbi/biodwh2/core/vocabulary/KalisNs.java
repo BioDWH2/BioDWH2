@@ -6,7 +6,7 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
 
-public class KalisNs {
+public final class KalisNs {
     private static final String Uri = "https://rdf.kalis-amts.de/ns#";
 
     private static final Model m = ModelFactory.createDefaultModel();

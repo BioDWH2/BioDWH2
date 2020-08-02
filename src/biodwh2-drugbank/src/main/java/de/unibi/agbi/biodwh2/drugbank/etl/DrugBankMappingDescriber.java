@@ -9,8 +9,8 @@ public class DrugBankMappingDescriber extends MappingDescriber {
     public NodeMappingDescription describe(Graph graph, Node node) {
         if (node.getLabel().endsWith("Drug")) {
             NodeMappingDescription description = new NodeMappingDescription();
-            description.type = NodeMappingDescription.NodeType.Drug;
-            description.addIdentifier(IdentifierType.DrugBank, node.getProperty("id"));
+            description.type = NodeMappingDescription.NodeType.DRUG;
+            description.addIdentifier(IdentifierType.DRUG_BANK, node.getProperty("id"));
             return description;
         }
         return null;

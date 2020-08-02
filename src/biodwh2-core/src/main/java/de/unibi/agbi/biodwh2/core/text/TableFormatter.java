@@ -12,8 +12,8 @@ public final class TableFormatter {
     private static final String HORIZONTAL_SPLIT_CHARACTER = "-";
 
     public String format(final List<String> headers, final List<List<String>> rows) {
-        StringBuilder builder = new StringBuilder();
-        Map<Integer, Integer> columnMaxWidthMapping = getMaximumTableWidth(headers, rows);
+        final StringBuilder builder = new StringBuilder();
+        final Map<Integer, Integer> columnMaxWidthMapping = getMaximumTableWidth(headers, rows);
         builder.append(NEW_LINE_CHARACTER);
         createRowLine(builder, headers.size(), columnMaxWidthMapping);
         builder.append(NEW_LINE_CHARACTER);
@@ -21,7 +21,7 @@ public final class TableFormatter {
             fillCell(builder, headers.get(i), i, columnMaxWidthMapping);
         builder.append(NEW_LINE_CHARACTER);
         createRowLine(builder, headers.size(), columnMaxWidthMapping);
-        for (List<String> row : rows) {
+        for (final List<String> row : rows) {
             builder.append(NEW_LINE_CHARACTER);
             for (int i = 0; i < row.size(); i++)
                 fillCell(builder, row.get(i), i, columnMaxWidthMapping);
@@ -33,13 +33,13 @@ public final class TableFormatter {
     }
 
     private Map<Integer, Integer> getMaximumTableWidth(final List<String> headers, final List<List<String>> rows) {
-        Map<Integer, Integer> columnMaxWidthMapping = new HashMap<>();
+        final Map<Integer, Integer> columnMaxWidthMapping = new HashMap<>();
         for (int i = 0; i < headers.size(); i++)
             columnMaxWidthMapping.put(i, 0);
         for (int i = 0; i < headers.size(); i++)
             if (headers.get(i).length() > columnMaxWidthMapping.get(i))
                 columnMaxWidthMapping.put(i, headers.get(i).length());
-        for (List<String> row : rows)
+        for (final List<String> row : rows)
             for (int i = 0; i < row.size(); i++)
                 if (row.get(i).length() > columnMaxWidthMapping.get(i))
                     columnMaxWidthMapping.put(i, row.get(i).length());
@@ -50,7 +50,7 @@ public final class TableFormatter {
     }
 
     private void createRowLine(final StringBuilder builder, final int headersSize,
-                               Map<Integer, Integer> columnMaxWidthMapping) {
+                               final Map<Integer, Integer> columnMaxWidthMapping) {
         for (int i = 0; i < headersSize; i++) {
             if (i == 0)
                 builder.append(JOINT_CHARACTER);
@@ -60,30 +60,32 @@ public final class TableFormatter {
         }
     }
 
-    private void fillCell(final StringBuilder builder, String cell, int cellIndex,
-                          Map<Integer, Integer> columnMaxWidthMapping) {
-        int cellPaddingSize = getOptimumCellPadding(cellIndex, cell.length(), columnMaxWidthMapping);
+    private void fillCell(final StringBuilder builder, final String cell, final int cellIndex,
+                          final Map<Integer, Integer> columnMaxWidthMapping) {
+        final int cellPaddingSize = getOptimumCellPadding(cellIndex, cell.length(), columnMaxWidthMapping);
         if (cellIndex == 0)
             builder.append(VERTICAL_SPLIT_CHARACTER);
         fillSpace(builder, cellPaddingSize);
         builder.append(cell);
         if (cell.length() % 2 != 0)
-            builder.append(" ");
+            builder.append(' ');
         fillSpace(builder, cellPaddingSize);
         builder.append(VERTICAL_SPLIT_CHARACTER);
     }
 
-    private int getOptimumCellPadding(int cellIndex, int dataLength, Map<Integer, Integer> columnMaxWidthMapping) {
-        if (dataLength % 2 != 0)
-            dataLength++;
+    private int getOptimumCellPadding(final int cellIndex, final int dataLength,
+                                      final Map<Integer, Integer> columnMaxWidthMapping) {
+        int paddedDataLength = dataLength;
+        if (paddedDataLength % 2 != 0)
+            paddedDataLength++;
         int cellPaddingSize = PADDING;
-        if (dataLength < columnMaxWidthMapping.get(cellIndex))
-            cellPaddingSize = cellPaddingSize + (columnMaxWidthMapping.get(cellIndex) - dataLength) / 2;
+        if (paddedDataLength < columnMaxWidthMapping.get(cellIndex))
+            cellPaddingSize = cellPaddingSize + (columnMaxWidthMapping.get(cellIndex) - paddedDataLength) / 2;
         return cellPaddingSize;
     }
 
     private void fillSpace(final StringBuilder builder, final int length) {
         for (int i = 0; i < length; i++)
-            builder.append(" ");
+            builder.append(' ');
     }
 }

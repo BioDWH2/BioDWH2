@@ -1,6 +1,8 @@
 package de.unibi.agbi.biodwh2.core.exceptions;
 
 public class MergerException extends Exception {
+    private static final long serialVersionUID = 4042964056603443556L;
+
     public MergerException() {
     }
 
