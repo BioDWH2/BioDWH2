@@ -45,6 +45,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
     private final List<Property> properties;
 
     public GraphMLGraphWriter() {
+        super();
         labelKeyIdMap = new HashMap<>();
         properties = new ArrayList<>();
     }
@@ -149,7 +150,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
             final Optional<Map.Entry<String, String>> entry = labelKeyIdMap.entrySet().stream().filter(
                     e -> e.getValue().equals(key)).findFirst();
             if (entry.isPresent()) {
-                String[] parts = StringUtils.split(entry.get().getKey(), "|");
+                final String[] parts = StringUtils.split(entry.get().getKey(), "|");
                 p.name = parts[parts.length - 1];
             } else
                 p.name = key;
@@ -198,36 +199,36 @@ public final class GraphMLGraphWriter extends GraphWriter {
         for (final Edge e : graph.getEdges()) {
             final boolean hasFrom = nodeIdSubGraphMap.containsKey(e.getFromId());
             final boolean hasTo = nodeIdSubGraphMap.containsKey(e.getToId());
-            if (!hasFrom && !hasTo) {
+            if (hasFrom && hasTo) {
+                final SubGraph subGraphFrom = nodeIdSubGraphMap.get(e.getFromId());
+                final SubGraph subGraphTo = nodeIdSubGraphMap.get(e.getToId());
+                if (!subGraphFrom.equals(subGraphTo)) {
+                    subGraphFrom.edgeIds.addAll(subGraphTo.edgeIds);
+                    subGraphFrom.nodeIds.addAll(subGraphTo.nodeIds);
+                    for (final Long nodeId : subGraphTo.nodeIds)
+                        nodeIdSubGraphMap.put(nodeId, subGraphFrom);
+                }
+                subGraphFrom.edgeIds.add(e.getId());
+            } else if (hasFrom) {
+                final SubGraph subGraph = nodeIdSubGraphMap.get(e.getFromId());
+                subGraph.edgeIds.add(e.getId());
+                subGraph.nodeIds.add(e.getToId());
+                nodeIdSubGraphMap.put(e.getToId(), subGraph);
+            } else if (hasTo) {
+                final SubGraph subGraph = nodeIdSubGraphMap.get(e.getToId());
+                subGraph.edgeIds.add(e.getId());
+                subGraph.nodeIds.add(e.getFromId());
+                nodeIdSubGraphMap.put(e.getFromId(), subGraph);
+            } else {
                 final SubGraph subGraph = new SubGraph();
                 subGraph.edgeIds.add(e.getId());
                 subGraph.nodeIds.add(e.getFromId());
                 subGraph.nodeIds.add(e.getToId());
                 nodeIdSubGraphMap.put(e.getFromId(), subGraph);
                 nodeIdSubGraphMap.put(e.getToId(), subGraph);
-            } else if (hasFrom && !hasTo) {
-                final SubGraph subGraph = nodeIdSubGraphMap.get(e.getFromId());
-                subGraph.edgeIds.add(e.getId());
-                subGraph.nodeIds.add(e.getToId());
-                nodeIdSubGraphMap.put(e.getToId(), subGraph);
-            } else if (!hasFrom) {
-                final SubGraph subGraph = nodeIdSubGraphMap.get(e.getToId());
-                subGraph.edgeIds.add(e.getId());
-                subGraph.nodeIds.add(e.getFromId());
-                nodeIdSubGraphMap.put(e.getFromId(), subGraph);
-            } else {
-                final SubGraph subGraphFrom = nodeIdSubGraphMap.get(e.getFromId());
-                final SubGraph subGraphTo = nodeIdSubGraphMap.get(e.getToId());
-                if (!subGraphFrom.equals(subGraphTo)) {
-                    subGraphFrom.edgeIds.addAll(subGraphTo.edgeIds);
-                    subGraphFrom.nodeIds.addAll(subGraphTo.nodeIds);
-                    for (Long nodeId : subGraphTo.nodeIds)
-                        nodeIdSubGraphMap.put(nodeId, subGraphFrom);
-                }
-                subGraphFrom.edgeIds.add(e.getId());
             }
         }
-        final int NodeSizeThreshold = 100000;
+        final int NodeSizeThreshold = 100_000;
         final List<SubGraph> uniqueSubGraphs = new ArrayList<>(new HashSet<>(nodeIdSubGraphMap.values()));
         SubGraph orphanSubGraph = null;
         for (long i = 1; i <= graph.getNumberOfNodes(); i++) {
@@ -295,7 +296,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
     }
 
     private void writeProperties(final XMLStreamWriter writer) throws XMLStreamException {
-        for (Property p : properties) {
+        for (final Property p : properties) {
             writer.writeStartElement("key");
             writer.writeAttribute("id", p.id);
             writer.writeAttribute("for", p.forType);

@@ -21,14 +21,14 @@ public final class HTTPClient {
     @SuppressWarnings("unused")
     public static void downloadFile(final String uri, final String filePath) throws IOException {
         try (final ReadableByteChannel urlByteChannel = Channels.newChannel(new URL(uri).openStream())) {
-            FileOutputStream outputStream = new FileOutputStream(filePath);
+            final FileOutputStream outputStream = new FileOutputStream(filePath);
             outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
         }
     }
 
     public static void downloadFileAsBrowser(final String uri, final String filePath) throws IOException {
         try (final ReadableByteChannel urlByteChannel = Channels.newChannel(getUrlInputStream(uri))) {
-            FileOutputStream outputStream = new FileOutputStream(filePath);
+            final FileOutputStream outputStream = new FileOutputStream(filePath);
             outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
         }
     }
@@ -38,7 +38,7 @@ public final class HTTPClient {
                                              final String password) throws IOException {
         try (final ReadableByteChannel urlByteChannel = Channels.newChannel(
                 getUrlInputStream(uri, username, password))) {
-            FileOutputStream outputStream = new FileOutputStream(filePath);
+            final FileOutputStream outputStream = new FileOutputStream(filePath);
             outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
         }
     }
@@ -47,9 +47,11 @@ public final class HTTPClient {
         final StringBuilder stringBuilder = new StringBuilder();
         final InputStreamReader inputReader = new InputStreamReader(getUrlInputStream(url), StandardCharsets.UTF_8);
         final BufferedReader bufferedReader = new BufferedReader(inputReader);
-        String inputLine;
-        while ((inputLine = bufferedReader.readLine()) != null)
+        String inputLine = bufferedReader.readLine();
+        while (inputLine != null) {
             stringBuilder.append(inputLine);
+            inputLine = bufferedReader.readLine();
+        }
         inputReader.close();
         return stringBuilder.toString();
     }

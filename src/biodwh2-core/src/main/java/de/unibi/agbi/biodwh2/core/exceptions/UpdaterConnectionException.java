@@ -4,6 +4,7 @@ public class UpdaterConnectionException extends UpdaterException {
     private static final long serialVersionUID = 2832708193353784642L;
 
     public UpdaterConnectionException() {
+        super();
     }
 
     public UpdaterConnectionException(String message) {

@@ -26,18 +26,24 @@ class ClassMapping {
         final List<ClassMappingField> fieldsList = new ArrayList<>();
         final List<ClassMappingField> arrayFieldsList = new ArrayList<>();
         for (final Field field : type.getDeclaredFields()) {
-            if (field.isAnnotationPresent(GraphProperty.class)) {
-                field.setAccessible(true);
-                final GraphProperty annotation = field.getAnnotation(GraphProperty.class);
-                fieldsList.add(new ClassMappingField(field, annotation.value(), null));
-            }
-            if (field.isAnnotationPresent(GraphArrayProperty.class)) {
-                field.setAccessible(true);
-                final GraphArrayProperty annotation = field.getAnnotation(GraphArrayProperty.class);
-                arrayFieldsList.add(new ClassMappingField(field, annotation.value(), annotation.arrayDelimiter()));
-            }
+            if (field.isAnnotationPresent(GraphProperty.class))
+                fieldsList.add(loadClassMappingField(field));
+            if (field.isAnnotationPresent(GraphArrayProperty.class))
+                arrayFieldsList.add(loadArrayClassMappingField(field));
         }
         fields = fieldsList.toArray(new ClassMappingField[0]);
         arrayFields = arrayFieldsList.toArray(new ClassMappingField[0]);
+    }
+
+    private ClassMappingField loadClassMappingField(final Field field) {
+        field.setAccessible(true);
+        final GraphProperty annotation = field.getAnnotation(GraphProperty.class);
+        return new ClassMappingField(field, annotation.value(), null);
+    }
+
+    private ClassMappingField loadArrayClassMappingField(final Field field) {
+        field.setAccessible(true);
+        final GraphArrayProperty annotation = field.getAnnotation(GraphArrayProperty.class);
+        return new ClassMappingField(field, annotation.value(), annotation.arrayDelimiter());
     }
 }

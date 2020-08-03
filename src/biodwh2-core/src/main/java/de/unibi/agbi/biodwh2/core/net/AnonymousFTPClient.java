@@ -17,7 +17,7 @@ public class AnonymousFTPClient {
     public boolean connect(String url) throws IOException {
         client = new FTPClient();
         client.connect(url, 21);
-        boolean loginSuccess = client.login("anonymous", "anonymous");
+        final boolean loginSuccess = client.login("anonymous", "anonymous");
         if (!loginSuccess) {
             disconnect();
             return false;
@@ -56,7 +56,7 @@ public class AnonymousFTPClient {
     }
 
     private static LocalDateTime parseFtpDateTime(String dateTimeString) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         return LocalDateTime.parse(dateTimeString, formatter);
     }
 

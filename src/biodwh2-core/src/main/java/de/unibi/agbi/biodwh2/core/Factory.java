@@ -29,8 +29,10 @@ public final class Factory {
         loadAllClasses();
     }
 
-    public static Factory getInstance() {
-        return instance != null ? instance : (instance = new Factory());
+    public static synchronized Factory getInstance() {
+        if (instance == null)
+            instance = new Factory();
+        return instance;
     }
 
     private void loadAllClasses() {
@@ -57,14 +59,16 @@ public final class Factory {
 
     private void iterateFileSystem(final File directory, final String rootPath) {
         final File[] files = directory.listFiles();
-        if (files != null) {
-            for (final File file : files) {
-                if (file.isDirectory())
-                    iterateFileSystem(file, rootPath);
-                else if (file.isFile())
-                    addUriIfValidClassPath(file.toURI().toString().substring(rootPath.length()));
-            }
-        }
+        if (files != null)
+            iterateFiles(files, rootPath);
+    }
+
+    private void iterateFiles(final File[] files, final String rootPath) {
+        for (final File file : files)
+            if (file.isDirectory())
+                iterateFileSystem(file, rootPath);
+            else if (file.isFile())
+                addUriIfValidClassPath(file.toURI().toString().substring(rootPath.length()));
     }
 
     private void addUriIfValidClassPath(final String uri) {
@@ -73,9 +77,9 @@ public final class Factory {
     }
 
     private void iterateJarFile(final File file) {
-        Enumeration<JarEntry> entries = tryGetJarFileEntries(file);
+        final Enumeration<JarEntry> entries = tryGetJarFileEntries(file);
         while (entries.hasMoreElements()) {
-            JarEntry entry = entries.nextElement();
+            final JarEntry entry = entries.nextElement();
             if (!entry.isDirectory())
                 addUriIfValidClassPath(entry.getName());
         }

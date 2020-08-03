@@ -27,28 +27,28 @@ public final class HTTPFTPClient {
     }
 
     public Entry[] listDirectory(final String path) throws IOException {
-        String fullDirectoryUrl = url + "/" + path;
-        String source = HTTPClient.getWebsiteSource(fullDirectoryUrl);
+        final String fullDirectoryUrl = url + "/" + path;
+        final String source = HTTPClient.getWebsiteSource(fullDirectoryUrl);
         return parseWebSource(path, source);
     }
 
     Entry[] parseWebSource(final String path, final String source) {
-        Document document = Jsoup.parse(source);
-        Element table = document.select("table").first();
+        final Document document = Jsoup.parse(source);
+        final Element table = document.select("table").first();
         if (table != null)
             return parseWebSourceTable(path, table);
-        Element pre = document.select("pre").first();
+        final Element pre = document.select("pre").first();
         if (pre != null)
             return parseWebSourcePre(path, pre);
-        return null;
+        return new Entry[0];
     }
 
     private Entry[] parseWebSourceTable(final String path, Element table) {
-        List<Entry> result = new ArrayList<>();
-        for (Element row : table.select("tr")) {
-            Elements columns = row.select("td");
+        final List<Entry> result = new ArrayList<>();
+        for (final Element row : table.select("tr")) {
+            final Elements columns = row.select("td");
             if (columns != null && columns.size() > 0 && !"Parent Directory".equals(columns.get(1).text())) {
-                Entry entry = new Entry();
+                final Entry entry = new Entry();
                 entry.name = columns.get(1).text().trim();
                 entry.modificationDate = columns.get(2).text().trim();
                 entry.size = columns.get(3).text().trim();
@@ -60,14 +60,14 @@ public final class HTTPFTPClient {
     }
 
     private Entry[] parseWebSourcePre(final String path, final Element pre) {
-        Pattern entryPattern = Pattern.compile(
+        final Pattern entryPattern = Pattern.compile(
                 "^(.+)\\s([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2})\\s+([0-9.]+[KMG]?)");
-        List<Entry> result = new ArrayList<>();
-        String[] lines = StringUtils.split(pre.text(), "\n");
+        final List<Entry> result = new ArrayList<>();
+        final String[] lines = StringUtils.split(pre.text(), "\n");
         for (int i = 1; i < lines.length; i++) {
-            Matcher matcher = entryPattern.matcher(StringUtils.stripEnd(lines[i], "\r"));
+            final Matcher matcher = entryPattern.matcher(StringUtils.stripEnd(lines[i], "\r"));
             if (matcher.matches()) {
-                Entry entry = new Entry();
+                final Entry entry = new Entry();
                 entry.name = matcher.group(1).trim();
                 entry.modificationDate = matcher.group(2);
                 entry.size = matcher.group(3);

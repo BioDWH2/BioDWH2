@@ -11,8 +11,8 @@ public final class IdentifierUtils {
     public static boolean isCasNumber(final String casNumber) {
         if (casNumber == null || !CAS_NUMBER_PATTERN.matcher(casNumber).matches())
             return false;
-        int casLength = casNumber.length();
-        int checkDigit = getDigitFromString(casNumber, casLength - 1);
+        final int casLength = casNumber.length();
+        final int checkDigit = getDigitFromString(casNumber, casLength - 1);
         int checkSum = getDigitFromString(casNumber, casLength - 3) + getDigitFromString(casNumber, casLength - 4) * 2;
         for (int i = casLength - 6; i >= 0; i--)
             checkSum += getDigitFromString(casNumber, i) * (3 + casLength - 6 - i);

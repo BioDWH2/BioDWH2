@@ -136,7 +136,7 @@ public final class Workspace {
             final DataSourceMetadata metadata = dataSource.getMetadata();
             final Version latestVersion = getLatestVersion(dataSource);
             Collections.addAll(row, dataSource.getId(), sourcesUpToDate.get(dataSource.getId()).toString(),
-                               metadata.version.toString(), latestVersion != null ? latestVersion.toString() : null,
+                               metadata.version.toString(), latestVersion == null ? null : latestVersion.toString(),
                                metadata.getLocalUpdateDateTime().toString());
             if (verbose)
                 row.add(String.join(", ", metadata.sourceFileNames));
@@ -181,7 +181,7 @@ public final class Workspace {
         } else {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Running updater");
-            updateState = version != null ? dataSource.updateManually(this, version) : dataSource.updateAutomatic(this);
+            updateState = version == null ? dataSource.updateAutomatic(this) : dataSource.updateManually(this, version);
             dataSource.trySaveMetadata(this);
         }
         if (isExportNeeded(updateState, dataSource)) {

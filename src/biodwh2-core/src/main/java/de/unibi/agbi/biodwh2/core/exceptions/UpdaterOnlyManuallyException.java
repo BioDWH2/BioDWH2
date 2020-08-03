@@ -4,6 +4,7 @@ public class UpdaterOnlyManuallyException extends UpdaterException {
     private static final long serialVersionUID = -8800238787366251549L;
 
     public UpdaterOnlyManuallyException() {
+        super();
     }
 
     public UpdaterOnlyManuallyException(String message) {

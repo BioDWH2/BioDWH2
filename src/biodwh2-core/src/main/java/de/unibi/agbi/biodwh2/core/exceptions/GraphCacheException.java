@@ -4,6 +4,7 @@ public class GraphCacheException extends RuntimeException {
     private static final long serialVersionUID = -7886311185762613615L;
 
     public GraphCacheException() {
+        super();
     }
 
     public GraphCacheException(String s) {

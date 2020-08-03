@@ -34,19 +34,20 @@ public final class OboReader implements Iterable<OboEntry> {
 
     OboEntry readNextEntry() {
         final OboEntry entry = new OboEntry(nextName);
-        String line;
         nextName = null;
         hasNextEntry = false;
-        while ((line = readLineSafe()) != null) {
-            if (line.charAt(0) == '[') {
-                nextName = StringUtils.strip(line, "[]");
-                hasNextEntry = true;
-                break;
+        String line = readLineSafe();
+        while (line != null) {
+            if (StringUtils.isNotBlank(line) && line.charAt(0) != '!') {
+                if (line.charAt(0) == '[') {
+                    nextName = StringUtils.strip(line, "[]");
+                    hasNextEntry = true;
+                    break;
+                }
+                final String[] parts = StringUtils.split(line, ":", 2);
+                entry.addKeyValuePair(parts[0].trim(), removeComments(parts[1]).trim());
             }
-            if (StringUtils.isBlank(line) || line.charAt(0) == '!')
-                continue;
-            final String[] parts = StringUtils.split(line, ":", 2);
-            entry.addKeyValuePair(parts[0].trim(), removeComments(parts[1]).trim());
+            line = readLineSafe();
         }
         return entry;
     }
@@ -69,7 +70,7 @@ public final class OboReader implements Iterable<OboEntry> {
                 return value.substring(0, commentIndex);
             commentIndex = StringUtils.indexOfIgnoreCase(value, "!", matcher.end());
         }
-        return commentIndex != -1 ? value.substring(0, commentIndex) : value;
+        return commentIndex == -1 ? value : value.substring(0, commentIndex);
     }
 
     public OboEntry getHeader() {

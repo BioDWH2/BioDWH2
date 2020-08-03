@@ -19,14 +19,8 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
         try {
             final Map<String, String> prefixSourceMap = new HashMap<>();
             Version latestVersion = null;
-            final String separator = System.getProperty("file.separator");
-            for (String fileName : getFilePaths()) {
-                final Path parentPath = Paths.get(fileName).getParent();
-                final String prefix = parentPath != null ? parentPath.toString().replace(separator, "/") : "";
-                if (!prefixSourceMap.containsKey(prefix))
-                    prefixSourceMap.put(prefix, HTTPClient.getWebsiteSource(getFTPIndexUrl() + fileName));
-                final String source = prefixSourceMap.get(prefix);
-                final Version fileVersion = getVersionForFileName(source, fileName);
+            for (final String filePath : getFilePaths()) {
+                final Version fileVersion = getNewestVersionFromFilePath(prefixSourceMap, filePath);
                 if (latestVersion == null || (fileVersion != null && fileVersion.compareTo(latestVersion) > 0))
                     latestVersion = fileVersion;
             }
@@ -34,6 +28,17 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
+    }
+
+    private Version getNewestVersionFromFilePath(final Map<String, String> prefixSourceMap,
+                                                 final String filePath) throws IOException {
+        final Path parentPath = Paths.get(filePath).getParent();
+        final String separator = System.getProperty("file.separator");
+        final String prefix = parentPath == null ? "" : parentPath.toString().replace(separator, "/");
+        if (!prefixSourceMap.containsKey(prefix))
+            prefixSourceMap.put(prefix, HTTPClient.getWebsiteSource(getFTPIndexUrl() + filePath));
+        final String source = prefixSourceMap.get(prefix);
+        return getVersionForFileName(source, filePath);
     }
 
     private static Version getVersionForFileName(final String source, final String fileName) {

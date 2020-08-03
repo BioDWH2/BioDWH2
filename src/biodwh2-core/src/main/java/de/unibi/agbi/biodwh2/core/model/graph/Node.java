@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
-import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
 import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.mapper.Mappable;
@@ -46,7 +45,7 @@ public class Node implements PropertyContainer, Map<String, Object>, Mappable {
     }
 
     public Long getId() {
-        return __id != null ? __id.getIdValue() : null;
+        return __id == null ? null : __id.getIdValue();
     }
 
     @Override
@@ -61,10 +60,10 @@ public class Node implements PropertyContainer, Map<String, Object>, Mappable {
 
     @Override
     public Map<String, Class<?>> getPropertyKeyTypes() {
-        Map<String, Class<?>> keyTypeMap = new HashMap<>();
-        for (String key : document.keySet())
+        final Map<String, Class<?>> keyTypeMap = new HashMap<>();
+        for (final String key : document.keySet())
             if (!IGNORED_FIELDS.contains(key))
-                keyTypeMap.put(key, document.get(key) != null ? document.get(key).getClass() : null);
+                keyTypeMap.put(key, document.get(key) == null ? null : document.get(key).getClass());
         return keyTypeMap;
     }
 
@@ -127,7 +126,7 @@ public class Node implements PropertyContainer, Map<String, Object>, Mappable {
 
     @Override
     public void clear() {
-        throw new RuntimeException("Clear is not permitted on Nodes");
+        throw new UnsupportedOperationException("Clear is not permitted on Nodes");
     }
 
     @NotNull
@@ -154,7 +153,7 @@ public class Node implements PropertyContainer, Map<String, Object>, Mappable {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        Node node = (Node) o;
+        final Node node = (Node) o;
         return document.getId().equals(node.document.getId());
     }
 

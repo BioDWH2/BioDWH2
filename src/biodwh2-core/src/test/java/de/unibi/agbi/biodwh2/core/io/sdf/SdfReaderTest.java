@@ -3,8 +3,6 @@ package de.unibi.agbi.biodwh2.core.io.sdf;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Iterator;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,10 +13,7 @@ class SdfReaderTest {
     @Test
     void testReadingFromFileStream() throws IOException {
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        final String resourceFilePath = classLoader.getResource("test_pubchem.sdf").getFile();
-        final File file = new File(resourceFilePath);
-        assertTrue(file.exists());
-        try (InputStream stream = Files.newInputStream(Paths.get(resourceFilePath))) {
+        try (InputStream stream = classLoader.getResourceAsStream("test_pubchem.sdf")) {
             final SdfReader reader = new SdfReader(stream, "UTF-8");
             final Iterator<SdfEntry> entryIterator = reader.iterator();
             assertTrue(entryIterator.hasNext());

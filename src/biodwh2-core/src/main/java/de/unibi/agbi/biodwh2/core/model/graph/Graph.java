@@ -67,17 +67,17 @@ public final class Graph {
     }
 
     public void setNodeIndexPropertyKeys(final String... keys) {
-        for (String key : keys)
+        for (final String key : keys)
             if (!nodes.hasIndex(key))
                 nodes.createIndex(key, IndexOptions.indexOptions(IndexType.NonUnique, false));
     }
 
     public void prefixAllLabels(final String prefix) {
-        for (Node n : getNodes()) {
+        for (final Node n : getNodes()) {
             n.prefixLabel(prefix);
             update(n);
         }
-        for (Edge e : getEdges()) {
+        for (final Edge e : getEdges()) {
             e.prefixLabel(prefix);
             update(e);
         }

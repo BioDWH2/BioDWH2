@@ -15,7 +15,7 @@ public final class SdfReader implements Iterable<SdfEntry> {
     }
 
     public SdfReader(final InputStream stream, final String charsetName) throws UnsupportedEncodingException {
-        InputStream baseStream = new BufferedInputStream(stream);
+        final InputStream baseStream = new BufferedInputStream(stream);
         reader = new BufferedReader(new InputStreamReader(baseStream, charsetName));
     }
 
@@ -36,21 +36,14 @@ public final class SdfReader implements Iterable<SdfEntry> {
     }
 
     SdfEntry readNextEntry() {
-        final SdfEntry entry = new SdfEntry();
-        entry.setTitle(readLineSafe());
-        if (entry.getTitle() == null)
+        final SdfEntry entry = readNextEntryHeader();
+        if (entry == null)
             return null;
-        entry.setProgramTimestamp(readLineSafe());
-        if (entry.getProgramTimestamp() == null)
-            return null;
-        entry.setComment(readLineSafe());
-        if (entry.getComment() == null)
-            return null;
-        String line;
         boolean inConnectionTable = true;
         String lastPropertyKey = null;
         final StringBuilder connectionTable = new StringBuilder();
-        while ((line = readLineSafe()) != null) {
+        String line = readLineSafe();
+        while (line != null) {
             if (inConnectionTable) {
                 if (line.trim().equals("M  END")) {
                     inConnectionTable = false;
@@ -71,8 +64,21 @@ public final class SdfReader implements Iterable<SdfEntry> {
                     entry.properties.put(lastPropertyKey, entry.properties.get(lastPropertyKey) + "\n" + line);
                 }
             }
+            line = readLineSafe();
         }
         return null;
+    }
+
+    private SdfEntry readNextEntryHeader() {
+        final SdfEntry entry = new SdfEntry();
+        entry.setTitle(readLineSafe());
+        entry.setProgramTimestamp(readLineSafe());
+        entry.setComment(readLineSafe());
+        return readingNextEntryHeaderFailed(entry) ? null : entry;
+    }
+
+    private boolean readingNextEntryHeaderFailed(final SdfEntry entry) {
+        return entry.getTitle() == null || entry.getProgramTimestamp() == null || entry.getComment() == null;
     }
 
     private String readLineSafe() {

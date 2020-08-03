@@ -4,6 +4,7 @@ public abstract class ParserException extends Exception {
     private static final long serialVersionUID = -1217000798823977025L;
 
     public ParserException() {
+        super();
     }
 
     public ParserException(String message) {

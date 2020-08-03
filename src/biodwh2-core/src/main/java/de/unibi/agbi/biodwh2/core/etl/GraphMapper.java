@@ -100,7 +100,7 @@ public final class GraphMapper extends Mapper {
                 mergedNode = matchedNode;
             else {
                 graph.mergeNodes(mergedNode, matchedNode);
-                for (String id : nodeIds)
+                for (final String id : nodeIds)
                     idNodeIdMap.get(id).remove(nodeId);
             }
         }

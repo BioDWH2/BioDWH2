@@ -16,7 +16,7 @@ public class RDFMerger extends Merger {
     public final boolean merge(final Workspace workspace, final List<DataSource> dataSources,
                                final String outputFilePath) throws MergerException {
         try (PrintWriter writer = new PrintWriter(outputFilePath)) {
-            for (DataSource dataSource : dataSources)
+            for (final DataSource dataSource : dataSources)
                 appendDataSource(workspace, dataSource, writer);
         } catch (IOException e) {
             throw new MergerException("Failed to merge RDF graphs", e);

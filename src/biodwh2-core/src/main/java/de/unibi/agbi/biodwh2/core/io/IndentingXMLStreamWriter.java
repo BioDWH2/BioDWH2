@@ -88,7 +88,7 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
     /**
      * stack[depth] indicates what's been written into the current scope.
      */
-    private int[] stack = new int[]{0, 0, 0, 0}; // nothing written yet
+    private int[] stack = {0, 0, 0, 0}; // nothing written yet
     /**
      * newLine followed by copies of indent.
      */

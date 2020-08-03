@@ -17,6 +17,7 @@ public abstract class SingleFileCsvParser<D extends DataSource, T> extends Parse
     private final String fileName;
 
     protected SingleFileCsvParser(Class<T> typeVariableClass, boolean hasHeader, CsvType type, String fileName) {
+        super();
         this.typeVariableClass = typeVariableClass;
         this.hasHeader = hasHeader;
         this.type = type;
@@ -24,11 +25,9 @@ public abstract class SingleFileCsvParser<D extends DataSource, T> extends Parse
     }
 
     @Override
-    public boolean parse(Workspace workspace, D dataSource) throws ParserException {
+    public boolean parse(final Workspace workspace, final D dataSource) throws ParserException {
         try {
-            final MappingIterator<T> iterator = type == CsvType.CSV ? FileUtils.openCsv(workspace, dataSource, fileName,
-                                                                                        typeVariableClass) :
-                                                FileUtils.openTsv(workspace, dataSource, fileName, typeVariableClass);
+            final MappingIterator<T> iterator = getMappingIterator(workspace, dataSource);
             if (hasHeader)
                 iterator.next();
             storeResults(dataSource, iterator.readAll());
@@ -36,6 +35,11 @@ public abstract class SingleFileCsvParser<D extends DataSource, T> extends Parse
             throw new ParserFormatException("Failed to parse the file '" + fileName + "'", e);
         }
         return true;
+    }
+
+    private MappingIterator<T> getMappingIterator(final Workspace workspace, final D dataSource) throws IOException {
+        return type == CsvType.CSV ? FileUtils.openCsv(workspace, dataSource, fileName, typeVariableClass) :
+               FileUtils.openTsv(workspace, dataSource, fileName, typeVariableClass);
     }
 
     protected abstract void storeResults(D dataSource, List<T> results);

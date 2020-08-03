@@ -22,7 +22,7 @@ public final class GraphQLSchemaWriter extends SchemaWriter {
             writeLine(writer, "}");
             writeLine(writer, "type QueryType {");
             for (final GraphSchema.NodeType nodeType : schema.getNodeTypes()) {
-                String arguments = nodeType.propertyKeyTypes.keySet().stream().map(
+                final String arguments = nodeType.propertyKeyTypes.keySet().stream().map(
                         key -> key + ": " + getGraphQLTypeName(nodeType.propertyKeyTypes.get(key))).collect(
                         Collectors.joining(", "));
                 writeLine(writer, "  " + nodeType.label + "(" + arguments + "): [" + nodeType.label + "]!");
@@ -30,14 +30,14 @@ public final class GraphQLSchemaWriter extends SchemaWriter {
             writeLine(writer, "}");
             for (final GraphSchema.NodeType nodeType : schema.getNodeTypes()) {
                 writeLine(writer, "type " + nodeType.label + " {");
-                for (String propertyKey : nodeType.propertyKeyTypes.keySet())
+                for (final String propertyKey : nodeType.propertyKeyTypes.keySet())
                     writeLine(writer, "  " + propertyKey + ": " +
                                       getGraphQLTypeName(nodeType.propertyKeyTypes.get(propertyKey)));
                 writeLine(writer, "}");
             }
             for (final GraphSchema.EdgeType edgeType : schema.getEdgeTypes()) {
                 writeLine(writer, "type rel_" + edgeType.label + " @relation(name: \"" + edgeType.label + "\") {");
-                for (String propertyKey : edgeType.propertyKeyTypes.keySet())
+                for (final String propertyKey : edgeType.propertyKeyTypes.keySet())
                     writeLine(writer, "  " + propertyKey + ": " +
                                       getGraphQLTypeName(edgeType.propertyKeyTypes.get(propertyKey)));
                 writeLine(writer, "}");

@@ -42,21 +42,29 @@ public final class NodeMappingDescription {
         if (identifierCache != null)
             return identifierCache;
         identifierCache = new HashSet<>();
-        for (IdentifierType identifierType : identifier.keySet())
-            for (String id : identifier.get(identifierType))
+        for (final IdentifierType identifierType : identifier.keySet())
+            for (final String id : identifier.get(identifierType))
                 identifierCache.add(identifierType.prefix + ":" + id);
         return identifierCache;
     }
 
     public boolean matches(final NodeMappingDescription other) {
-        if (other.type.equals(type))
-            for (IdentifierType identifierType : identifier.keySet())
-                if (other.identifier.containsKey(identifierType)) {
-                    Set<String> otherTypeIds = other.identifier.get(identifierType);
-                    for (String id : identifier.get(identifierType))
-                        if (otherTypeIds.contains(id))
-                            return true;
-                }
+        return other.type.equals(type) && matchesAnyIdentifier(other);
+    }
+
+    private boolean matchesAnyIdentifier(final NodeMappingDescription other) {
+        for (final IdentifierType identifierType : identifier.keySet())
+            if (isIdentifierTypeIntersecting(other, identifierType))
+                return true;
+        return false;
+    }
+
+    private boolean isIdentifierTypeIntersecting(final NodeMappingDescription other,
+                                                 final IdentifierType identifierType) {
+        if (other.identifier.containsKey(identifierType))
+            for (final String id : identifier.get(identifierType))
+                if (other.identifier.get(identifierType).contains(id))
+                    return true;
         return false;
     }
 }

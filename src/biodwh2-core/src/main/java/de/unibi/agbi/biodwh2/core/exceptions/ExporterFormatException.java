@@ -4,6 +4,7 @@ public class ExporterFormatException extends ExporterException {
     private static final long serialVersionUID = -3234100921721868307L;
 
     public ExporterFormatException() {
+        super();
     }
 
     public ExporterFormatException(String message) {

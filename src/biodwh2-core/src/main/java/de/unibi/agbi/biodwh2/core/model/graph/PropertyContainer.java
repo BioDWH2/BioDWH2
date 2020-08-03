@@ -1,7 +1,5 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
-import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
-
 import java.util.Collection;
 import java.util.Map;
 

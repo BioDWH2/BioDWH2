@@ -30,7 +30,7 @@ public class GraphSchema {
     }
 
     private void loadNodeTypes(final Graph graph) {
-        for (Node node : graph.getNodes())
+        for (final Node node : graph.getNodes())
             loadNodeType(node);
     }
 
@@ -41,14 +41,14 @@ public class GraphSchema {
             type.label = node.getLabel();
             nodeTypes.put(type.label, type);
         }
-        Map<String, Class<?>> propertyKeyTypes = node.getPropertyKeyTypes();
-        for (String propertyKey : propertyKeyTypes.keySet())
+        final Map<String, Class<?>> propertyKeyTypes = node.getPropertyKeyTypes();
+        for (final String propertyKey : propertyKeyTypes.keySet())
             if (!"_modified".equalsIgnoreCase(propertyKey) && !"_revision".equalsIgnoreCase(propertyKey))
                 type.propertyKeyTypes.put(propertyKey, propertyKeyTypes.get(propertyKey));
     }
 
     private void loadEdgeTypes(final Graph graph) {
-        for (Edge edge : graph.getEdges())
+        for (final Edge edge : graph.getEdges())
             loadEdgeType(graph, edge);
     }
 
@@ -59,12 +59,12 @@ public class GraphSchema {
             type.label = edge.getLabel();
             edgeTypes.put(type.label, type);
         }
-        Map<String, Class<?>> propertyKeyTypes = edge.getPropertyKeyTypes();
-        for (String propertyKey : propertyKeyTypes.keySet())
+        final Map<String, Class<?>> propertyKeyTypes = edge.getPropertyKeyTypes();
+        for (final String propertyKey : propertyKeyTypes.keySet())
             if (!"_modified".equalsIgnoreCase(propertyKey) && !"_revision".equalsIgnoreCase(propertyKey))
                 type.propertyKeyTypes.put(propertyKey, propertyKeyTypes.get(propertyKey));
-        Node fromNode = graph.getNode(edge.getFromId());
-        Node toNode = graph.getNode(edge.getToId());
+        final Node fromNode = graph.getNode(edge.getFromId());
+        final Node toNode = graph.getNode(edge.getToId());
         type.fromLabels.add(fromNode.getLabel());
         type.toLabels.add(toNode.getLabel());
     }

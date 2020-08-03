@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
-import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
 import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.mapper.Mappable;
@@ -48,7 +47,7 @@ public class Edge implements PropertyContainer, Mappable {
     }
 
     public Long getId() {
-        return __id != null ? __id.getIdValue() : null;
+        return __id == null ? null : __id.getIdValue();
     }
 
     public long getFromId() {
@@ -80,9 +79,9 @@ public class Edge implements PropertyContainer, Mappable {
     @Override
     public Map<String, Class<?>> getPropertyKeyTypes() {
         final Map<String, Class<?>> keyTypeMap = new HashMap<>();
-        for (String key : document.keySet())
+        for (final String key : document.keySet())
             if (!IGNORED_FIELDS.contains(key))
-                keyTypeMap.put(key, document.get(key) != null ? document.get(key).getClass() : null);
+                keyTypeMap.put(key, document.get(key) == null ? null : document.get(key).getClass());
         return keyTypeMap;
     }
 

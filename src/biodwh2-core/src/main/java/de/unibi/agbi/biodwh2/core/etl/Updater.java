@@ -34,7 +34,7 @@ public abstract class Updater<D extends DataSource> {
         }
         if (LOGGER.isInfoEnabled())
             LOGGER.info("New version of data source '" + dataSource.getId() + "' found (old: " +
-                        (workspaceVersion != null ? workspaceVersion : "none") + ", new: " + newestVersion + ")");
+                        (workspaceVersion == null ? "none" : workspaceVersion) + ", new: " + newestVersion + ")");
         if (tryUpdateFiles(workspace, dataSource)) {
             updateDataSourceMetadata(workspace, dataSource, newestVersion);
             return UpdateState.UPDATED;
@@ -52,7 +52,7 @@ public abstract class Updater<D extends DataSource> {
         }
         if (LOGGER.isInfoEnabled())
             LOGGER.info("New version of data source '" + dataSource.getId() + "' found (old: " +
-                        (workspaceVersion != null ? workspaceVersion : "none") + ", new: " + newestVersion + ")");
+                        (workspaceVersion == null ? "none" : workspaceVersion) + ", new: " + newestVersion + ")");
         updateDataSourceMetadata(workspace, dataSource, newestVersion);
         return UpdateState.UPDATED;
     }
