@@ -29,11 +29,6 @@ public class UNIIDataSource extends DataSource {
     }
 
     @Override
-    public RDFExporter<UNIIDataSource> getRdfExporter() {
-        return new EmptyRDFExporter<>();
-    }
-
-    @Override
     public GraphExporter<UNIIDataSource> getGraphExporter() {
         return new UNIIGraphExporter();
     }

@@ -33,8 +33,6 @@ public abstract class DataSource {
 
     protected abstract Parser getParser();
 
-    protected abstract RDFExporter getRdfExporter();
-
     protected abstract GraphExporter getGraphExporter();
 
     public abstract MappingDescriber getMappingDescriber();
@@ -136,33 +134,19 @@ public abstract class DataSource {
         }
     }
 
-    final void export(final Workspace workspace, final boolean rdfEnabled, final boolean graphEnabled) {
-        if (rdfEnabled)
-            exportRdf(workspace);
-        if (graphEnabled)
-            exportGraphML(workspace);
+    final void export(final Workspace workspace) {
+        exportGraph(workspace);
         unloadData();
     }
 
-    private void exportRdf(final Workspace workspace) {
+    private void exportGraph(final Workspace workspace) {
         try {
             //noinspection unchecked
-            metadata.exportRDFSuccessful = getRdfExporter().export(workspace, this);
-        } catch (ExporterException e) {
-            if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to export data source '" + getId() + "' in RDF format", e);
-            metadata.exportRDFSuccessful = false;
-        }
-    }
-
-    private void exportGraphML(final Workspace workspace) {
-        try {
-            //noinspection unchecked
-            metadata.exportGraphMLSuccessful = getGraphExporter().export(workspace, this);
+            metadata.exportSuccessful = getGraphExporter().export(workspace, this);
         } catch (ExporterException e) {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("Failed to export data source '" + getId() + "' in GraphML format", e);
-            metadata.exportGraphMLSuccessful = false;
+            metadata.exportSuccessful = false;
         }
     }
 

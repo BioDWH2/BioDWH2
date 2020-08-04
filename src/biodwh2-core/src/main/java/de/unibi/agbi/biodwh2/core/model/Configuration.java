@@ -17,8 +17,6 @@ public final class Configuration {
     public int version;
     public String creationDateTime;
     public List<String> dataSourceIds;
-    public boolean rdfEnabled;
-    public boolean graphMLEnabled;
     public boolean splitIntoSubGraphs;
     public Map<String, Map<String, String>> dataSourceProperties;
 
@@ -26,8 +24,6 @@ public final class Configuration {
         version = Workspace.VERSION;
         creationDateTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         dataSourceIds = new ArrayList<>();
-        rdfEnabled = true;
-        graphMLEnabled = true;
         splitIntoSubGraphs = false;
         dataSourceProperties = new HashMap<>();
     }

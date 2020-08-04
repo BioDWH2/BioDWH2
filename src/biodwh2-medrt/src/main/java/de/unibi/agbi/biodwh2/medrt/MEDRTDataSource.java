@@ -24,11 +24,6 @@ public class MEDRTDataSource extends DataSource {
     }
 
     @Override
-    public RDFExporter<MEDRTDataSource> getRdfExporter() {
-        return new EmptyRDFExporter<>();
-    }
-
-    @Override
     public GraphExporter<MEDRTDataSource> getGraphExporter() {
         return new MEDRTGraphExporter();
     }

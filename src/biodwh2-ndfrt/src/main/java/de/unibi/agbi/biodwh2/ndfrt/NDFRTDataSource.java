@@ -24,11 +24,6 @@ public class NDFRTDataSource extends DataSource {
     }
 
     @Override
-    public RDFExporter<NDFRTDataSource> getRdfExporter() {
-        return new EmptyRDFExporter<>();
-    }
-
-    @Override
     public GraphExporter<NDFRTDataSource> getGraphExporter() {
         return new NDFRTGraphExporter();
     }

@@ -24,11 +24,6 @@ public class DisGeNetDataSource extends DataSource {
     }
 
     @Override
-    protected RDFExporter getRdfExporter() {
-        return new EmptyRDFExporter();
-    }
-
-    @Override
     protected GraphExporter getGraphExporter() {
         return new DisGeNetGraphExporter();
     }

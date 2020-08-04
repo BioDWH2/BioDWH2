@@ -32,11 +32,6 @@ public class DGIdbDataSource extends DataSource {
     }
 
     @Override
-    public RDFExporter<DGIdbDataSource> getRdfExporter() {
-        return new EmptyRDFExporter<>();
-    }
-
-    @Override
     public GraphExporter<DGIdbDataSource> getGraphExporter() {
         return new DGIdbGraphExporter();
     }

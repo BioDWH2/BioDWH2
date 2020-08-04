@@ -30,11 +30,6 @@ public class DrugBankDataSource extends DataSource {
     }
 
     @Override
-    public RDFExporter<DrugBankDataSource> getRdfExporter() {
-        return new EmptyRDFExporter<>();
-    }
-
-    @Override
     public GraphExporter<DrugBankDataSource> getGraphExporter() {
         return new DrugBankGraphExporter();
     }

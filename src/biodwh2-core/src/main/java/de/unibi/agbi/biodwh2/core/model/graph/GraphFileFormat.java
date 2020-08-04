@@ -1,7 +1,6 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
 public enum GraphFileFormat {
-    RDF_TURTLE("ttl"),
     GRAPH_ML("graphml");
 
     public final String extension;

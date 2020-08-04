@@ -17,7 +17,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
-public final class GraphMapper extends Mapper {
+public final class GraphMapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMapper.class);
     private static final String MAPPED_TO_EDGE_LABEL = "MAPPED_TO";
     private static final String IDS_NODE_PROPERTY = "ids";

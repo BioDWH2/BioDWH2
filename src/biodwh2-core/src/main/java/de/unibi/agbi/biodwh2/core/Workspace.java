@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import de.unibi.agbi.biodwh2.core.etl.GraphMapper;
 import de.unibi.agbi.biodwh2.core.etl.GraphMerger;
-import de.unibi.agbi.biodwh2.core.etl.RDFMerger;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.Configuration;
@@ -40,9 +39,6 @@ public final class Workspace {
         configuration = createOrLoadConfiguration();
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Using data sources " + configuration.dataSourceIds);
-            LOGGER.info("Export and merge of RDF format is " + (configuration.rdfEnabled ? "enabled" : "disabled"));
-            LOGGER.info(
-                    "Export and merge of GraphML format is " + (configuration.graphMLEnabled ? "enabled" : "disabled"));
         }
         dataSources = resolveUsedDataSources();
     }
@@ -185,7 +181,7 @@ public final class Workspace {
             dataSource.parse(this);
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Running exporter");
-            dataSource.export(this, configuration.rdfEnabled, configuration.graphMLEnabled);
+            dataSource.export(this);
         } else if (LOGGER.isInfoEnabled())
             LOGGER.info("Skipping export of data source '" + dataSource.getId() + "' because nothing changed");
         dataSource.trySaveMetadata(this);
@@ -197,20 +193,9 @@ public final class Workspace {
         if (updateState == Updater.UpdateState.UPDATED || isDataSourceExportForced(dataSource))
             return true;
         final DataSourceMetadata metadata = dataSource.getMetadata();
-        final boolean exportGraphMLSuccessful =
-                metadata.exportGraphMLSuccessful != null && metadata.exportGraphMLSuccessful && fileDoesExist(
-                        dataSource.getIntermediateGraphFilePath(this, GraphFileFormat.GRAPH_ML)) && fileDoesExist(
-                        dataSource.getGraphDatabaseFilePath(this));
-        final boolean exportRDFSuccessful =
-                metadata.exportRDFSuccessful != null && metadata.exportRDFSuccessful && fileDoesExist(
-                        dataSource.getIntermediateGraphFilePath(this, GraphFileFormat.RDF_TURTLE));
-        if (configuration.rdfEnabled && configuration.graphMLEnabled)
-            return !exportRDFSuccessful || !exportGraphMLSuccessful;
-        if (configuration.rdfEnabled)
-            return !exportRDFSuccessful;
-        if (configuration.graphMLEnabled)
-            return !exportGraphMLSuccessful;
-        return false;
+        return metadata.exportSuccessful == null || !metadata.exportSuccessful || fileDoesNotExist(
+                dataSource.getIntermediateGraphFilePath(this, GraphFileFormat.GRAPH_ML)) || fileDoesNotExist(
+                dataSource.getGraphDatabaseFilePath(this));
     }
 
     private boolean isDataSourceExportForced(final DataSource dataSource) {
@@ -219,45 +204,31 @@ public final class Workspace {
                 configuration.dataSourceProperties.get(id).getOrDefault("forceExport", ""));
     }
 
-    private boolean fileDoesExist(final String filePath) {
-        return Files.exists(Paths.get(filePath));
+    private boolean fileDoesNotExist(final String filePath) {
+        return Files.notExists(Paths.get(filePath));
     }
 
     private void mergeDataSources() {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Merging of data sources started");
-        if (configuration.rdfEnabled)
-            mergeRDFDataSources();
-        if (configuration.graphMLEnabled)
-            mergeGraphMLDataSources();
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Merging of data sources finished");
-    }
-
-    private void mergeRDFDataSources() {
-        try {
-            new RDFMerger().merge(this, dataSources, getMergedOutputFilePath(GraphFileFormat.RDF_TURTLE));
-        } catch (MergerException e) {
-            if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to merge RDF data sources", e);
-        }
-    }
-
-    private String getMergedOutputFilePath(final GraphFileFormat format) {
-        return Paths.get(getSourcesDirectory(), "merged." + format.extension).toString();
-    }
-
-    private void mergeGraphMLDataSources() {
         try {
             new GraphMerger().merge(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GRAPH_ML));
-            new GraphMapper().map(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GRAPH_ML),
-                                  getMappedOutputFilePath(GraphFileFormat.GRAPH_ML));
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Merging of data sources finished");
         } catch (MergerException e) {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("Failed to merge GraphML data sources", e);
         }
+        new GraphMapper().map(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GRAPH_ML),
+                              getMappedOutputFilePath(GraphFileFormat.GRAPH_ML));
     }
 
+    @SuppressWarnings("SameParameterValue")
+    private String getMergedOutputFilePath(final GraphFileFormat format) {
+        return Paths.get(getSourcesDirectory(), "merged." + format.extension).toString();
+    }
+
+    @SuppressWarnings("SameParameterValue")
     private String getMappedOutputFilePath(final GraphFileFormat format) {
         return Paths.get(getSourcesDirectory(), "mapped." + format.extension).toString();
     }

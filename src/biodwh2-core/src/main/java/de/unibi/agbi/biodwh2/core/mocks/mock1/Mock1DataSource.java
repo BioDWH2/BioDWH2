@@ -21,11 +21,6 @@ public class Mock1DataSource extends DataSource {
     }
 
     @Override
-    public RDFExporter<Mock1DataSource> getRdfExporter() {
-        return new EmptyRDFExporter<>();
-    }
-
-    @Override
     public GraphExporter<Mock1DataSource> getGraphExporter() {
         return new Mock1GraphExporter();
     }

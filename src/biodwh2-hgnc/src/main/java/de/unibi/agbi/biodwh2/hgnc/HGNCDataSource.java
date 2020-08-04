@@ -26,11 +26,6 @@ public class HGNCDataSource extends DataSource {
     }
 
     @Override
-    public RDFExporter<HGNCDataSource> getRdfExporter() {
-        return new HGNCRDFExporter();
-    }
-
-    @Override
     public GraphExporter<HGNCDataSource> getGraphExporter() {
         return new HGNCGraphExporter();
     }

@@ -33,11 +33,6 @@ public class KeggDataSource extends DataSource {
     }
 
     @Override
-    protected RDFExporter<KeggDataSource> getRdfExporter() {
-        return new EmptyRDFExporter<>();
-    }
-
-    @Override
     protected GraphExporter<KeggDataSource> getGraphExporter() {
         return new KeggGraphExporter();
     }

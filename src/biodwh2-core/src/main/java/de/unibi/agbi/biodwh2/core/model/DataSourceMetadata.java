@@ -13,8 +13,7 @@ public final class DataSourceMetadata {
     public List<String> sourceFileNames;
     public Boolean updateSuccessful;
     public Boolean parseSuccessful;
-    public Boolean exportRDFSuccessful;
-    public Boolean exportGraphMLSuccessful;
+    public Boolean exportSuccessful;
     public Boolean mergeSuccessful;
 
     public DataSourceMetadata() {

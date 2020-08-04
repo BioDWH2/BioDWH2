@@ -21,11 +21,6 @@ public class DrugCentralDataSource extends DataSource {
     }
 
     @Override
-    public RDFExporter<DrugCentralDataSource> getRdfExporter() {
-        return new EmptyRDFExporter<>();
-    }
-
-    @Override
     public GraphExporter<DrugCentralDataSource> getGraphExporter() {
         return new DrugCentralGraphExporter();
     }

@@ -11,10 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class GraphMerger extends Merger {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Merger.class);
+public class GraphMerger {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GraphMerger.class);
 
-    @Override
     public final boolean merge(final Workspace workspace, final List<DataSource> dataSources,
                                final String outputFilePath) throws MergerException {
         final Graph mergedGraph = new Graph(outputFilePath.replace(GraphMLGraphWriter.EXTENSION, Graph.EXTENSION));
