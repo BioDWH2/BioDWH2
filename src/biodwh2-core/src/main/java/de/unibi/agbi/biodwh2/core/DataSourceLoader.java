@@ -13,8 +13,8 @@ public final class DataSourceLoader {
 
     public DataSourceLoader() {
         dataSources = new ArrayList<>();
-        final List<Class<DataSource>> availableDataSourceClasses = Factory.getInstance().getImplementations(DataSource.class);
-        for (final Class<DataSource> dataSourceClass : availableDataSourceClasses) {
+        final List<Class<DataSource>> allDataSourceClasses = Factory.getInstance().getImplementations(DataSource.class);
+        for (final Class<DataSource> dataSourceClass : allDataSourceClasses) {
             final DataSource dataSource = tryInstantiateDataSource(dataSourceClass);
             if (dataSource != null)
                 dataSources.add(dataSource);
@@ -33,5 +33,9 @@ public final class DataSourceLoader {
 
     public DataSource[] getDataSources() {
         return dataSources.toArray(new DataSource[0]);
+    }
+
+    public String[] getDataSourceIds() {
+        return dataSources.stream().map(DataSource::getId).toArray(String[]::new);
     }
 }

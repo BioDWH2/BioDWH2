@@ -33,30 +33,35 @@ public final class Workspace {
     private final Configuration configuration;
     private final List<DataSource> dataSources;
 
-    public Workspace(final String workingDirectory) throws IOException {
+    public Workspace(final String workingDirectory) {
         this.workingDirectory = workingDirectory;
         createWorkingDirectoryIfNotExists();
         configuration = createOrLoadConfiguration();
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Using data sources " + configuration.dataSourceIds);
-        }
         dataSources = resolveUsedDataSources();
     }
 
-    private void createWorkingDirectoryIfNotExists() throws IOException {
+    private void createWorkingDirectoryIfNotExists() {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Using workspace directory '" + workingDirectory + "'");
-        Files.createDirectories(Paths.get(workingDirectory));
-        Files.createDirectories(Paths.get(getSourcesDirectory()));
+        try {
+            Files.createDirectories(Paths.get(workingDirectory));
+            Files.createDirectories(Paths.get(getSourcesDirectory()));
+        } catch (IOException e) {
+            throw new WorkspaceException("Failed to create workspace directories", e);
+        }
     }
 
     String getSourcesDirectory() {
         return Paths.get(workingDirectory, SOURCES_DIRECTORY_NAME).toString();
     }
 
-    private Configuration createOrLoadConfiguration() throws IOException {
-        Configuration configuration = loadConfiguration();
-        return configuration == null ? createConfiguration() : configuration;
+    private Configuration createOrLoadConfiguration() {
+        try {
+            Configuration configuration = loadConfiguration();
+            return configuration == null ? createConfiguration() : configuration;
+        } catch (IOException e) {
+            throw new WorkspaceException("Failed to load or create workspace configuration", e);
+        }
     }
 
     private Configuration loadConfiguration() throws IOException {
@@ -78,6 +83,8 @@ public final class Workspace {
     }
 
     private List<DataSource> resolveUsedDataSources() {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Using data sources " + StringUtils.join(configuration.dataSourceIds, ", "));
         final List<DataSource> dataSources = new ArrayList<>();
         final DataSourceLoader loader = new DataSourceLoader();
         for (final DataSource dataSource : loader.getDataSources())

@@ -1,68 +1,72 @@
 package de.unibi.agbi.biodwh2;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DataSourceLoader;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class BioDWH2 {
-    private static final Logger logger = LoggerFactory.getLogger(BioDWH2.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BioDWH2.class);
 
-    public static void main(final String[] args) throws Exception {
-        CmdArgs commandLine = parseCommandLine(args);
+    private BioDWH2() {
+    }
+
+    public static void main(final String... args) {
+        final CmdArgs commandLine = parseCommandLine(args);
+        new BioDWH2().run(commandLine);
+    }
+
+    private static CmdArgs parseCommandLine(final String... args) {
+        final CmdArgs result = new CmdArgs();
+        final CommandLine cmd = new CommandLine(result);
+        cmd.parseArgs(args);
+        return result;
+    }
+
+    private void run(final CmdArgs commandLine) {
         if (commandLine.listDataSources)
-            listDataSources(commandLine);
+            listDataSources();
         else if (commandLine.create != null)
             createWorkspace(commandLine);
         else if (commandLine.status != null)
             checkWorkspaceState(commandLine);
         else if (commandLine.update != null)
-            updateWorkspace(commandLine);
+            updateWorkspace(commandLine.update, commandLine.skipUpdate);
         else
             printHelp(commandLine);
     }
 
-    private static CmdArgs parseCommandLine(String[] args) {
-        CmdArgs result = new CmdArgs();
-        CommandLine cmd = new CommandLine(result);
-        cmd.parseArgs(args);
-        return result;
+    private void listDataSources() {
+        if (LOGGER.isInfoEnabled()) {
+            final DataSourceLoader loader = new DataSourceLoader();
+            LOGGER.info("Available data source IDs: " + StringUtils.join(loader.getDataSourceIds(), ", "));
+        }
     }
 
-    private static void listDataSources(final CmdArgs commandLine) throws Exception {
-        DataSourceLoader loader = new DataSourceLoader();
-        String dataSourceIds = Arrays.stream(loader.getDataSources()).map(DataSource::getId).collect(
-                Collectors.joining(", "));
-        logger.info("Available data source IDs: " + dataSourceIds);
-    }
-
-    private static void createWorkspace(final CmdArgs commandLine) throws Exception {
-        String workspacePath = commandLine.create;
+    private void createWorkspace(final CmdArgs commandLine) {
+        final String workspacePath = commandLine.create;
         new Workspace(workspacePath);
     }
 
-    private static void checkWorkspaceState(final CmdArgs commandLine) throws Exception {
-        String workspacePath = commandLine.status;
-        Workspace workspace = new Workspace(workspacePath);
+    private void checkWorkspaceState(final CmdArgs commandLine) {
+        final String workspacePath = commandLine.status;
+        final Workspace workspace = new Workspace(workspacePath);
         workspace.checkState(commandLine.verbose);
     }
 
-    private static void updateWorkspace(final CmdArgs commandLine) throws Exception {
-        List<String> optionArguments = commandLine.update;
-        String workspacePath = optionArguments.get(0);
-        String dataSourceId = optionArguments.size() > 1 ? optionArguments.get(1) : null;
-        String version = optionArguments.size() > 2 ? optionArguments.get(2) : null;
-        Workspace workspace = new Workspace(workspacePath);
-        workspace.processDataSources(dataSourceId, version, commandLine.skipUpdate);
+    private void updateWorkspace(final List<String> updateParameters, final boolean skipUpdate) {
+        final String workspacePath = updateParameters.get(0);
+        final String dataSourceId = updateParameters.size() > 1 ? updateParameters.get(1) : null;
+        final String version = updateParameters.size() > 2 ? updateParameters.get(2) : null;
+        final Workspace workspace = new Workspace(workspacePath);
+        workspace.processDataSources(dataSourceId, version, skipUpdate);
     }
 
-    private static void printHelp(final CmdArgs commandLine) {
+    private void printHelp(final CmdArgs commandLine) {
         CommandLine.usage(commandLine, System.out);
     }
 }

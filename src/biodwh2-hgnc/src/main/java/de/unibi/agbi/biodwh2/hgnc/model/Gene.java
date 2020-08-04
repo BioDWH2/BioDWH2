@@ -7,7 +7,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
 @SuppressWarnings({"unused", "SpellCheckingInspection"})
-@JsonPropertyOrder(value = {
+@JsonPropertyOrder({
         "hgnc_id", "symbol", "name", "locus_group", "locus_type", "status", "location", "location_sortable",
         "alias_symbol", "alias_name", "prev_symbol", "prev_name", "gene_family", "gene_family_id",
         "date_approved_reserved", "date_symbol_changed", "date_name_changed", "date_modified", "entrez_id",

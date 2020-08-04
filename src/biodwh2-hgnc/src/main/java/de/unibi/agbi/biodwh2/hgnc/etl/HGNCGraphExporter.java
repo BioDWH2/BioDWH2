@@ -9,7 +9,7 @@ import de.unibi.agbi.biodwh2.hgnc.model.Gene;
 public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
     @Override
     protected boolean exportGraph(final Workspace workspace, final HGNCDataSource dataSource, final Graph graph) {
-        for (Gene gene : dataSource.genes)
+        for (final Gene gene : dataSource.genes)
             createNodeFromModel(graph, gene);
         return true;
     }

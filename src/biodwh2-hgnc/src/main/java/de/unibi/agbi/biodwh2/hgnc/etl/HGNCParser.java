@@ -12,7 +12,7 @@ public class HGNCParser extends SingleFileCsvParser<HGNCDataSource, Gene> {
     }
 
     @Override
-    protected void storeResults(HGNCDataSource dataSource, List<Gene> results) {
+    protected void storeResults(final HGNCDataSource dataSource, final List<Gene> results) {
         dataSource.genes = results;
     }
 }
