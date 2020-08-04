@@ -23,16 +23,16 @@ class ClassMapping {
 
     ClassMapping(final Class<?> type) {
         label = type.getAnnotation(NodeLabel.class).value();
+        fields = loadClassMappingFields(type);
+        arrayFields = loadClassMappingArrayFields(type);
+    }
+
+    private ClassMappingField[] loadClassMappingFields(final Class<?> type) {
         final List<ClassMappingField> fieldsList = new ArrayList<>();
-        final List<ClassMappingField> arrayFieldsList = new ArrayList<>();
-        for (final Field field : type.getDeclaredFields()) {
+        for (final Field field : type.getDeclaredFields())
             if (field.isAnnotationPresent(GraphProperty.class))
                 fieldsList.add(loadClassMappingField(field));
-            if (field.isAnnotationPresent(GraphArrayProperty.class))
-                arrayFieldsList.add(loadArrayClassMappingField(field));
-        }
-        fields = fieldsList.toArray(new ClassMappingField[0]);
-        arrayFields = arrayFieldsList.toArray(new ClassMappingField[0]);
+        return fieldsList.toArray(new ClassMappingField[0]);
     }
 
     private ClassMappingField loadClassMappingField(final Field field) {
@@ -41,7 +41,15 @@ class ClassMapping {
         return new ClassMappingField(field, annotation.value(), null);
     }
 
-    private ClassMappingField loadArrayClassMappingField(final Field field) {
+    private ClassMappingField[] loadClassMappingArrayFields(final Class<?> type) {
+        final List<ClassMappingField> fieldsList = new ArrayList<>();
+        for (final Field field : type.getDeclaredFields())
+            if (field.isAnnotationPresent(GraphArrayProperty.class))
+                fieldsList.add(loadClassMappingArrayField(field));
+        return fieldsList.toArray(new ClassMappingField[0]);
+    }
+
+    private ClassMappingField loadClassMappingArrayField(final Field field) {
         field.setAccessible(true);
         final GraphArrayProperty annotation = field.getAnnotation(GraphArrayProperty.class);
         return new ClassMappingField(field, annotation.value(), annotation.arrayDelimiter());

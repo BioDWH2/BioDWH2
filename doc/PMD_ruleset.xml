@@ -13,6 +13,8 @@
         <exclude name="IfElseStmtsMustUseBraces"/>
         <exclude name="CommentDefaultAccessModifier"/>
         <exclude name="ControlStatementBraces"/>
+        <exclude name="DefaultPackage"/>
+        <exclude name="OnlyOneReturn"/>
     </rule>
     <rule ref="category/java/design.xml/ExcessiveMethodLength">
         <properties>

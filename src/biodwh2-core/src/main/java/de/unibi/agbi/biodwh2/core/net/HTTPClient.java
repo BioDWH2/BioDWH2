@@ -65,15 +65,20 @@ public final class HTTPClient {
     public static InputStream getUrlInputStream(final String url, final String username,
                                                 final String password) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) new URL(url).openConnection();
-        final String credentials = username + ":" + password;
-        final String basicAuth = "Basic " + Base64.encodeBase64String(credentials.getBytes(StandardCharsets.UTF_8))
-                                                  .trim();
-        urlConnection.setRequestProperty("Authorization", basicAuth);
+        urlConnection.setRequestProperty("Authorization", getBasicAuthForCredentials(username, password));
         urlConnection.setInstanceFollowRedirects(false);
         urlConnection.connect();
-        final String target = urlConnection.getHeaderField("location");
-        if (target != null)
-            urlConnection = (HttpURLConnection) new URL(target).openConnection();
+        urlConnection = redirectURLConnectionIfNecessary(urlConnection);
         return urlConnection.getInputStream();
+    }
+
+    private static String getBasicAuthForCredentials(final String username, final String password) {
+        final String credentials = username + ":" + password;
+        return "Basic " + Base64.encodeBase64String(credentials.getBytes(StandardCharsets.UTF_8)).trim();
+    }
+
+    private static HttpURLConnection redirectURLConnectionIfNecessary(HttpURLConnection connection) throws IOException {
+        final String target = connection.getHeaderField("location");
+        return target == null ? connection : (HttpURLConnection) new URL(target).openConnection();
     }
 }

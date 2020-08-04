@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
+import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,9 +99,7 @@ public abstract class DataSource {
         } catch (UpdaterOnlyManuallyException e) {
             logUpdaterOnlyManuallyException();
         } catch (UpdaterException e) {
-            if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to update data source '" + getId() + "'", e);
-            metadata.updateSuccessful = false;
+            handleUpdateAutomaticFailed(e);
         }
         return state;
     }
@@ -111,6 +110,12 @@ public abstract class DataSource {
                          getId() + " and use the command line parameter -u or --update with the parameters " +
                          "<workspacePath> \"" + getId() + "\" <version>.\n" +
                          "Help: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
+    }
+
+    private void handleUpdateAutomaticFailed(UpdaterException e) {
+        if (LOGGER.isErrorEnabled())
+            LOGGER.error("Failed to update data source '" + getId() + "'", e);
+        metadata.updateSuccessful = false;
     }
 
     final Updater.UpdateState updateManually(final Workspace workspace, final String version) {
@@ -192,5 +197,21 @@ public abstract class DataSource {
                 LOGGER.error("Failed to list files of data source '" + getId() + "'", e);
         }
         return new String[0];
+    }
+
+    public final boolean isUpToDate() {
+        final Version workspaceVersion = getMetadata().version;
+        final Version newestVersion = getNewestVersion();
+        return workspaceVersion != null && newestVersion != null && newestVersion.compareTo(workspaceVersion) == 0;
+    }
+
+    public final Version getNewestVersion() {
+        try {
+            return getUpdater().getNewestVersion();
+        } catch (UpdaterException e) {
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to get newest version for data source '" + getId() + "'");
+            return null;
+        }
     }
 }

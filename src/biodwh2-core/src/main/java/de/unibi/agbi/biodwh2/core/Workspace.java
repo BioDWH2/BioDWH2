@@ -12,6 +12,7 @@ import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
 import de.unibi.agbi.biodwh2.core.text.TableFormatter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public final class Workspace {
     private static final Logger LOGGER = LoggerFactory.getLogger(Workspace.class);
@@ -57,13 +59,25 @@ public final class Workspace {
     }
 
     private Configuration createOrLoadConfiguration() throws IOException {
+        Configuration configuration = loadConfiguration();
+        return configuration == null ? createConfiguration() : configuration;
+    }
+
+    private Configuration loadConfiguration() throws IOException {
         final ObjectMapper objectMapper = new ObjectMapper();
-        final Path path = Paths.get(workingDirectory, CONFIG_FILE_NAME);
-        if (Files.exists(path))
-            return objectMapper.readValue(path.toFile(), Configuration.class);
+        final Path path = getConfigurationFilePath();
+        return Files.exists(path) ? objectMapper.readValue(path.toFile(), Configuration.class) : null;
+    }
+
+    private Path getConfigurationFilePath() {
+        return Paths.get(workingDirectory, CONFIG_FILE_NAME);
+    }
+
+    private Configuration createConfiguration() throws IOException {
+        final ObjectMapper objectMapper = new ObjectMapper();
         final Configuration configuration = new Configuration();
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        objectMapper.writeValue(path.toFile(), configuration);
+        objectMapper.writeValue(getConfigurationFilePath().toFile(), configuration);
         return configuration;
     }
 
@@ -86,75 +100,56 @@ public final class Workspace {
 
     public void checkState(final boolean verbose) {
         if (prepareDataSources() && LOGGER.isInfoEnabled()) {
-            final Map<String, Boolean> sourcesUpToDate = createSourcesUpToDate();
-            final int countUpToDate = Collections.frequency(sourcesUpToDate.values(), true);
-            final ArrayList<String> notUpToDate = new ArrayList<>();
-            for (final String file : sourcesUpToDate.keySet())
-                if (!sourcesUpToDate.get(file))
-                    notUpToDate.add(file);
-            final String loggerInfo = (countUpToDate == dataSources.size()) ? "all source data are up-to-date." :
-                                      countUpToDate + "/" + dataSources.size() + " source data are up-to-date.";
-            final String state = createStateTable(sourcesUpToDate, verbose);
-            LOGGER.info(state);
-            LOGGER.info(loggerInfo);
-            LOGGER.info("Data sources to be updated: " + notUpToDate);
+            LOGGER.info(createStateTable(verbose));
+            final List<String> notUpToDate = dataSources.stream().filter(d -> !d.isUpToDate()).map(DataSource::getId)
+                                                        .collect(Collectors.toList());
+            final int countUpToDate = dataSources.size() - notUpToDate.size();
+            LOGGER.info((countUpToDate == dataSources.size()) ? "All data sources are up-to-date." :
+                        countUpToDate + "/" + dataSources.size() + " data sources are up-to-date.");
+            LOGGER.info("Data sources to be updated: " + StringUtils.join(notUpToDate, ", "));
         }
     }
 
-    private Map<String, Boolean> createSourcesUpToDate() {
-        final Map<String, Boolean> sourcesUpToDate = new HashMap<>();
-        for (final DataSource dataSource : dataSources) {
-            final Version workspaceVersion = dataSource.getMetadata().version;
-            final Version newestVersion = getLatestVersion(dataSource);
-            final boolean isUpToDate = workspaceVersion != null && newestVersion != null && newestVersion.compareTo(
-                    workspaceVersion) == 0;
-            sourcesUpToDate.put(dataSource.getId(), isUpToDate);
-        }
-        return sourcesUpToDate;
-    }
-
-    private Version getLatestVersion(final DataSource dataSource) {
-        try {
-            return dataSource.getUpdater().getNewestVersion();
-        } catch (UpdaterException e) {
-            if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to get newest version for data source '" + dataSource.getId() + "'");
-            return null;
-        }
-    }
-
-    private String createStateTable(final Map<String, Boolean> sourcesUpToDate, final boolean verbose) {
+    private String createStateTable(final boolean verbose) {
         final List<String> headers = new ArrayList<>();
         Collections.addAll(headers, "SourceID", "Version is up-to-date", "Version", "new Version",
                            "Time of latest update");
         if (verbose)
             headers.add("Files");
         final List<List<String>> rows = new ArrayList<>();
-        for (final DataSource dataSource : dataSources) {
-            final List<String> row = new ArrayList<>();
-            rows.add(row);
-            final DataSourceMetadata metadata = dataSource.getMetadata();
-            final Version latestVersion = getLatestVersion(dataSource);
-            Collections.addAll(row, dataSource.getId(), sourcesUpToDate.get(dataSource.getId()).toString(),
-                               metadata.version.toString(), latestVersion == null ? null : latestVersion.toString(),
-                               metadata.getLocalUpdateDateTime().toString());
-            if (verbose)
-                row.add(String.join(", ", metadata.sourceFileNames));
-        }
+        for (final DataSource dataSource : dataSources)
+            rows.add(createDataSourceStateRow(dataSource, verbose));
         return new TableFormatter().format(headers, rows);
     }
 
+    private List<String> createDataSourceStateRow(final DataSource dataSource, final boolean verbose) {
+        final List<String> row = new ArrayList<>();
+        final DataSourceMetadata metadata = dataSource.getMetadata();
+        final Version latestVersion = dataSource.getNewestVersion();
+        Collections.addAll(row, dataSource.getId(), String.valueOf(dataSource.isUpToDate()),
+                           metadata.version.toString(), latestVersion == null ? null : latestVersion.toString(),
+                           metadata.getLocalUpdateDateTime().toString());
+        if (verbose)
+            row.add(StringUtils.join(metadata.sourceFileNames, ", "));
+        return row;
+    }
+
     private boolean prepareDataSources() {
-        for (final DataSource dataSource : dataSources) {
-            try {
-                dataSource.prepare(this);
-            } catch (DataSourceException e) {
-                if (LOGGER.isErrorEnabled())
-                    LOGGER.error("Failed to prepare data source '" + dataSource.getId() + "'", e);
-                return false;
-            }
-        }
+        boolean success = true;
+        for (final DataSource dataSource : dataSources)
+            success = success && prepareDataSource(dataSource);
         return true;
+    }
+
+    private boolean prepareDataSource(final DataSource dataSource) {
+        try {
+            dataSource.prepare(this);
+            return true;
+        } catch (DataSourceException e) {
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to prepare data source '" + dataSource.getId() + "'", e);
+            return false;
+        }
     }
 
     public void processDataSources(final String dataSourceId, final String version, final boolean skipUpdate) {

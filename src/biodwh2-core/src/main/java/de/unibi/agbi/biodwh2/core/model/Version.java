@@ -96,7 +96,16 @@ public final class Version implements Comparable<Version> {
 
     public static Version parse(final String input) {
         Objects.requireNonNull(input, "input must not be null");
-        final int[] components = parseInputComponentsAsNumbers(input);
+        final int[] components = convertStringToIntegerComponents(input);
+        return parse(components);
+    }
+
+    private static int[] convertStringToIntegerComponents(final String input) {
+        final String[] versionStringParts = input.split(Pattern.quote(SEPARATOR));
+        return Arrays.stream(versionStringParts).mapToInt(Integer::parseInt).toArray();
+    }
+
+    private static Version parse(final int[] components) {
         switch (components.length) {
             case 2:
                 return new Version(components[0], components[1]);
@@ -107,10 +116,5 @@ public final class Version implements Comparable<Version> {
             default:
                 throw new NumberFormatException("version string requires at least two and at most four parts");
         }
-    }
-
-    private static int[] parseInputComponentsAsNumbers(final String input) {
-        final String[] versionStringParts = input.split(Pattern.quote(SEPARATOR));
-        return Arrays.stream(versionStringParts).mapToInt(Integer::parseInt).toArray();
     }
 }
