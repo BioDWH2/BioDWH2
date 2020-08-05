@@ -20,6 +20,10 @@ import java.util.zip.GZIPInputStream;
 public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
     private static final String DownloadPageUrl = "http://drugcentral.org/ActiveDownload";
 
+    public DrugCentralUpdater(DrugCentralDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
     public Version getNewestVersion() throws UpdaterException {
         try {
@@ -46,7 +50,7 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, DrugCentralDataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
         final String dumpFilePath = dataSource.resolveSourceFilePath(workspace, "rawDrugCentral.sql.gz");
         downloadDrugCentralDatabase(dumpFilePath);
         removeOldExtractedTsvFiles(workspace, dataSource);

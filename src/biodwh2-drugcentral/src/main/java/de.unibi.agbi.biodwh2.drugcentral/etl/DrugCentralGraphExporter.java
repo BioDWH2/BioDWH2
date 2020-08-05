@@ -18,11 +18,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSource> {
-    private static final Logger logger = LoggerFactory.getLogger(DrugCentralGraphExporter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrugCentralGraphExporter.class);
+
+    public DrugCentralGraphExporter(final DrugCentralDataSource dataSource) {
+        super(dataSource);
+    }
 
     @Override
-    protected boolean exportGraph(final Workspace workspace, final DrugCentralDataSource dataSource,
-                                  final Graph g) throws ExporterException {
+    protected boolean exportGraph(final Workspace workspace, final Graph g) throws ExporterException {
         g.setNodeIndexPropertyKeys("id", "code", "doid", "ndc_product_code", "cd_id", "type", "stem", "name");
         // "ddi_risk.tsv", "approval_type.tsv", "target_class.tsv", "ref_type.tsv", "protein_type.tsv", "id_type.tsv"
         // are ignored because no necessary additional info is included
@@ -192,7 +195,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     private <T> Iterable<T> parseTsvFile(final Workspace workspace, final DrugCentralDataSource dataSource,
                                          final Class<T> typeVariableClass,
                                          final String fileName) throws ExporterException {
-        logger.info("Exporting " + fileName + "...");
+        LOGGER.info("Exporting " + fileName + "...");
         try {
             MappingIterator<T> iterator = FileUtils.openTsvWithHeader(workspace, dataSource, fileName,
                                                                       typeVariableClass);

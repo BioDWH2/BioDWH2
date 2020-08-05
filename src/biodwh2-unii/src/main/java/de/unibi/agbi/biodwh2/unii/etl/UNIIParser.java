@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.unii.etl;
 
-import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
@@ -17,8 +16,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class UNIIParser extends Parser<UNIIDataSource> {
+    public UNIIParser(UNIIDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    public boolean parse(Workspace workspace, UNIIDataSource dataSource) throws ParserException {
+    public boolean parse(Workspace workspace) throws ParserException {
         parseNamesFile(workspace, dataSource);
         parseDataFile(workspace, dataSource);
         return true;

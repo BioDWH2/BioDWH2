@@ -28,12 +28,15 @@ import java.util.Map;
 import java.util.Set;
 
 public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
-    private static final Logger logger = LoggerFactory.getLogger(NCBIGraphExporter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NCBIGraphExporter.class);
     private Map<Long, Long> geneIdNodeIdMap;
 
+    public NCBIGraphExporter(final NCBIDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    protected boolean exportGraph(final Workspace workspace, final NCBIDataSource dataSource,
-                                  final Graph graph) throws ExporterException {
+    protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.setNodeIndexPropertyKeys("id");
         geneIdNodeIdMap = new HashMap<>();
         try {
@@ -51,7 +54,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
 
     private void exportGeneDatabase(final Workspace workspace, final DataSource dataSource,
                                     final Graph graph) throws IOException {
-        logger.info("Exporting gene_info.gz...");
+        LOGGER.info("Exporting gene_info.gz...");
         MappingIterator<GeneInfo> geneInfos = FileUtils.openGzipTsv(workspace, dataSource, "gene_info.gz",
                                                                     GeneInfo.class);
         while (geneInfos.hasNext()) {
@@ -74,7 +77,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             geneIdNodeIdMap.put(geneId, geneNode.getId());
             graph.update(geneNode);
         }
-        logger.info("Exporting gene2accession.gz...");
+        LOGGER.info("Exporting gene2accession.gz...");
         MappingIterator<GeneAccession> accessions = FileUtils.openGzipTsv(workspace, dataSource, "gene2accession.gz",
                                                                           GeneAccession.class);
         while (accessions.hasNext()) {
@@ -85,7 +88,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             Node accessionNode = createAccessionNode(graph, accession);
             graph.addEdge(geneIdNodeIdMap.get(geneId), accessionNode, "HAS_ACCESSION");
         }
-        logger.info("Exporting gene2go.gz...");
+        LOGGER.info("Exporting gene2go.gz...");
         MappingIterator<GeneGo> goAnnotations = FileUtils.openGzipTsv(workspace, dataSource, "gene2go.gz",
                                                                       GeneGo.class);
         while (goAnnotations.hasNext()) {
@@ -107,7 +110,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             setArrayPropertyIfNotDash(edge, "pubmed_ids", go.pubMedIds);
             graph.update(edge);
         }
-        logger.info("Exporting gene_group.gz...");
+        LOGGER.info("Exporting gene_group.gz...");
         MappingIterator<GeneRelationship> groups = FileUtils.openGzipTsv(workspace, dataSource, "gene_group.gz",
                                                                          GeneRelationship.class);
         while (groups.hasNext()) {
@@ -120,7 +123,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             edge.setProperty("type", group.relationship);
             graph.update(edge);
         }
-        logger.info("Exporting gene_orthologs.gz...");
+        LOGGER.info("Exporting gene_orthologs.gz...");
         MappingIterator<GeneRelationship> orthologs = FileUtils.openGzipTsv(workspace, dataSource, "gene_orthologs.gz",
                                                                             GeneRelationship.class);
         while (orthologs.hasNext()) {
@@ -133,7 +136,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             edge.setProperty("type", ortholog.relationship);
             graph.update(edge);
         }
-        logger.info("Exporting gene2pubmed.gz...");
+        LOGGER.info("Exporting gene2pubmed.gz...");
         MappingIterator<String[]> genePubMed = FileUtils.openGzipTsv(workspace, dataSource, "gene2pubmed.gz",
                                                                      String[].class);
         long lastGeneId = -1;

@@ -6,25 +6,20 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
 
-@SuppressWarnings("WeakerAccess")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Configuration {
     public int version;
     public String creationDateTime;
-    public List<String> dataSourceIds;
-    public boolean splitIntoSubGraphs;
+    public String[] dataSourceIds;
     public Map<String, Map<String, String>> dataSourceProperties;
 
     public Configuration() {
         version = Workspace.VERSION;
         creationDateTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        dataSourceIds = new ArrayList<>();
-        splitIntoSubGraphs = false;
+        dataSourceIds = new String[0];
         dataSourceProperties = new HashMap<>();
     }
 

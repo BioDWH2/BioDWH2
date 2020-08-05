@@ -22,20 +22,22 @@ public final class GraphMapper {
     private static final String MAPPED_TO_EDGE_LABEL = "MAPPED_TO";
     private static final String IDS_NODE_PROPERTY = "ids";
 
-    public void map(final Workspace workspace, final List<DataSource> dataSources, final String inputGraphFilePath,
+    public void map(final Workspace workspace, final DataSource[] dataSources, final String inputGraphFilePath,
                     final String outputGraphFilePath) {
         copyGraph(inputGraphFilePath, outputGraphFilePath);
-        final Graph graph = new Graph(outputGraphFilePath.replace(GraphMLGraphWriter.EXTENSION, Graph.EXTENSION), true);
+        final Graph graph = new Graph(outputGraphFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION),
+                                      true);
         mapGraph(graph, dataSources);
         saveGraph(graph, outputGraphFilePath);
         saveGraphSchema(graph,
-                        outputGraphFilePath.replace(GraphMLGraphWriter.EXTENSION, GraphQLSchemaWriter.EXTENSION));
+                        outputGraphFilePath.replace(GraphFileFormat.GRAPH_ML.extension, GraphQLSchemaWriter.EXTENSION));
         graph.dispose();
     }
 
     private void copyGraph(final String inputGraphFilePath, final String outputGraphFilePath) {
-        final Path originalPath = Paths.get(inputGraphFilePath.replace(GraphMLGraphWriter.EXTENSION, Graph.EXTENSION));
-        final Path copied = Paths.get(outputGraphFilePath.replace(GraphMLGraphWriter.EXTENSION, Graph.EXTENSION));
+        final Path originalPath = Paths.get(
+                inputGraphFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION));
+        final Path copied = Paths.get(outputGraphFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION));
         try {
             Files.copy(originalPath, copied, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
@@ -44,7 +46,7 @@ public final class GraphMapper {
         }
     }
 
-    private void mapGraph(final Graph graph, final List<DataSource> dataSources) {
+    private void mapGraph(final Graph graph, final DataSource[] dataSources) {
         final Map<String, MappingDescriber> dataSourceDescriberMap = new HashMap<>();
         for (final DataSource dataSource : dataSources)
             dataSourceDescriberMap.put(dataSource.getId(), dataSource.getMappingDescriber());

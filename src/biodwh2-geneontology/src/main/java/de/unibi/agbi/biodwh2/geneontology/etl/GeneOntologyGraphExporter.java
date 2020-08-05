@@ -13,9 +13,12 @@ import de.unibi.agbi.biodwh2.geneontology.GeneOntologyDataSource;
 import java.io.IOException;
 
 public class GeneOntologyGraphExporter extends GraphExporter<GeneOntologyDataSource> {
+    public GeneOntologyGraphExporter(final GeneOntologyDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    protected boolean exportGraph(final Workspace workspace, final GeneOntologyDataSource dataSource,
-                                  final Graph graph) throws ExporterException {
+    protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.setNodeIndexPropertyKeys("id");
         try {
             OboReader reader = new OboReader(dataSource.resolveSourceFilePath(workspace, "go.obo"), "UTF-8");

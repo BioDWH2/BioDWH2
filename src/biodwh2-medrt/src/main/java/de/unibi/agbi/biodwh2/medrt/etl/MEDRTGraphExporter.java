@@ -2,7 +2,6 @@ package de.unibi.agbi.biodwh2.medrt.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -12,14 +11,17 @@ import de.unibi.agbi.biodwh2.medrt.model.*;
 import java.util.Locale;
 
 public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
+    public MEDRTGraphExporter(final MEDRTDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    protected boolean exportGraph(final Workspace workspace, final MEDRTDataSource dataSource,
-                                  final Graph g) throws ExporterException {
+    protected boolean exportGraph(final Workspace workspace, final Graph g) {
         addTerminology(g, dataSource.terminology);
         return true;
     }
 
-    private void addTerminology(Graph g, Terminology terminology) throws ExporterException {
+    private void addTerminology(Graph g, Terminology terminology) {
         Node node = createNode(g, "Terminology");
         addTerminologyNamespace(g, node, terminology.namespace);
         addReferencedNamespaces(g, node, terminology);
@@ -28,20 +30,19 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
         addAssociations(g, node, terminology);
     }
 
-    private void addTerminologyNamespace(Graph g, Node terminologyNode, Namespace namespace) throws ExporterException {
+    private void addTerminologyNamespace(Graph g, Node terminologyNode, Namespace namespace) {
         Node node = createNodeFromModel(g, namespace);
         g.addEdge(terminologyNode, node, "IN_NAMESPACE");
     }
 
-    private void addReferencedNamespaces(Graph g, Node terminologyNode,
-                                         Terminology terminology) throws ExporterException {
+    private void addReferencedNamespaces(Graph g, Node terminologyNode, Terminology terminology) {
         for (Namespace namespace : terminology.referencedNamespaces) {
             Node node = createNodeFromModel(g, namespace);
             g.addEdge(terminologyNode, node, "REFERENCES_NAMESPACE");
         }
     }
 
-    private void addTerms(Graph g, Node terminologyNode, Terminology terminology) throws ExporterException {
+    private void addTerms(Graph g, Node terminologyNode, Terminology terminology) {
         for (Term term : terminology.terms) {
             Node termNode = createNodeFromModel(g, term);
             g.addEdge(termNode, terminologyNode, "IN_TERMINOLOGY");
@@ -49,7 +50,7 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
         }
     }
 
-    private void addConcepts(Graph g, Node terminologyNode, Terminology terminology) throws ExporterException {
+    private void addConcepts(Graph g, Node terminologyNode, Terminology terminology) {
         for (Concept concept : terminology.concepts) {
             Node conceptNode = createNodeFromModel(g, concept);
             addConceptProperties(g, concept, conceptNode);
@@ -59,8 +60,7 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
         }
     }
 
-    private void addConceptProperties(final Graph g, final Concept concept,
-                                      final Node conceptNode) throws ExporterException {
+    private void addConceptProperties(final Graph g, final Concept concept, final Node conceptNode) {
         for (Property property : concept.properties) {
             Node propertyNode = createNodeFromModel(g, property);
             g.addEdge(conceptNode, propertyNode, "HAS_PROPERTY");
@@ -68,8 +68,7 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
         }
     }
 
-    private void addConceptSynonyms(final Graph g, final Concept concept,
-                                    final Node conceptNode) throws ExporterException {
+    private void addConceptSynonyms(final Graph g, final Concept concept, final Node conceptNode) {
         for (Synonym synonym : concept.synonyms) {
             Node termNode = g.findNode("Term", "name", synonym.toName);
             Edge e = g.addEdge(conceptNode, termNode, "HAS_SYNONYM");
@@ -79,7 +78,7 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
         }
     }
 
-    private void addAssociations(Graph g, Node terminologyNode, Terminology terminology) throws ExporterException {
+    private void addAssociations(Graph g, Node terminologyNode, Terminology terminology) {
         for (Association association : terminology.associations) {
             Node associationNode = createNodeFromModel(g, association);
             associationNode.setProperty(association.qualifier.name.toLowerCase(Locale.US), association.qualifier.value);
@@ -91,7 +90,7 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     }
 
     private void connectAssociationToConcepts(final Graph g, final Association association,
-                                              final Node associationNode) throws ExporterException {
+                                              final Node associationNode) {
         if (association.fromNamespace.equals("MED-RT")) {
             Node fromNode = g.findNode("Concept", "code", association.fromCode);
             if (fromNode != null)

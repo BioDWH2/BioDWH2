@@ -22,6 +22,10 @@ public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
             "clinicalVariants.zip", "occurrences.zip", "automated_annotations.zip", "occurrences.zip"
     };
 
+    public PharmGKBUpdater(PharmGKBDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
     public Version getNewestVersion() throws UpdaterException {
         LocalDateTime stringDate = null;
@@ -48,8 +52,7 @@ public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
     }
 
     @Override
-    protected boolean tryUpdateFiles(final Workspace workspace,
-                                     final PharmGKBDataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         boolean success = true;
         for (String name : FileNames)
             success = success && downloadFile(name, workspace, dataSource);

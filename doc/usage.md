@@ -13,7 +13,6 @@ Now the ```config.json``` needs to be adjusted for BioDWH2 to know, which data s
   "version" : 1,
   "creationDateTime" : "2019-09-26T09:30:36.568",
   "dataSourceIds" : ["HGNC", "MED-RT", "DrugBank"],
-  "splitIntoSubGraphs": false,
   "dataSourceProperties": {
     "DrugBank": { "username": "test@example.com", "password": "..." }
   }

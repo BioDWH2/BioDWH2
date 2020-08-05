@@ -14,7 +14,8 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
     private final Map<String, String> idPrefixLabelMap = new HashMap<>();
     private final Map<String, Node> referenceLookup = new HashMap<>();
 
-    public KeggGraphExporter() {
+    public KeggGraphExporter(final KeggDataSource dataSource) {
+        super(dataSource);
         idPrefixLabelMap.put("CPD", "Compound");
         idPrefixLabelMap.put("DR", "Drug");
         idPrefixLabelMap.put("ED", "EnvFactor");
@@ -26,7 +27,7 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
     }
 
     @Override
-    protected boolean exportGraph(final Workspace workspace, final KeggDataSource dataSource, final Graph graph) {
+    protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         graph.setNodeIndexPropertyKeys("id", "pmid", "doi", "name");
         for (Drug drug : dataSource.drugs) {
             Node drugNode = createNodeForKeggEntry(graph, drug);

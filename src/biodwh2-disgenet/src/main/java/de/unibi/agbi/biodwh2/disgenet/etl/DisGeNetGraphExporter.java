@@ -7,9 +7,12 @@ import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.disgenet.DisGeNetDataSource;
 
 public class DisGeNetGraphExporter extends GraphExporter<DisGeNetDataSource> {
+    public DisGeNetGraphExporter(final DisGeNetDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    protected boolean exportGraph(final Workspace workspace, final DisGeNetDataSource dataSource,
-                                  final Graph graph) throws ExporterException {
+    protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         return true;
     }
 }

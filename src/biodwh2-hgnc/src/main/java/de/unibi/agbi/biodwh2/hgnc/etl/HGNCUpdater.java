@@ -4,6 +4,10 @@ import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPUpdater;
 import de.unibi.agbi.biodwh2.hgnc.HGNCDataSource;
 
 public class HGNCUpdater extends MultiFileFTPUpdater<HGNCDataSource> {
+    public HGNCUpdater(HGNCDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
     protected String getFTPAddress() {
         return "ftp.ebi.ac.uk";

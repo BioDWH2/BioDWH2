@@ -34,17 +34,17 @@ public class PharmGKBDataSource extends DataSource {
 
     @Override
     public Updater<PharmGKBDataSource> getUpdater() {
-        return new PharmGKBUpdater();
+        return new PharmGKBUpdater(this);
     }
 
     @Override
     public Parser<PharmGKBDataSource> getParser() {
-        return new PharmGKBParser();
+        return new PharmGKBParser(this);
     }
 
     @Override
     public GraphExporter<PharmGKBDataSource> getGraphExporter() {
-        return new PharmGKBGraphExporter();
+        return new PharmGKBGraphExporter(this);
     }
 
     @Override

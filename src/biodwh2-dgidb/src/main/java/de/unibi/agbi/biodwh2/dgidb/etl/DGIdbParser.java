@@ -14,8 +14,12 @@ import de.unibi.agbi.biodwh2.dgidb.model.Interaction;
 import java.io.IOException;
 
 public class DGIdbParser extends Parser<DGIdbDataSource> {
+    public DGIdbParser(final DGIdbDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    public boolean parse(Workspace workspace, DGIdbDataSource dataSource) throws ParserException {
+    public boolean parse(final Workspace workspace) throws ParserException {
         try {
             dataSource.drugs = FileUtils.openTsvWithHeader(workspace, dataSource, "drugs.tsv", Drug.class).readAll();
             dataSource.categories = FileUtils.openTsvWithHeader(workspace, dataSource, "categories.tsv", Category.class)

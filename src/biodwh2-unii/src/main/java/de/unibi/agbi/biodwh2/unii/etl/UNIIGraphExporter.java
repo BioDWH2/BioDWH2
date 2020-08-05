@@ -12,8 +12,12 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 
 public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
+    public UNIIGraphExporter(final UNIIDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    protected boolean exportGraph(final Workspace workspace, final UNIIDataSource dataSource, final Graph graph) {
+    protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         graph.setNodeIndexPropertyKeys("id");
         Map<String, List<UNIIEntry>> uniiEntriesMap = new HashMap<>();
         for (UNIIEntry entry : dataSource.uniiEntries) {

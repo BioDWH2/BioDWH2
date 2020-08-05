@@ -24,17 +24,17 @@ public class KeggDataSource extends DataSource {
 
     @Override
     public Updater<KeggDataSource> getUpdater() {
-        return new KeggUpdater();
+        return new KeggUpdater(this);
     }
 
     @Override
     protected Parser<KeggDataSource> getParser() {
-        return new KeggParser();
+        return new KeggParser(this);
     }
 
     @Override
     protected GraphExporter<KeggDataSource> getGraphExporter() {
-        return new KeggGraphExporter();
+        return new KeggGraphExporter(this);
     }
 
     @Override

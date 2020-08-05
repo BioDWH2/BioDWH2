@@ -14,18 +14,18 @@ public class GeneOntologyDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
-        return new GeneOntologyUpdater();
+    public Updater<GeneOntologyDataSource> getUpdater() {
+        return new GeneOntologyUpdater(this);
     }
 
     @Override
-    protected Parser getParser() {
-        return new GeneOntologyParser();
+    protected Parser<GeneOntologyDataSource> getParser() {
+        return new GeneOntologyParser(this);
     }
 
     @Override
-    protected GraphExporter getGraphExporter() {
-        return new GeneOntologyGraphExporter();
+    protected GraphExporter<GeneOntologyDataSource> getGraphExporter() {
+        return new GeneOntologyGraphExporter(this);
     }
 
     @Override

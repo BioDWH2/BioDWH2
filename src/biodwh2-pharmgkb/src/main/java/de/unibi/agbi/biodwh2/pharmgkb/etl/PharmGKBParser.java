@@ -17,8 +17,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class PharmGKBParser extends Parser<PharmGKBDataSource> {
+    public PharmGKBParser(final PharmGKBDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    public boolean parse(final Workspace workspace, final PharmGKBDataSource dataSource) throws ParserException {
+    public boolean parse(final Workspace workspace) throws ParserException {
         for (String filePath : dataSource.listSourceFiles(workspace))
             tryParseFile(workspace, dataSource, filePath);
         return true;

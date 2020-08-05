@@ -14,6 +14,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updater<D> {
+    public MultiFileFTPWebUpdater(D dataSource) {
+        super(dataSource);
+    }
+
     @Override
     public Version getNewestVersion() throws UpdaterException {
         try {
@@ -52,7 +56,7 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
     }
 
     @Override
-    protected boolean tryUpdateFiles(final Workspace workspace, final D dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         try {
             for (final String fileName : getFilePaths()) {
                 final String localFileName = Paths.get(fileName).getFileName().toString();

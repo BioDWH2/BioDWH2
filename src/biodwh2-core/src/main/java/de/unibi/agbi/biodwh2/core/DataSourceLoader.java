@@ -4,7 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public final class DataSourceLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceLoader.class);
@@ -31,8 +33,18 @@ public final class DataSourceLoader {
         return null;
     }
 
-    public DataSource[] getDataSources() {
-        return dataSources.toArray(new DataSource[0]);
+    public DataSource[] getDataSources(final String... dataSourceIds) {
+        return Arrays.stream(dataSourceIds).map(this::getDataSourceById).filter(Objects::nonNull).toArray(
+                DataSource[]::new);
+    }
+
+    private DataSource getDataSourceById(final String id) {
+        for (final DataSource dataSource : dataSources)
+            if (dataSource.getId().equals(id))
+                return dataSource;
+        if (LOGGER.isWarnEnabled())
+            LOGGER.warn("Failed to retrieve data source with id '" + id + "'");
+        return null;
     }
 
     public String[] getDataSourceIds() {

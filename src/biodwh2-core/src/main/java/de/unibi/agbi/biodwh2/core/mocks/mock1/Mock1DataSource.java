@@ -4,7 +4,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.core.mocks.mock1.etl.*;
 
-public class Mock1DataSource extends DataSource {
+public final class Mock1DataSource extends DataSource {
     @Override
     public String getId() {
         return "Mock1";
@@ -12,17 +12,17 @@ public class Mock1DataSource extends DataSource {
 
     @Override
     public Updater<Mock1DataSource> getUpdater() {
-        return new Mock1Updater();
+        return new Mock1Updater(this);
     }
 
     @Override
     public Parser<Mock1DataSource> getParser() {
-        return new Mock1Parser();
+        return new Mock1Parser(this);
     }
 
     @Override
     public GraphExporter<Mock1DataSource> getGraphExporter() {
-        return new Mock1GraphExporter();
+        return new Mock1GraphExporter(this);
     }
 
     @Override

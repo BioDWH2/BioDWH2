@@ -14,8 +14,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class MEDRTParser extends Parser<MEDRTDataSource> {
+    public MEDRTParser(final MEDRTDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    public boolean parse(Workspace workspace, MEDRTDataSource dataSource) throws ParserException {
+    public boolean parse(final Workspace workspace) throws ParserException {
         String filePath = dataSource.resolveSourceFilePath(workspace, "Core_MEDRT_XML.zip");
         File coreZipFile = new File(filePath);
         if (!coreZipFile.exists())
@@ -35,7 +39,7 @@ public class MEDRTParser extends Parser<MEDRTDataSource> {
         return false;
     }
 
-    private static ZipInputStream openZipInputStream(File file) throws ParserFileNotFoundException {
+    private static ZipInputStream openZipInputStream(final File file) throws ParserFileNotFoundException {
         try {
             FileInputStream inputStream = new FileInputStream(file);
             BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
@@ -45,11 +49,11 @@ public class MEDRTParser extends Parser<MEDRTDataSource> {
         }
     }
 
-    private static boolean isZipEntryCoreXml(String name) {
+    private static boolean isZipEntryCoreXml(final String name) {
         return name.startsWith("Core_MEDRT_") && name.endsWith(".xml");
     }
 
-    private Terminology parseTerminologyFromZipStream(InputStream stream) throws IOException {
+    private Terminology parseTerminologyFromZipStream(final InputStream stream) throws IOException {
         XmlMapper xmlMapper = new XmlMapper();
         return xmlMapper.readValue(stream, Terminology.class);
     }

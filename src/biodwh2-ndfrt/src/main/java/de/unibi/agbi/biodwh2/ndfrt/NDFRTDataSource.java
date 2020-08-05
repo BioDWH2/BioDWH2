@@ -15,17 +15,17 @@ public class NDFRTDataSource extends DataSource {
 
     @Override
     public Updater<NDFRTDataSource> getUpdater() {
-        return new NDFRTUpdater();
+        return new NDFRTUpdater(this);
     }
 
     @Override
     public Parser<NDFRTDataSource> getParser() {
-        return new NDFRTParser();
+        return new NDFRTParser(this);
     }
 
     @Override
     public GraphExporter<NDFRTDataSource> getGraphExporter() {
-        return new NDFRTGraphExporter();
+        return new NDFRTGraphExporter(this);
     }
 
     @Override

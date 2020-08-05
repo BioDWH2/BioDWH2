@@ -15,17 +15,17 @@ public class MEDRTDataSource extends DataSource {
 
     @Override
     public Updater<MEDRTDataSource> getUpdater() {
-        return new MEDRTUpdater();
+        return new MEDRTUpdater(this);
     }
 
     @Override
     public Parser<MEDRTDataSource> getParser() {
-        return new MEDRTParser();
+        return new MEDRTParser(this);
     }
 
     @Override
     public GraphExporter<MEDRTDataSource> getGraphExporter() {
-        return new MEDRTGraphExporter();
+        return new MEDRTGraphExporter(this);
     }
 
     @Override

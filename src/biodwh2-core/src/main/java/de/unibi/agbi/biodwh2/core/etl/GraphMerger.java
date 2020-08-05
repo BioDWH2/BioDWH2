@@ -6,17 +6,17 @@ import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
 import de.unibi.agbi.biodwh2.core.exceptions.MergerException;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 public class GraphMerger {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMerger.class);
 
-    public final boolean merge(final Workspace workspace, final List<DataSource> dataSources,
+    public final boolean merge(final Workspace workspace, final DataSource[] dataSources,
                                final String outputFilePath) throws MergerException {
-        final Graph mergedGraph = new Graph(outputFilePath.replace(GraphMLGraphWriter.EXTENSION, Graph.EXTENSION));
+        final Graph mergedGraph = new Graph(
+                outputFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION));
         for (final DataSource dataSource : dataSources)
             mergeDataSource(workspace, dataSource, mergedGraph);
         saveMergedGraph(outputFilePath, mergedGraph);

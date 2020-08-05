@@ -31,13 +31,13 @@ public final class Workspace {
 
     private final String workingDirectory;
     private final Configuration configuration;
-    private final List<DataSource> dataSources;
+    private final DataSource[] dataSources;
 
     public Workspace(final String workingDirectory) {
         this.workingDirectory = workingDirectory;
         createWorkingDirectoryIfNotExists();
         configuration = createOrLoadConfiguration();
-        dataSources = resolveUsedDataSources();
+        dataSources = getUsedDataSources();
     }
 
     private void createWorkingDirectoryIfNotExists() {
@@ -82,19 +82,14 @@ public final class Workspace {
         return configuration;
     }
 
-    private List<DataSource> resolveUsedDataSources() {
+    private DataSource[] getUsedDataSources() {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Using data sources " + StringUtils.join(configuration.dataSourceIds, ", "));
-        final List<DataSource> dataSources = new ArrayList<>();
-        final DataSourceLoader loader = new DataSourceLoader();
-        for (final DataSource dataSource : loader.getDataSources())
-            if (isDataSourceUsed(dataSource))
-                dataSources.add(dataSource);
-        return dataSources;
-    }
-
-    private boolean isDataSourceUsed(final DataSource dataSource) {
-        return configuration.dataSourceIds.contains(dataSource.getId());
+        DataSource[] result = new DataSourceLoader().getDataSources(configuration.dataSourceIds);
+        if (result.length != configuration.dataSourceIds.length)
+            throw new WorkspaceException("Failed to load all data sources. Please ensure the configured data source " +
+                                         "IDs are valid and all data source modules are available in the classpath.");
+        return result;
     }
 
     public Configuration getConfiguration() {
@@ -104,12 +99,31 @@ public final class Workspace {
     public void checkState(final boolean verbose) {
         if (prepareDataSources() && LOGGER.isInfoEnabled()) {
             LOGGER.info(createStateTable(verbose));
-            final List<String> notUpToDate = dataSources.stream().filter(d -> !d.isUpToDate()).map(DataSource::getId)
-                                                        .collect(Collectors.toList());
-            final int countUpToDate = dataSources.size() - notUpToDate.size();
-            LOGGER.info((countUpToDate == dataSources.size()) ? "All data sources are up-to-date." :
-                        countUpToDate + "/" + dataSources.size() + " data sources are up-to-date.");
-            LOGGER.info("Data sources to be updated: " + StringUtils.join(notUpToDate, ", "));
+            final List<String> notUpToDate = Arrays.stream(dataSources).filter(d -> !d.isUpToDate()).map(
+                    DataSource::getId).collect(Collectors.toList());
+            final int countUpToDate = dataSources.length - notUpToDate.size();
+            LOGGER.info((countUpToDate == dataSources.length) ? "All data sources are up-to-date." :
+                        countUpToDate + "/" + dataSources.length + " data sources are up-to-date.");
+            if (notUpToDate.size() > 0)
+                LOGGER.info("Data sources to be updated: " + StringUtils.join(notUpToDate, ", "));
+        }
+    }
+
+    private boolean prepareDataSources() {
+        boolean success = true;
+        for (final DataSource dataSource : dataSources)
+            success = success && prepareDataSource(dataSource);
+        return true;
+    }
+
+    private boolean prepareDataSource(final DataSource dataSource) {
+        try {
+            dataSource.prepare(this);
+            return true;
+        } catch (DataSourceException e) {
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to prepare data source '" + dataSource.getId() + "'", e);
+            return false;
         }
     }
 
@@ -137,30 +151,13 @@ public final class Workspace {
         return row;
     }
 
-    private boolean prepareDataSources() {
-        boolean success = true;
-        for (final DataSource dataSource : dataSources)
-            success = success && prepareDataSource(dataSource);
-        return true;
-    }
-
-    private boolean prepareDataSource(final DataSource dataSource) {
-        try {
-            dataSource.prepare(this);
-            return true;
-        } catch (DataSourceException e) {
-            if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to prepare data source '" + dataSource.getId() + "'", e);
-            return false;
-        }
-    }
-
     public void processDataSources(final String dataSourceId, final String version, final boolean skipUpdate) {
         if (prepareDataSources()) {
             for (final DataSource dataSource : dataSources)
                 if (dataSourceId == null || dataSource.getId().equals(dataSourceId))
                     processDataSource(dataSource, version, skipUpdate);
             mergeDataSources();
+            mapDataSources();
         }
     }
 
@@ -180,7 +177,6 @@ public final class Workspace {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Running updater");
             updateState = version == null ? dataSource.updateAutomatic(this) : dataSource.updateManually(this, version);
-            dataSource.trySaveMetadata(this);
         }
         if (isExportNeeded(updateState, dataSource)) {
             if (LOGGER.isInfoEnabled())
@@ -191,7 +187,6 @@ public final class Workspace {
             dataSource.export(this);
         } else if (LOGGER.isInfoEnabled())
             LOGGER.info("Skipping export of data source '" + dataSource.getId() + "' because nothing changed");
-        dataSource.trySaveMetadata(this);
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Processing of data source '" + dataSource.getId() + "' finished");
     }
@@ -201,7 +196,7 @@ public final class Workspace {
             return true;
         final DataSourceMetadata metadata = dataSource.getMetadata();
         return metadata.exportSuccessful == null || !metadata.exportSuccessful || fileDoesNotExist(
-                dataSource.getIntermediateGraphFilePath(this, GraphFileFormat.GRAPH_ML)) || fileDoesNotExist(
+                dataSource.getIntermediateGraphFilePath(this)) || fileDoesNotExist(
                 dataSource.getGraphDatabaseFilePath(this));
     }
 
@@ -226,13 +221,20 @@ public final class Workspace {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("Failed to merge GraphML data sources", e);
         }
-        new GraphMapper().map(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GRAPH_ML),
-                              getMappedOutputFilePath(GraphFileFormat.GRAPH_ML));
     }
 
     @SuppressWarnings("SameParameterValue")
     private String getMergedOutputFilePath(final GraphFileFormat format) {
         return Paths.get(getSourcesDirectory(), "merged." + format.extension).toString();
+    }
+
+    private void mapDataSources() {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Mapping of data sources started");
+        new GraphMapper().map(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GRAPH_ML),
+                              getMappedOutputFilePath(GraphFileFormat.GRAPH_ML));
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Mapping of data sources finished");
     }
 
     @SuppressWarnings("SameParameterValue")

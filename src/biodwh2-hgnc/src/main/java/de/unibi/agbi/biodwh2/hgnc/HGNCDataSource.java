@@ -17,17 +17,17 @@ public class HGNCDataSource extends DataSource {
 
     @Override
     public Updater<HGNCDataSource> getUpdater() {
-        return new HGNCUpdater();
+        return new HGNCUpdater(this);
     }
 
     @Override
     public Parser<HGNCDataSource> getParser() {
-        return new HGNCParser();
+        return new HGNCParser(this);
     }
 
     @Override
     public GraphExporter<HGNCDataSource> getGraphExporter() {
-        return new HGNCGraphExporter();
+        return new HGNCGraphExporter(this);
     }
 
     @Override

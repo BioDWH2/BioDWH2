@@ -20,17 +20,17 @@ public class UNIIDataSource extends DataSource {
 
     @Override
     public Updater<UNIIDataSource> getUpdater() {
-        return new UNIIUpdater();
+        return new UNIIUpdater(this);
     }
 
     @Override
     public Parser<UNIIDataSource> getParser() {
-        return new UNIIParser();
+        return new UNIIParser(this);
     }
 
     @Override
     public GraphExporter<UNIIDataSource> getGraphExporter() {
-        return new UNIIGraphExporter();
+        return new UNIIGraphExporter(this);
     }
 
     @Override

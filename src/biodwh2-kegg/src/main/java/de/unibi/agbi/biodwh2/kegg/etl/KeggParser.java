@@ -19,18 +19,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class KeggParser extends Parser<KeggDataSource> {
-    private static final Logger logger = LoggerFactory.getLogger(KeggParser.class);
-    private static final Pattern referencePattern = Pattern.compile(
-            "PMID:([0-9]+)(([ \n\r]+\\(\\(?[a-zA-Z0-9/\n\r. ,_\\-]+\\)?\\))*)");
-    private static final Pattern targetIdsPattern = Pattern.compile("\\[([A-Za-z]+:)([0-9A-Za-z]+( [0-9A-Za-z]+)*)]");
-
     private static class ChunkLine {
         String keyword;
         String value;
     }
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(KeggParser.class);
+    private static final Pattern REFERENCE_PATTERN = Pattern.compile(
+            "PMID:([0-9]+)(([ \n\r]+\\(\\(?[a-zA-Z0-9/\n\r. ,_\\-]+\\)?\\))*)");
+    private static final Pattern TARGET_IDS_PATTERN = Pattern.compile("\\[([A-Za-z]+:)([0-9A-Za-z]+( [0-9A-Za-z]+)*)]");
+
+    public KeggParser(final KeggDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    public boolean parse(final Workspace workspace, final KeggDataSource dataSource) throws ParserException {
+    public boolean parse(final Workspace workspace) throws ParserException {
         dataSource.variants = parseKeggFile(workspace, dataSource, Variant.class, "variant");
         dataSource.drugGroups = parseKeggFile(workspace, dataSource, DrugGroup.class, "dgroup");
         dataSource.drugs = parseKeggFile(workspace, dataSource, Drug.class, "drug");
@@ -143,7 +147,7 @@ public class KeggParser extends Parser<KeggDataSource> {
         return null;
     }
 
-    private int processDrugLine(final ChunkLine[] chunk, final ChunkLine line, int i, Drug entry) {
+    private int processDrugLine(final ChunkLine[] chunk, final ChunkLine line, int i, final Drug entry) {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
@@ -238,7 +242,7 @@ public class KeggParser extends Parser<KeggDataSource> {
         return i;
     }
 
-    private int processVariantLine(final ChunkLine[] chunk, final ChunkLine line, int i, Variant entry) {
+    private int processVariantLine(final ChunkLine[] chunk, final ChunkLine line, int i, final Variant entry) {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
@@ -282,7 +286,7 @@ public class KeggParser extends Parser<KeggDataSource> {
         return i;
     }
 
-    private int processDrugGroupLine(final ChunkLine[] chunk, final ChunkLine line, int i, DrugGroup entry) {
+    private int processDrugGroupLine(final ChunkLine[] chunk, final ChunkLine line, int i, final DrugGroup entry) {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
@@ -309,7 +313,7 @@ public class KeggParser extends Parser<KeggDataSource> {
         return i;
     }
 
-    private int processDiseaseLine(final ChunkLine[] chunk, final ChunkLine line, int i, Disease entry) {
+    private int processDiseaseLine(final ChunkLine[] chunk, final ChunkLine line, int i, final Disease entry) {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
@@ -378,7 +382,7 @@ public class KeggParser extends Parser<KeggDataSource> {
         return i;
     }
 
-    private int processNetworkGroupLine(final ChunkLine[] chunk, final ChunkLine line, int i, Network entry) {
+    private int processNetworkGroupLine(final ChunkLine[] chunk, final ChunkLine line, int i, final Network entry) {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
@@ -438,7 +442,7 @@ public class KeggParser extends Parser<KeggDataSource> {
     private static Reference parseReference(final ChunkLine[] chunk, final int i, final ChunkLine line) {
         Reference reference = new Reference();
         if (line.value.trim().length() > 0) {
-            Matcher matcher = referencePattern.matcher(line.value);
+            Matcher matcher = REFERENCE_PATTERN.matcher(line.value);
             if (matcher.matches()) {
                 reference.pmid = matcher.group(1);
                 String remarks = matcher.group(2).trim().replace("\n", " ");
@@ -468,7 +472,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                             if (parts[k].startsWith("DOI:"))
                                 reference.doi = parts[k].substring(4);
                             else
-                                logger.warn("Unknown journal line in: " + nextLine.value);
+                                LOGGER.warn("Unknown journal line in: " + nextLine.value);
                         }
                     }
                     break;
@@ -499,11 +503,11 @@ public class KeggParser extends Parser<KeggDataSource> {
         return result;
     }
 
-    private static NameIdsPair parseNameIdsPair(String line) {
+    private static NameIdsPair parseNameIdsPair(final String line) {
         NameIdsPair pair = new NameIdsPair();
         pair.name = line;
         int replaceOffset = 0;
-        Matcher matcher = targetIdsPattern.matcher(line);
+        Matcher matcher = TARGET_IDS_PATTERN.matcher(line);
         while (matcher.find()) {
             pair.name = pair.name.substring(0, matcher.start() - replaceOffset) + pair.name.substring(
                     matcher.end() - replaceOffset);
@@ -552,7 +556,7 @@ public class KeggParser extends Parser<KeggDataSource> {
         return result;
     }
 
-    private static NameIdsPair parseIdNamePair(String line) {
+    private static NameIdsPair parseIdNamePair(final String line) {
         String[] idRestParts = StringUtils.splitByWholeSeparator(line, "  ", 2);
         if (idRestParts.length == 1)
             idRestParts = StringUtils.split(line, " ", 2);

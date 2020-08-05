@@ -5,8 +5,12 @@ import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.mondo.MondoDataSource;
 
 public class MondoParser extends Parser<MondoDataSource> {
+    public MondoParser(final MondoDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    public boolean parse(Workspace workspace, MondoDataSource dataSource) {
+    public boolean parse(final Workspace workspace) {
         return true;
     }
 }

@@ -7,8 +7,8 @@ import de.unibi.agbi.biodwh2.hgnc.model.Gene;
 import java.util.List;
 
 public class HGNCParser extends SingleFileCsvParser<HGNCDataSource, Gene> {
-    public HGNCParser() {
-        super(Gene.class, true, CsvType.TSV, "hgnc_complete_set.txt");
+    public HGNCParser(final HGNCDataSource dataSource) {
+        super(dataSource, Gene.class, true, CsvType.TSV, "hgnc_complete_set.txt");
     }
 
     @Override

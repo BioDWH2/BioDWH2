@@ -19,7 +19,7 @@ public abstract class DataSource {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataSource.class);
     private static final String SOURCE_DIRECTORY_NAME = "source";
     private static final String METADATA_FILE_NAME = "metadata.json";
-    private static final String PERSISTENT_GRAPH_FILE_NAME = "graph.db";
+    private static final String PERSISTENT_GRAPH_FILE_NAME = "intermediate.db";
 
     private DataSourceMetadata metadata;
 
@@ -29,24 +29,24 @@ public abstract class DataSource {
 
     public abstract String getId();
 
-    public abstract Updater getUpdater();
+    protected abstract Updater<? extends DataSource> getUpdater();
 
-    protected abstract Parser getParser();
+    protected abstract Parser<? extends DataSource> getParser();
 
-    protected abstract GraphExporter getGraphExporter();
+    protected abstract GraphExporter<? extends DataSource> getGraphExporter();
 
     public abstract MappingDescriber getMappingDescriber();
 
     void prepare(final Workspace workspace) throws DataSourceException {
         try {
-            createDirectoryIfNotExists(workspace);
+            createFolderStructureIfNotExists(workspace);
             createOrLoadMetadata(workspace);
         } catch (IOException e) {
             throw new DataSourceException("Failed to prepare data source '" + getId() + "'", e);
         }
     }
 
-    private void createDirectoryIfNotExists(final Workspace workspace) throws IOException {
+    private void createFolderStructureIfNotExists(final Workspace workspace) throws IOException {
         Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId()));
         Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId(), SOURCE_DIRECTORY_NAME));
     }
@@ -79,26 +79,17 @@ public abstract class DataSource {
         objectMapper.writeValue(path.toFile(), metadata);
     }
 
-    final void trySaveMetadata(final Workspace workspace) {
-        try {
-            saveMetadata(workspace);
-        } catch (IOException e) {
-            if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to save metadata for data source '" + getId() + "'", e);
-        }
-    }
-
     final Updater.UpdateState updateAutomatic(final Workspace workspace) {
         Updater.UpdateState state = Updater.UpdateState.FAILED;
         try {
-            //noinspection unchecked
-            state = getUpdater().update(workspace, this);
+            state = getUpdater().update(workspace);
             metadata.updateSuccessful = state != Updater.UpdateState.FAILED;
         } catch (UpdaterOnlyManuallyException e) {
             logUpdaterOnlyManuallyException();
         } catch (UpdaterException e) {
             handleUpdateAutomaticFailed(e);
         }
+        trySaveMetadata(workspace);
         return state;
     }
 
@@ -110,39 +101,48 @@ public abstract class DataSource {
                          "Help: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
     }
 
-    private void handleUpdateAutomaticFailed(UpdaterException e) {
+    private void handleUpdateAutomaticFailed(final UpdaterException e) {
         if (LOGGER.isErrorEnabled())
             LOGGER.error("Failed to update data source '" + getId() + "'", e);
         metadata.updateSuccessful = false;
     }
 
+    private void trySaveMetadata(final Workspace workspace) {
+        try {
+            saveMetadata(workspace);
+        } catch (IOException e) {
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to save metadata for data source '" + getId() + "'", e);
+        }
+    }
+
     final Updater.UpdateState updateManually(final Workspace workspace, final String version) {
-        //noinspection unchecked
-        final Updater.UpdateState state = getUpdater().updateManually(workspace, this, version);
+        final Updater.UpdateState state = getUpdater().updateManually(workspace, version);
         metadata.updateSuccessful = state != Updater.UpdateState.FAILED;
+        trySaveMetadata(workspace);
         return state;
     }
 
     final void parse(final Workspace workspace) {
         try {
-            //noinspection unchecked
-            metadata.parseSuccessful = getParser().parse(workspace, this);
+            metadata.parseSuccessful = getParser().parse(workspace);
         } catch (ParserException e) {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("Failed to parse data source '" + getId() + "'", e);
             metadata.parseSuccessful = false;
         }
+        trySaveMetadata(workspace);
     }
 
     final void export(final Workspace workspace) {
         exportGraph(workspace);
         unloadData();
+        trySaveMetadata(workspace);
     }
 
     private void exportGraph(final Workspace workspace) {
         try {
-            //noinspection unchecked
-            metadata.exportSuccessful = getGraphExporter().export(workspace, this);
+            metadata.exportSuccessful = getGraphExporter().export(workspace);
         } catch (ExporterException e) {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("Failed to export data source '" + getId() + "' in GraphML format", e);
@@ -156,14 +156,8 @@ public abstract class DataSource {
         return Paths.get(workspace.getSourcesDirectory(), getId(), PERSISTENT_GRAPH_FILE_NAME).toString();
     }
 
-    public final String getIntermediateGraphFilePath(final Workspace workspace, final GraphFileFormat format) {
-        final String fileName = "intermediate." + format.extension;
-        return Paths.get(workspace.getSourcesDirectory(), getId(), fileName).toString();
-    }
-
-    public final String getIntermediateGraphFilePath(final Workspace workspace, final GraphFileFormat format,
-                                                     final int part) {
-        final String fileName = "intermediate_part" + part + "." + format.extension;
+    public final String getIntermediateGraphFilePath(final Workspace workspace) {
+        final String fileName = "intermediate." + GraphFileFormat.GRAPH_ML.extension;
         return Paths.get(workspace.getSourcesDirectory(), getId(), fileName).toString();
     }
 
@@ -184,18 +178,10 @@ public abstract class DataSource {
     }
 
     public final boolean isUpToDate() {
-        final Version workspaceVersion = getMetadata().version;
-        final Version newestVersion = getNewestVersion();
-        return workspaceVersion != null && newestVersion != null && newestVersion.compareTo(workspaceVersion) == 0;
+        return getUpdater().isDataSourceUpToDate();
     }
 
     public final Version getNewestVersion() {
-        try {
-            return getUpdater().getNewestVersion();
-        } catch (UpdaterException e) {
-            if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to get newest version for data source '" + getId() + "'");
-            return null;
-        }
+        return getUpdater().tryGetNewestVersion();
     }
 }

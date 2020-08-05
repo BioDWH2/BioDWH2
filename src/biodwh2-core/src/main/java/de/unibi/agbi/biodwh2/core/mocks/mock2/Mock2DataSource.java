@@ -12,17 +12,17 @@ public class Mock2DataSource extends DataSource {
 
     @Override
     public Updater<Mock2DataSource> getUpdater() {
-        return new Mock2Updater();
+        return new Mock2Updater(this);
     }
 
     @Override
     public Parser<Mock2DataSource> getParser() {
-        return new Mock2Parser();
+        return new Mock2Parser(this);
     }
 
     @Override
     public GraphExporter<Mock2DataSource> getGraphExporter() {
-        return new Mock2GraphExporter();
+        return new Mock2GraphExporter(this);
     }
 
     @Override

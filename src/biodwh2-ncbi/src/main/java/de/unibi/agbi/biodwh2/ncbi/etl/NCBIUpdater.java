@@ -10,6 +10,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class NCBIUpdater extends MultiFileFTPWebUpdater<NCBIDataSource> {
+    public NCBIUpdater(NCBIDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
     protected String getFTPIndexUrl() {
         return "https://ftp.ncbi.nih.gov/";

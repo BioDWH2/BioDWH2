@@ -21,13 +21,18 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class DrugBankParser extends Parser<DrugBankDataSource> {
+    public DrugBankParser(final DrugBankDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    public boolean parse(Workspace workspace, DrugBankDataSource dataSource) throws ParserException {
+    public boolean parse(final Workspace workspace) throws ParserException {
         return parseDrugBankXmlFile(workspace, dataSource) && parseDrugSdfFile(workspace, dataSource) &&
                parseMetaboliteSdfFile(workspace, dataSource);
     }
 
-    private boolean parseDrugBankXmlFile(Workspace workspace, DrugBankDataSource dataSource) throws ParserException {
+    private boolean parseDrugBankXmlFile(final Workspace workspace,
+                                         final DrugBankDataSource dataSource) throws ParserException {
         String filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_full_database.xml.zip");
         File zipFile = new File(filePath);
         if (!zipFile.exists())
@@ -47,7 +52,7 @@ public class DrugBankParser extends Parser<DrugBankDataSource> {
         return false;
     }
 
-    private static ZipInputStream openZipInputStream(File file) throws ParserFileNotFoundException {
+    private static ZipInputStream openZipInputStream(final File file) throws ParserFileNotFoundException {
         try {
             FileInputStream inputStream = new FileInputStream(file);
             BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
@@ -57,11 +62,11 @@ public class DrugBankParser extends Parser<DrugBankDataSource> {
         }
     }
 
-    private static boolean isZipEntryCoreXml(String name) {
+    private static boolean isZipEntryCoreXml(final String name) {
         return name.startsWith("full") && name.endsWith(".xml");
     }
 
-    private Drugbank parseDrugBankFromZipStream(InputStream stream) throws IOException {
+    private Drugbank parseDrugBankFromZipStream(final InputStream stream) throws IOException {
         XmlMapper xmlMapper = new XmlMapper();
         return xmlMapper.readValue(stream, Drugbank.class);
     }
@@ -98,7 +103,7 @@ public class DrugBankParser extends Parser<DrugBankDataSource> {
         return null;
     }
 
-    private static boolean isZipEntrySdf(String name) {
+    private static boolean isZipEntrySdf(final String name) {
         return name.endsWith(".sdf");
     }
 

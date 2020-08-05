@@ -14,18 +14,18 @@ public class SiderDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
-        return new SiderUpdater();
+    public Updater<SiderDataSource> getUpdater() {
+        return new SiderUpdater(this);
     }
 
     @Override
-    protected Parser getParser() {
-        return new SiderParser();
+    protected Parser<SiderDataSource> getParser() {
+        return new SiderParser(this);
     }
 
     @Override
-    protected GraphExporter getGraphExporter() {
-        return new SiderGraphExporter();
+    protected GraphExporter<SiderDataSource> getGraphExporter() {
+        return new SiderGraphExporter(this);
     }
 
     @Override

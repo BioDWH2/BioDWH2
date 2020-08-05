@@ -20,6 +20,10 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     private static final String DrugStructuresUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-structures";
     private static final String MetaboliteStructuresUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-metabolite-structures";
 
+    public DrugBankUpdater(DrugBankDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
     public Version getNewestVersion() throws UpdaterException {
         String source;
@@ -58,7 +62,7 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, DrugBankDataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
         if (workspace.getConfiguration().dataSourceProperties.containsKey("DrugBank")) {
             Map<String, String> drugBankProperties = workspace.getConfiguration().dataSourceProperties.get("DrugBank");
             if (drugBankProperties != null) {

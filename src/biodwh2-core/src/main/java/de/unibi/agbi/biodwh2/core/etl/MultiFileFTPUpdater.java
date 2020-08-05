@@ -11,6 +11,10 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 public abstract class MultiFileFTPUpdater<D extends DataSource> extends Updater<D> {
+    public MultiFileFTPUpdater(D dataSource) {
+        super(dataSource);
+    }
+
     @Override
     public final Version getNewestVersion() throws UpdaterException {
         final AnonymousFTPClient ftpClient = connectToFTP();
@@ -43,7 +47,7 @@ public abstract class MultiFileFTPUpdater<D extends DataSource> extends Updater<
     protected abstract String[] getFTPFilePaths();
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, D dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
         final AnonymousFTPClient ftpClient = connectToFTP();
         boolean success = true;
         for (int i = 0; i < getFTPFilePaths().length; i++) {

@@ -7,13 +7,17 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.hpo.HPODataSource;
 
 public class HPOUpdater extends Updater<HPODataSource> {
+    public HPOUpdater(final HPODataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion() {
         return null;
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, HPODataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(final Workspace workspace) {
         return false;
     }
 }

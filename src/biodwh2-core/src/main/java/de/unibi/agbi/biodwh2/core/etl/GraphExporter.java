@@ -9,25 +9,30 @@ import de.unibi.agbi.biodwh2.core.model.graph.*;
 public abstract class GraphExporter<D extends DataSource> {
     static final String LABEL_PREFIX_SEPARATOR = "_";
 
-    public final boolean export(final Workspace workspace, final D dataSource) throws ExporterException {
+    public GraphExporter(final D dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    protected final D dataSource;
+
+    public final boolean export(final Workspace workspace) throws ExporterException {
         final Graph g = new Graph(dataSource.getGraphDatabaseFilePath(workspace));
-        boolean exportSuccessful = exportGraph(workspace, dataSource, g);
+        boolean exportSuccessful = exportGraph(workspace, g);
         if (exportSuccessful) {
-            addDataSourcePrefixToGraph(dataSource, g);
-            exportSuccessful = trySaveGraphToFile(workspace, dataSource, g);
+            addDataSourcePrefixToGraph(g);
+            exportSuccessful = trySaveGraphToFile(workspace, g);
         }
         g.dispose();
         return exportSuccessful;
     }
 
-    protected abstract boolean exportGraph(final Workspace workspace, final D dataSource,
-                                           final Graph graph) throws ExporterException;
+    protected abstract boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException;
 
-    private void addDataSourcePrefixToGraph(final DataSource dataSource, final Graph g) {
+    private void addDataSourcePrefixToGraph(final Graph g) {
         g.prefixAllLabels(dataSource.getId() + LABEL_PREFIX_SEPARATOR);
     }
 
-    private boolean trySaveGraphToFile(final Workspace workspace, final D dataSource, final Graph g) {
+    private boolean trySaveGraphToFile(final Workspace workspace, final Graph g) {
         return new GraphMLGraphWriter().write(workspace, dataSource, g);
     }
 

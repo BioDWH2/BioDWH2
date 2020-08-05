@@ -18,6 +18,10 @@ import java.util.List;
 public class KeggUpdater extends Updater<KeggDataSource> {
     private static final String FTPBasePath = "pub/kegg/medicus/";
 
+    public KeggUpdater(KeggDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
     public Version getNewestVersion() throws UpdaterException {
         AnonymousFTPClient ftpClient = connectToFTP();
@@ -50,7 +54,7 @@ public class KeggUpdater extends Updater<KeggDataSource> {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, KeggDataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
         AnonymousFTPClient ftpClient = connectToFTP();
         boolean success = updateFile(workspace, dataSource, ftpClient, "dgroup/dgroup");
         success = success && updateFile(workspace, dataSource, ftpClient, "disease/disease");

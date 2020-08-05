@@ -7,9 +7,12 @@ import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.hpo.HPODataSource;
 
 public class HPOGraphExporter extends GraphExporter<HPODataSource> {
+    public HPOGraphExporter(final HPODataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    protected boolean exportGraph(final Workspace workspace, final HPODataSource dataSource,
-                                  final Graph graph) throws ExporterException {
+    protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         return true;
     }
 }

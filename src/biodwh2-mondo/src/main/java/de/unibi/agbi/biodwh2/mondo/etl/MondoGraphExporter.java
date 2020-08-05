@@ -11,14 +11,19 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.mondo.MondoDataSource;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class MondoGraphExporter extends GraphExporter<MondoDataSource> {
+    public MondoGraphExporter(final MondoDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    protected boolean exportGraph(final Workspace workspace, final MondoDataSource dataSource,
-                                  final Graph graph) throws ExporterException {
+    protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.setNodeIndexPropertyKeys("id");
         try {
-            OboReader reader = new OboReader(dataSource.resolveSourceFilePath(workspace, "mondo.obo"), "UTF-8");
+            OboReader reader = new OboReader(dataSource.resolveSourceFilePath(workspace, "mondo.obo"),
+                                             StandardCharsets.UTF_8.name());
             for (OboEntry entry : reader)
                 if (entry.getName().equals("Term"))
                     exportEntry(graph, entry);

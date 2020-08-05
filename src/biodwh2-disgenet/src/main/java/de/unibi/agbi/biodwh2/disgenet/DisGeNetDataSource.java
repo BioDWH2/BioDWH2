@@ -14,18 +14,18 @@ public class DisGeNetDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
-        return new DisGeNetUpdater();
+    public Updater<DisGeNetDataSource> getUpdater() {
+        return new DisGeNetUpdater(this);
     }
 
     @Override
-    protected Parser getParser() {
-        return new DisGeNetParser();
+    protected Parser<DisGeNetDataSource> getParser() {
+        return new DisGeNetParser(this);
     }
 
     @Override
-    protected GraphExporter getGraphExporter() {
-        return new DisGeNetGraphExporter();
+    protected GraphExporter<DisGeNetDataSource> getGraphExporter() {
+        return new DisGeNetGraphExporter(this);
     }
 
     @Override

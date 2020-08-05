@@ -6,9 +6,13 @@ import de.unibi.agbi.biodwh2.core.mocks.mock1.Mock1DataSource;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 
-public class Mock1GraphExporter extends GraphExporter<Mock1DataSource> {
+public final class Mock1GraphExporter extends GraphExporter<Mock1DataSource> {
+    public Mock1GraphExporter(final Mock1DataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    protected boolean exportGraph(final Workspace workspace, final Mock1DataSource dataSource, final Graph graph) {
+    protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         graph.setNodeIndexPropertyKeys("hgnc_id");
         Node tlr4Node = createNode(graph, "Gene");
         tlr4Node.setProperty("hgnc_id", "TLR4");

@@ -23,17 +23,17 @@ public class DGIdbDataSource extends DataSource {
 
     @Override
     public Updater<DGIdbDataSource> getUpdater() {
-        return new DGIdbUpdater();
+        return new DGIdbUpdater(this);
     }
 
     @Override
     public Parser<DGIdbDataSource> getParser() {
-        return new DGIdbParser();
+        return new DGIdbParser(this);
     }
 
     @Override
     public GraphExporter<DGIdbDataSource> getGraphExporter() {
-        return new DGIdbGraphExporter();
+        return new DGIdbGraphExporter(this);
     }
 
     @Override

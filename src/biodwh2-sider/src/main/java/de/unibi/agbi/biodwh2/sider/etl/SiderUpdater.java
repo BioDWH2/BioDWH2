@@ -10,8 +10,12 @@ import de.unibi.agbi.biodwh2.sider.SiderDataSource;
 import java.io.IOException;
 
 public class SiderUpdater extends MultiFileFTPUpdater<SiderDataSource> {
+    public SiderUpdater(SiderDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, SiderDataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
         try {
             HTTPClient.downloadFileAsBrowser("http://sideeffects.embl.de/media/download/drug_names.tsv",
                                              dataSource.resolveSourceFilePath(workspace, "drug_names.tsv"));
@@ -20,7 +24,7 @@ public class SiderUpdater extends MultiFileFTPUpdater<SiderDataSource> {
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
-        return super.tryUpdateFiles(workspace, dataSource);
+        return super.tryUpdateFiles(workspace);
     }
 
     @Override

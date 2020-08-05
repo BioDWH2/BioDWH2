@@ -5,7 +5,6 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.io.IndentingXMLStreamWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -15,6 +14,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -30,13 +30,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
         String type;
     }
 
-    private static class SubGraph {
-        Set<Long> edgeIds = new HashSet<>();
-        Set<Long> nodeIds = new HashSet<>();
-    }
-
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMLGraphWriter.class);
-    public static final String EXTENSION = "graphml";
     private static final String INVALID_XML_CHARS = new String(
             new char[]{0x01, 0x02, 0x03, 0x04, 0x08, 0x1d, 0x12, 0x14, 0x18});
 
@@ -56,7 +50,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
         properties.clear();
         generateProperties(graph);
         try (OutputStream outputStream = Files.newOutputStream(Paths.get(outputFilePath))) {
-            writeSubGraphFile(outputStream, graph, null);
+            writeGraphFile(outputStream, graph);
         } catch (XMLStreamException | IOException e) {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("Failed to write graphml file", e);
@@ -70,24 +64,11 @@ public final class GraphMLGraphWriter extends GraphWriter {
         labelKeyIdCounter = 0;
         labelKeyIdMap.clear();
         properties.clear();
-        removeOldExports(workspace, dataSource);
-        try {
-            generateProperties(graph);
-            final List<SubGraph> subGraphs = workspace.getConfiguration().splitIntoSubGraphs ? findSubGraphs(graph) :
-                                             new ArrayList<>();
-            if (subGraphs.size() < 2) {
-                final OutputStream outputStream = Files.newOutputStream(
-                        Paths.get(dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.GRAPH_ML)));
-                writeSubGraphFile(outputStream, graph, subGraphs.size() == 1 ? subGraphs.get(0) : null);
-            } else {
-                int partIndex = 1;
-                for (final SubGraph subGraph : subGraphs) {
-                    final OutputStream outputStream = Files.newOutputStream(Paths.get(
-                            dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.GRAPH_ML, partIndex)));
-                    writeSubGraphFile(outputStream, graph, subGraph);
-                    partIndex++;
-                }
-            }
+        removeOldExport(workspace, dataSource);
+        generateProperties(graph);
+        try (final OutputStream outputStream = Files.newOutputStream(
+                Paths.get(dataSource.getIntermediateGraphFilePath(workspace)))) {
+            writeGraphFile(outputStream, graph);
         } catch (XMLStreamException | IOException e) {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("Failed to write graphml file", e);
@@ -96,16 +77,11 @@ public final class GraphMLGraphWriter extends GraphWriter {
         return true;
     }
 
-    private void removeOldExports(final Workspace workspace, final DataSource dataSource) {
-        removeOldExport(dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.GRAPH_ML));
-        int i = 1;
-        while (removeOldExport(dataSource.getIntermediateGraphFilePath(workspace, GraphFileFormat.GRAPH_ML, i)))
-            i++;
-    }
-
-    private boolean removeOldExport(final String filePath) {
-        final File file = new File(filePath);
-        return file.exists() && file.delete();
+    private void removeOldExport(final Workspace workspace, final DataSource dataSource) {
+        final File file = new File(dataSource.getIntermediateGraphFilePath(workspace));
+        if (file.exists())
+            //noinspection ResultOfMethodCallIgnored
+            file.delete();
     }
 
     private void generateProperties(final Graph graph) {
@@ -194,81 +170,19 @@ public final class GraphMLGraphWriter extends GraphWriter {
         return labelKeyIdMap.get(labelKey);
     }
 
-    private List<SubGraph> findSubGraphs(final Graph graph) {
-        final Map<Long, SubGraph> nodeIdSubGraphMap = new HashMap<>();
-        for (final Edge e : graph.getEdges()) {
-            final boolean hasFrom = nodeIdSubGraphMap.containsKey(e.getFromId());
-            final boolean hasTo = nodeIdSubGraphMap.containsKey(e.getToId());
-            if (hasFrom && hasTo) {
-                final SubGraph subGraphFrom = nodeIdSubGraphMap.get(e.getFromId());
-                final SubGraph subGraphTo = nodeIdSubGraphMap.get(e.getToId());
-                if (!subGraphFrom.equals(subGraphTo)) {
-                    subGraphFrom.edgeIds.addAll(subGraphTo.edgeIds);
-                    subGraphFrom.nodeIds.addAll(subGraphTo.nodeIds);
-                    for (final Long nodeId : subGraphTo.nodeIds)
-                        nodeIdSubGraphMap.put(nodeId, subGraphFrom);
-                }
-                subGraphFrom.edgeIds.add(e.getId());
-            } else if (hasFrom) {
-                final SubGraph subGraph = nodeIdSubGraphMap.get(e.getFromId());
-                subGraph.edgeIds.add(e.getId());
-                subGraph.nodeIds.add(e.getToId());
-                nodeIdSubGraphMap.put(e.getToId(), subGraph);
-            } else if (hasTo) {
-                final SubGraph subGraph = nodeIdSubGraphMap.get(e.getToId());
-                subGraph.edgeIds.add(e.getId());
-                subGraph.nodeIds.add(e.getFromId());
-                nodeIdSubGraphMap.put(e.getFromId(), subGraph);
-            } else {
-                final SubGraph subGraph = new SubGraph();
-                subGraph.edgeIds.add(e.getId());
-                subGraph.nodeIds.add(e.getFromId());
-                subGraph.nodeIds.add(e.getToId());
-                nodeIdSubGraphMap.put(e.getFromId(), subGraph);
-                nodeIdSubGraphMap.put(e.getToId(), subGraph);
-            }
-        }
-        final int NodeSizeThreshold = 100_000;
-        final List<SubGraph> uniqueSubGraphs = new ArrayList<>(new HashSet<>(nodeIdSubGraphMap.values()));
-        SubGraph orphanSubGraph = null;
-        for (long i = 1; i <= graph.getNumberOfNodes(); i++) {
-            if (nodeIdSubGraphMap.containsKey(i))
-                continue;
-            if (orphanSubGraph == null || orphanSubGraph.nodeIds.size() == NodeSizeThreshold) {
-                orphanSubGraph = new SubGraph();
-                uniqueSubGraphs.add(orphanSubGraph);
-            }
-            orphanSubGraph.nodeIds.add(i);
-        }
-        for (int i = 0; i < uniqueSubGraphs.size() - 1; i++) {
-            final SubGraph mergeSubGraph = uniqueSubGraphs.get(i);
-            if (mergeSubGraph.nodeIds.size() >= NodeSizeThreshold)
-                continue;
-            for (int j = uniqueSubGraphs.size() - 1; j > i; j--) {
-                final SubGraph subGraph = uniqueSubGraphs.get(j);
-                if (mergeSubGraph.nodeIds.size() + subGraph.nodeIds.size() < NodeSizeThreshold) {
-                    mergeSubGraph.nodeIds.addAll(subGraph.nodeIds);
-                    mergeSubGraph.edgeIds.addAll(subGraph.edgeIds);
-                    uniqueSubGraphs.remove(j);
-                }
-            }
-        }
-        return uniqueSubGraphs;
-    }
-
-    private void writeSubGraphFile(final OutputStream outputStream, final Graph graph,
-                                   final SubGraph subGraph) throws XMLStreamException {
+    private void writeGraphFile(final OutputStream outputStream, final Graph graph) throws XMLStreamException {
         final XMLStreamWriter writer = createXMLStreamWriter(outputStream);
         writer.writeStartDocument();
         writeRootStart(writer);
-        writeGraph(writer, graph, subGraph);
+        writeGraph(writer, graph);
         writer.writeEndElement();
         writer.writeEndDocument();
     }
 
     private static XMLStreamWriter createXMLStreamWriter(final OutputStream outputStream) throws XMLStreamException {
         final XMLOutputFactory factory = XMLOutputFactory.newInstance();
-        final XMLStreamWriter writer = factory.createXMLStreamWriter(new BufferedOutputStream(outputStream), "UTF-8");
+        final XMLStreamWriter writer = factory.createXMLStreamWriter(new BufferedOutputStream(outputStream),
+                                                                     StandardCharsets.UTF_8.name());
         return new IndentingXMLStreamWriter(writer);
     }
 
@@ -280,18 +194,15 @@ public final class GraphMLGraphWriter extends GraphWriter {
                                                     "http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd");
     }
 
-    private void writeGraph(final XMLStreamWriter writer, final Graph graph,
-                            final SubGraph subGraph) throws XMLStreamException {
+    private void writeGraph(final XMLStreamWriter writer, final Graph graph) throws XMLStreamException {
         writeProperties(writer);
         writer.writeStartElement("graph");
         writer.writeAttribute("id", "G");
         writer.writeAttribute("edgedefault", "directed");
         for (final Node node : graph.getNodes())
-            if (subGraph == null || subGraph.nodeIds.contains(node.getId()))
-                writeNode(writer, node);
+            writeNode(writer, node);
         for (final Edge edge : graph.getEdges())
-            if (subGraph == null || subGraph.edgeIds.contains(edge.getId()))
-                writeEdge(writer, edge);
+            writeEdge(writer, edge);
         writer.writeEndElement();
     }
 

@@ -16,6 +16,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 
 public class DGIdbUpdater extends Updater<DGIdbDataSource> {
+    public DGIdbUpdater(DGIdbDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
     public Version getNewestVersion() throws UpdaterException {
         String source;
@@ -47,8 +51,7 @@ public class DGIdbUpdater extends Updater<DGIdbDataSource> {
     }
 
     @Override
-    protected boolean tryUpdateFiles(final Workspace workspace,
-                                     final DGIdbDataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         downloadFile(workspace, dataSource, "http://www.dgidb.org/data/interactions.tsv");
         downloadFile(workspace, dataSource, "http://www.dgidb.org/data/drugs.tsv");
         downloadFile(workspace, dataSource, "http://www.dgidb.org/data/genes.tsv");

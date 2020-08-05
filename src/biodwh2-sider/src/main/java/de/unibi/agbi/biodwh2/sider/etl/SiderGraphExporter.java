@@ -25,8 +25,12 @@ import java.util.stream.Collectors;
  * LLT)
  */
 public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
+    public SiderGraphExporter(final SiderDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    protected boolean exportGraph(final Workspace workspace, final SiderDataSource dataSource,
+    protected boolean exportGraph(final Workspace workspace,
                                   final Graph graph) throws ExporterException {
         graph.setNodeIndexPropertyKeys("id", "flat_id", "stereo_id");
         addAllDrugNames(workspace, dataSource, graph);

@@ -20,19 +20,13 @@ import java.util.Map;
 public class UNIIUpdater extends Updater<UNIIDataSource> {
     private Map<String, Integer> monthNameNumberMap = new HashMap<>();
 
-    public UNIIUpdater() {
-        monthNameNumberMap.put("Jan", 1);
-        monthNameNumberMap.put("Feb", 2);
-        monthNameNumberMap.put("Mar", 3);
-        monthNameNumberMap.put("Apr", 4);
-        monthNameNumberMap.put("May", 5);
-        monthNameNumberMap.put("Jun", 6);
-        monthNameNumberMap.put("Jul", 7);
-        monthNameNumberMap.put("Aug", 8);
-        monthNameNumberMap.put("Sep", 9);
-        monthNameNumberMap.put("Oct", 10);
-        monthNameNumberMap.put("Nov", 11);
-        monthNameNumberMap.put("Dec", 12);
+    public UNIIUpdater(UNIIDataSource dataSource) {
+        super(dataSource);
+        final String[] months = {
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        };
+        for (int i = 0; i < months.length; i++)
+            monthNameNumberMap.put(months[i], i + 1);
     }
 
     @Override
@@ -57,7 +51,7 @@ public class UNIIUpdater extends Updater<UNIIDataSource> {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, UNIIDataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
         downloadFile("https://fdasis.nlm.nih.gov/srs/download/srs/UNIIs.zip",
                      dataSource.resolveSourceFilePath(workspace, "UNIIs.zip"));
         downloadFile("https://fdasis.nlm.nih.gov/srs/download/srs/UNII_Data.zip",

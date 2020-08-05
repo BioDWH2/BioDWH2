@@ -14,18 +14,18 @@ public class NCBIDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
-        return new NCBIUpdater();
+    public Updater<NCBIDataSource> getUpdater() {
+        return new NCBIUpdater(this);
     }
 
     @Override
-    protected Parser getParser() {
-        return new NCBIParser();
+    protected Parser<NCBIDataSource> getParser() {
+        return new NCBIParser(this);
     }
 
     @Override
-    protected GraphExporter getGraphExporter() {
-        return new NCBIGraphExporter();
+    protected GraphExporter<NCBIDataSource> getGraphExporter() {
+        return new NCBIGraphExporter(this);
     }
 
     @Override

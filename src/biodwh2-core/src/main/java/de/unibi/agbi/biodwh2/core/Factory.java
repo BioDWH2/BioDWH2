@@ -15,7 +15,8 @@ public final class Factory {
     private static final List<String> IGNORED_JARS = Arrays.asList("rt.jar", "idea_rt.jar", "aws-java-sdk-ec2",
                                                                    "proto-", "google-cloud-", "google-api-",
                                                                    "openstack4j-core", "selenium-", "google-api-client",
-                                                                   "jackson-", "guava", "jetty", "netty-", "junit-");
+                                                                   "jackson-", "guava", "jetty", "netty-", "junit-",
+                                                                   "com.intellij.rt");
     private static Factory instance;
     private final Map<String, List<Class<?>>> interfaceToImplementationsMap;
     private final Map<String, List<Class<?>>> baseClassToImplementationsMap;
@@ -141,7 +142,6 @@ public final class Factory {
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public <T> List<Class<T>> getImplementations(final Class<T> type) {
         final String typeName = type.getName();
         if (interfaceToImplementationsMap.containsKey(typeName))

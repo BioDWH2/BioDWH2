@@ -4,9 +4,9 @@ import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
-public class Mock2MappingDescriber extends MappingDescriber {
+public final class Mock2MappingDescriber extends MappingDescriber {
     @Override
-    public NodeMappingDescription describe(Graph graph, Node node) {
+    public NodeMappingDescription describe(final Graph graph, final Node node) {
         if (node.getLabel().endsWith("Gene")) {
             NodeMappingDescription description = new NodeMappingDescription();
             description.type = NodeMappingDescription.NodeType.GENE;
@@ -24,7 +24,7 @@ public class Mock2MappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public EdgeMappingDescription describe(Graph graph, Edge edge) {
+    public EdgeMappingDescription describe(final Graph graph, final Edge edge) {
         return null;
     }
 }

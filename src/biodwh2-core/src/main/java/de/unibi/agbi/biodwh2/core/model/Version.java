@@ -12,13 +12,20 @@ public final class Version implements Comparable<Version> {
     public final int build;
     public final int revision;
 
+    private Version() {
+        major = -1;
+        minor = -1;
+        build = -1;
+        revision = -1;
+    }
+
     public Version(final int major, final int minor) {
         checkComponentNonNegative(major, "major");
         checkComponentNonNegative(minor, "minor");
         this.major = major;
         this.minor = minor;
-        this.build = -1;
-        this.revision = -1;
+        build = -1;
+        revision = -1;
     }
 
     private void checkComponentNonNegative(final int value, final String name) {
@@ -33,7 +40,7 @@ public final class Version implements Comparable<Version> {
         this.major = major;
         this.minor = minor;
         this.build = build;
-        this.revision = -1;
+        revision = -1;
     }
 
     public Version(final int major, final int minor, final int build, final int revision) {

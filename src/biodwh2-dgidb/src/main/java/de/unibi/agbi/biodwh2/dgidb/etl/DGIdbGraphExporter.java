@@ -2,7 +2,6 @@ package de.unibi.agbi.biodwh2.dgidb.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -18,9 +17,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DGIdbGraphExporter extends GraphExporter<DGIdbDataSource> {
+    public DGIdbGraphExporter(final DGIdbDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    protected boolean exportGraph(final Workspace workspace, final DGIdbDataSource dataSource,
-                                  final Graph graph) throws ExporterException {
+    protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         graph.setNodeIndexPropertyKeys("chembl_id", "entrez_id");
         for (Drug drug : dataSource.drugs.stream().distinct().collect(Collectors.toList()))
             createNodeFromModel(graph, drug);

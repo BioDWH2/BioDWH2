@@ -332,7 +332,7 @@ public class IndentingXMLStreamWriter implements XMLStreamWriter {
             prepareLinePrefix(prefixLength);
             try {
                 out.writeCharacters(linePrefix, 0, prefixLength);
-            } catch (XMLStreamException ignored) {
+            } catch (Exception ignored) {
             }
         }
     }

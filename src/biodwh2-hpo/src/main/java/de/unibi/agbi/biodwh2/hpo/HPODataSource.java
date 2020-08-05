@@ -14,18 +14,18 @@ public class HPODataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
-        return new HPOUpdater();
+    public Updater<HPODataSource> getUpdater() {
+        return new HPOUpdater(this);
     }
 
     @Override
-    protected Parser getParser() {
-        return new HPOParser();
+    protected Parser<HPODataSource> getParser() {
+        return new HPOParser(this);
     }
 
     @Override
-    protected GraphExporter getGraphExporter() {
-        return new HPOGraphExporter();
+    protected GraphExporter<HPODataSource> getGraphExporter() {
+        return new HPOGraphExporter(this);
     }
 
     @Override

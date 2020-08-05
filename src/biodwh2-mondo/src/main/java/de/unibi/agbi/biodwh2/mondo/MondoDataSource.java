@@ -14,18 +14,18 @@ public class MondoDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
-        return new MondoUpdater();
+    public Updater<MondoDataSource> getUpdater() {
+        return new MondoUpdater(this);
     }
 
     @Override
-    protected Parser getParser() {
-        return new MondoParser();
+    protected Parser<MondoDataSource> getParser() {
+        return new MondoParser(this);
     }
 
     @Override
-    protected GraphExporter getGraphExporter() {
-        return new MondoGraphExporter();
+    protected GraphExporter<MondoDataSource> getGraphExporter() {
+        return new MondoGraphExporter(this);
     }
 
     @Override
