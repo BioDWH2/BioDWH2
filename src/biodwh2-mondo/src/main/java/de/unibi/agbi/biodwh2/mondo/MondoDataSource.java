@@ -30,7 +30,7 @@ public class MondoDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new MondoMappingDescriber();
+        return new MondoMappingDescriber(this);
     }
 
     @Override

@@ -30,7 +30,7 @@ public class MEDRTDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new MEDRTMappingDescriber();
+        return new MEDRTMappingDescriber(this);
     }
 
     @Override

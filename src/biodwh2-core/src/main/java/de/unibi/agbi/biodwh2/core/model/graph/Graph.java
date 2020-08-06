@@ -277,6 +277,14 @@ public final class Graph {
         return () -> nodes.find(and(filter)).iterator();
     }
 
+    public Iterable<Edge> findEdges(final String label) {
+        return () -> edges.find(eq(Edge.LABEL_FIELD, label)).iterator();
+    }
+
+    public Iterable<Edge> findEdges(final String label, final String propertyKey, final Object value) {
+        return () -> edges.find(and(eq(Edge.LABEL_FIELD, label), eq(propertyKey, value))).iterator();
+    }
+
     public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId, final String edgeLabel) {
         final Set<Long> nodeIds = new HashSet<>();
         final ObjectFilter filter = and(eq(Edge.LABEL_FIELD, edgeLabel),

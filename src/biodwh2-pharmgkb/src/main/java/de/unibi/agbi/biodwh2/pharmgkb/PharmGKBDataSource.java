@@ -49,7 +49,7 @@ public class PharmGKBDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new PharmGKBMappingDescriber();
+        return new PharmGKBMappingDescriber(this);
     }
 
     @Override

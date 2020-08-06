@@ -36,7 +36,7 @@ public class DrugBankDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new DrugBankMappingDescriber();
+        return new DrugBankMappingDescriber(this);
     }
 
     @Override

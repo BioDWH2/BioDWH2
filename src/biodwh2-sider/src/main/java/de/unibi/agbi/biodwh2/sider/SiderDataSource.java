@@ -30,7 +30,7 @@ public class SiderDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new SiderMappingDescriber();
+        return new SiderMappingDescriber(this);
     }
 
     @Override

@@ -39,7 +39,7 @@ public class KeggDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new KeggMappingDescriber();
+        return new KeggMappingDescriber(this);
     }
 
     @Override

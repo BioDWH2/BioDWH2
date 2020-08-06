@@ -9,11 +9,11 @@ import de.unibi.agbi.biodwh2.core.model.graph.*;
 public abstract class GraphExporter<D extends DataSource> {
     static final String LABEL_PREFIX_SEPARATOR = "_";
 
+    protected final D dataSource;
+
     public GraphExporter(final D dataSource) {
         this.dataSource = dataSource;
     }
-
-    protected final D dataSource;
 
     public final boolean export(final Workspace workspace) throws ExporterException {
         final Graph g = new Graph(dataSource.getGraphDatabaseFilePath(workspace));

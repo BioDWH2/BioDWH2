@@ -38,7 +38,7 @@ public class DGIdbDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new DGIdbMappingDescriber();
+        return new DGIdbMappingDescriber(this);
     }
 
     @Override

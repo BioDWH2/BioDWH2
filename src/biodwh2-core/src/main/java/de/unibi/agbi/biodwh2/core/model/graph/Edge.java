@@ -12,9 +12,9 @@ import java.util.*;
 
 public class Edge implements PropertyContainer, Mappable {
     private static final String ID_FIELD = "__id";
-    static final String FROM_ID_FIELD = "__from_id";
-    static final String TO_ID_FIELD = "__to_id";
-    static final String LABEL_FIELD = "__label";
+    public static final String FROM_ID_FIELD = "__from_id";
+    public static final String TO_ID_FIELD = "__to_id";
+    public static final String LABEL_FIELD = "__label";
     public static final Set<String> IGNORED_FIELDS = new HashSet<>(
             Arrays.asList(ID_FIELD, LABEL_FIELD, FROM_ID_FIELD, TO_ID_FIELD, "_modified", "_revision", "_id"));
 

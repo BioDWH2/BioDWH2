@@ -1,11 +1,16 @@
 package de.unibi.agbi.biodwh2.pharmgkb.etl;
 
+import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 import org.apache.commons.lang3.StringUtils;
 
 public class PharmGKBMappingDescriber extends MappingDescriber {
+    public PharmGKBMappingDescriber(DataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
     public NodeMappingDescription describe(final Graph graph, final Node node) {
         if ("Drug".equalsIgnoreCase(node.getLabel()))
@@ -86,7 +91,17 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public EdgeMappingDescription describe(final Graph graph, final Edge edge) {
+    protected String[] getNodeMappingLabels() {
+        return new String[]{"Drug", "Chemical", "Haplotype", "Gene", "Variant", "Pathway"};
+    }
+
+    @Override
+    public PathMappingDescription describe(Graph graph, Node[] nodes, Edge[] edges) {
         return null;
+    }
+
+    @Override
+    protected String[][] getEdgeMappingPaths() {
+        return new String[0][];
     }
 }

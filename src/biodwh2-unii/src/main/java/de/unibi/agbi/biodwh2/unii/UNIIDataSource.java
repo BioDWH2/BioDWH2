@@ -35,7 +35,7 @@ public class UNIIDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new UNIIMappingDescriber();
+        return new UNIIMappingDescriber(this);
     }
 
     @Override

@@ -27,7 +27,7 @@ public final class Mock1DataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new Mock1MappingDescriber();
+        return new Mock1MappingDescriber(this);
     }
 
     @Override

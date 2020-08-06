@@ -21,6 +21,7 @@ public final class GraphMapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMapper.class);
     private static final String MAPPED_TO_EDGE_LABEL = "MAPPED_TO";
     private static final String IDS_NODE_PROPERTY = "ids";
+    private static final String MAPPED_NODE_PROPERTY = "__mapped";
 
     public void map(final Workspace workspace, final DataSource[] dataSources, final String inputGraphFilePath,
                     final String outputGraphFilePath) {
@@ -47,24 +48,34 @@ public final class GraphMapper {
     }
 
     private void mapGraph(final Graph graph, final DataSource[] dataSources) {
-        final Map<String, MappingDescriber> dataSourceDescriberMap = new HashMap<>();
+        final Map<String, MappingDescriber> map = getDataSourceDescriberMap(dataSources);
+        mapNodes(graph, map);
+        mapPaths(graph, map);
+    }
+
+    private Map<String, MappingDescriber> getDataSourceDescriberMap(final DataSource[] dataSources) {
+        final Map<String, MappingDescriber> map = new HashMap<>();
         for (final DataSource dataSource : dataSources)
-            dataSourceDescriberMap.put(dataSource.getId(), dataSource.getMappingDescriber());
-        mapNodes(graph, dataSourceDescriberMap);
-        mapEdges(graph, dataSourceDescriberMap);
+            map.put(dataSource.getId(), dataSource.getMappingDescriber());
+        return map;
     }
 
     private void mapNodes(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
         final Map<String, Set<Long>> idNodeIdMap = new HashMap<>();
-        for (final Node node : graph.getNodes()) {
-            final String dataSourceId = StringUtils.split(node.getLabel(), GraphExporter.LABEL_PREFIX_SEPARATOR)[0];
-            final MappingDescriber dataSourceDescriber = dataSourceDescriberMap.get(dataSourceId);
-            if (dataSourceDescriber != null) {
-                final NodeMappingDescription mappingDescription = dataSourceDescriber.describe(graph, node);
-                if (mappingDescription != null)
-                    mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId());
+        for (final MappingDescriber describer : dataSourceDescriberMap.values()) {
+            final String[] mappingLabels = describer.getPrefixedNodeMappingLabels();
+            for (final String mappingLabel : mappingLabels) {
+                for (final Node node : graph.getNodes(mappingLabel)) {
+                    final NodeMappingDescription mappingDescription = describer.describe(graph, node);
+                    if (mappingDescription != null)
+                        mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId());
+                }
             }
         }
+    }
+
+    private String getDataSourceIdFromLabel(final String label) {
+        return StringUtils.split(label, GraphExporter.LABEL_PREFIX_SEPARATOR)[0];
     }
 
     private void mergeMatchingNodes(final Graph graph, final NodeMappingDescription description,
@@ -108,6 +119,7 @@ public final class GraphMapper {
         }
         if (mergedNode == null)
             mergedNode = graph.addNode(description.type.toString());
+        mergedNode.setProperty(MAPPED_NODE_PROPERTY, true);
         mergedNode.setProperty(IDS_NODE_PROPERTY, ids.toArray(new String[0]));
         graph.update(mergedNode);
         return mergedNode;
@@ -117,23 +129,62 @@ public final class GraphMapper {
         return description.type.toString().equals(node.getLabel());
     }
 
-    private void mapEdges(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
-        for (final Edge edge : graph.getEdges()) {
-            final String dataSourceId = StringUtils.split(edge.getLabel(), GraphExporter.LABEL_PREFIX_SEPARATOR)[0];
-            final MappingDescriber dataSourceDescriber = dataSourceDescriberMap.get(dataSourceId);
-            if (dataSourceDescriber != null) {
-                final EdgeMappingDescription mappingDescription = dataSourceDescriber.describe(graph, edge);
-                if (mappingDescription != null) {
-                    final Long[] mappedFromNodeIds = graph.getAdjacentNodeIdsForEdgeLabel(edge.getFromId(),
-                                                                                          MAPPED_TO_EDGE_LABEL);
-                    final Long[] mappedToNodeIds = graph.getAdjacentNodeIdsForEdgeLabel(edge.getToId(),
-                                                                                        MAPPED_TO_EDGE_LABEL);
-                    if (mappedFromNodeIds.length > 0 && mappedToNodeIds.length > 0) {
-                        final Edge mappedEdge = graph.addEdge(mappedFromNodeIds[0], mappedToNodeIds[0],
-                                                              mappingDescription.type.name());
-                        mappedEdge.setProperty("source", dataSourceId);
-                    }
-                }
+    private void mapPaths(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
+        for (final MappingDescriber describer : dataSourceDescriberMap.values())
+            for (final String[] path : describer.getPrefixedEdgeMappingPaths())
+                mapPath(graph, describer, path);
+    }
+
+    private void mapPath(final Graph graph, final MappingDescriber describer, final String[] path) {
+        for (Node node : graph.getNodes(path[0])) {
+            final long[] currentPathIds = new long[path.length];
+            currentPathIds[0] = node.getId();
+            buildPathRecursively(graph, describer, path, 1, currentPathIds);
+        }
+    }
+
+    private void buildPathRecursively(final Graph graph, final MappingDescriber describer, final String[] path,
+                                      final int edgeIndex, final long[] currentPathIds) {
+        if (edgeIndex >= path.length) {
+            mapPathInstance(graph, describer, currentPathIds);
+            return;
+        }
+        for (final Edge edge : graph.findEdges(path[edgeIndex], Edge.FROM_ID_FIELD, currentPathIds[edgeIndex - 1])) {
+            currentPathIds[edgeIndex] = edge.getId();
+            final Node nextNode = graph.getNode(edge.getToId());
+            if (nextNode.getLabel().equals(path[edgeIndex + 1])) {
+                final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
+                nextPathIds[edgeIndex + 1] = nextNode.getId();
+                buildPathRecursively(graph, describer, path, edgeIndex + 2, nextPathIds);
+            }
+        }
+        for (final Edge edge : graph.findEdges(path[edgeIndex], Edge.TO_ID_FIELD, currentPathIds[edgeIndex - 1])) {
+            currentPathIds[edgeIndex] = edge.getId();
+            final Node nextNode = graph.getNode(edge.getFromId());
+            if (nextNode.getLabel().equals(path[edgeIndex + 1])) {
+                final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
+                nextPathIds[edgeIndex + 1] = nextNode.getId();
+                buildPathRecursively(graph, describer, path, edgeIndex + 2, nextPathIds);
+            }
+        }
+    }
+
+    private void mapPathInstance(final Graph graph, final MappingDescriber describer, final long[] pathIds) {
+        final Node[] nodes = new Node[pathIds.length / 2 + 1];
+        for (int i = 0; i < nodes.length; i++)
+            nodes[i] = graph.getNode(pathIds[i * 2]);
+        final Edge[] edges = new Edge[pathIds.length / 2];
+        for (int i = 0; i < edges.length; i++)
+            edges[i] = graph.getEdge(pathIds[i * 2 + 1]);
+        final PathMappingDescription mappingDescription = describer.describe(graph, nodes, edges);
+        if (mappingDescription != null) {
+            final Long[] mappedFromNodeIds = graph.getAdjacentNodeIdsForEdgeLabel(pathIds[0], MAPPED_TO_EDGE_LABEL);
+            final Long[] mappedToNodeIds = graph.getAdjacentNodeIdsForEdgeLabel(pathIds[pathIds.length - 1],
+                                                                                MAPPED_TO_EDGE_LABEL);
+            if (mappedFromNodeIds.length > 0 && mappedToNodeIds.length > 0) {
+                final Edge mappedEdge = graph.addEdge(mappedFromNodeIds[0], mappedToNodeIds[0],
+                                                      mappingDescription.type.name());
+                mappedEdge.setProperty("source", describer.getDataSourceId());
             }
         }
     }

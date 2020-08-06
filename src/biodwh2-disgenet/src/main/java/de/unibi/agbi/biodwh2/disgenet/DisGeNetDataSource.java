@@ -30,7 +30,7 @@ public class DisGeNetDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new DisGeNetMappingDescriber();
+        return new DisGeNetMappingDescriber(this);
     }
 
     @Override

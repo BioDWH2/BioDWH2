@@ -1,10 +1,15 @@
 package de.unibi.agbi.biodwh2.core.mocks.mock1.etl;
 
+import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 public final class Mock1MappingDescriber extends MappingDescriber {
+    public Mock1MappingDescriber(DataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
     public NodeMappingDescription describe(final Graph graph, final Node node) {
         if (node.getLabel().endsWith("Gene")) {
@@ -29,12 +34,24 @@ public final class Mock1MappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public EdgeMappingDescription describe(final Graph graph, final Edge edge) {
-        if (edge.getLabel().endsWith("TARGETS")) {
-            EdgeMappingDescription description = new EdgeMappingDescription();
-            description.type = EdgeMappingDescription.EdgeType.TARGETS;
+    protected String[] getNodeMappingLabels() {
+        return new String[]{"Gene", "Drug", "Dummy1"};
+    }
+
+    @Override
+    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
+        if (edges[0].getLabel().endsWith("TARGETS")) {
+            PathMappingDescription description = new PathMappingDescription();
+            description.type = PathMappingDescription.EdgeType.TARGETS;
             return description;
         }
         return null;
+    }
+
+    @Override
+    protected String[][] getEdgeMappingPaths() {
+        return new String[][]{
+                {"Drug", "TARGETS", "Gene"}
+        };
     }
 }

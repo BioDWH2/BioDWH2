@@ -30,7 +30,7 @@ public class HPODataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new HPOMappingDescriber();
+        return new HPOMappingDescriber(this);
     }
 
     @Override

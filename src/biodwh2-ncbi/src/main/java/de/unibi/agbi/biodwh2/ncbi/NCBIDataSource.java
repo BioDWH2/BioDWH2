@@ -30,7 +30,7 @@ public class NCBIDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new NCBIMappingDescriber();
+        return new NCBIMappingDescriber(this);
     }
 
     @Override

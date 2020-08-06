@@ -22,7 +22,8 @@ public final class DataSourceMetadata {
 
     @JsonIgnore
     public LocalDateTime getLocalUpdateDateTime() {
-        return LocalDateTime.parse(updateDateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        return updateDateTime == null ? null : LocalDateTime.parse(updateDateTime,
+                                                                   DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 
     public void setUpdateDateTimeNow() {

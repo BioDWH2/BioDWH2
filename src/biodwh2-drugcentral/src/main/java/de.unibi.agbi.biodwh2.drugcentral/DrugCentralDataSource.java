@@ -27,7 +27,7 @@ public class DrugCentralDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new DrugCentralMappingDescriber();
+        return new DrugCentralMappingDescriber(this);
     }
 
     @Override

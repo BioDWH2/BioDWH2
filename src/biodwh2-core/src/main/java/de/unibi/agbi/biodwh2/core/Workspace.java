@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -143,9 +144,11 @@ public final class Workspace {
         final List<String> row = new ArrayList<>();
         final DataSourceMetadata metadata = dataSource.getMetadata();
         final Version latestVersion = dataSource.getNewestVersion();
+        LocalDateTime updateDateTime = metadata.getLocalUpdateDateTime();
         Collections.addAll(row, dataSource.getId(), String.valueOf(dataSource.isUpToDate()),
-                           metadata.version.toString(), latestVersion == null ? null : latestVersion.toString(),
-                           metadata.getLocalUpdateDateTime().toString());
+                           metadata.version == null ? "-" : metadata.version.toString(),
+                           latestVersion == null ? "-" : latestVersion.toString(),
+                           updateDateTime == null ? "-" : updateDateTime.toString());
         if (verbose)
             row.add(StringUtils.join(metadata.sourceFileNames, ", "));
         return row;

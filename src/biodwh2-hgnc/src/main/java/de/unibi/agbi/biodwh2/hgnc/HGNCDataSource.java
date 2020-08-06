@@ -32,7 +32,7 @@ public class HGNCDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new HGNCMappingDescriber();
+        return new HGNCMappingDescriber(this);
     }
 
     @Override

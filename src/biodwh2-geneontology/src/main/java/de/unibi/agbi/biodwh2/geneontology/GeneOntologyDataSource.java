@@ -30,7 +30,7 @@ public class GeneOntologyDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new GeneOntologyMappingDescriber();
+        return new GeneOntologyMappingDescriber(this);
     }
 
     @Override

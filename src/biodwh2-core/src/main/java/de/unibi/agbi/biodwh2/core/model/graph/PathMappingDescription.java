@@ -1,6 +1,6 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
-public class EdgeMappingDescription {
+public class PathMappingDescription {
     public enum EdgeType {
         UNKNOWN,
         TARGETS,

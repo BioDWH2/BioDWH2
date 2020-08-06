@@ -22,11 +22,11 @@ public abstract class Updater<D extends DataSource> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Updater.class);
 
+    protected final D dataSource;
+
     public Updater(final D dataSource) {
         this.dataSource = dataSource;
     }
-
-    protected final D dataSource;
 
     public final Version tryGetNewestVersion() {
         try {

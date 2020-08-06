@@ -30,7 +30,7 @@ public class NDFRTDataSource extends DataSource {
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return new NDFRTMappingDescriber();
+        return new NDFRTMappingDescriber(this);
     }
 
     @Override

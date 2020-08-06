@@ -1,10 +1,15 @@
 package de.unibi.agbi.biodwh2.core.mocks.mock2.etl;
 
+import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 public final class Mock2MappingDescriber extends MappingDescriber {
+    public Mock2MappingDescriber(DataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
     public NodeMappingDescription describe(final Graph graph, final Node node) {
         if (node.getLabel().endsWith("Gene")) {
@@ -24,7 +29,17 @@ public final class Mock2MappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public EdgeMappingDescription describe(final Graph graph, final Edge edge) {
+    protected String[] getNodeMappingLabels() {
+        return new String[]{"Gene", "Dummy2"};
+    }
+
+    @Override
+    public PathMappingDescription describe(Graph graph, Node[] nodes, Edge[] edges) {
         return null;
+    }
+
+    @Override
+    protected String[][] getEdgeMappingPaths() {
+        return new String[0][];
     }
 }
