@@ -32,7 +32,7 @@ public class UNIIParser extends Parser<UNIIDataSource> {
             ZipInputStream zipInputStream = FileUtils.openZip(workspace, dataSource, "UNIIs.zip");
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                if (zipEntry.getName().startsWith("UNII_Names_") && zipEntry.getName().endsWith(".txt")) {
+                if (zipEntry.getName().contains("Names") && zipEntry.getName().endsWith(".txt")) {
                     dataSource.uniiEntries = parseZipStream(zipInputStream, UNIIEntry.class);
                     break;
                 }
@@ -47,7 +47,7 @@ public class UNIIParser extends Parser<UNIIDataSource> {
             ZipInputStream zipInputStream = FileUtils.openZip(workspace, dataSource, "UNII_Data.zip");
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                if (zipEntry.getName().startsWith("UNII_Records_") && zipEntry.getName().endsWith(".txt")) {
+                if (zipEntry.getName().contains("Records") && zipEntry.getName().endsWith(".txt")) {
                     List<UNIIDataEntry> dataEntries = parseZipStream(zipInputStream, UNIIDataEntry.class);
                     dataSource.uniiDataEntries = new HashMap<>();
                     for (UNIIDataEntry entry : dataEntries)

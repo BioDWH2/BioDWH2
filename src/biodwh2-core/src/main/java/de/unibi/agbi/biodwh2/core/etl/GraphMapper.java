@@ -136,10 +136,23 @@ public final class GraphMapper {
     }
 
     private void mapPath(final Graph graph, final MappingDescriber describer, final String[] path) {
+        logPath(path);
         for (Node node : graph.getNodes(path[0])) {
             final long[] currentPathIds = new long[path.length];
             currentPathIds[0] = node.getId();
             buildPathRecursively(graph, describer, path, 1, currentPathIds);
+        }
+    }
+
+    private static void logPath(final String[] path) {
+        if (LOGGER.isInfoEnabled()) {
+            StringBuilder builder = new StringBuilder("Mapping Edge path ");
+            for (int i = 0; i < path.length; i++) {
+                if (i > 0)
+                    builder.append("-");
+                builder.append(i % 2 == 0 ? "(:" : "[:").append(path[i]).append(i % 2 == 0 ? ")" : "]");
+            }
+            LOGGER.info(builder.toString());
         }
     }
 
@@ -170,6 +183,8 @@ public final class GraphMapper {
     }
 
     private void mapPathInstance(final Graph graph, final MappingDescriber describer, final long[] pathIds) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Path instance IDs " + StringUtils.join(pathIds, ';'));
         final Node[] nodes = new Node[pathIds.length / 2 + 1];
         for (int i = 0; i < nodes.length; i++)
             nodes[i] = graph.getNode(pathIds[i * 2]);

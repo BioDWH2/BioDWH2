@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
@@ -65,6 +66,9 @@ public abstract class DataSource {
         final ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.readValue(filePath.toFile(), DataSourceMetadata.class);
+        } catch (UnrecognizedPropertyException e) {
+            if (LOGGER.isWarnEnabled())
+                LOGGER.warn(e.getMessage());
         } catch (IOException e) {
             if (LOGGER.isWarnEnabled())
                 LOGGER.warn("Failed to load data source '" + getId() + "' metadata. Creating a new one.", e);
