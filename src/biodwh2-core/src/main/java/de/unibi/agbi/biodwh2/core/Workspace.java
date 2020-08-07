@@ -131,7 +131,7 @@ public final class Workspace {
     private String createStateTable(final boolean verbose) {
         final List<String> headers = new ArrayList<>();
         Collections.addAll(headers, "SourceID", "Version is up-to-date", "Version", "new Version",
-                           "Time of latest update");
+                           "Time of latest update", "Parse successful", "Export successful");
         if (verbose)
             headers.add("Files");
         final List<List<String>> rows = new ArrayList<>();
@@ -145,10 +145,12 @@ public final class Workspace {
         final DataSourceMetadata metadata = dataSource.getMetadata();
         final Version latestVersion = dataSource.getNewestVersion();
         LocalDateTime updateDateTime = metadata.getLocalUpdateDateTime();
-        Collections.addAll(row, dataSource.getId(), String.valueOf(dataSource.isUpToDate()),
+        Collections.addAll(row, dataSource.getId(), dataSource.isUpToDate() ? "true" : "-",
                            metadata.version == null ? "-" : metadata.version.toString(),
                            latestVersion == null ? "-" : latestVersion.toString(),
-                           updateDateTime == null ? "-" : updateDateTime.toString());
+                           updateDateTime == null ? "-" : updateDateTime.toString(),
+                           metadata.parseSuccessful == null ? "-" : "true",
+                           metadata.exportSuccessful == null ? "-" : "true");
         if (verbose)
             row.add(StringUtils.join(metadata.sourceFileNames, ", "));
         return row;
