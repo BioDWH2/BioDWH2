@@ -3,20 +3,19 @@ package de.unibi.agbi.biodwh2.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
+import java.lang.module.ModuleReader;
+import java.lang.module.ModuleReference;
+import java.lang.module.ResolvedModule;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 public final class Factory {
     private static final Logger LOGGER = LoggerFactory.getLogger(Factory.class);
-    private static final List<String> IGNORED_JARS = Arrays.asList("rt.jar", "idea_rt.jar", "aws-java-sdk-ec2",
-                                                                   "proto-", "google-cloud-", "google-api-",
-                                                                   "openstack4j-core", "selenium-", "google-api-client",
-                                                                   "jackson-", "guava", "jetty", "netty-", "junit-",
-                                                                   "com.intellij.rt");
+    private static final List<String> IGNORED_MODULE_PREFIXES = Arrays.asList("java.", "jdk.", "javafx.", "oracle.",
+                                                                              "kotlin.", "logback.", "com.fasterxml.",
+                                                                              "slf4j.");
     private static Factory instance;
     private final Map<String, List<Class<?>>> interfaceToImplementationsMap;
     private final Map<String, List<Class<?>>> baseClassToImplementationsMap;
@@ -30,70 +29,98 @@ public final class Factory {
         loadAllClasses();
     }
 
-    public static synchronized Factory getInstance() {
-        if (instance == null)
-            instance = new Factory();
-        return instance;
-    }
-
-    private void loadAllClasses() {
-        final ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        for (final String classPath : allClassPaths)
-            loadClassPath(classLoader, classPath);
-    }
-
     private void collectAllClassPaths() {
-        final String runtimeClassPath = ManagementFactory.getRuntimeMXBean().getClassPath();
-        for (final String classPath : runtimeClassPath.split(File.pathSeparator)) {
-            final File file = new File(classPath);
-            if (file.isDirectory())
-                iterateFileSystem(file, file.toURI().toString());
-            else if (isValidJarFile(file))
-                iterateJarFile(file);
+        for (final ModuleReference m : collectAllModules()) {
+            try (final ModuleReader moduleReader = m.open()) {
+                moduleReader.list().filter(Factory::isUriClassInBioDWH).map(Factory::getClassPathFromUri).forEach(
+                        allClassPaths::add);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
         }
     }
 
-    private static boolean isValidJarFile(final File file) {
-        final String fileName = file.getName().toLowerCase(Locale.US);
-        return file.isFile() && fileName.endsWith(".jar") && IGNORED_JARS.stream().noneMatch(fileName::contains);
+    private Set<ModuleReference> collectAllModules() {
+        final Class<?>[] callStack = getCallStack();
+        final Set<ModuleLayer> layers = new HashSet<>();
+        for (final Class<?> c : callStack)
+            collectLayersRecursive(c.getModule().getLayer(), layers);
+        final Set<ModuleReference> modules = new HashSet<>();
+        for (final ModuleLayer layer : layers)
+            for (final ResolvedModule module : layer.configuration().modules())
+                if (isModuleNotIgnored(module))
+                    modules.add(module.reference());
+        return modules;
     }
 
-    private void iterateFileSystem(final File directory, final String rootPath) {
-        final File[] files = directory.listFiles();
-        if (files != null)
-            iterateFiles(files, rootPath);
+    private Class<?>[] getCallStack() {
+        Class<?>[] result = getCallStackFromStackWalker();
+        if (result == null)
+            result = getCallStackFromSecurityManager();
+        if (result == null)
+            result = getCallStackFromException();
+        return result.length == 0 ? new Class<?>[]{getClass()} : result;
     }
 
-    private void iterateFiles(final File[] files, final String rootPath) {
-        for (final File file : files)
-            if (file.isDirectory())
-                iterateFileSystem(file, rootPath);
-            else if (file.isFile())
-                addUriIfValidClassPath(file.toURI().toString().substring(rootPath.length()));
-    }
-
-    private void addUriIfValidClassPath(final String uri) {
-        if (isUriClassInBioDWH(uri))
-            allClassPaths.add(getClassPathFromUri(uri));
-    }
-
-    private void iterateJarFile(final File file) {
-        final Enumeration<JarEntry> entries = tryGetJarFileEntries(file);
-        while (entries.hasMoreElements()) {
-            final JarEntry entry = entries.nextElement();
-            if (!entry.isDirectory())
-                addUriIfValidClassPath(entry.getName());
-        }
-    }
-
-    private Enumeration<JarEntry> tryGetJarFileEntries(final File file) {
+    private Class<?>[] getCallStackFromStackWalker() {
+        final StackWalker walker = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+        final PrivilegedAction<Class<?>[]> stackWalkerAction = () -> walker.walk(
+                s -> s.map(StackWalker.StackFrame::getDeclaringClass).toArray(Class[]::new));
         try {
-            return new JarFile(file).entries();
-        } catch (IOException e) {
-            if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to load JAR entries", e);
-            return Collections.emptyEnumeration();
+            return AccessController.doPrivileged(stackWalkerAction);
+        } catch (Exception ignored) {
         }
+        try {
+            return stackWalkerAction.run();
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    private Class<?>[] getCallStackFromSecurityManager() {
+        PrivilegedAction<Class<?>[]> callerResolverAction = () -> new SecurityManager() {
+            @Override
+            public Class<?>[] getClassContext() {
+                return super.getClassContext();
+            }
+        }.getClassContext();
+        try {
+            return AccessController.doPrivileged(callerResolverAction);
+        } catch (Exception ignored) {
+        }
+        try {
+            return callerResolverAction.run();
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    private Class<?>[] getCallStackFromException() {
+        try {
+            throw new Exception();
+        } catch (final Exception e) {
+            final List<Class<?>> classes = new ArrayList<>();
+            for (final StackTraceElement elt : e.getStackTrace()) {
+                try {
+                    classes.add(Class.forName(elt.getClassName()));
+                } catch (final Throwable ignored) {
+                }
+            }
+            return classes.toArray(new Class<?>[0]);
+        }
+    }
+
+    private void collectLayersRecursive(final ModuleLayer layer, final Set<ModuleLayer> layers) {
+        if (layers.add(layer))
+            for (final ModuleLayer parent : layer.parents())
+                collectLayersRecursive(parent, layers);
+    }
+
+    private static boolean isModuleNotIgnored(final ResolvedModule module) {
+        final String name = module.reference().descriptor().name();
+        if (name == null)
+            return true;
+        return IGNORED_MODULE_PREFIXES.stream().noneMatch(name::startsWith);
     }
 
     private static boolean isUriClassInBioDWH(final String uri) {
@@ -102,6 +129,18 @@ public final class Factory {
 
     private static String getClassPathFromUri(final String uri) {
         return uri.replace("/", ".").replace(".class", "");
+    }
+
+    private void loadAllClasses() {
+        final ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        for (final String classPath : allClassPaths)
+            loadClassPath(classLoader, classPath);
+    }
+
+    public static synchronized Factory getInstance() {
+        if (instance == null)
+            instance = new Factory();
+        return instance;
     }
 
     private void loadClassPath(final ClassLoader classLoader, final String classPath) {

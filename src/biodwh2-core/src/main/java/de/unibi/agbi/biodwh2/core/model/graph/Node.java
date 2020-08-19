@@ -7,8 +7,6 @@ import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.objects.Id;
 import org.dizitart.no2.objects.ObjectFilter;
 import org.dizitart.no2.objects.filters.ObjectFilters;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -108,7 +106,6 @@ public class Node implements PropertyContainer, Map<String, Object>, Mappable {
         return document.get(o);
     }
 
-    @Nullable
     @Override
     public Object put(String s, Object o) {
         return document.put(s, o);
@@ -120,7 +117,7 @@ public class Node implements PropertyContainer, Map<String, Object>, Mappable {
     }
 
     @Override
-    public void putAll(@NotNull Map<? extends String, ?> map) {
+    public void putAll(Map<? extends String, ?> map) {
         document.putAll(map);
     }
 
@@ -129,19 +126,16 @@ public class Node implements PropertyContainer, Map<String, Object>, Mappable {
         throw new UnsupportedOperationException("Clear is not permitted on Nodes");
     }
 
-    @NotNull
     @Override
     public Set<String> keySet() {
         return document.keySet();
     }
 
-    @NotNull
     @Override
     public Collection<Object> values() {
         return document.values();
     }
 
-    @NotNull
     @Override
     public Set<Entry<String, Object>> entrySet() {
         return document.entrySet();
