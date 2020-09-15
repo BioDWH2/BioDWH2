@@ -8,9 +8,11 @@ import org.dizitart.no2.objects.Id;
 import org.dizitart.no2.objects.ObjectFilter;
 import org.dizitart.no2.objects.filters.ObjectFilters;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class Edge implements PropertyContainer, Mappable {
+public class Edge implements PropertyContainer, Mappable, Serializable {
+    private static final long serialVersionUID = -6592771152520163851L;
     private static final String ID_FIELD = "__id";
     public static final String FROM_ID_FIELD = "__from_id";
     public static final String TO_ID_FIELD = "__to_id";

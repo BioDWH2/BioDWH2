@@ -10,9 +10,11 @@ import org.dizitart.no2.objects.filters.ObjectFilters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class Node implements PropertyContainer, Map<String, Object>, Mappable {
+public class Node implements PropertyContainer, Map<String, Object>, Mappable, Serializable {
+    private static final long serialVersionUID = -5027987220033105538L;
     private static final String ID_FIELD = "__id";
     static final String LABEL_FIELD = "__label";
     public static final Set<String> IGNORED_FIELDS = new HashSet<>(
