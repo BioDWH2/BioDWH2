@@ -93,6 +93,11 @@
             <version>0.1</version>
         </dependency>
         <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-itis</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
             <version>4.3.2</version>
