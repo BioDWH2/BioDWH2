@@ -7,8 +7,31 @@ import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 
 import de.unibi.agbi.biodwh2.itis.etl.*;
+import de.unibi.agbi.biodwh2.itis.model.*;
+
+import java.util.List;
 
 public class ITISDataSource extends DataSource {
+    public List<Comment> comments;
+    public List<Expert> experts;
+    public List<GeographicDiv> geographicDivs;
+    public List<Hierarchy> hierarchies;
+    public List<Jurisdiction> jurisdictions;
+    public List<Kingdom> kingdoms;
+    public List<LongName> longNames;
+    public List<NodcId> nodcIds;
+    public List<OtherSource> otherSources;
+    public List<Publication> publications;
+    public List<ReferenceLink> referenceLinks;
+    public List<StrippedAuthor> strippedAuthors;
+    public List<SynonymLink> synonymLinks;
+    public List<TaxonAuthorLkp> taxonAuthorsLkps;
+    public List<TaxonUnitType> taxonUnitTypes;
+    public List<TaxonomicUnit> taxonomicUnits;
+    public List<TuCommentLink> tuCommentsLinks;
+    public List<VernacularReferenceLink> vernRefLinks;
+    public List<Vernacular> vernaculars;
+
     @Override
     public String getId() {
         return "ITIS";
@@ -36,5 +59,24 @@ public class ITISDataSource extends DataSource {
 
     @Override
     protected void unloadData() {
+        comments = null;
+        experts = null;
+        geographicDivs = null;
+        hierarchies = null;
+        jurisdictions = null;
+        kingdoms = null;
+        longNames = null;
+        nodcIds = null;
+        otherSources = null;
+        publications = null;
+        referenceLinks = null;
+        strippedAuthors = null;
+        synonymLinks = null;
+        taxonAuthorsLkps = null;
+        taxonUnitTypes = null;
+        taxonomicUnits = null;
+        tuCommentsLinks = null;
+        vernRefLinks = null;
+        vernaculars = null;
     }
 }

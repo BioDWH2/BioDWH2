@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class UNIIUpdater extends Updater<UNIIDataSource> {
-    private Map<String, Integer> monthNameNumberMap = new HashMap<>();
+    private final Map<String, Integer> monthNameNumberMap = new HashMap<>();
 
     public UNIIUpdater(UNIIDataSource dataSource) {
         super(dataSource);
