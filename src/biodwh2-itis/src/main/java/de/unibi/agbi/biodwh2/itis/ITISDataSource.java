@@ -14,7 +14,7 @@ import java.util.List;
 public class ITISDataSource extends DataSource {
     public List<Comment> comments;
     public List<Expert> experts;
-    public List<GeographicDiv> geographicDivs;
+    public List<GeographicDivision> geographicDivisions;
     public List<Hierarchy> hierarchies;
     public List<Jurisdiction> jurisdictions;
     public List<Kingdom> kingdoms;
@@ -61,7 +61,7 @@ public class ITISDataSource extends DataSource {
     protected void unloadData() {
         comments = null;
         experts = null;
-        geographicDivs = null;
+        geographicDivisions = null;
         hierarchies = null;
         jurisdictions = null;
         kingdoms = null;

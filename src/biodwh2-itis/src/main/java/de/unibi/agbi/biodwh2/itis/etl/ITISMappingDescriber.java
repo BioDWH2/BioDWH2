@@ -5,17 +5,17 @@ import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 public class ITISMappingDescriber extends MappingDescriber {
-    public ITISMappingDescriber(DataSource dataSource) {
+    public ITISMappingDescriber(final DataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    public NodeMappingDescription describe(Graph graph, Node node) {
+    public NodeMappingDescription describe(final Graph graph, final Node node) {
         return null;
     }
 
     @Override
-    public PathMappingDescription describe(Graph graph, Node[] nodes, Edge[] edges) {
+    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
         return null;
     }
 

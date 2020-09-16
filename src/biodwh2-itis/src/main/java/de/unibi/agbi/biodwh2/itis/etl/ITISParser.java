@@ -15,12 +15,12 @@ import java.io.InputStream;
 import java.util.List;
 
 public class ITISParser extends Parser<ITISDataSource> {
-    public ITISParser(ITISDataSource dataSource) {
+    public ITISParser(final ITISDataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    public boolean parse(Workspace workspace) throws ParserException {
+    public boolean parse(final Workspace workspace) throws ParserException {
         try (TarArchiveInputStream stream = FileUtils.openTarGzip(workspace, dataSource, ITISUpdater.FILE_NAME)) {
             ArchiveEntry entry;
             while ((entry = stream.getNextTarEntry()) != null)
@@ -41,7 +41,7 @@ public class ITISParser extends Parser<ITISDataSource> {
         else if ("experts".equals(fileName))
             dataSource.experts = readModelFromFile(fileName, Expert.class, stream);
         else if ("geographic_div".equals(fileName))
-            dataSource.geographicDivs = readModelFromFile(fileName, GeographicDiv.class, stream);
+            dataSource.geographicDivisions = readModelFromFile(fileName, GeographicDivision.class, stream);
         else if ("hierarchy".equals(fileName))
             dataSource.hierarchies = readModelFromFile(fileName, Hierarchy.class, stream);
         else if ("jurisdiction".equals(fileName))

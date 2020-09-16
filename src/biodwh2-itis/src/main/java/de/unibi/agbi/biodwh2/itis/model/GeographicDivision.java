@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({"tsn", "geographic_value", "update_date"})
-public class GeographicDiv {
+public class GeographicDivision {
     @JsonProperty("tsn")
     public int tsn;
     @JsonProperty("geographic_value")

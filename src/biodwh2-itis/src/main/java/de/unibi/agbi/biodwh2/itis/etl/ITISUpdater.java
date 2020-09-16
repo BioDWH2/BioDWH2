@@ -24,7 +24,7 @@ public class ITISUpdater extends Updater<ITISDataSource> {
 
     private final Map<String, Integer> monthNameNumberMap = new HashMap<>();
 
-    public ITISUpdater(ITISDataSource dataSource) {
+    public ITISUpdater(final ITISDataSource dataSource) {
         super(dataSource);
         final String[] months = {
                 "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -46,7 +46,7 @@ public class ITISUpdater extends Updater<ITISDataSource> {
         }
     }
 
-    private Version parseVersion(String version) throws UpdaterMalformedVersionException {
+    private Version parseVersion(final String version) throws UpdaterMalformedVersionException {
         try {
             String[] versionParts = StringUtils.split(version, "-");
             return new Version(Integer.parseInt(versionParts[2]), monthNameNumberMap.get(versionParts[1]),
@@ -57,7 +57,7 @@ public class ITISUpdater extends Updater<ITISDataSource> {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
+    protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         File newFile = new File(dataSource.resolveSourceFilePath(workspace, FILE_NAME));
         try {
             FileUtils.copyURLToFile(new URL(URL), newFile);
