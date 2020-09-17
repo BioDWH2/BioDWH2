@@ -11,9 +11,9 @@ public class Expert {
     @JsonProperty("expert_id")
     public int id;
     @JsonProperty("expert")
-    public String expert;
+    public String name;
     @JsonProperty("exp_comment")
-    public String expertComment;
+    public String comment;
     @JsonProperty("update_date")
     public String updateDate;
 }

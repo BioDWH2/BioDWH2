@@ -9,9 +9,9 @@ public class TaxonUnitType {
     @JsonProperty("kingdom_id")
     public int kingdomId;
     @JsonProperty("rank_id")
-    public int rankId;
+    public int id;
     @JsonProperty("rank_name")
-    public String rankName;
+    public String name;
     @JsonProperty("dir_parent_rank_id")
     public int dirParentRankId;
     @JsonProperty("req_parent_rank_id")
