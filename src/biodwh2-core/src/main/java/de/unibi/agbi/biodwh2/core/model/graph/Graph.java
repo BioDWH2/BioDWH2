@@ -5,8 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.dizitart.no2.*;
 import org.dizitart.no2.objects.ObjectFilter;
 import org.dizitart.no2.objects.ObjectRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,7 +16,6 @@ import static org.dizitart.no2.objects.filters.ObjectFilters.*;
 
 public final class Graph {
     public static final String EXTENSION = "db";
-    private static final Logger LOGGER = LoggerFactory.getLogger(Graph.class);
     private static final FindOptions LIMIT_ONE_OPTION = FindOptions.limit(0, 1);
 
     private Nitrite database;
@@ -60,10 +57,6 @@ public final class Graph {
             edges.createIndex(Edge.TO_ID_FIELD, IndexOptions.indexOptions(IndexType.NonUnique, false));
         if (!edges.hasIndex(Edge.LABEL_FIELD))
             edges.createIndex(Edge.LABEL_FIELD, IndexOptions.indexOptions(IndexType.NonUnique, false));
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Node indices: " + nodes.listIndices());
-            LOGGER.info("Edge indices: " + edges.listIndices());
-        }
     }
 
     public void setNodeIndexPropertyKeys(final String... keys) {
@@ -103,6 +96,18 @@ public final class Graph {
         n.setProperty(propertyKey2, propertyValue2);
         nodes.insert(n);
         return n;
+    }
+
+    public Node addNode(final String label, final Map<String, Object> properties) {
+        final Node n = new Node(label);
+        for (Map.Entry<String, Object> entry : properties.entrySet())
+            n.setProperty(entry.getKey(), entry.getValue());
+        nodes.insert(n);
+        return n;
+    }
+
+    public NodeBuilder buildNode() {
+        return new NodeBuilder(this);
     }
 
     public final <T> Node addNodeFromModel(final T obj) {
