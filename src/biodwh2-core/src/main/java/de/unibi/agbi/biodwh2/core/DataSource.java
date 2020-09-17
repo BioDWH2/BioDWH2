@@ -147,9 +147,13 @@ public abstract class DataSource {
     private void exportGraph(final Workspace workspace) {
         try {
             metadata.exportSuccessful = getGraphExporter().export(workspace);
-            if (!metadata.exportSuccessful)
+            if (!metadata.exportSuccessful) {
                 if (LOGGER.isErrorEnabled())
                     LOGGER.error("Failed to export data source '" + getId() + "'");
+            } else {
+                if (LOGGER.isInfoEnabled())
+                    LOGGER.info("Successfully exported data source '" + getId() + "'");
+            }
         } catch (ExporterException e) {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("Failed to export data source '" + getId() + "' in GraphML format", e);
