@@ -43,10 +43,14 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
         createPublicationNodes(graph);
         LOGGER.info("Exporting kingdoms...");
         createKingdomNodes(graph);
+        LOGGER.info("Exporting taxon authors...");
+        createTaxonAuthorNodes(graph);
         LOGGER.info("Exporting ranks...");
         createTaxonUnitTypeNodes(graph);
         LOGGER.info("Exporting taxonomic units...");
         final Map<Integer, Long> taxonTsnNodeIdMap = createTaxonomicUnitNodes(graph);
+        LOGGER.info("Exporting taxonomic unit reference links...");
+        createReferenceEdges(graph, taxonTsnNodeIdMap);
         LOGGER.info("Exporting taxonomic unit hierarchy...");
         createHierarchyEdges(graph, taxonTsnNodeIdMap);
         LOGGER.info("Exporting taxonomic unit comment links...");
@@ -88,8 +92,14 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
 
     private void createKingdomNodes(final Graph graph) {
         for (final Kingdom kingdom : dataSource.kingdoms)
-            graph.buildNode().withLabel(KINGDOM_LABEL).withProperty("id", kingdom.id).withProperty("name", kingdom.name)
-                 .build();
+            createNodeFromModel(graph, kingdom);
+    }
+
+    private void createTaxonAuthorNodes(final Graph graph) {
+        for (final TaxonAuthorLkp author : dataSource.taxonAuthorsLkps) {
+            Node node = createNodeFromModel(graph, author);
+            graph.addEdge(node, graph.findNode(KINGDOM_LABEL, "id", author.kingdomId), "ASSOCIATED_WITH");
+        }
     }
 
     private void createTaxonUnitTypeNodes(final Graph graph) {
@@ -123,6 +133,10 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
             taxonTsnNodeIdMap.put(taxon.tsn, node.getId());
         }
         return taxonTsnNodeIdMap;
+    }
+
+    private void createReferenceEdges(final Graph graph, final Map<Integer, Long> taxonTsnNodeIdMap) {
+        // TODO
     }
 
     private void createHierarchyEdges(final Graph graph, final Map<Integer, Long> taxonTsnNodeIdMap) {
