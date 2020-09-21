@@ -66,14 +66,17 @@ public final class Graph {
     }
 
     public void prefixAllLabels(final String prefix) {
-        for (final Node n : getNodes()) {
-            n.prefixLabel(prefix);
-            update(n);
+        nodes.getDocumentCollection().dropIndex(Node.LABEL_FIELD);
+        edges.getDocumentCollection().dropIndex(Edge.LABEL_FIELD);
+        for (final Document document : nodes.getDocumentCollection().find()) {
+            document.put(Node.LABEL_FIELD, prefix + document.get(Node.LABEL_FIELD));
+            nodes.getDocumentCollection().update(document);
         }
-        for (final Edge e : getEdges()) {
-            e.prefixLabel(prefix);
-            update(e);
+        for (final Document document : edges.getDocumentCollection().find()) {
+            document.put(Edge.LABEL_FIELD, prefix + document.get(Edge.LABEL_FIELD));
+            edges.getDocumentCollection().update(document);
         }
+        createIndicesIfNotExist();
     }
 
     public Node addNode(final String label) {
