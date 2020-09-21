@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({"tsn", "comment_id", "update_date"})
-public class TuCommentLink {
+public class TaxonomicUnitCommentLink {
     @JsonProperty("tsn")
     public int tsn;
     @JsonProperty("comment_id")

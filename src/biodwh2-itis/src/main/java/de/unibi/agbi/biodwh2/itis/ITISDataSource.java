@@ -10,6 +10,7 @@ import de.unibi.agbi.biodwh2.itis.etl.*;
 import de.unibi.agbi.biodwh2.itis.model.*;
 
 import java.util.List;
+import java.util.Map;
 
 public class ITISDataSource extends DataSource {
     public List<Comment> comments;
@@ -18,18 +19,17 @@ public class ITISDataSource extends DataSource {
     public List<Hierarchy> hierarchies;
     public List<Jurisdiction> jurisdictions;
     public List<Kingdom> kingdoms;
-    public List<LongName> longNames;
-    public List<NodcId> nodcIds;
+    public Map<Integer, String> longNames;
+    public Map<Integer, String> nodcIds;
     public List<OtherSource> otherSources;
     public List<Publication> publications;
     public List<ReferenceLink> referenceLinks;
-    public List<StrippedAuthor> strippedAuthors;
-    public List<SynonymLink> synonymLinks;
+    public Map<Integer, Integer> synonymLinks;
     public List<TaxonAuthorLkp> taxonAuthorsLkps;
     public List<TaxonUnitType> taxonUnitTypes;
     public List<TaxonomicUnit> taxonomicUnits;
-    public List<TuCommentLink> tuCommentsLinks;
-    public List<VernacularReferenceLink> vernRefLinks;
+    public List<TaxonomicUnitCommentLink> taxonomicUnitCommentLinks;
+    public List<VernacularReferenceLink> vernacularReferenceLinks;
     public List<Vernacular> vernaculars;
 
     @Override
@@ -70,13 +70,12 @@ public class ITISDataSource extends DataSource {
         otherSources = null;
         publications = null;
         referenceLinks = null;
-        strippedAuthors = null;
         synonymLinks = null;
         taxonAuthorsLkps = null;
         taxonUnitTypes = null;
         taxonomicUnits = null;
-        tuCommentsLinks = null;
-        vernRefLinks = null;
+        taxonomicUnitCommentLinks = null;
+        vernacularReferenceLinks = null;
         vernaculars = null;
     }
 }

@@ -101,6 +101,17 @@ public final class Graph {
         return n;
     }
 
+    public Node addNode(final String label, final String propertyKey1, final Object propertyValue1,
+                        final String propertyKey2, final Object propertyValue2, final String propertyKey3,
+                        final Object propertyValue3) {
+        final Node n = new Node(label);
+        n.setProperty(propertyKey1, propertyValue1);
+        n.setProperty(propertyKey2, propertyValue2);
+        n.setProperty(propertyKey3, propertyValue3);
+        nodes.insert(n);
+        return n;
+    }
+
     public Node addNode(final String label, final Map<String, Object> properties) {
         final Node n = new Node(label);
         for (Map.Entry<String, Object> entry : properties.entrySet())
