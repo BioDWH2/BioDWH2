@@ -1,3 +1,5 @@
+![Java CI](https://github.com/BioDWH2/BioDWH2/workflows/Java%20CI/badge.svg?branch=develop)
+
 # BioDWH2
 BioDWH2 is an easy-to-use, automated, graph-based data warehouse and mapping tool for bioinformatics and medical informatics.
 
