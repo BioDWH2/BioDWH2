@@ -5,7 +5,7 @@
 
     <groupId>de.unibi.agbi.biodwh2</groupId>
     <artifactId>biodwh2</artifactId>
-    <version>0.1</version>
+    <version>0.1.2</version>
 
     <modules>
         <module>biodwh2-core</module>
@@ -32,7 +32,7 @@
     <packaging>pom</packaging>
 
     <build>
-        <finalName>${artifactId}-v${project.version}</finalName>
+        <finalName>${project.artifactId}-v${project.version}</finalName>
     </build>
 
     <properties>
