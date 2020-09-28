@@ -11,6 +11,14 @@
 
     <artifactId>biodwh2-core</artifactId>
 
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/BioDWH2/BioDWH2</url>
+        </repository>
+    </distributionManagement>
+
     <dependencies>
         <dependency>
             <groupId>commons-net</groupId>
