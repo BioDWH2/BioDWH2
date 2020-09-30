@@ -10,6 +10,14 @@ import de.unibi.agbi.biodwh2.sider.SiderDataSource;
 import java.io.IOException;
 
 public class SiderUpdater extends MultiFileFTPUpdater<SiderDataSource> {
+    private static final String DOWNLOAD_URL_PREFIX = "http://sideeffects.embl.de/media/download/";
+    private static final String FTP_PREFIX = "/SIDER/latest/";
+    static final String DRUG_NAMES_FILE_NAME = "drug_names.tsv";
+    static final String DRUG_ATC_FILE_NAME = "drug_atc.tsv";
+    static final String INDICATIONS_FILE_NAME = "meddra_all_label_indications.tsv.gz";
+    static final String SIDE_EFFECTS_FILE_NAME = "meddra_all_label_se.tsv.gz";
+    static final String FREQUENCIES_FILE_NAME = "meddra_freq.tsv.gz";
+
     public SiderUpdater(SiderDataSource dataSource) {
         super(dataSource);
     }
@@ -17,10 +25,10 @@ public class SiderUpdater extends MultiFileFTPUpdater<SiderDataSource> {
     @Override
     protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
         try {
-            HTTPClient.downloadFileAsBrowser("http://sideeffects.embl.de/media/download/drug_names.tsv",
-                                             dataSource.resolveSourceFilePath(workspace, "drug_names.tsv"));
-            HTTPClient.downloadFileAsBrowser("http://sideeffects.embl.de/media/download/drug_atc.tsv",
-                                             dataSource.resolveSourceFilePath(workspace, "drug_atc.tsv"));
+            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + DRUG_NAMES_FILE_NAME,
+                                             dataSource.resolveSourceFilePath(workspace, DRUG_NAMES_FILE_NAME));
+            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + DRUG_ATC_FILE_NAME,
+                                             dataSource.resolveSourceFilePath(workspace, DRUG_ATC_FILE_NAME));
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
@@ -35,16 +43,13 @@ public class SiderUpdater extends MultiFileFTPUpdater<SiderDataSource> {
     @Override
     protected String[] getFTPFilePaths() {
         return new String[]{
-                "/SIDER/latest/meddra_freq.tsv.gz", "/SIDER/latest/meddra_all_label_indications.tsv.gz",
-                "/SIDER/latest/meddra_all_label_se.tsv.gz"
+                FTP_PREFIX + FREQUENCIES_FILE_NAME, FTP_PREFIX + INDICATIONS_FILE_NAME,
+                FTP_PREFIX + SIDE_EFFECTS_FILE_NAME
         };
     }
 
     @Override
     protected String[] getTargetFileNames() {
-        return new String[]{
-                "meddra_all_indications.tsv.gz", "meddra_all_se.tsv.gz", "meddra_freq.tsv.gz",
-                "meddra_all_label_indications.tsv.gz", "meddra_all_label_se.tsv.gz"
-        };
+        return new String[]{FREQUENCIES_FILE_NAME, INDICATIONS_FILE_NAME, SIDE_EFFECTS_FILE_NAME};
     }
 }
