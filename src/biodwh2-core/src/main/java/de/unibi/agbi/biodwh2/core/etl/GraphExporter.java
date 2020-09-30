@@ -20,12 +20,16 @@ public abstract class GraphExporter<D extends DataSource> {
 
     public final boolean export(final Workspace workspace) throws ExporterException {
         final Graph g = new Graph(dataSource.getGraphDatabaseFilePath(workspace));
-        boolean exportSuccessful = exportGraph(workspace, g);
-        if (exportSuccessful) {
-            addDataSourcePrefixToGraph(g);
-            exportSuccessful = trySaveGraphToFile(workspace, g);
+        boolean exportSuccessful;
+        try {
+            exportSuccessful = exportGraph(workspace, g);
+            if (exportSuccessful) {
+                addDataSourcePrefixToGraph(g);
+                exportSuccessful = trySaveGraphToFile(workspace, g);
+            }
+        } finally {
+            g.dispose();
         }
-        g.dispose();
         return exportSuccessful;
     }
 
