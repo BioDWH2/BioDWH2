@@ -27,7 +27,9 @@ jobs:
       - name: Build with Maven
         run: mvn package -DskipTests --file src/pom.xml
       - name: Publish core package
-        run: mvn -B deploy -pl biodwh2-core
+        run: |
+          cd src
+          mvn -B deploy -pl biodwh2-core
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload Release Asset
