@@ -22,6 +22,7 @@ public final class Graph {
     private ObjectRepository<Node> nodes;
     private ObjectRepository<Edge> edges;
     private final Map<Class<?>, ClassMapping> classMappingsCache = new HashMap<>();
+    private final Set<String> userDefinedNodeIndexPropertyKeys = new HashSet<>();
 
     public Graph(final String databaseFilePath) {
         this(databaseFilePath, false);
@@ -33,7 +34,7 @@ public final class Graph {
         database = openDatabase(databaseFilePath);
         nodes = database.getRepository(Node.class);
         edges = database.getRepository(Edge.class);
-        createIndicesIfNotExist();
+        createInternalIndicesIfNotExist();
     }
 
     private void deleteOldDatabaseFile(final String filePath) {
@@ -48,26 +49,27 @@ public final class Graph {
         return Nitrite.builder().compressed().filePath(filePath).openOrCreate();
     }
 
-    private void createIndicesIfNotExist() {
-        if (!nodes.hasIndex(Node.LABEL_FIELD))
-            nodes.createIndex(Node.LABEL_FIELD, IndexOptions.indexOptions(IndexType.NonUnique, false));
-        if (!edges.hasIndex(Edge.FROM_ID_FIELD))
-            edges.createIndex(Edge.FROM_ID_FIELD, IndexOptions.indexOptions(IndexType.NonUnique, false));
-        if (!edges.hasIndex(Edge.TO_ID_FIELD))
-            edges.createIndex(Edge.TO_ID_FIELD, IndexOptions.indexOptions(IndexType.NonUnique, false));
-        if (!edges.hasIndex(Edge.LABEL_FIELD))
-            edges.createIndex(Edge.LABEL_FIELD, IndexOptions.indexOptions(IndexType.NonUnique, false));
+    private void createInternalIndicesIfNotExist() {
+        addIndexIfNotExists(nodes, Node.LABEL_FIELD);
+        addIndexIfNotExists(edges, Edge.FROM_ID_FIELD);
+        addIndexIfNotExists(edges, Edge.TO_ID_FIELD);
+        addIndexIfNotExists(edges, Edge.LABEL_FIELD);
+    }
+
+    private void addIndexIfNotExists(final ObjectRepository<?> repository, final String key) {
+        if (!repository.hasIndex(key))
+            repository.createIndex(key, IndexOptions.indexOptions(IndexType.NonUnique, false));
     }
 
     public void setNodeIndexPropertyKeys(final String... keys) {
+        userDefinedNodeIndexPropertyKeys.addAll(Arrays.asList(keys));
         for (final String key : keys)
-            if (!nodes.hasIndex(key))
-                nodes.createIndex(key, IndexOptions.indexOptions(IndexType.NonUnique, false));
+            addIndexIfNotExists(nodes, key);
     }
 
     public void prefixAllLabels(final String prefix) {
-        nodes.getDocumentCollection().dropIndex(Node.LABEL_FIELD);
-        edges.getDocumentCollection().dropIndex(Edge.LABEL_FIELD);
+        dropIndexIfExists(nodes, Node.LABEL_FIELD);
+        dropIndexIfExists(edges, Edge.LABEL_FIELD);
         for (final Document document : nodes.getDocumentCollection().find()) {
             document.put(Node.LABEL_FIELD, prefix + document.get(Node.LABEL_FIELD));
             nodes.getDocumentCollection().update(document);
@@ -76,7 +78,19 @@ public final class Graph {
             document.put(Edge.LABEL_FIELD, prefix + document.get(Edge.LABEL_FIELD));
             edges.getDocumentCollection().update(document);
         }
-        createIndicesIfNotExist();
+        createInternalIndicesIfNotExist();
+    }
+
+    private void dropIndexIfExists(final ObjectRepository<?> repository, final String key) {
+        if (repository.hasIndex(key))
+            repository.dropIndex(key);
+    }
+
+    private void dropAllInternalIndices() {
+        dropIndexIfExists(nodes, Node.LABEL_FIELD);
+        dropIndexIfExists(edges, Edge.FROM_ID_FIELD);
+        dropIndexIfExists(edges, Edge.TO_ID_FIELD);
+        dropIndexIfExists(edges, Edge.LABEL_FIELD);
     }
 
     public Node addNode(final String label) {
@@ -108,6 +122,18 @@ public final class Graph {
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);
         n.setProperty(propertyKey3, propertyValue3);
+        nodes.insert(n);
+        return n;
+    }
+
+    public Node addNode(final String label, final String propertyKey1, final Object propertyValue1,
+                        final String propertyKey2, final Object propertyValue2, final String propertyKey3,
+                        final Object propertyValue3, final String propertyKey4, final Object propertyValue4) {
+        final Node n = new Node(label);
+        n.setProperty(propertyKey1, propertyValue1);
+        n.setProperty(propertyKey2, propertyValue2);
+        n.setProperty(propertyKey3, propertyValue3);
+        n.setProperty(propertyKey4, propertyValue4);
         nodes.insert(n);
         return n;
     }
@@ -199,6 +225,54 @@ public final class Graph {
         e.setProperty(propertyKey, propertyValue);
         edges.insert(e);
         return e;
+    }
+
+    public Edge addEdge(final Node from, final Node to, final String label, final String propertyKey1,
+                        final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
+        return addEdge(from.getId(), to.getId(), label, propertyKey1, propertyValue1, propertyKey2, propertyValue2);
+    }
+
+    public Edge addEdge(final long fromId, final Node to, final String label, final String propertyKey1,
+                        final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
+        return addEdge(fromId, to.getId(), label, propertyKey1, propertyValue1, propertyKey2, propertyValue2);
+    }
+
+    public Edge addEdge(final Node from, final long toId, final String label, final String propertyKey1,
+                        final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
+        return addEdge(from.getId(), toId, label, propertyKey1, propertyValue1, propertyKey2, propertyValue2);
+    }
+
+    public Edge addEdge(final long fromId, final long toId, final String label, final String propertyKey1,
+                        final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
+        final Edge e = new Edge(fromId, toId, label);
+        e.setProperty(propertyKey1, propertyValue1);
+        e.setProperty(propertyKey2, propertyValue2);
+        edges.insert(e);
+        return e;
+    }
+
+    public Edge addEdge(final Node from, final Node to, final String label, final Map<String, Object> properties) {
+        return addEdge(from.getId(), to.getId(), label, properties);
+    }
+
+    public Edge addEdge(final Node from, final long toId, final String label, final Map<String, Object> properties) {
+        return addEdge(from.getId(), toId, label, properties);
+    }
+
+    public Edge addEdge(final long fromId, final Node to, final String label, final Map<String, Object> properties) {
+        return addEdge(fromId, to.getId(), label, properties);
+    }
+
+    public Edge addEdge(final long fromId, final long toId, final String label, final Map<String, Object> properties) {
+        final Edge e = new Edge(fromId, toId, label);
+        for (Map.Entry<String, Object> entry : properties.entrySet())
+            e.setProperty(entry.getKey(), entry.getValue());
+        edges.insert(e);
+        return e;
+    }
+
+    public EdgeBuilder buildEdge() {
+        return new EdgeBuilder(this);
     }
 
     public void update(final Edge edge) {

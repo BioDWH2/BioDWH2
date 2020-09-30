@@ -42,10 +42,6 @@ public class Node implements PropertyContainer, Map<String, Object>, Mappable, S
         __id = null;
     }
 
-    void prefixLabel(final String prefix) {
-        document.put(LABEL_FIELD, prefix + getLabel());
-    }
-
     public Long getId() {
         return __id == null ? null : __id.getIdValue();
     }

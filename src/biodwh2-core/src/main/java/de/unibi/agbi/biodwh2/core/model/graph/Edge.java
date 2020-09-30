@@ -44,10 +44,6 @@ public class Edge implements PropertyContainer, Mappable, Serializable {
         __id = null;
     }
 
-    void prefixLabel(final String prefix) {
-        document.put(LABEL_FIELD, prefix + getLabel());
-    }
-
     public Long getId() {
         return __id == null ? null : __id.getIdValue();
     }
