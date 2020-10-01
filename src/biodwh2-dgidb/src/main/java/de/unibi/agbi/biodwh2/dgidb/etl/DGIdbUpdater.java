@@ -1,68 +1,104 @@
 package de.unibi.agbi.biodwh2.dgidb.etl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterMalformedVersionException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.dgidb.DGIdbDataSource;
-import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DGIdbUpdater extends Updater<DGIdbDataSource> {
+    private static class DownloadVersion {
+        Version version;
+        final Map<String, String> files = new HashMap<>();
+    }
+
+    private static final String LATEST_RELEASE_URL = "https://dgidb.org/downloads";
+    private static final String DOWNLOAD_URL_PREFIX = "https://www.dgidb.org/";
+
+    private final Map<String, Integer> monthNameNumberMap = new HashMap<>();
+
     public DGIdbUpdater(DGIdbDataSource dataSource) {
         super(dataSource);
+        final String[] months = {
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        };
+        for (int i = 0; i < months.length; i++)
+            monthNameNumberMap.put(months[i], i + 1);
     }
 
     @Override
     public Version getNewestVersion() throws UpdaterException {
-        String source;
+        final DownloadVersion newestVersion = getNewestDownloadVersion();
+        return newestVersion == null ? null : newestVersion.version;
+    }
+
+    private DownloadVersion getNewestDownloadVersion() throws UpdaterConnectionException {
+        final DownloadVersion[] versions = getDownloadVersions();
+        int latestVersionIndex = -1;
+        for (int i = 0; i < versions.length; i++)
+            if (versions[i] != null && versions[i].version != null)
+                latestVersionIndex = latestVersionIndex == -1 || versions[i].version.compareTo(
+                        versions[latestVersionIndex].version) > 0 ? i : latestVersionIndex;
+        return latestVersionIndex == -1 ? null : versions[latestVersionIndex];
+    }
+
+    private DownloadVersion[] getDownloadVersions() throws UpdaterConnectionException {
+        final String source;
         try {
-            source = HTTPClient.getWebsiteSource("https://api.github.com/repos/griffithlab/dgi-db/releases/latest");
+            source = HTTPClient.getWebsiteSource(LATEST_RELEASE_URL);
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
-        JsonNode json = parseJsonVersionSource(source);
-        String version = json.get("tag_name").asText().replace("v", "");
-        return parseVersion(version);
+        final Document document = Jsoup.parse(source);
+        final Element table = document.selectFirst("table#tsv_downloads");
+        final Element tableBody = table.selectFirst("tbody");
+        final List<DownloadVersion> versions = new ArrayList<>();
+        for (Element row : tableBody.select("tr"))
+            versions.add(parseVersionRow(row.select("td")));
+        return versions.toArray(new DownloadVersion[0]);
     }
 
-    private JsonNode parseJsonVersionSource(String source) throws UpdaterMalformedVersionException {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.readTree(source);
-        } catch (IOException e) {
-            throw new UpdaterMalformedVersionException(source, e);
+    private DownloadVersion parseVersionRow(final Elements row) {
+        DownloadVersion version = new DownloadVersion();
+        version.version = parseVersion(row.get(0).html());
+        for (int i = 1; i < row.size(); i++) {
+            final Element link = row.get(i).selectFirst("a");
+            version.files.put(link.html(), link.attr("href"));
         }
+        return version;
     }
 
-    private Version parseVersion(String version) throws UpdaterMalformedVersionException {
-        try {
-            return Version.parse(version);
-        } catch (NullPointerException | NumberFormatException e) {
-            throw new UpdaterMalformedVersionException(version, e);
-        }
+    private Version parseVersion(final String value) {
+        final String[] parts = value.split("-");
+        return new Version(Integer.parseInt(parts[0]), monthNameNumberMap.get(parts[1]));
     }
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        downloadFile(workspace, dataSource, "http://www.dgidb.org/data/interactions.tsv");
-        downloadFile(workspace, dataSource, "http://www.dgidb.org/data/drugs.tsv");
-        downloadFile(workspace, dataSource, "http://www.dgidb.org/data/genes.tsv");
-        downloadFile(workspace, dataSource, "http://www.dgidb.org/data/categories.tsv");
+        final DownloadVersion newestVersion = getNewestDownloadVersion();
+        if (newestVersion == null)
+            return false;
+        for (final String fileName : newestVersion.files.keySet())
+            downloadFile(workspace, dataSource, DOWNLOAD_URL_PREFIX + newestVersion.files.get(fileName), fileName);
         return true;
     }
 
-    private void downloadFile(final Workspace workspace, final DataSource dataSource,
-                              final String url) throws UpdaterException {
+    private void downloadFile(final Workspace workspace, final DataSource dataSource, final String url,
+                              final String fileName) throws UpdaterException {
         try {
-            String fileName = url.substring(StringUtils.lastIndexOf(url, "/") + 1);
             HTTPClient.downloadFileAsBrowser(url, dataSource.resolveSourceFilePath(workspace, fileName));
         } catch (IOException e) {
             throw new UpdaterConnectionException("Failed to download file \"" + url + "\"", e);
