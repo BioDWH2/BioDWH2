@@ -25,7 +25,6 @@
         <module>biodwh2-disgenet</module>
         <module>biodwh2-unii</module>
         <module>biodwh2-ncbi</module>
-        <module>biodwh2-server</module>
         <module>biodwh2-itis</module>
     </modules>
 
