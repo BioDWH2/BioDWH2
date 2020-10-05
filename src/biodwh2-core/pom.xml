@@ -15,7 +15,7 @@
         <repository>
             <id>github</id>
             <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/BioDWH2/BioDWH2</url>
+            <url>https://maven.pkg.github.com/biodwh2/BioDWH2</url>
         </repository>
     </distributionManagement>
 

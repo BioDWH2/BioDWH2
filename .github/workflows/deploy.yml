@@ -39,6 +39,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./BioDWH2/src/biodwh2-main/target/BioDWH2-${{ github.ref }}.jar
-          asset_name: BioDWH2-${{ github.ref }}.jar
+          asset_path: ./src/biodwh2-main/target/BioDWH2-${{ github.event.release.tag_name }}.jar
+          asset_name: BioDWH2-${{ github.event.release.tag_name }}.jar
           asset_content_type: application/java-archive
