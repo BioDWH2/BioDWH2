@@ -117,11 +117,13 @@ public final class GraphMapper {
                     idNodeIdMap.get(id).remove(nodeId);
             }
         }
-        if (mergedNode == null)
-            mergedNode = graph.addNode(description.type.toString());
-        mergedNode.setProperty(MAPPED_NODE_PROPERTY, true);
-        mergedNode.setProperty(IDS_NODE_PROPERTY, ids.toArray(new String[0]));
-        graph.update(mergedNode);
+        if (mergedNode == null) {
+            mergedNode = graph.addNode(description.type.toString(), MAPPED_NODE_PROPERTY, true, IDS_NODE_PROPERTY,
+                                       ids.toArray(new String[0]));
+        } else {
+            mergedNode.setProperty(IDS_NODE_PROPERTY, ids.toArray(new String[0]));
+            graph.update(mergedNode);
+        }
         return mergedNode;
     }
 

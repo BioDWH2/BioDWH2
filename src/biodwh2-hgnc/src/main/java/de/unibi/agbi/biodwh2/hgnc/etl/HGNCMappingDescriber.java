@@ -6,6 +6,9 @@ import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 public class HGNCMappingDescriber extends MappingDescriber {
+    private static final String HGNC_ID_KEY = "hgnc_id";
+    private static final String OMIM_ID_KEY = "omim_id";
+
     public HGNCMappingDescriber(DataSource dataSource) {
         super(dataSource);
     }
@@ -20,12 +23,16 @@ public class HGNCMappingDescriber extends MappingDescriber {
     private NodeMappingDescription describeGene(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription();
         description.type = NodeMappingDescription.NodeType.GENE;
-        description.addIdentifier(IdentifierType.HGNC_ID, node.<String>getProperty("hgnc_id").replace("HGNC:", ""));
+        description.addIdentifier(IdentifierType.HGNC_ID, getHGNCIdFromNode(node));
         description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.getProperty("symbol"));
-        if (node.hasProperty("omim_id"))
-            description.addIdentifier(IdentifierType.OMIM, node.getProperty("omim_id"));
+        if (node.hasProperty(OMIM_ID_KEY))
+            description.addIdentifier(IdentifierType.OMIM, node.getProperty(OMIM_ID_KEY));
         // TODO: more ids
         return description;
+    }
+
+    private String getHGNCIdFromNode(final Node node) {
+        return node.<String>getProperty(HGNC_ID_KEY).replace("HGNC:", "");
     }
 
     @Override

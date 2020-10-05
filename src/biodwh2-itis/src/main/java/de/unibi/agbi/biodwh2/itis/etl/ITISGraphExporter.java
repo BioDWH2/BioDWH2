@@ -119,17 +119,13 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
     private Map<Integer, Long> createTaxonomicUnitNodes(final Graph graph) {
         final Map<Integer, Long> taxonTsnNodeIdMap = new HashMap<>();
         for (final TaxonomicUnit taxon : dataSource.taxonomicUnits) {
+            Node node = createNodeFromModel(graph, taxon);
             final String longName = dataSource.longNames.get(taxon.tsn);
+            if (longName != null)
+                node.setProperty("long_name", longName);
             final String nodcId = dataSource.nodcIds.get(taxon.tsn);
-            Node node;
-            if (longName != null && nodcId != null)
-                node = graph.addNode(TAXON_LABEL, "id", taxon.tsn, "long_name", longName, "nodc_id", nodcId);
-            else if (longName != null)
-                node = graph.addNode(TAXON_LABEL, "id", taxon.tsn, "long_name", longName);
-            else if (nodcId != null)
-                node = graph.addNode(TAXON_LABEL, "id", taxon.tsn, "nodc_id", nodcId);
-            else
-                node = graph.addNode(TAXON_LABEL, "id", taxon.tsn);
+            if (nodcId != null)
+                node.setProperty("nodc_id", nodcId);
             taxonTsnNodeIdMap.put(taxon.tsn, node.getId());
         }
         return taxonTsnNodeIdMap;

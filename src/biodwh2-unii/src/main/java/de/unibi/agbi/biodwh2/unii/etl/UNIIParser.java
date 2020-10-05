@@ -29,7 +29,7 @@ public class UNIIParser extends Parser<UNIIDataSource> {
 
     private void parseNamesFile(final Workspace workspace, final UNIIDataSource dataSource) throws ParserException {
         try {
-            ZipInputStream zipInputStream = FileUtils.openZip(workspace, dataSource, "UNIIs.zip");
+            ZipInputStream zipInputStream = FileUtils.openZip(workspace, dataSource, UNIIUpdater.UNIIS_FILE_NAME);
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (zipEntry.getName().contains("Names") && zipEntry.getName().endsWith(".txt")) {
@@ -38,13 +38,13 @@ public class UNIIParser extends Parser<UNIIDataSource> {
                 }
             }
         } catch (IOException e) {
-            throw new ParserFormatException("Failed to parse the file 'UNIIs.zip'", e);
+            throw new ParserFormatException("Failed to parse the file '" + UNIIUpdater.UNIIS_FILE_NAME + "'", e);
         }
     }
 
     private void parseDataFile(final Workspace workspace, final UNIIDataSource dataSource) throws ParserException {
         try {
-            ZipInputStream zipInputStream = FileUtils.openZip(workspace, dataSource, "UNII_Data.zip");
+            ZipInputStream zipInputStream = FileUtils.openZip(workspace, dataSource, UNIIUpdater.UNII_DATA_FILE_NAME);
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (zipEntry.getName().contains("Records") && zipEntry.getName().endsWith(".txt")) {
@@ -56,7 +56,7 @@ public class UNIIParser extends Parser<UNIIDataSource> {
                 }
             }
         } catch (IOException e) {
-            throw new ParserFormatException("Failed to parse the file 'UNII_Data.zip'", e);
+            throw new ParserFormatException("Failed to parse the file '" + UNIIUpdater.UNII_DATA_FILE_NAME + "'", e);
         }
     }
 

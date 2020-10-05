@@ -18,6 +18,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class UNIIUpdater extends Updater<UNIIDataSource> {
+    private static final String WEBSITE_URL = "https://fdasis.nlm.nih.gov/srs/jsp/srs/uniiListDownload.jsp";
+    private static final String DOWNLOAD_URL_PREFIX = "https://fdasis.nlm.nih.gov/srs/download/srs/";
+    static final String UNIIS_FILE_NAME = "UNIIs.zip";
+    static final String UNII_DATA_FILE_NAME = "UNII_Data.zip";
+
     private final Map<String, Integer> monthNameNumberMap = new HashMap<>();
 
     public UNIIUpdater(UNIIDataSource dataSource) {
@@ -32,7 +37,7 @@ public class UNIIUpdater extends Updater<UNIIDataSource> {
     @Override
     public Version getNewestVersion() throws UpdaterException {
         try {
-            String html = HTTPClient.getWebsiteSource("https://fdasis.nlm.nih.gov/srs/jsp/srs/uniiListDownload.jsp");
+            String html = HTTPClient.getWebsiteSource(WEBSITE_URL);
             html = StringUtils.splitByWholeSeparator(html, "Last updated: ")[1];
             html = StringUtils.splitByWholeSeparator(html, "</span>")[0];
             return parseVersion(html);
@@ -52,10 +57,10 @@ public class UNIIUpdater extends Updater<UNIIDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
-        downloadFile("https://fdasis.nlm.nih.gov/srs/download/srs/UNIIs.zip",
-                     dataSource.resolveSourceFilePath(workspace, "UNIIs.zip"));
-        downloadFile("https://fdasis.nlm.nih.gov/srs/download/srs/UNII_Data.zip",
-                     dataSource.resolveSourceFilePath(workspace, "UNII_Data.zip"));
+        downloadFile(DOWNLOAD_URL_PREFIX + UNIIS_FILE_NAME,
+                     dataSource.resolveSourceFilePath(workspace, UNIIS_FILE_NAME));
+        downloadFile(DOWNLOAD_URL_PREFIX + UNII_DATA_FILE_NAME,
+                     dataSource.resolveSourceFilePath(workspace, UNII_DATA_FILE_NAME));
         return true;
     }
 
