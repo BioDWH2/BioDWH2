@@ -5,7 +5,15 @@
 
     <groupId>de.unibi.agbi.biodwh2</groupId>
     <artifactId>biodwh2</artifactId>
-    <version>0.1.3</version> <!-- BioDWH2 version -->
+    <version>0.1.4</version> <!-- BioDWH2 version -->
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/biodwh2/BioDWH2</url>
+        </repository>
+    </distributionManagement>
 
     <modules>
         <module>biodwh2-core</module>

@@ -6,18 +6,10 @@
     <parent>
         <artifactId>biodwh2</artifactId>
         <groupId>de.unibi.agbi.biodwh2</groupId>
-        <version>0.1.3</version> <!-- BioDWH2 version -->
+        <version>0.1.4</version> <!-- BioDWH2 version -->
     </parent>
 
     <artifactId>biodwh2-core</artifactId>
-
-    <distributionManagement>
-        <repository>
-            <id>github</id>
-            <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/biodwh2/BioDWH2</url>
-        </repository>
-    </distributionManagement>
 
     <dependencies>
         <dependency>
