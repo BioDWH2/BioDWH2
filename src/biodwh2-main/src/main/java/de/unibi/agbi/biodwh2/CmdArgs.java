@@ -5,6 +5,7 @@ import picocli.CommandLine;
 import java.util.List;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
+@CommandLine.Command(name = "BioDWH2.jar")
 public class CmdArgs {
     @CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "print this message")
     public boolean help;
