@@ -4,8 +4,6 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
-import de.unibi.agbi.biodwh2.core.schema.GraphQLSchemaWriter;
-import de.unibi.agbi.biodwh2.core.schema.GraphSchema;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +28,6 @@ public final class GraphMapper {
                                       true);
         mapGraph(graph, dataSources);
         saveGraph(graph, outputGraphFilePath);
-        saveGraphSchema(graph,
-                        outputGraphFilePath.replace(GraphFileFormat.GRAPH_ML.extension, GraphQLSchemaWriter.EXTENSION));
         graph.dispose();
     }
 
@@ -72,10 +68,6 @@ public final class GraphMapper {
                 }
             }
         }
-    }
-
-    private String getDataSourceIdFromLabel(final String label) {
-        return StringUtils.split(label, GraphExporter.LABEL_PREFIX_SEPARATOR)[0];
     }
 
     private void mergeMatchingNodes(final Graph graph, final NodeMappingDescription description,
@@ -209,15 +201,5 @@ public final class GraphMapper {
     private void saveGraph(final Graph graph, final String outputGraphFilePath) {
         final GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
         graphMLWriter.write(outputGraphFilePath, graph);
-    }
-
-    private void saveGraphSchema(final Graph graph, final String filePath) {
-        final GraphSchema schema = new GraphSchema(graph);
-        try {
-            new GraphQLSchemaWriter(schema).save(filePath);
-        } catch (IOException e) {
-            if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to save graph schema file", e);
-        }
     }
 }
