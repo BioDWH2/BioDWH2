@@ -378,6 +378,28 @@ public final class Graph {
         return () -> edges.find(and(eq(Edge.LABEL_FIELD, label), eq(propertyKey, value))).iterator();
     }
 
+    public Iterable<Edge> findEdges(final String label, final String propertyKey1, final Object value1,
+                                    final String propertyKey2, final Object value2) {
+        return () -> edges.find(and(eq(Edge.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2)))
+                          .iterator();
+    }
+
+    public Iterable<Edge> findEdges(final String label, final String propertyKey1, final Object value1,
+                                    final String propertyKey2, final Object value2, final String propertyKey3,
+                                    final Object value3) {
+        return () -> edges.find(and(eq(Edge.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2),
+                                    eq(propertyKey3, value3))).iterator();
+    }
+
+    public Iterable<Edge> findEdges(final String label, final Map<String, Object> properties) {
+        final ObjectFilter[] filter = new ObjectFilter[properties.size() + 1];
+        filter[0] = eq(Edge.LABEL_FIELD, label);
+        int index = 1;
+        for (final String propertyKey : properties.keySet())
+            filter[index++] = eq(propertyKey, properties.get(propertyKey));
+        return () -> edges.find(and(filter)).iterator();
+    }
+
     public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId, final String edgeLabel) {
         final Set<Long> nodeIds = new HashSet<>();
         final ObjectFilter filter = and(eq(Edge.LABEL_FIELD, edgeLabel),
