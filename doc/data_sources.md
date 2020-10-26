@@ -81,7 +81,11 @@
 
 ### SIDER
 
-> 
+> Except as otherwise noted, SIDER is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 4.0 License. For commercial use or customized versions, please contact biobyte solutions GmbH.
+
+> Kuhn M, Letunic I, Jensen LJ, Bork P. The SIDER database of drugs and side effects. Nucleic Acids Res. 2015 Oct 19. doi: [10.1093/nar/gkv1075](http://dx.doi.org/10.1093/nar/gkv1075)
+
+> Kuhn M, Campillos M, Letunic I, Jensen LJ, Bork P. A side effect resource to capture phenotypic effects of drugs. Mol Syst Biol. 2010;6:343. Epub 2010 Jan 19.
 
 ### UNII
 

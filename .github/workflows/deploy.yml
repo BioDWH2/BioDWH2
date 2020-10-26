@@ -8,6 +8,7 @@ jobs:
   build:
     name: Create Release
     runs-on: ubuntu-latest
+    if: github.repository == 'BioDWH2/BioDWH2' # Only run on main repository and not forks
     steps:
       - name: Retrieve tag name
         id: tag_name
