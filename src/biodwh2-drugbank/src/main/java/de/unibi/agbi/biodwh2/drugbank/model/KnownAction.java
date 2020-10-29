@@ -7,7 +7,7 @@ public enum KnownAction {
     No("no"),
     Unknown("unknown");
 
-    private KnownAction(String value) {
+    KnownAction(String value) {
         this.value = value;
     }
 

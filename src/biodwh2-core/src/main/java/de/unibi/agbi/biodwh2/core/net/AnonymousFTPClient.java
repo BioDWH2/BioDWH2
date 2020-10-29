@@ -1,22 +1,23 @@
 package de.unibi.agbi.biodwh2.core.net;
 
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class AnonymousFTPClient {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AnonymousFTPClient.class);
     private FTPClient client;
-
-    public AnonymousFTPClient() {
-    }
 
     public boolean connect(String url) throws IOException {
         client = new FTPClient();
         client.connect(url, 21);
-        boolean loginSuccess = client.login("anonymous", "anonymous");
+        final boolean loginSuccess = client.login("anonymous", "anonymous");
         if (!loginSuccess) {
             disconnect();
             return false;
@@ -30,7 +31,8 @@ public class AnonymousFTPClient {
         try {
             disconnect();
         } catch (IOException e) {
-            e.printStackTrace();
+            if (LOGGER.isWarnEnabled())
+                LOGGER.warn("Failed to disconnect from FTP server", e);
             return false;
         }
         return true;
@@ -44,35 +46,33 @@ public class AnonymousFTPClient {
 
     public LocalDateTime getModificationTimeFromServer(String filePath) {
         try {
-            if (client != null) {
-                String dateTime = client.getModificationTime(filePath);
-                return parseFtpDateTime(dateTime);
-            }
+            if (client != null)
+                return parseFtpDateTime(client.getModificationTime(filePath));
         } catch (IOException e) {
-            e.printStackTrace();
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to get modification time for file '" + filePath + "' from FTP server", e);
         }
         return null;
     }
 
     private static LocalDateTime parseFtpDateTime(String dateTimeString) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         return LocalDateTime.parse(dateTimeString, formatter);
     }
 
-    public boolean tryDownloadFile(String url, String outputFilepath) {
+    public boolean tryDownloadFile(final String url, final String outputFilepath) {
         try {
             return downloadFile(url, outputFilepath);
         } catch (IOException e) {
-            e.printStackTrace();
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to download file '" + url + "' from FTP server", e);
             return false;
         }
     }
 
     public boolean downloadFile(String url, String outputFilepath) throws IOException {
-        File outputFile = new File(outputFilepath);
-        OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
-        boolean success = client.retrieveFile(url, outputStream);
-        outputStream.close();
-        return success;
+        try (OutputStream outputStream = FileUtils.openOutput(outputFilepath)) {
+            return client.retrieveFile(url, outputStream);
+        }
     }
 }

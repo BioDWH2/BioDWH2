@@ -1,59 +1,61 @@
 package de.unibi.agbi.biodwh2.core.model;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public final class Version implements Comparable<Version> {
     private static final String SEPARATOR = ".";
 
-    private int major;
-    private int minor;
-    private int build = -1;
-    private int revision = -1;
+    public final int major;
+    public final int minor;
+    public final int build;
+    public final int revision;
 
-    public Version(int major, int minor, int build, int revision) {
-        this(major, minor, build);
-        if (revision < 0)
-            throw new IllegalArgumentException("revision version must be greater or equal zero");
+    private Version() {
+        major = -1;
+        minor = -1;
+        build = -1;
+        revision = -1;
+    }
+
+    public Version(final int major, final int minor) {
+        checkComponentNonNegative(major, "major");
+        checkComponentNonNegative(minor, "minor");
+        this.major = major;
+        this.minor = minor;
+        build = -1;
+        revision = -1;
+    }
+
+    private void checkComponentNonNegative(final int value, final String name) {
+        if (value < 0)
+            throw new IllegalArgumentException(name + " version must be greater or equal zero");
+    }
+
+    public Version(final int major, final int minor, final int build) {
+        checkComponentNonNegative(major, "major");
+        checkComponentNonNegative(minor, "minor");
+        checkComponentNonNegative(build, "build");
+        this.major = major;
+        this.minor = minor;
+        this.build = build;
+        revision = -1;
+    }
+
+    public Version(final int major, final int minor, final int build, final int revision) {
+        checkComponentNonNegative(major, "major");
+        checkComponentNonNegative(minor, "minor");
+        checkComponentNonNegative(build, "build");
+        checkComponentNonNegative(revision, "revision");
+        this.major = major;
+        this.minor = minor;
+        this.build = build;
         this.revision = revision;
     }
 
-    public Version(int major, int minor, int build) {
-        this(major, minor);
-        if (build < 0)
-            throw new IllegalArgumentException("build version must be greater or equal zero");
-        this.build = build;
-    }
-
-    public Version(int major, int minor) {
-        if (major < 0)
-            throw new IllegalArgumentException("major version must be greater or equal zero");
-        if (minor < 0)
-            throw new IllegalArgumentException("minor version must be greater or equal zero");
-        this.major = major;
-        this.minor = minor;
-    }
-
-    private Version() {
-    }
-
-    public int getMajor() {
-        return major;
-    }
-
-    public int getMinor() {
-        return minor;
-    }
-
-    public int getBuild() {
-        return build;
-    }
-
-    public int getRevision() {
-        return revision;
-    }
-
     @Override
-    public int compareTo(Version v) {
+    public int compareTo(final Version v) {
         if (v == null)
             return 1;
         if (major != v.major)
@@ -68,10 +70,10 @@ public final class Version implements Comparable<Version> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (!(o instanceof Version))
             return false;
-        Version v = (Version) o;
+        final Version v = (Version) o;
         return this.major == v.major && this.minor == v.minor && this.build == v.build && this.revision == v.revision;
     }
 
@@ -82,9 +84,8 @@ public final class Version implements Comparable<Version> {
 
     @Override
     public String toString() {
-        StringBuilder versionString = new StringBuilder();
-        versionString.append(major);
-        versionString.append(SEPARATOR).append(minor);
+        final StringBuilder versionString = new StringBuilder();
+        versionString.append(major).append(SEPARATOR).append(minor);
         if (build != -1)
             versionString.append(SEPARATOR).append(build);
         if (revision != -1)
@@ -92,31 +93,35 @@ public final class Version implements Comparable<Version> {
         return versionString.toString();
     }
 
-    public static Version tryParse(String input) {
+    public static Version tryParse(final String input) {
         try {
             return parse(input);
-        } catch (NullPointerException | NumberFormatException ex) {
-            // ignore
+        } catch (NullPointerException | NumberFormatException ignored) {
+            return null;
         }
-        return null;
     }
 
-    public static Version parse(String input) throws NullPointerException, NumberFormatException {
-        if (input == null)
-            throw new NullPointerException("input must not be null");
-        String[] versionStringParts = input.split(Pattern.quote(SEPARATOR));
-        if (versionStringParts.length < 2 || versionStringParts.length > 4)
-            throw new NumberFormatException("version string requires at least two and at most four parts");
-        int major = Integer.parseInt(versionStringParts[0]);
-        int minor = Integer.parseInt(versionStringParts[1]);
-        if (versionStringParts.length > 2) {
-            int build = Integer.parseInt(versionStringParts[2]);
-            if (versionStringParts.length > 3) {
-                int revision = Integer.parseInt(versionStringParts[3]);
-                return new Version(major, minor, build, revision);
-            }
-            return new Version(major, minor, build);
+    public static Version parse(final String input) {
+        Objects.requireNonNull(input, "input must not be null");
+        final int[] components = convertStringToIntegerComponents(input);
+        return parse(components);
+    }
+
+    private static int[] convertStringToIntegerComponents(final String input) {
+        final String[] versionStringParts = input.split(Pattern.quote(SEPARATOR));
+        return Arrays.stream(versionStringParts).mapToInt(Integer::parseInt).toArray();
+    }
+
+    private static Version parse(final int[] components) {
+        switch (components.length) {
+            case 2:
+                return new Version(components[0], components[1]);
+            case 3:
+                return new Version(components[0], components[1], components[2]);
+            case 4:
+                return new Version(components[0], components[1], components[2], components[3]);
+            default:
+                throw new NumberFormatException("version string requires at least two and at most four parts");
         }
-        return new Version(major, minor);
     }
 }

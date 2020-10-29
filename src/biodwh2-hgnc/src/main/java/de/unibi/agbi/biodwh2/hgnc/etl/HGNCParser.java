@@ -1,42 +1,18 @@
 package de.unibi.agbi.biodwh2.hgnc.etl;
 
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import de.unibi.agbi.biodwh2.core.DataSource;
-import de.unibi.agbi.biodwh2.core.Workspace;
-import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
-import de.unibi.agbi.biodwh2.core.exceptions.ParserFileNotFoundException;
-import de.unibi.agbi.biodwh2.core.exceptions.ParserFormatException;
+import de.unibi.agbi.biodwh2.core.etl.SingleFileCsvParser;
 import de.unibi.agbi.biodwh2.hgnc.HGNCDataSource;
 import de.unibi.agbi.biodwh2.hgnc.model.Gene;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.List;
 
-public class HGNCParser extends Parser {
-    @Override
-    public boolean parse(Workspace workspace, DataSource dataSource) throws ParserException {
-        String filePath = dataSource.resolveSourceFilePath(workspace, "hgnc_complete_set.txt");
-        File hgncSetFile = new File(filePath);
-        if (!hgncSetFile.exists())
-            throw new ParserFileNotFoundException("hgnc_complete_set.txt");
-        ObjectReader reader = getTsvReader();
-        try {
-            MappingIterator<Gene> iterator = reader.readValues(hgncSetFile);
-            iterator.next();
-            ((HGNCDataSource) dataSource).genes = iterator.readAll();
-        } catch (IOException e) {
-            throw new ParserFormatException("Failed to parse the file 'hgnc_complete_set.txt'", e);
-        }
-        return true;
+public class HGNCParser extends SingleFileCsvParser<HGNCDataSource, Gene> {
+    public HGNCParser(final HGNCDataSource dataSource) {
+        super(dataSource, Gene.class, true, CsvType.TSV, "hgnc_complete_set.txt");
     }
 
-    private ObjectReader getTsvReader() {
-        CsvMapper csvMapper = new CsvMapper();
-        CsvSchema schema = csvMapper.schemaFor(Gene.class).withColumnSeparator('\t').withNullValue("");
-        return csvMapper.readerFor(Gene.class).with(schema);
+    @Override
+    protected void storeResults(final HGNCDataSource dataSource, final List<Gene> results) {
+        dataSource.genes = results;
     }
 }

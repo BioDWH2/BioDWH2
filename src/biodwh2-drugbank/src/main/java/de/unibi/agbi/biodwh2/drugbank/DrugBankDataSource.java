@@ -1,18 +1,18 @@
 package de.unibi.agbi.biodwh2.drugbank;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
-import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.drugbank.etl.DrugBankGraphExporter;
-import de.unibi.agbi.biodwh2.drugbank.etl.DrugBankParser;
-import de.unibi.agbi.biodwh2.drugbank.etl.DrugBankRDFExporter;
-import de.unibi.agbi.biodwh2.drugbank.etl.DrugBankUpdater;
+import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.drugbank.etl.*;
+import de.unibi.agbi.biodwh2.drugbank.model.DrugStructure;
 import de.unibi.agbi.biodwh2.drugbank.model.Drugbank;
+import de.unibi.agbi.biodwh2.drugbank.model.MetaboliteStructure;
+
+import java.util.List;
 
 public class DrugBankDataSource extends DataSource {
     public Drugbank drugBankData;
+    public List<DrugStructure> drugStructures;
+    public List<MetaboliteStructure> metaboliteStructures;
 
     @Override
     public String getId() {
@@ -20,22 +20,28 @@ public class DrugBankDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
-        return new DrugBankUpdater();
+    public Updater<DrugBankDataSource> getUpdater() {
+        return new DrugBankUpdater(this);
     }
 
     @Override
-    public Parser getParser() {
-        return new DrugBankParser();
+    public Parser<DrugBankDataSource> getParser() {
+        return new DrugBankParser(this);
     }
 
     @Override
-    public RDFExporter getRdfExporter() {
-        return new DrugBankRDFExporter();
+    public GraphExporter<DrugBankDataSource> getGraphExporter() {
+        return new DrugBankGraphExporter(this);
     }
 
     @Override
-    public GraphExporter getGraphExporter() {
-        return new DrugBankGraphExporter();
+    public MappingDescriber getMappingDescriber() {
+        return new DrugBankMappingDescriber(this);
+    }
+
+    @Override
+    protected void unloadData() {
+        drugBankData = null;
+        metaboliteStructures = null;
     }
 }

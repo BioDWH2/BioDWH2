@@ -1,20 +1,20 @@
 package de.unibi.agbi.biodwh2.ndfrt.etl;
 
-import de.unibi.agbi.biodwh2.core.etl.SingleFileFTPUpdater;
+import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPWebUpdater;
+import de.unibi.agbi.biodwh2.ndfrt.NDFRTDataSource;
 
-public class NDFRTUpdater extends SingleFileFTPUpdater {
-    @Override
-    protected String getFTPAddress() {
-        return "ftp1.nci.nih.gov";
+public class NDFRTUpdater extends MultiFileFTPWebUpdater<NDFRTDataSource> {
+    public NDFRTUpdater(NDFRTDataSource dataSource) {
+        super(dataSource);
     }
 
     @Override
-    protected String getFTPFilePath() {
-        return "pub/cacore/EVS/NDF-RT/NDFRT_Public_All.zip";
+    protected String getFTPIndexUrl() {
+        return "https://evs.nci.nih.gov/ftp1/NDF-RT/Archive/";
     }
 
     @Override
-    protected String getTargetFileName() {
-        return "NDFRT_Public_All.zip";
+    protected String[] getFilePaths() {
+        return new String[]{"NDFRT_Public_All%202018-02-05.zip"};
     }
 }

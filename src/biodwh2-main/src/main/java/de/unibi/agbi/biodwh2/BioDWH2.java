@@ -1,69 +1,72 @@
 package de.unibi.agbi.biodwh2;
 
+import de.unibi.agbi.biodwh2.core.DataSourceLoader;
 import de.unibi.agbi.biodwh2.core.Workspace;
-import org.apache.commons.cli.*;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import picocli.CommandLine;
 
 import java.util.List;
 
 public final class BioDWH2 {
-    public static void main(String[] args) throws Exception {
-        Options options = getCommandLineOptions();
-        CommandLine commandLine = parseCommandLine(options, args);
-        if (commandLine.hasOption("c"))
+    private static final Logger LOGGER = LoggerFactory.getLogger(BioDWH2.class);
+
+    private BioDWH2() {
+    }
+
+    public static void main(final String... args) {
+        final CmdArgs commandLine = parseCommandLine(args);
+        new BioDWH2().run(commandLine);
+    }
+
+    private static CmdArgs parseCommandLine(final String... args) {
+        final CmdArgs result = new CmdArgs();
+        final CommandLine cmd = new CommandLine(result);
+        cmd.parseArgs(args);
+        return result;
+    }
+
+    private void run(final CmdArgs commandLine) {
+        if (commandLine.listDataSources)
+            listDataSources();
+        else if (commandLine.create != null)
             createWorkspace(commandLine);
-        else if (commandLine.hasOption("s"))
+        else if (commandLine.status != null)
             checkWorkspaceState(commandLine);
-        else if (commandLine.hasOption("u"))
-            updateWorkspace(commandLine);
-        else if (commandLine.hasOption("i"))
-            integrateWorkspace(commandLine);
+        else if (commandLine.update != null)
+            updateWorkspace(commandLine.update, commandLine.skipUpdate);
         else
-            printHelp(options);
+            printHelp(commandLine);
     }
 
-    private static Options getCommandLineOptions() {
-        Options options = new Options();
-        options.addOption(new Option("h", "help", false, "print this message"));
-        options.addOption(new Option("c", "create", true, "Create a new empty workspace"));
-        options.addOption(new Option("s", "status", true, "Check and output the state of a workspace"));
-        options.addOption(new Option("u", "update", true, "Update all data sources of a workspace"));
-        Option integrateOption = new Option("i", "integrate", true,
-                                            "Integrates manually downloaded data sources to a workspace");
-        integrateOption.setArgs(3);
-        options.addOption(integrateOption);
-        return options;
+    private void listDataSources() {
+        if (LOGGER.isInfoEnabled()) {
+            final DataSourceLoader loader = new DataSourceLoader();
+            LOGGER.info("Available data source IDs: " + StringUtils.join(loader.getDataSourceIds(), ", "));
+        }
     }
 
-    private static CommandLine parseCommandLine(Options options, String[] args) throws ParseException {
-        CommandLineParser parser = new DefaultParser();
-        return parser.parse(options, args);
+    private void createWorkspace(final CmdArgs commandLine) {
+        final String workspacePath = commandLine.create;
+        new Workspace(workspacePath);
     }
 
-    private static void createWorkspace(CommandLine commandLine) throws Exception {
-        String workspacePath = commandLine.getOptionValue("c");
-        Workspace workspace = new Workspace(workspacePath);
+    private void checkWorkspaceState(final CmdArgs commandLine) {
+        final String workspacePath = commandLine.status;
+        final Workspace workspace = new Workspace(workspacePath);
+        workspace.checkState(commandLine.verbose);
     }
 
-    private static void checkWorkspaceState(CommandLine commandLine) throws Exception {
-        String workspacePath = commandLine.getOptionValue("s");
-        Workspace workspace = new Workspace(workspacePath);
-        workspace.checkState();
+    private void updateWorkspace(final List<String> updateParameters, final boolean skipUpdate) {
+        final String workspacePath = updateParameters.get(0);
+        final String dataSourceId = updateParameters.size() > 1 ? updateParameters.get(1) : null;
+        final String version = updateParameters.size() > 2 ? updateParameters.get(2) : null;
+        final Workspace workspace = new Workspace(workspacePath);
+        workspace.processDataSources(dataSourceId, version, skipUpdate);
     }
 
-    private static void updateWorkspace(CommandLine commandLine) throws Exception {
-        String workspacePath = commandLine.getOptionValue("u");
-        Workspace workspace = new Workspace(workspacePath);
-        workspace.updateDataSources();
-    }
-
-    private static void integrateWorkspace(CommandLine commandLine) throws Exception {
-        String[] optionArguments = commandLine.getOptionValues("i");
-        Workspace workspace = new Workspace(optionArguments[0]);
-        workspace.integrateDataSources(optionArguments[1], optionArguments[2]);
-    }
-
-    private static void printHelp(Options options) {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("BioDWH2", options);
+    private void printHelp(final CmdArgs commandLine) {
+        CommandLine.usage(commandLine, System.out);
     }
 }

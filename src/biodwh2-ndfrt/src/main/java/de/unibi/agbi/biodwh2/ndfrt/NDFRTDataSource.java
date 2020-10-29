@@ -1,14 +1,8 @@
 package de.unibi.agbi.biodwh2.ndfrt;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
-import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.ndfrt.etl.NDFRTGraphExporter;
-import de.unibi.agbi.biodwh2.ndfrt.etl.NDFRTParser;
-import de.unibi.agbi.biodwh2.ndfrt.etl.NDFRTRDFExporter;
-import de.unibi.agbi.biodwh2.ndfrt.etl.NDFRTUpdater;
+import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.ndfrt.etl.*;
 import de.unibi.agbi.biodwh2.ndfrt.model.Terminology;
 
 public class NDFRTDataSource extends DataSource {
@@ -20,22 +14,27 @@ public class NDFRTDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
-        return new NDFRTUpdater();
+    public Updater<NDFRTDataSource> getUpdater() {
+        return new NDFRTUpdater(this);
     }
 
     @Override
-    public Parser getParser() {
-        return new NDFRTParser();
+    public Parser<NDFRTDataSource> getParser() {
+        return new NDFRTParser(this);
     }
 
     @Override
-    public RDFExporter getRdfExporter() {
-        return new NDFRTRDFExporter();
+    public GraphExporter<NDFRTDataSource> getGraphExporter() {
+        return new NDFRTGraphExporter(this);
     }
 
     @Override
-    public GraphExporter getGraphExporter() {
-        return new NDFRTGraphExporter();
+    public MappingDescriber getMappingDescriber() {
+        return new NDFRTMappingDescriber(this);
+    }
+
+    @Override
+    protected void unloadData() {
+        terminology = null;
     }
 }

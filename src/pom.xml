@@ -5,7 +5,15 @@
 
     <groupId>de.unibi.agbi.biodwh2</groupId>
     <artifactId>biodwh2</artifactId>
-    <version>0.1</version>
+    <version>0.1.4</version> <!-- BioDWH2 version -->
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/biodwh2/BioDWH2</url>
+        </repository>
+    </distributionManagement>
 
     <modules>
         <module>biodwh2-core</module>
@@ -15,53 +23,30 @@
         <module>biodwh2-dgidb</module>
         <module>biodwh2-medrt</module>
         <module>biodwh2-main</module>
+        <module>biodwh2-drugcentral</module>
+        <module>biodwh2-kegg</module>
+        <module>biodwh2-pharmgkb</module>
+        <module>biodwh2-sider</module>
+        <module>biodwh2-mondo</module>
+        <module>biodwh2-geneontology</module>
+        <module>biodwh2-hpo</module>
+        <module>biodwh2-disgenet</module>
+        <module>biodwh2-unii</module>
+        <module>biodwh2-ncbi</module>
+        <module>biodwh2-itis</module>
     </modules>
 
     <packaging>pom</packaging>
 
     <build>
-        <finalName>BioDWH2-${project.version}</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>de.unibi.agbi.biodwh2.BioDWH2</mainClass>
-                                    <manifestEntries>
-                                        <BioDWH2-version>${project.version}</BioDWH2-version>
-                                        <BioDWH2-build-date>${maven.build.timestamp}</BioDWH2-build-date>
-                                    </manifestEntries>
-                                </transformer>
-                            </transformers>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
+        <finalName>${project.artifactId}-v${project.version}</finalName>
     </build>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
 
+        <junit-version>5.7.0</junit-version>
+    </properties>
 </project>

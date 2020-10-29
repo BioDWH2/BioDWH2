@@ -2,7 +2,6 @@ package de.unibi.agbi.biodwh2.drugbank.etl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
@@ -11,10 +10,20 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterMalformedVersionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterOnlyManuallyException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
+import de.unibi.agbi.biodwh2.drugbank.DrugBankDataSource;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.Map;
 
-public class DrugBankUpdater extends Updater {
+public class DrugBankUpdater extends Updater<DrugBankDataSource> {
+    private static final String FullDatabaseUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-full-database";
+    private static final String DrugStructuresUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-structures";
+    private static final String MetaboliteStructuresUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-metabolite-structures";
+
+    public DrugBankUpdater(DrugBankDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
     public Version getNewestVersion() throws UpdaterException {
         String source;
@@ -53,7 +62,29 @@ public class DrugBankUpdater extends Updater {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace, DataSource dataSource) throws UpdaterException {
+    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
+        if (workspace.getConfiguration().dataSourceProperties.containsKey("DrugBank")) {
+            Map<String, String> drugBankProperties = workspace.getConfiguration().dataSourceProperties.get("DrugBank");
+            if (drugBankProperties != null) {
+                final String username = drugBankProperties.getOrDefault("username", null);
+                final String password = drugBankProperties.getOrDefault("password", null);
+                if (username != null && username.length() > 0 && password != null && password.length() > 0) {
+                    try {
+                        String filePath = dataSource.resolveSourceFilePath(workspace,
+                                                                           "drugbank_all_full_database.xml.zip");
+                        HTTPClient.downloadFileAsBrowser(FullDatabaseUrl, filePath, username, password);
+                        filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_structures.sdf.zip");
+                        HTTPClient.downloadFileAsBrowser(DrugStructuresUrl, filePath, username, password);
+                        filePath = dataSource.resolveSourceFilePath(workspace,
+                                                                    "drugbank_all_metabolite-structures.sdf.zip");
+                        HTTPClient.downloadFileAsBrowser(MetaboliteStructuresUrl, filePath, username, password);
+                        return true;
+                    } catch (IOException e) {
+                        throw new UpdaterConnectionException("Failed to download files", e);
+                    }
+                }
+            }
+        }
         throw new UpdaterOnlyManuallyException();
     }
 }

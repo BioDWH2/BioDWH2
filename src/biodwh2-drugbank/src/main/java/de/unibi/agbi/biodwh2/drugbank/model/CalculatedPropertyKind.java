@@ -30,7 +30,7 @@ public enum CalculatedPropertyKind {
     MDDR_Like_Rule("MDDR-Like Rule"),
     Vebers_Rule("Veber's Rule");
 
-    private CalculatedPropertyKind(String value) {
+    CalculatedPropertyKind(String value) {
         this.value = value;
     }
 

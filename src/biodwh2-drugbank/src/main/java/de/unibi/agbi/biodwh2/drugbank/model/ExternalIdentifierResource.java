@@ -20,9 +20,11 @@ public enum ExternalIdentifierResource {
     PharmGKB("PharmGKB"),
     PDB("PDB"),
     IUPHAR("IUPHAR"),
+    RxCUI("RxCUI"),
+    ZINC("ZINC"),
     Guide_To_Pharmacology("Guide to Pharmacology");
 
-    private ExternalIdentifierResource(String value) {
+    ExternalIdentifierResource(String value) {
         this.value = value;
     }
 

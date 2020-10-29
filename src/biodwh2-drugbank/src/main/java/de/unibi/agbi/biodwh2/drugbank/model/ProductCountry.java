@@ -7,7 +7,7 @@ public enum ProductCountry {
     Canada("Canada"),
     EU("EU");
 
-    private ProductCountry(String value) {
+    ProductCountry(String value) {
         this.value = value;
     }
 

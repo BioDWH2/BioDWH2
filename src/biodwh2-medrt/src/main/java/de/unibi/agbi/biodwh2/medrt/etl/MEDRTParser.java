@@ -1,7 +1,6 @@
 package de.unibi.agbi.biodwh2.medrt.etl;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
@@ -14,9 +13,13 @@ import java.io.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class MEDRTParser extends Parser {
+public class MEDRTParser extends Parser<MEDRTDataSource> {
+    public MEDRTParser(final MEDRTDataSource dataSource) {
+        super(dataSource);
+    }
+
     @Override
-    public boolean parse(Workspace workspace, DataSource dataSource) throws ParserException {
+    public boolean parse(final Workspace workspace) throws ParserException {
         String filePath = dataSource.resolveSourceFilePath(workspace, "Core_MEDRT_XML.zip");
         File coreZipFile = new File(filePath);
         if (!coreZipFile.exists())
@@ -26,7 +29,7 @@ public class MEDRTParser extends Parser {
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (isZipEntryCoreXml(zipEntry.getName())) {
-                    ((MEDRTDataSource) dataSource).terminology = parseTerminologyFromZipStream(zipInputStream);
+                    dataSource.terminology = parseTerminologyFromZipStream(zipInputStream);
                     return true;
                 }
             }
@@ -36,7 +39,7 @@ public class MEDRTParser extends Parser {
         return false;
     }
 
-    private static ZipInputStream openZipInputStream(File file) throws ParserFileNotFoundException {
+    private static ZipInputStream openZipInputStream(final File file) throws ParserFileNotFoundException {
         try {
             FileInputStream inputStream = new FileInputStream(file);
             BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
@@ -46,11 +49,11 @@ public class MEDRTParser extends Parser {
         }
     }
 
-    private static boolean isZipEntryCoreXml(String name) {
+    private static boolean isZipEntryCoreXml(final String name) {
         return name.startsWith("Core_MEDRT_") && name.endsWith(".xml");
     }
 
-    private Terminology parseTerminologyFromZipStream(InputStream stream) throws IOException {
+    private Terminology parseTerminologyFromZipStream(final InputStream stream) throws IOException {
         XmlMapper xmlMapper = new XmlMapper();
         return xmlMapper.readValue(stream, Terminology.class);
     }

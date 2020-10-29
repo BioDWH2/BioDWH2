@@ -11,6 +11,10 @@ public final class DataSourceMetadata {
     public Version version;
     public String updateDateTime;
     public List<String> sourceFileNames;
+    public Boolean updateSuccessful;
+    public Boolean parseSuccessful;
+    public Boolean exportSuccessful;
+    public Boolean mergeSuccessful;
 
     public DataSourceMetadata() {
         sourceFileNames = new ArrayList<>();
@@ -18,10 +22,12 @@ public final class DataSourceMetadata {
 
     @JsonIgnore
     public LocalDateTime getLocalUpdateDateTime() {
-        return LocalDateTime.parse(updateDateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        return updateDateTime == null ? null : LocalDateTime.parse(updateDateTime,
+                                                                   DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 
     public void setUpdateDateTimeNow() {
         updateDateTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
+
 }

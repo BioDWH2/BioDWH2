@@ -6,7 +6,7 @@ public enum CalculatedPropertySource {
     ChemAxon("ChemAxon"),
     ALOGPS("ALOGPS");
 
-    private CalculatedPropertySource(String value) {
+    CalculatedPropertySource(String value) {
         this.value = value;
     }
 

@@ -15,7 +15,7 @@ public enum PolypeptideExternalIdentifierResource {
     IUPHAR("IUPHAR"),
     Guide_To_Pharmacology("Guide to Pharmacology");
 
-    private PolypeptideExternalIdentifierResource(String value) {
+    PolypeptideExternalIdentifierResource(String value) {
         this.value = value;
     }
 

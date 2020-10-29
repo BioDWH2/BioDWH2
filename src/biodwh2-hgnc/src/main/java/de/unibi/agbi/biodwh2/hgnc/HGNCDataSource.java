@@ -1,14 +1,8 @@
 package de.unibi.agbi.biodwh2.hgnc;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
-import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.hgnc.etl.HGNCGraphExporter;
-import de.unibi.agbi.biodwh2.hgnc.etl.HGNCParser;
-import de.unibi.agbi.biodwh2.hgnc.etl.HGNCRDFExporter;
-import de.unibi.agbi.biodwh2.hgnc.etl.HGNCUpdater;
+import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.hgnc.etl.*;
 import de.unibi.agbi.biodwh2.hgnc.model.Gene;
 
 import java.util.List;
@@ -22,22 +16,27 @@ public class HGNCDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
-        return new HGNCUpdater();
+    public Updater<HGNCDataSource> getUpdater() {
+        return new HGNCUpdater(this);
     }
 
     @Override
-    public Parser getParser() {
-        return new HGNCParser();
+    public Parser<HGNCDataSource> getParser() {
+        return new HGNCParser(this);
     }
 
     @Override
-    public RDFExporter getRdfExporter() {
-        return new HGNCRDFExporter();
+    public GraphExporter<HGNCDataSource> getGraphExporter() {
+        return new HGNCGraphExporter(this);
     }
 
     @Override
-    public GraphExporter getGraphExporter() {
-        return new HGNCGraphExporter();
+    public MappingDescriber getMappingDescriber() {
+        return new HGNCMappingDescriber(this);
+    }
+
+    @Override
+    protected void unloadData() {
+        genes.clear();
     }
 }

@@ -1,18 +1,20 @@
 package de.unibi.agbi.biodwh2.drugbank.etl;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.drugbank.DrugBankDataSource;
 import de.unibi.agbi.biodwh2.drugbank.model.*;
+import de.unibi.agbi.biodwh2.drugbank.model.DrugStructure;
+import de.unibi.agbi.biodwh2.drugbank.model.MetaboliteStructure;
 
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.List;
 
-public class DrugBankGraphExporter extends GraphExporter {
+public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private class DrugInteractionTriple {
         String drugBankIdSource;
         String drugBankIdTarget;
@@ -25,18 +27,15 @@ public class DrugBankGraphExporter extends GraphExporter {
         String description;
     }
 
-    long id = 0;
-
-    private Node createNode(String label) {
-        Node node = new Node(id, label);
-        id++;
-        return node;
+    public DrugBankGraphExporter(final DrugBankDataSource dataSource) {
+        super(dataSource);
     }
 
     @Override
-    protected Graph exportGraph(DataSource dataSource) {
-        Graph g = new Graph();
-        id = 0;
+    protected boolean exportGraph(final Workspace workspace, final Graph g) {
+        g.setNodeIndexPropertyKeys("id");
+        exportDrugStructures(g, dataSource.drugStructures);
+        exportMetaboliteStructures(g, dataSource.metaboliteStructures);
         Hashtable<String, Node> drug_lookUp = new Hashtable<>();
         Hashtable<String, Node> pathway_lookUp = new Hashtable<>();
         Hashtable<String, Node> organism_lookUp = new Hashtable<>();
@@ -459,8 +458,8 @@ public class DrugBankGraphExporter extends GraphExporter {
                         carriersNode.setProperty("name", drugCarrier.name);
                         carriersNode.setProperty("organism", drugCarrier.organism);
                         if (drugCarrier.actions != null) {
-                                String actions = String.join("; ", drugCarrier.actions);
-                                carriersNode.setProperty("actions", actions);
+                            String actions = String.join("; ", drugCarrier.actions);
+                            carriersNode.setProperty("actions", actions);
                         }
                         createReferenceListNode(g, referenceList_lookUp, carriersNode, drugCarrier.references);
                         if(drugCarrier.polypeptide != null) {
@@ -634,88 +633,87 @@ public class DrugBankGraphExporter extends GraphExporter {
 
         }
 
-        return g;
+        return true;
     }
-
     //Polypeptide
     private void createPolypeptideNode(Graph g, Hashtable<String, Node> organism_lookUp, Hashtable<String, Node> polypeptide_lookUp, Node parentNode, Polypeptide polypeptide){
         if(polypeptide != null){
-        Node polypeptideNode = createNode("Polypeptide");
-        polypeptide_lookUp.put(polypeptide.id, polypeptideNode);
-        polypeptideNode.setProperty("id", polypeptide.id);
-        polypeptideNode.setProperty("name", polypeptide.name);
-        polypeptideNode.setProperty("source", polypeptide.source);
-        polypeptideNode.setProperty("generalFunction", polypeptide.generalFunction);
-        polypeptideNode.setProperty("specificFunction",
-                                    polypeptide.specificFunction);
-        polypeptideNode.setProperty("geneName", polypeptide.geneName);
-        polypeptideNode.setProperty("locus", polypeptide.locus);
-        polypeptideNode.setProperty("cellularLocation",
-                                    polypeptide.cellularLocation);
-        polypeptideNode.setProperty("transmembraneRegions",
-                                    polypeptide.transmembraneRegions);
-        polypeptideNode.setProperty("signalRegions", polypeptide.signalRegions);
-        polypeptideNode.setProperty("theoreticalPi", polypeptide.theoreticalPi);
-        polypeptideNode.setProperty("molecularWeight", polypeptide.molecularWeight);
-        polypeptideNode.setProperty("chromosomeLocation",
-                                    polypeptide.chromosomeLocation);
-        polypeptideNode.setProperty("aminoAcidSequence",
-                                    polypeptide.aminoAcidSequence);
-        polypeptideNode.setProperty("geneSequence", polypeptide.geneSequence);
-        if (polypeptide.synonyms != null) {
-            String synonyms = String.join("; ", polypeptide.synonyms);
-            polypeptideNode.setProperty("aminoAcidSequence", synonyms);
-        }
-        g.addNode(polypeptideNode);
-        g.addEdge(new Edge(parentNode, polypeptideNode, "IS_POLYPEPTIDE"));
-        if (polypeptide.externalIdentifiers != null) {
-            for (int j = 0; j < polypeptide.externalIdentifiers.size(); j++) {
-                Node polypeptideExternalIdentifierNode = createNode("Polypeptide External Identifier");
-                polypeptideExternalIdentifierNode.setProperty("resource", polypeptide.externalIdentifiers.get(j).resource);
-                polypeptideExternalIdentifierNode.setProperty("identifier", polypeptide.externalIdentifiers.get(j).identifier);
-                g.addNode(polypeptideExternalIdentifierNode);
-                g.addEdge(new Edge(polypeptideNode, polypeptideExternalIdentifierNode,
-                                   "HAS_POLYPEPTIDE_EXTERNAL_IDENTIFIER"));
+            Node polypeptideNode = createNode("Polypeptide");
+            polypeptide_lookUp.put(polypeptide.id, polypeptideNode);
+            polypeptideNode.setProperty("id", polypeptide.id);
+            polypeptideNode.setProperty("name", polypeptide.name);
+            polypeptideNode.setProperty("source", polypeptide.source);
+            polypeptideNode.setProperty("generalFunction", polypeptide.generalFunction);
+            polypeptideNode.setProperty("specificFunction",
+                                        polypeptide.specificFunction);
+            polypeptideNode.setProperty("geneName", polypeptide.geneName);
+            polypeptideNode.setProperty("locus", polypeptide.locus);
+            polypeptideNode.setProperty("cellularLocation",
+                                        polypeptide.cellularLocation);
+            polypeptideNode.setProperty("transmembraneRegions",
+                                        polypeptide.transmembraneRegions);
+            polypeptideNode.setProperty("signalRegions", polypeptide.signalRegions);
+            polypeptideNode.setProperty("theoreticalPi", polypeptide.theoreticalPi);
+            polypeptideNode.setProperty("molecularWeight", polypeptide.molecularWeight);
+            polypeptideNode.setProperty("chromosomeLocation",
+                                        polypeptide.chromosomeLocation);
+            polypeptideNode.setProperty("aminoAcidSequence",
+                                        polypeptide.aminoAcidSequence);
+            polypeptideNode.setProperty("geneSequence", polypeptide.geneSequence);
+            if (polypeptide.synonyms != null) {
+                String synonyms = String.join("; ", polypeptide.synonyms);
+                polypeptideNode.setProperty("aminoAcidSequence", synonyms);
             }
-        }
-        if (polypeptide.pfams != null) {
-            for (int j = 0; j < polypeptide.pfams.size(); j++) {
-                Node pfamsNode = createNode("Pfam");
-                pfamsNode.setProperty("identifier", polypeptide.pfams
-                        .get(j).identifier);
-                pfamsNode.setProperty("name", polypeptide.pfams.get(j).name);
-                g.addNode(pfamsNode);
-                g.addEdge(new Edge(polypeptideNode, pfamsNode, "HAS_PFAM"));
+            g.addNode(polypeptideNode);
+            g.addEdge(new Edge(parentNode, polypeptideNode, "IS_POLYPEPTIDE"));
+            if (polypeptide.externalIdentifiers != null) {
+                for (int j = 0; j < polypeptide.externalIdentifiers.size(); j++) {
+                    Node polypeptideExternalIdentifierNode = createNode("Polypeptide External Identifier");
+                    polypeptideExternalIdentifierNode.setProperty("resource", polypeptide.externalIdentifiers.get(j).resource);
+                    polypeptideExternalIdentifierNode.setProperty("identifier", polypeptide.externalIdentifiers.get(j).identifier);
+                    g.addNode(polypeptideExternalIdentifierNode);
+                    g.addEdge(new Edge(polypeptideNode, polypeptideExternalIdentifierNode,
+                                       "HAS_POLYPEPTIDE_EXTERNAL_IDENTIFIER"));
+                }
             }
-        }
-        if (polypeptide.goClassifiers != null) {
-            for (int j = 0; j < polypeptide.goClassifiers.size(); j++) {
-                Node goClassifiersNode = createNode("GO Classifiers");
-                goClassifiersNode.setProperty("category", polypeptide.goClassifiers
-                        .get(j).category);
-                goClassifiersNode.setProperty("description", polypeptide.goClassifiers.get(j).description);
-                g.addNode(goClassifiersNode);
-                g.addEdge(new Edge(polypeptideNode, goClassifiersNode, "HAS_GO_CLASSIFIER"));
+            if (polypeptide.pfams != null) {
+                for (int j = 0; j < polypeptide.pfams.size(); j++) {
+                    Node pfamsNode = createNode("Pfam");
+                    pfamsNode.setProperty("identifier", polypeptide.pfams
+                            .get(j).identifier);
+                    pfamsNode.setProperty("name", polypeptide.pfams.get(j).name);
+                    g.addNode(pfamsNode);
+                    g.addEdge(new Edge(polypeptideNode, pfamsNode, "HAS_PFAM"));
+                }
             }
-        }
-        if (polypeptide.organism != null) {
-            Organism polypeptidesOrganism = polypeptide.organism;
-            if (organism_lookUp.containsKey(polypeptidesOrganism.ncbiTaxonomyId)) {
-                g.addEdge(new Edge(polypeptideNode, organism_lookUp.get(polypeptidesOrganism.ncbiTaxonomyId), "ORGANISM"));
-            } else {
-                Node organismNode = createNode("Organism");
-                organismNode.setProperty("ncbiTaxonomyId", polypeptide.organism.ncbiTaxonomyId);
-                organismNode.setProperty("value", polypeptide.organism.value);
-                g.addNode(organismNode);
-                g.addEdge(new Edge(polypeptideNode, organismNode, "HAS_ORGANISM"));
-                organism_lookUp.put(polypeptidesOrganism.ncbiTaxonomyId, organismNode);
+            if (polypeptide.goClassifiers != null) {
+                for (int j = 0; j < polypeptide.goClassifiers.size(); j++) {
+                    Node goClassifiersNode = createNode("GO Classifiers");
+                    goClassifiersNode.setProperty("category", polypeptide.goClassifiers
+                            .get(j).category);
+                    goClassifiersNode.setProperty("description", polypeptide.goClassifiers.get(j).description);
+                    g.addNode(goClassifiersNode);
+                    g.addEdge(new Edge(polypeptideNode, goClassifiersNode, "HAS_GO_CLASSIFIER"));
+                }
             }
-        }
+            if (polypeptide.organism != null) {
+                Organism polypeptidesOrganism = polypeptide.organism;
+                if (organism_lookUp.containsKey(polypeptidesOrganism.ncbiTaxonomyId)) {
+                    g.addEdge(new Edge(polypeptideNode, organism_lookUp.get(polypeptidesOrganism.ncbiTaxonomyId), "ORGANISM"));
+                } else {
+                    Node organismNode = createNode("Organism");
+                    organismNode.setProperty("ncbiTaxonomyId", polypeptide.organism.ncbiTaxonomyId);
+                    organismNode.setProperty("value", polypeptide.organism.value);
+                    g.addNode(organismNode);
+                    g.addEdge(new Edge(polypeptideNode, organismNode, "HAS_ORGANISM"));
+                    organism_lookUp.put(polypeptidesOrganism.ncbiTaxonomyId, organismNode);
+                }
+            }
         }
     }
 
     //References
-    private void createReferenceListNode(Graph g, Hashtable<Object, Node> referenceList_lookUp, Node parent, ReferenceList references ){
+    private void createReferenceListNode(Graph g, Hashtable<Object, Node> referenceList_lookUp, Node parent, ReferenceList references ) {
         Node referenceListNode = null;
         if ((references.textbooks != null && references.textbooks.size() > 0) ||
             (references.articles != null && references.articles.size() > 0) ||
@@ -787,5 +785,23 @@ public class DrugBankGraphExporter extends GraphExporter {
                 }
             }
         }
+    }
+
+    private void exportDrugStructures(final Graph graph, final List<DrugStructure> drugStructures) {
+        for (DrugStructure drug : drugStructures)
+            exportDrugStructure(graph, drug);
+    }
+
+    private void exportDrugStructure(final Graph graph, final DrugStructure drug) {
+        createNodeFromModel(graph, drug);
+    }
+
+    private void exportMetaboliteStructures(final Graph graph, final List<MetaboliteStructure> metabolites) {
+        for (MetaboliteStructure metabolite : metabolites)
+            exportMetaboliteStructure(graph, metabolite);
+    }
+
+    private void exportMetaboliteStructure(final Graph graph, final MetaboliteStructure metabolite) {
+
     }
 }

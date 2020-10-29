@@ -1,14 +1,8 @@
 package de.unibi.agbi.biodwh2.medrt;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
-import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.etl.RDFExporter;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.medrt.etl.MEDRTGraphExporter;
-import de.unibi.agbi.biodwh2.medrt.etl.MEDRTParser;
-import de.unibi.agbi.biodwh2.medrt.etl.MEDRTRDFExporter;
-import de.unibi.agbi.biodwh2.medrt.etl.MEDRTUpdater;
+import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.medrt.etl.*;
 import de.unibi.agbi.biodwh2.medrt.model.Terminology;
 
 public class MEDRTDataSource extends DataSource {
@@ -20,22 +14,27 @@ public class MEDRTDataSource extends DataSource {
     }
 
     @Override
-    public Updater getUpdater() {
-        return new MEDRTUpdater();
+    public Updater<MEDRTDataSource> getUpdater() {
+        return new MEDRTUpdater(this);
     }
 
     @Override
-    public Parser getParser() {
-        return new MEDRTParser();
+    public Parser<MEDRTDataSource> getParser() {
+        return new MEDRTParser(this);
     }
 
     @Override
-    public RDFExporter getRdfExporter() {
-        return new MEDRTRDFExporter();
+    public GraphExporter<MEDRTDataSource> getGraphExporter() {
+        return new MEDRTGraphExporter(this);
     }
 
     @Override
-    public GraphExporter getGraphExporter() {
-        return new MEDRTGraphExporter();
+    public MappingDescriber getMappingDescriber() {
+        return new MEDRTMappingDescriber(this);
+    }
+
+    @Override
+    protected void unloadData() {
+        terminology = null;
     }
 }

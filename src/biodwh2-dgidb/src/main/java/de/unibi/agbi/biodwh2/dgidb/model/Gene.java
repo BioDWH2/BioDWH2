@@ -1,24 +1,40 @@
 package de.unibi.agbi.biodwh2.dgidb.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
-import java.util.List;
+import java.util.Objects;
 
+@NodeLabel("Gene")
+@JsonPropertyOrder({"gene_claim_name", "gene_name", "entrez_id", "gene_claim_source"})
 public class Gene {
-    public static class GeneClaim extends Claim {
-        public String name;
-        public List<String> aliases;
+    @GraphProperty("claim_name")
+    @JsonProperty("gene_claim_name")
+    public String geneClaimName;
+    @GraphProperty("name")
+    @JsonProperty("gene_name")
+    public String geneName;
+    @GraphProperty("entrez_id")
+    @JsonProperty("entrez_id")
+    public String entrezId;
+    @JsonProperty("gene_claim_source")
+    public String geneClaimSource;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Gene gene = (Gene) o;
+        return Objects.equals(geneClaimName, gene.geneClaimName) && Objects.equals(geneName, gene.geneName) &&
+               Objects.equals(entrezId, gene.entrezId);
     }
 
-    public String name;
-    @JsonProperty(value = "long_name")
-    public String longName;
-    @JsonProperty(value = "entrez_id")
-    public int entrezId;
-    public List<String> aliases;
-    public List<Integer> pmids;
-    public List<Attribute> attributes;
-    public List<String> categories;
-    @JsonProperty(value = "gene_claims")
-    public List<GeneClaim> geneClaims;
+    @Override
+    public int hashCode() {
+        return Objects.hash(geneClaimName, geneName, entrezId);
+    }
 }
