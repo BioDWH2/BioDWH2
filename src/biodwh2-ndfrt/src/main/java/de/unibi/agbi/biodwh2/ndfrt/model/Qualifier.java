@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.ndfrt.model;
 
 import java.util.List;
 
-public class Qualifier {
+public final class Qualifier {
     public String type;
     public String name;
     public String code;

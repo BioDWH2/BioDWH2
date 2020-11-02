@@ -5,7 +5,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
 import java.util.List;
 
-public class Terminology {
+public final class Terminology {
     @JsonProperty("ref_by")
     public String refBy;
     @JsonProperty("if_exists_action")
