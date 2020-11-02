@@ -68,6 +68,10 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export roles...");
         addRoles(g);
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Export defining concepts...");
+        addDefiningConcepts(g);
+        // TODO: concept property.qualifiers
         return true;
     }
 
@@ -162,7 +166,8 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
         properties.put("code", qualifier.code);
         properties.put("name", qualifier.name);
         properties.put("type", qualifier.type);
-        properties.put("pick_list", qualifier.pickList);
+        if (qualifier.pickList != null)
+            properties.put("pick_list", qualifier.pickList);
         final Node node = g.addNode("QualifierDefinition", properties);
         final Node namespaceNode = g.findNode("Namespace", dataSource.terminology.refBy, qualifier.namespace);
         g.addEdge(node, namespaceNode, IN_NAMESPACE_EDGE_LABEL);
@@ -179,8 +184,10 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
         properties.put("code", property.code);
         properties.put("name", property.name);
         properties.put("range", property.range);
-        properties.put("contains_index", property.containsIndex);
-        properties.put("pick_list", property.pickList);
+        if (property.containsIndex != null)
+            properties.put("contains_index", property.containsIndex);
+        if (property.pickList != null)
+            properties.put("pick_list", property.pickList);
         final Node node = g.addNode("PropertyDefinition", properties);
         final Node namespaceNode = g.findNode("Namespace", dataSource.terminology.refBy, property.namespace);
         g.addEdge(node, namespaceNode, IN_NAMESPACE_EDGE_LABEL);
@@ -213,7 +220,8 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
         properties.put("id", association.id);
         properties.put("code", association.code);
         properties.put("name", association.name);
-        properties.put("inverse_name", association.inverseName);
+        if (association.inverseName != null)
+            properties.put("inverse_name", association.inverseName);
         final Node node = g.addNode("AssociationDefinition", properties);
         final Node namespaceNode = g.findNode("Namespace", dataSource.terminology.refBy, association.namespace);
         g.addEdge(node, namespaceNode, IN_NAMESPACE_EDGE_LABEL);
@@ -249,10 +257,13 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
     }
 
     private void addRole(final Graph g, final Role role) {
-        // TODO: range, domain
         final Node node = g.addNode("RoleDefinition", "id", role.id, "code", role.code, "name", role.name);
         final Node namespaceNode = g.findNode("Namespace", dataSource.terminology.refBy, role.namespace);
         g.addEdge(node, namespaceNode, IN_NAMESPACE_EDGE_LABEL);
+        final Node rangeNode = g.findNode(dataSource.terminology.refBy, role.range);
+        g.addEdge(node, rangeNode, "HAS_RANGE");
+        final Node domainNode = g.findNode(dataSource.terminology.refBy, role.domain);
+        g.addEdge(node, domainNode, "HAS_DOMAIN");
     }
 
     private void addConceptRoles(final Graph g, final Concept concept) {
@@ -260,7 +271,11 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
         if (concept.definingRoles != null && concept.definingRoles.roles != null)
             for (final Concept.DefiningRole role : concept.definingRoles.roles)
                 addConceptRole(g, conceptNode, role);
-        // TODO: role groups
+        if (concept.definingRoles != null && concept.definingRoles.roleGroups != null)
+            for (final Concept.DefiningRoleGroup roleGroup : concept.definingRoles.roleGroups)
+                if (roleGroup.roles != null)
+                    for (final Concept.DefiningRole role : roleGroup.roles)
+                        addConceptRole(g, conceptNode, role);
     }
 
     private void addConceptRole(final Graph g, final Node conceptNode, final Concept.DefiningRole role) {
@@ -269,5 +284,21 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
         g.addEdge(conceptNode, target, pair.name, "source_authority", pair.sourceAuthority);
     }
 
-    // TODO: concept [definingConcepts, property.qualifiers]
+    private void addDefiningConcepts(final Graph g) {
+        for (final Concept concept : dataSource.terminology.concepts)
+            addConceptDefiningConcepts(g, concept);
+    }
+
+    private void addConceptDefiningConcepts(final Graph g, final Concept concept) {
+        final Node conceptNode = g.findNode(dataSource.terminology.refBy, getRef(concept));
+        if (concept.definingConcepts != null)
+            for (final Concept.DefiningConcept definingConcept : concept.definingConcepts)
+                addConceptDefiningConcept(g, conceptNode, definingConcept);
+    }
+
+    private void addConceptDefiningConcept(final Graph g, final Node conceptNode,
+                                           final Concept.DefiningConcept definingConcept) {
+        final Node definingConceptNode = g.findNode(dataSource.terminology.refBy, definingConcept.value);
+        g.addEdge(conceptNode, definingConceptNode, "IS_DEFINED_BY");
+    }
 }
