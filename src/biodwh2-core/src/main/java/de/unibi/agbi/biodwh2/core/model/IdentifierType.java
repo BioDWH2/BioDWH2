@@ -18,6 +18,10 @@ public enum IdentifierType {
     PUB_CHEM_COMPOUND("PubChem_CID"),
     PUB_CHEM_SUBSTANCE("PubChem_SID"),
     UMLS_CUI("UMLS_CUI"),
+    SNOMED_CT("SNOMED_CT"),
+    MESH("MeSH"),
+    NDF_RT_NUI("NDF-RT_NUI"),
+    VANDF_VUID("VANDF_VUID"),
     ITIS_TAXON("ITIS_Taxon"),
     ENSEMBL_GENE_ID("ENSEMBL_Gene");
 
