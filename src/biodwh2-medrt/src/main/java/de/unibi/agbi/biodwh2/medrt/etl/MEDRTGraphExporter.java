@@ -2,13 +2,14 @@ package de.unibi.agbi.biodwh2.medrt.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.medrt.MEDRTDataSource;
 import de.unibi.agbi.biodwh2.medrt.model.*;
 
-import java.util.Locale;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     public MEDRTGraphExporter(final MEDRTDataSource dataSource) {
@@ -17,49 +18,57 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph g) {
-        addTerminology(g, dataSource.terminology);
+        addTerminology(g);
         return true;
     }
 
-    private void addTerminology(Graph g, Terminology terminology) {
-        Node node = createNode(g, "Terminology");
-        addTerminologyNamespace(g, node, terminology.namespace);
-        addReferencedNamespaces(g, node, terminology);
-        addTerms(g, node, terminology);
-        addConcepts(g, node, terminology);
-        addAssociations(g, node, terminology);
+    private void addTerminology(final Graph g) {
+        final Node node = createNode(g, "Terminology");
+        addTerminologyNamespace(g, node, dataSource.terminology.namespace);
+        addReferencedNamespaces(g, node);
+        addTerms(g);
+        addConcepts(g);
     }
 
-    private void addTerminologyNamespace(Graph g, Node terminologyNode, Namespace namespace) {
-        Node node = createNodeFromModel(g, namespace);
+    private void addTerminologyNamespace(final Graph g, final Node terminologyNode, final Namespace namespace) {
+        final Node node = createNodeFromModel(g, namespace);
         g.addEdge(terminologyNode, node, "IN_NAMESPACE");
     }
 
-    private void addReferencedNamespaces(Graph g, Node terminologyNode, Terminology terminology) {
-        for (Namespace namespace : terminology.referencedNamespaces) {
-            Node node = createNodeFromModel(g, namespace);
+    private void addReferencedNamespaces(final Graph g, final Node terminologyNode) {
+        for (final Namespace namespace : dataSource.terminology.referencedNamespaces) {
+            final Node node = createNodeFromModel(g, namespace);
             g.addEdge(terminologyNode, node, "REFERENCES_NAMESPACE");
         }
     }
 
-    private void addTerms(Graph g, Node terminologyNode, Terminology terminology) {
-        for (Term term : terminology.terms) {
-            Node termNode = createNodeFromModel(g, term);
-            g.addEdge(termNode, terminologyNode, "IN_TERMINOLOGY");
+    private void addTerms(final Graph g) {
+        for (final Term term : dataSource.terminology.terms) {
+            final Node termNode = createNodeFromModel(g, term);
             g.addEdge(termNode, g.findNode("Namespace", "name", term.namespace), "IN_NAMESPACE");
         }
     }
 
-    private void addConcepts(Graph g, Node terminologyNode, Terminology terminology) {
-        for (Concept concept : terminology.concepts) {
-            Node conceptNode = createNodeFromModel(g, concept);
-            addConceptProperties(g, concept, conceptNode);
-            addConceptSynonyms(g, concept, conceptNode);
-            g.addEdge(conceptNode, terminologyNode, "IN_TERMINOLOGY");
-            g.addEdge(conceptNode, g.findNode("Namespace", "name", concept.namespace), "IN_NAMESPACE");
-        }
+    private void addConcepts(final Graph g) {
+        for (final Concept concept : dataSource.terminology.concepts)
+            addConcept(g, concept);
     }
 
+    private void addConcept(final Graph g, final Concept concept) {
+        final Optional<Property> conceptTypeProperty = concept.properties.stream().filter(p -> "CTY".equals(p.name))
+                                                                         .findFirst();
+        final String label = conceptTypeProperty.isPresent() ? conceptTypeProperty.get().value : "Concept";
+        final Map<String, Object> properties = new HashMap<>();
+        properties.put("name", concept.name);
+        properties.put("code", concept.code);
+        properties.put("status", concept.status);
+        properties.put("namespace", concept.namespace);
+        concept.properties.stream().filter(p -> !"CTY".equals(p.name)).forEach(p -> properties.put(p.name, p.value));
+        g.addNode(label, properties);
+        // TODO: synonyms
+    }
+
+    /*
     private void addConceptProperties(final Graph g, final Concept concept, final Node conceptNode) {
         for (Property property : concept.properties) {
             Node propertyNode = createNodeFromModel(g, property);
@@ -102,4 +111,5 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
                 g.addEdge(associationNode, toNode, "ASSOCIATED_WITH");
         }
     }
+    */
 }

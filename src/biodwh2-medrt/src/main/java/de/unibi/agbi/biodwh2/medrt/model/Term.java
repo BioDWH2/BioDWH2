@@ -8,6 +8,7 @@ public class Term {
     @GraphProperty("name")
     public String name;
     public String namespace;
+    @SuppressWarnings("unused")
     @GraphProperty("status")
     public String status;
 }

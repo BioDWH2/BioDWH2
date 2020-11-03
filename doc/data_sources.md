@@ -5,7 +5,7 @@
 | DGIdb        | The Drug Gene Interaction Database                               | [Link](http://dgidb.org)                     | Work in progress |
 | DisGeNET     | DisGeNET                                                         | [Link](https://www.disgenet.org)             | Work in progress |
 | DrugBank     | DrugBank                                                         | [Link](http://drugbank.ca)                   | Work in progress |
-| DrugCentral  | DrugCentral                                                      | [Link](http://drugcentral.org)               | Done             |
+| DrugCentral  | DrugCentral                                                      | [Link](http://drugcentral.org)               | Work in progress |
 | GeneOntology | Gene Ontology                                                    | [Link](http://geneontology.org)              | Work in progress |
 | HGNC         | HUGO Gene Nomenclature Committee                                 | [Link](https://www.genenames.org)            | Done             |
 | HPO          | Human Phenotype Ontology                                         | [Link](https://hpo.jax.org)                  | Work in progress |
@@ -13,7 +13,7 @@
 | MED-RT       | Medication Reference Terminology (MED-RT™)                       | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/) | Work in progress |
 | Mondo        | Mondo Disease Ontology                                           | [Link](https://mondo.monarchinitiative.org)  | Work in progress |
 | NCBI         |                                                                  |                                              | Work in progress |
-| NDF-RT       | National Drug File – Reference Terminology (NDF-RT™)             | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/) | Work in progress |
+| NDF-RT       | National Drug File – Reference Terminology (NDF-RT™)             | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/) | Done             |
 | PharmGKB     | PharmGKB                                                         | [Link](https://www.pharmgkb.org)             | Work in progress |
 | SIDER        | SIDER: Side Effect Resource                                      | [Link](http://sideeffects.embl.de)           | Work in progress |
 | UNII         | FDA Substance Registration System - Unique Ingredient Identifier | [Link](https://fdasis.nlm.nih.gov/srs/)      | Done             |

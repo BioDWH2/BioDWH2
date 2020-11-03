@@ -5,7 +5,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
 import java.util.List;
 
-public class Terminology {
+public final class Terminology {
     public Namespace namespace;
     @JsonProperty("referencedNamespace")
     @JacksonXmlElementWrapper(useWrapping = false)
