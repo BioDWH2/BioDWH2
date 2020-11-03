@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -76,8 +77,12 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
     }
 
     private Map<String, String> buildKindRefLabelMap() {
-        return dataSource.terminology.kinds.stream().collect(
-                Collectors.toMap(this::getRef, k -> StringUtils.replace(k.name, "_KIND", "")));
+        return dataSource.terminology.kinds.stream().collect(Collectors.toMap(this::getRef, this::getLabelFromKind));
+    }
+
+    private String getLabelFromKind(final Kind kind) {
+        final String label = StringUtils.replace(kind.name, "_KIND", "").toLowerCase(Locale.US);
+        return Arrays.stream(StringUtils.split(label, '_')).map(StringUtils::capitalize).collect(Collectors.joining());
     }
 
     private String getRef(final Kind kind) {
@@ -167,7 +172,7 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
         properties.put("name", qualifier.name);
         properties.put("type", qualifier.type);
         if (qualifier.pickList != null)
-            properties.put("pick_list", qualifier.pickList);
+            properties.put("pick_list", qualifier.pickList.toArray(new String[0]));
         final Node node = g.addNode("QualifierDefinition", properties);
         final Node namespaceNode = g.findNode("Namespace", dataSource.terminology.refBy, qualifier.namespace);
         g.addEdge(node, namespaceNode, IN_NAMESPACE_EDGE_LABEL);
@@ -187,7 +192,7 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
         if (property.containsIndex != null)
             properties.put("contains_index", property.containsIndex);
         if (property.pickList != null)
-            properties.put("pick_list", property.pickList);
+            properties.put("pick_list", property.pickList.toArray(new String[0]));
         final Node node = g.addNode("PropertyDefinition", properties);
         final Node namespaceNode = g.findNode("Namespace", dataSource.terminology.refBy, property.namespace);
         g.addEdge(node, namespaceNode, IN_NAMESPACE_EDGE_LABEL);
@@ -240,7 +245,8 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
         if (association.qualifiers != null)
             for (Concept.NameValuePair qualifier : association.qualifiers)
                 properties.put(qualifierRefQualifierMap.get(qualifier.name).name, qualifier.value);
-        g.addEdge(conceptNode, target, associationRefAssociationMap.get(association.name).name, properties);
+        final String edgeLabel = associationRefAssociationMap.get(association.name).name.toUpperCase(Locale.US);
+        g.addEdge(conceptNode, target, edgeLabel, properties);
     }
 
     private String getRef(final Concept concept) {
@@ -279,9 +285,17 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
     }
 
     private void addConceptRole(final Graph g, final Node conceptNode, final Concept.DefiningRole role) {
-        final Node target = g.findNode(dataSource.terminology.refBy, role.value);
+        final Node target = findConceptNode(g, role.value);
         RoleNameAuthorityPair pair = roleRefLabelMap.get(role.name);
         g.addEdge(conceptNode, target, pair.name, "source_authority", pair.sourceAuthority);
+    }
+
+    private Node findConceptNode(final Graph g, final String ref) {
+        final Iterable<Node> nodes = g.findNodes(dataSource.terminology.refBy, ref);
+        for (Node node : nodes)
+            if (!"PropertyDefinition".equals(node.getLabel()))
+                return node;
+        return null;
     }
 
     private void addDefiningConcepts(final Graph g) {
@@ -290,7 +304,7 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
     }
 
     private void addConceptDefiningConcepts(final Graph g, final Concept concept) {
-        final Node conceptNode = g.findNode(dataSource.terminology.refBy, getRef(concept));
+        final Node conceptNode = findConceptNode(g, getRef(concept));
         if (concept.definingConcepts != null)
             for (final Concept.DefiningConcept definingConcept : concept.definingConcepts)
                 addConceptDefiningConcept(g, conceptNode, definingConcept);
@@ -298,7 +312,7 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
 
     private void addConceptDefiningConcept(final Graph g, final Node conceptNode,
                                            final Concept.DefiningConcept definingConcept) {
-        final Node definingConceptNode = g.findNode(dataSource.terminology.refBy, definingConcept.value);
+        final Node definingConceptNode = findConceptNode(g, definingConcept.value);
         g.addEdge(conceptNode, definingConceptNode, "IS_DEFINED_BY");
     }
 }

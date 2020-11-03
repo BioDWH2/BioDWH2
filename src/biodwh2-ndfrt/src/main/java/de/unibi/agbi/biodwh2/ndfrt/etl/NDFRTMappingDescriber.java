@@ -13,11 +13,11 @@ public class NDFRTMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription describe(final Graph graph, final Node node) {
-        if (node.getLabel().endsWith("DRUG"))
+        if (node.getLabel().endsWith("Drug"))
             return describeDrug(node);
-        if (node.getLabel().endsWith("INGREDIENT"))
+        if (node.getLabel().endsWith("Ingredient"))
             return describeIngredient(node);
-        if (node.getLabel().endsWith("DISEASE"))
+        if (node.getLabel().endsWith("Disease"))
             return describeDisease(node);
         return null;
     }
@@ -28,6 +28,7 @@ public class NDFRTMappingDescriber extends MappingDescriber {
         addIdentifierIfNotEmpty(description, node, IdentifierType.RX_NORM_CUI, "RxNorm_CUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.UMLS_CUI, "UMLS_CUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.VANDF_VUID, "VUID");
+        addIdentifierIfNotEmpty(description, node, IdentifierType.UNII, "FDA_UNII");
         return description;
     }
 
@@ -59,16 +60,27 @@ public class NDFRTMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{"DRUG", "INGREDIENT", "DISEASE"};
+        return new String[]{"Drug", "Ingredient", "Disease"};
     }
 
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
+        if (edges[0].getLabel().endsWith("INDUCES"))
+            return new PathMappingDescription(PathMappingDescription.EdgeType.INDUCES);
+        if (edges[0].getLabel().endsWith("CI_WITH"))
+            return new PathMappingDescription(PathMappingDescription.EdgeType.CONTRAINDICATES);
+        if (edges[0].getLabel().endsWith("MAY_TREAT"))
+            return new PathMappingDescription(PathMappingDescription.EdgeType.INDICATES);
+        if (edges[0].getLabel().endsWith("EFFECT_MAY_BE_INHIBITED_BY"))
+            return new PathMappingDescription(PathMappingDescription.EdgeType.INTERACTS);
         return null;
     }
 
     @Override
     protected String[][] getEdgeMappingPaths() {
-        return new String[0][];
+        return new String[][]{
+                {"Drug", "INDUCES", "Disease"}, {"Drug", "CI_WITH", "Disease"}, {"Drug", "MAY_TREAT", "Disease"},
+                {"Drug", "EFFECT_MAY_BE_INHIBITED_BY", "Drug"}
+        };
     }
 }
