@@ -177,8 +177,8 @@ public final class GraphMapper {
     }
 
     private void mapPathInstance(final Graph graph, final MappingDescriber describer, final long[] pathIds) {
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Path instance IDs " + StringUtils.join(pathIds, ';'));
+        //if (LOGGER.isInfoEnabled())
+        //    LOGGER.info("Path instance IDs " + StringUtils.join(pathIds, ';'));
         final Node[] nodes = new Node[pathIds.length / 2 + 1];
         for (int i = 0; i < nodes.length; i++)
             nodes[i] = graph.getNode(pathIds[i * 2]);

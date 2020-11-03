@@ -5,8 +5,17 @@ public class PathMappingDescription {
         UNKNOWN,
         TARGETS,
         INDICATES,
-        CONTRAINDICATES
+        CONTRAINDICATES,
+        INDUCES,
+        INTERACTS
     }
 
     public EdgeType type = EdgeType.UNKNOWN;
+
+    public PathMappingDescription() {
+    }
+
+    public PathMappingDescription(final EdgeType type) {
+        this.type = type;
+    }
 }
