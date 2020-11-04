@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.medrt.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class AssociationType {
+public final class AssociationType {
     public String type;
     public String name;
     public String namespace;
