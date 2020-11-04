@@ -183,44 +183,71 @@ public final class Graph {
     }
 
     public void update(final Node node) {
+        if (node == null)
+            throw new GraphCacheException("Failed to update node because it is null");
         nodes.update(node.getEqFilter(), node, false);
     }
 
     public Edge addEdge(final Node from, final Node to, final String label) {
+        validateSourceNode(from);
+        validateTargetNode(to);
         return addEdge(from.getId(), to.getId(), label);
     }
 
+    private void validateSourceNode(final Node node) {
+        if (node == null)
+            throw new GraphCacheException("Failed to add edge because the source node is null");
+    }
+
+    private void validateTargetNode(final Node node) {
+        if (node == null)
+            throw new GraphCacheException("Failed to add edge because the target node is null");
+    }
+
     public Edge addEdge(final long fromId, final Node to, final String label) {
+        validateTargetNode(to);
         return addEdge(fromId, to.getId(), label);
     }
 
     public Edge addEdge(final Node from, final long toId, final String label) {
+        validateSourceNode(from);
         return addEdge(from.getId(), toId, label);
     }
 
     public Edge addEdge(final long fromId, final long toId, final String label) {
+        validateEdgeLabel(label);
         final Edge e = new Edge(fromId, toId, label);
         edges.insert(e);
         return e;
     }
 
+    private void validateEdgeLabel(final String label) {
+        if (label == null || label.length() == 0)
+            throw new GraphCacheException("Failed to add edge because the label is null or empty");
+    }
+
     public Edge addEdge(final Node from, final Node to, final String label, final String propertyKey,
                         final Object propertyValue) {
+        validateSourceNode(from);
+        validateTargetNode(to);
         return addEdge(from.getId(), to.getId(), label, propertyKey, propertyValue);
     }
 
     public Edge addEdge(final long fromId, final Node to, final String label, final String propertyKey,
                         final Object propertyValue) {
+        validateTargetNode(to);
         return addEdge(fromId, to.getId(), label, propertyKey, propertyValue);
     }
 
     public Edge addEdge(final Node from, final long toId, final String label, final String propertyKey,
                         final Object propertyValue) {
+        validateSourceNode(from);
         return addEdge(from.getId(), toId, label, propertyKey, propertyValue);
     }
 
     public Edge addEdge(final long fromId, final long toId, final String label, final String propertyKey,
                         final Object propertyValue) {
+        validateEdgeLabel(label);
         final Edge e = new Edge(fromId, toId, label);
         e.setProperty(propertyKey, propertyValue);
         edges.insert(e);
@@ -229,21 +256,26 @@ public final class Graph {
 
     public Edge addEdge(final Node from, final Node to, final String label, final String propertyKey1,
                         final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
+        validateSourceNode(from);
+        validateTargetNode(to);
         return addEdge(from.getId(), to.getId(), label, propertyKey1, propertyValue1, propertyKey2, propertyValue2);
     }
 
     public Edge addEdge(final long fromId, final Node to, final String label, final String propertyKey1,
                         final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
+        validateTargetNode(to);
         return addEdge(fromId, to.getId(), label, propertyKey1, propertyValue1, propertyKey2, propertyValue2);
     }
 
     public Edge addEdge(final Node from, final long toId, final String label, final String propertyKey1,
                         final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
+        validateSourceNode(from);
         return addEdge(from.getId(), toId, label, propertyKey1, propertyValue1, propertyKey2, propertyValue2);
     }
 
     public Edge addEdge(final long fromId, final long toId, final String label, final String propertyKey1,
                         final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
+        validateEdgeLabel(label);
         final Edge e = new Edge(fromId, toId, label);
         e.setProperty(propertyKey1, propertyValue1);
         e.setProperty(propertyKey2, propertyValue2);
@@ -252,18 +284,23 @@ public final class Graph {
     }
 
     public Edge addEdge(final Node from, final Node to, final String label, final Map<String, Object> properties) {
+        validateSourceNode(from);
+        validateTargetNode(to);
         return addEdge(from.getId(), to.getId(), label, properties);
     }
 
-    public Edge addEdge(final Node from, final long toId, final String label, final Map<String, Object> properties) {
-        return addEdge(from.getId(), toId, label, properties);
-    }
-
     public Edge addEdge(final long fromId, final Node to, final String label, final Map<String, Object> properties) {
+        validateTargetNode(to);
         return addEdge(fromId, to.getId(), label, properties);
     }
 
+    public Edge addEdge(final Node from, final long toId, final String label, final Map<String, Object> properties) {
+        validateSourceNode(from);
+        return addEdge(from.getId(), toId, label, properties);
+    }
+
     public Edge addEdge(final long fromId, final long toId, final String label, final Map<String, Object> properties) {
+        validateEdgeLabel(label);
         final Edge e = new Edge(fromId, toId, label);
         for (Map.Entry<String, Object> entry : properties.entrySet())
             e.setProperty(entry.getKey(), entry.getValue());
@@ -276,6 +313,8 @@ public final class Graph {
     }
 
     public void update(final Edge edge) {
+        if (edge == null)
+            throw new GraphCacheException("Failed to update edge because it is null");
         edges.update(edge.getEqFilter(), edge, false);
     }
 
@@ -284,6 +323,8 @@ public final class Graph {
     }
 
     public Iterable<Node> getNodes(final String label) {
+        if (label == null || label.length() == 0)
+            return getNodes();
         return () -> nodes.find(eq(Node.LABEL_FIELD, label)).iterator();
     }
 
@@ -292,6 +333,8 @@ public final class Graph {
     }
 
     public Iterable<Edge> getEdges(final String label) {
+        if (label == null || label.length() == 0)
+            return getEdges();
         return () -> edges.find(eq(Edge.LABEL_FIELD, label)).iterator();
     }
 
