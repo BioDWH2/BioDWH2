@@ -10,10 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(MEDRTGraphExporter.class);
@@ -137,8 +134,9 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     }
 
     private void addAssociation(final Graph g, final Association association) {
-        final Node source = findAssociationSourceNode(g, association);
-        final Node target = findAssociationTargetNode(g, association);
+        final Node source = findAssociationNode(g, association.fromCode, association.fromName,
+                                                association.fromNamespace);
+        final Node target = findAssociationNode(g, association.toCode, association.toName, association.toNamespace);
         final String edgeLabel = normalizeAssociationName(association.name);
         if (association.qualifier != null && association.qualifier.value != null)
             g.addEdge(source, target, edgeLabel, association.qualifier.name, association.qualifier.value);
@@ -146,19 +144,12 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
             g.addEdge(source, target, edgeLabel);
     }
 
-    private Node findAssociationSourceNode(final Graph g, final Association association) {
-        Node source = g.findNode("code", association.fromCode);
-        if (source == null)
-            source = g.addNode("Concept", "code", association.fromCode, "namespace", association.fromNamespace, "name",
-                               association.fromName);
-        return source;
-    }
-
-    private Node findAssociationTargetNode(final Graph g, final Association association) {
-        Node target = g.findNode("code", association.toCode);
-        if (target == null)
-            target = g.addNode("Concept", "code", association.toCode, "namespace", association.toNamespace, "name",
-                               association.toName);
-        return target;
+    private Node findAssociationNode(final Graph g, final String code, String name, final String namespace) {
+        if ("RxNorm".equals(namespace)) {
+            final Node source = g.findNode("Drug", "code", code);
+            return source == null ? g.addNode("Drug", "code", code, "namespace", namespace, "name", name) : source;
+        }
+        final Node source = g.findNode("code", code);
+        return source == null ? g.addNode("Concept", "code", code, "namespace", namespace, "name", name) : source;
     }
 }
