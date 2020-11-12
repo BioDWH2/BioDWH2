@@ -67,7 +67,7 @@ public class NDFRTMappingDescriber extends MappingDescriber {
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
         if (edges[0].getLabel().endsWith("INDUCES"))
             return new PathMappingDescription(PathMappingDescription.EdgeType.INDUCES);
-        if (edges[0].getLabel().endsWith("CI_WITH"))
+        if (edges[0].getLabel().endsWith("CI_WITH") || edges[0].getLabel().endsWith("CI_CHEMCLASS"))
             return new PathMappingDescription(PathMappingDescription.EdgeType.CONTRAINDICATES);
         if (edges[0].getLabel().endsWith("MAY_TREAT"))
             return new PathMappingDescription(PathMappingDescription.EdgeType.INDICATES);
@@ -80,7 +80,7 @@ public class NDFRTMappingDescriber extends MappingDescriber {
     protected String[][] getEdgeMappingPaths() {
         return new String[][]{
                 {"Drug", "INDUCES", "Disease"}, {"Drug", "CI_WITH", "Disease"}, {"Drug", "MAY_TREAT", "Disease"},
-                {"Drug", "EFFECT_MAY_BE_INHIBITED_BY", "Drug"}
+                {"Drug", "EFFECT_MAY_BE_INHIBITED_BY", "Drug", "Drug", "CI_CHEMCLASS", "Ingredient"}
         };
     }
 }
