@@ -46,5 +46,7 @@ public class ClinicalAnnotationMetadata {
     @Parsed(field = "Chromosome")
     @GraphProperty("chromosome")
     public String chromosome;
+    @Parsed(field = "Latest History Date (YYYY-MM-DD)")
+    public String latestHistoryDate;
 
 }
