@@ -69,6 +69,13 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     private NodeMappingDescription describeGene(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
+        final String geneSymbol = node.getProperty("symbol");
+        if (geneSymbol != null)
+            description.addIdentifier(IdentifierType.HGNC_SYMBOL, geneSymbol.trim());
+        final String[] ensemblGeneIds = node.getProperty("ensemble_ids");
+        if (ensemblGeneIds != null)
+            for (final String ensemblGeneId : ensemblGeneIds)
+                description.addIdentifier(IdentifierType.ENSEMBL_GENE_ID, ensemblGeneId.trim());
         final String[] crossReferences = getCrossReferences(node);
         for (final String reference : crossReferences)
             if (reference.startsWith("HGNC"))
