@@ -45,7 +45,11 @@ public final class GraphMapper {
 
     private void mapGraph(final Graph graph, final DataSource[] dataSources) {
         final Map<String, MappingDescriber> map = getDataSourceDescriberMap(dataSources);
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Mapping nodes");
         mapNodes(graph, map);
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Mapping paths");
         mapPaths(graph, map);
     }
 
@@ -61,6 +65,8 @@ public final class GraphMapper {
         for (final MappingDescriber describer : dataSourceDescriberMap.values()) {
             final String[] mappingLabels = describer.getPrefixedNodeMappingLabels();
             for (final String mappingLabel : mappingLabels) {
+                if (LOGGER.isInfoEnabled())
+                    LOGGER.info("Mapping nodes with label '" + mappingLabel + "'");
                 for (final Node node : graph.getNodes(mappingLabel)) {
                     final NodeMappingDescription mappingDescription = describer.describe(graph, node);
                     if (mappingDescription != null)
@@ -140,7 +146,7 @@ public final class GraphMapper {
 
     private static void logPath(final String[] path) {
         if (LOGGER.isInfoEnabled()) {
-            StringBuilder builder = new StringBuilder("Mapping Edge path ");
+            StringBuilder builder = new StringBuilder("Mapping edge paths ");
             for (int i = 0; i < path.length; i++) {
                 if (i > 0)
                     builder.append("-");
