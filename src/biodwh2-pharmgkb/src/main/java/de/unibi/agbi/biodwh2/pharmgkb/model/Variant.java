@@ -39,5 +39,6 @@ public class Variant {
     @GraphProperty("label_annotation_count")
     public Integer labelAnnotationCount;
     @Parsed(field = "Synonyms")
+    @GraphArrayProperty(value = "synonyms", arrayDelimiter = ", ")
     public String synonyms;
 }
