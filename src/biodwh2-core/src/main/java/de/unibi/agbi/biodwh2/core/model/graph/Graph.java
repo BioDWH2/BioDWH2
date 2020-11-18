@@ -1,7 +1,6 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
-import org.apache.commons.lang3.StringUtils;
 import org.dizitart.no2.*;
 import org.dizitart.no2.objects.ObjectFilter;
 import org.dizitart.no2.objects.ObjectRepository;
@@ -153,7 +152,7 @@ public final class Graph {
     public final <T> Node addNodeFromModel(final T obj) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
         final Node node = new Node(mapping.label);
-        setNodePropertiesFromClassMapping(node, mapping, obj);
+        mapping.setNodeProperties(node, obj);
         nodes.insert(node);
         return node;
     }
@@ -162,24 +161,6 @@ public final class Graph {
         if (!classMappingsCache.containsKey(type))
             classMappingsCache.put(type, new ClassMapping(type));
         return classMappingsCache.get(type);
-    }
-
-    private void setNodePropertiesFromClassMapping(final Node node, final ClassMapping mapping, final Object obj) {
-        try {
-            for (final ClassMapping.ClassMappingField field : mapping.fields) {
-                final Object value = field.field.get(obj);
-                if (value != null)
-                    node.setProperty(field.propertyName, value);
-            }
-            for (final ClassMapping.ClassMappingField field : mapping.arrayFields) {
-                final Object value = field.field.get(obj);
-                if (value != null)
-                    node.setProperty(field.propertyName,
-                                     StringUtils.splitByWholeSeparator(value.toString(), field.arrayDelimiter));
-            }
-        } catch (IllegalAccessException e) {
-            throw new GraphCacheException(e);
-        }
     }
 
     public void update(final Node node) {
