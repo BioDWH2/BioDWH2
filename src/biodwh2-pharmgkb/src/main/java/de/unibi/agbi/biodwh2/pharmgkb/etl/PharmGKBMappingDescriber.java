@@ -13,26 +13,27 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription describe(final Graph graph, final Node node) {
-        if ("Drug".equalsIgnoreCase(node.getLabel()))
+        final String label = node.getLabel();
+        if (label.endsWith("Drug"))
             return describeDrug(node);
-        if ("Chemical".equalsIgnoreCase(node.getLabel()))
+        if (label.endsWith("Chemical"))
             return describeChemical(node);
-        if ("Haplotype".equalsIgnoreCase(node.getLabel()) || "HaplotypeSet".equalsIgnoreCase(node.getLabel()))
+        if (label.endsWith("Haplotype") || label.endsWith("HaplotypeSet"))
             return describeHaplotype(node);
-        if ("Gene".equalsIgnoreCase(node.getLabel()))
+        if (label.endsWith("Gene"))
             return describeGene(node);
-        if ("Variant".equalsIgnoreCase(node.getLabel()))
+        if (label.endsWith("Variant"))
             return describeVariant(node);
-        if ("Pathway".equalsIgnoreCase(node.getLabel()))
+        if (label.endsWith("Pathway"))
             return describePathway(node);
         return null;
     }
 
     private NodeMappingDescription describeDrug(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
         final String[] crossReferences = getCrossReferences(node);
-        for (String reference : crossReferences)
+        for (final String reference : crossReferences)
             if (reference.startsWith("DrugBank"))
                 description.addIdentifier(IdentifierType.DRUG_BANK, StringUtils.split(reference, ":", 2)[1]);
             else if (reference.startsWith("KEGG Drug"))
@@ -47,10 +48,10 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription describeChemical(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
         final String[] crossReferences = getCrossReferences(node);
-        for (String reference : crossReferences)
+        for (final String reference : crossReferences)
             if (reference.startsWith("DrugBank"))
                 description.addIdentifier(IdentifierType.DRUG_BANK, StringUtils.split(reference, ":", 2)[1]);
             else if (reference.startsWith("PubChem Compound"))
@@ -59,16 +60,17 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription describeHaplotype(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.HAPLOTYPE);
+        final NodeMappingDescription description = new NodeMappingDescription(
+                NodeMappingDescription.NodeType.HAPLOTYPE);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
         return description;
     }
 
     private NodeMappingDescription describeGene(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
         final String[] crossReferences = getCrossReferences(node);
-        for (String reference : crossReferences)
+        for (final String reference : crossReferences)
             if (reference.startsWith("HGNC"))
                 description.addIdentifier(IdentifierType.HGNC_ID, StringUtils.split(reference, ":", 2)[1]);
             else if (reference.startsWith("GeneCard"))
@@ -79,20 +81,20 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription describeVariant(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.VARIANT);
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.VARIANT);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
         return description;
     }
 
     private NodeMappingDescription describePathway(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PATHWAY);
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PATHWAY);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
         return description;
     }
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{"Drug", "Chemical", "Haplotype", "Gene", "Variant", "Pathway"};
+        return new String[]{"Drug", "Chemical", "Haplotype", "HaplotypeSet", "Gene", "Variant", "Pathway"};
     }
 
     @Override

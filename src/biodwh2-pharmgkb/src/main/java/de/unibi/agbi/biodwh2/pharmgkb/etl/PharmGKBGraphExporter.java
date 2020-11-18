@@ -521,22 +521,18 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             }
             if (metadata.variantAnnotationsId != null) {
                 final String[] ids = StringUtils.split(metadata.variantAnnotationsId, ";");
-                final String[] texts = StringUtils.split(metadata.variantAnnotation, ";");
+                String[] texts = StringUtils.split(metadata.variantAnnotation, ";");
                 if (ids.length != texts.length) {
-                    if (LOGGER.isWarnEnabled()) {
-                        LOGGER.warn("VariantAnnotation length mismatch from clinical annotation metadata");
-                        LOGGER.warn("ids: '" + Arrays.toString(ids) + "'");
-                        LOGGER.warn("texts: '" + Arrays.toString(texts) + "'");
-                    }
-                } else {
-                    for (int i = 0; i < ids.length; i++) {
-                        final Long annotationNodeId = variantAnnotationIdNodeIdMap.get(Integer.parseInt(ids[i]));
-                        if (annotationNodeId != null)
-                            graph.addEdge(node, annotationNodeId, ASSOCIATED_WITH_LABEL, "annotation", texts[i]);
-                        else if (LOGGER.isWarnEnabled())
-                            LOGGER.warn("Could not find VariantAnnotation '" + ids[i] +
-                                        "' from clinical annotation metadata");
-                    }
+                    // hack fix as long \t chars are included in the variant annotation column
+                    texts = StringUtils.split(metadata.variantAnnotation + "\t" + metadata.relatedChemicals, ";");
+                }
+                for (int i = 0; i < ids.length; i++) {
+                    final Long annotationNodeId = variantAnnotationIdNodeIdMap.get(Integer.parseInt(ids[i]));
+                    if (annotationNodeId != null)
+                        graph.addEdge(node, annotationNodeId, ASSOCIATED_WITH_LABEL, "annotation", texts[i]);
+                    else if (LOGGER.isWarnEnabled())
+                        LOGGER.warn(
+                                "Could not find VariantAnnotation '" + ids[i] + "' from clinical annotation metadata");
                 }
             }
         }
