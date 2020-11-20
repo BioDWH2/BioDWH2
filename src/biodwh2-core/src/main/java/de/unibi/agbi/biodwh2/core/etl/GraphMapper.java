@@ -4,7 +4,6 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +18,7 @@ public final class GraphMapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMapper.class);
     private static final String MAPPED_TO_EDGE_LABEL = "MAPPED_TO";
     private static final String IDS_NODE_PROPERTY = "ids";
+    private static final String NAMES_NODE_PROPERTY = "names";
     private static final String MAPPED_NODE_PROPERTY = "__mapped";
 
     public void map(final Workspace workspace, final DataSource[] dataSources, final String inputGraphFilePath,
@@ -81,7 +81,7 @@ public final class GraphMapper {
         final Set<Long> matchedNodeIds = matchNodesFromIds(idNodeIdMap, description);
         final Node mergedNode = mergeOrCreateMappingNode(graph, description, matchedNodeIds, idNodeIdMap);
         graph.addEdge(mappedNodeId, mergedNode.getId(), MAPPED_TO_EDGE_LABEL);
-        for (final String id : (String[]) mergedNode.getProperty(IDS_NODE_PROPERTY)) {
+        for (final String id : mergedNode.<Set<String>>getProperty(IDS_NODE_PROPERTY)) {
             if (!idNodeIdMap.containsKey(id))
                 idNodeIdMap.put(id, new HashSet<>());
             idNodeIdMap.get(id).add(mergedNode.getId());
@@ -100,13 +100,19 @@ public final class GraphMapper {
     private Node mergeOrCreateMappingNode(final Graph graph, final NodeMappingDescription description,
                                           final Set<Long> matchedNodeIds, final Map<String, Set<Long>> idNodeIdMap) {
         final Set<String> ids = new HashSet<>(description.getIdentifiers());
+        final Set<String> names = description.getNames();
+        final int idsCount = ids.size();
+        final int namesCount = names.size();
         Node mergedNode = null;
         for (final Long nodeId : matchedNodeIds) {
             final Node matchedNode = graph.getNode(nodeId);
             if (!hasMatchedNodeSameLabel(description, matchedNode))
                 continue;
-            final String[] nodeIds = matchedNode.getProperty(IDS_NODE_PROPERTY);
-            Collections.addAll(ids, nodeIds);
+            final Set<String> nodeIds = matchedNode.getProperty(IDS_NODE_PROPERTY);
+            ids.addAll(nodeIds);
+            final Set<String> nodeNames = matchedNode.getProperty(NAMES_NODE_PROPERTY);
+            if (nodeNames != null)
+                names.addAll(nodeNames);
             if (mergedNode == null)
                 mergedNode = matchedNode;
             else {
@@ -116,11 +122,14 @@ public final class GraphMapper {
             }
         }
         if (mergedNode == null) {
-            mergedNode = graph.addNode(description.type.toString(), MAPPED_NODE_PROPERTY, true, IDS_NODE_PROPERTY,
-                                       ids.toArray(new String[0]));
+            mergedNode = graph.addNode(description.type.toString(), MAPPED_NODE_PROPERTY, true, IDS_NODE_PROPERTY, ids,
+                                       NAMES_NODE_PROPERTY, names);
         } else {
-            mergedNode.setProperty(IDS_NODE_PROPERTY, ids.toArray(new String[0]));
-            graph.update(mergedNode);
+            if (idsCount != ids.size() || namesCount != names.size()) {
+                mergedNode.setProperty(IDS_NODE_PROPERTY, ids);
+                mergedNode.setProperty(NAMES_NODE_PROPERTY, names);
+                graph.update(mergedNode);
+            }
         }
         return mergedNode;
     }

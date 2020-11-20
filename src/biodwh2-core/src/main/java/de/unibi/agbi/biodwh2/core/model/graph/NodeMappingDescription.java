@@ -21,6 +21,7 @@ public final class NodeMappingDescription {
     public NodeType type;
     private final Map<IdentifierType, Set<String>> identifier;
     private Set<String> identifierCache;
+    private final Set<String> names;
 
     public NodeMappingDescription() {
         this(NodeType.UNKNOWN);
@@ -29,6 +30,19 @@ public final class NodeMappingDescription {
     public NodeMappingDescription(final NodeType type) {
         this.type = type;
         identifier = new HashMap<>();
+        names = new HashSet<>();
+    }
+
+    public void addName(final String name) {
+        names.add(name);
+    }
+
+    public void addNames(final String... names) {
+        this.names.addAll(Arrays.asList(names));
+    }
+
+    public void addNames(final Collection<String> names) {
+        this.names.addAll(names);
     }
 
     public void addIdentifier(final IdentifierType type, final String value) {
@@ -46,6 +60,10 @@ public final class NodeMappingDescription {
             for (final String id : identifier.get(identifierType))
                 identifierCache.add(identifierType.prefix + ":" + id);
         return identifierCache;
+    }
+
+    public Set<String> getNames() {
+        return new HashSet<>(names);
     }
 
     public boolean matches(final NodeMappingDescription other) {
