@@ -49,16 +49,16 @@ public final class Gene {
     @GraphArrayProperty(value = "alias_names", arrayDelimiter = "|")
     public String aliasName;
     @JsonProperty("prev_symbol")
-    @GraphProperty("prev_symbol")
+    @GraphArrayProperty(value = "prev_symbols", arrayDelimiter = "|")
     public String prevSymbol;
     @JsonProperty("prev_name")
-    @GraphProperty("prev_name")
+    @GraphArrayProperty(value = "prev_names", arrayDelimiter = "|")
     public String prevName;
     @JsonProperty("gene_family")
-    @GraphProperty("gene_family")
+    @GraphArrayProperty(value = "gene_families", arrayDelimiter = "|")
     public String geneFamily;
     @JsonProperty("gene_family_id")
-    @GraphProperty("gene_family_id")
+    @GraphArrayProperty(value = "gene_family_ids", arrayDelimiter = "|")
     public String geneFamilyId;
     @JsonProperty("date_approved_reserved")
     @GraphProperty("date_approved_reserved")
@@ -85,34 +85,34 @@ public final class Gene {
     @GraphProperty("ucsc_id")
     public String ucscId;
     @JsonProperty("ena")
-    @GraphProperty("ena")
+    @GraphArrayProperty(value = "ena_ids", arrayDelimiter = "|")
     public String ena;
     @JsonProperty("refseq_accession")
-    @GraphProperty("refseq_accession")
+    @GraphArrayProperty(value = "refseq_accessions", arrayDelimiter = "|")
     public String refseqAccession;
     @JsonProperty("ccds_id")
-    @GraphProperty("ccds_id")
+    @GraphArrayProperty(value = "ccds_ids", arrayDelimiter = "|")
     public String ccdsId;
     @JsonProperty("uniprot_ids")
-    @GraphProperty("uniprot_ids")
+    @GraphArrayProperty(value = "uniprot_ids", arrayDelimiter = "|")
     public String uniprotIds;
     @JsonProperty("pubmed_id")
-    @GraphProperty("pubmed_id")
+    @GraphArrayProperty(value = "pubmed_ids", arrayDelimiter = "|")
     public String pubmedId;
     @JsonProperty("mgd_id")
-    @GraphProperty("mgd_id")
+    @GraphArrayProperty(value = "mgd_ids", arrayDelimiter = "|")
     public String mgdId;
     @JsonProperty("rgd_id")
-    @GraphProperty("rgd_id")
+    @GraphArrayProperty(value = "rgd_ids", arrayDelimiter = "|")
     public String rgdId;
     @JsonProperty("lsdb")
-    @GraphProperty("lsdb")
+    @GraphArrayProperty(value = "lsdb", arrayDelimiter = "|")
     public String lsdb;
     @JsonProperty("cosmic")
     @GraphProperty("cosmic")
     public String cosmic;
     @JsonProperty("omim_id")
-    @GraphProperty("omim_id")
+    @GraphArrayProperty(value = "omim_ids", arrayDelimiter = "|")
     public String omimId;
     @JsonProperty("mirbase")
     @GraphProperty("mirbase")
@@ -157,7 +157,7 @@ public final class Gene {
     @GraphProperty("lncrnadb")
     public String lncrnaDb;
     @JsonProperty("enzyme_id")
-    @GraphProperty("enzyme_id")
+    @GraphArrayProperty(value = "enzyme_ids", arrayDelimiter = "|")
     public String enzymeId;
     @JsonProperty("intermediate_filament_db")
     @GraphProperty("intermediate_filament_db")

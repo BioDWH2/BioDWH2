@@ -21,10 +21,16 @@ public class HGNCMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription describeGene(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription();
-        description.type = NodeMappingDescription.NodeType.GENE;
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        description.addName(node.getProperty("name"));
+        final String[] aliasNames = node.getProperty("alias_names");
+        if (aliasNames != null)
+            description.addNames(aliasNames);
         description.addIdentifier(IdentifierType.HGNC_ID, getHGNCIdFromNode(node));
-        description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.getProperty("prev_symbol"));
+        final String[] prevSymbols = node.getProperty("prev_symbols");
+        if (prevSymbols != null)
+            for (final String symbol : prevSymbols)
+                description.addIdentifier(IdentifierType.HGNC_SYMBOL, symbol);
         description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.getProperty("symbol"));
         if (node.hasProperty(OMIM_ID_KEY))
             description.addIdentifier(IdentifierType.OMIM, node.getProperty(OMIM_ID_KEY));

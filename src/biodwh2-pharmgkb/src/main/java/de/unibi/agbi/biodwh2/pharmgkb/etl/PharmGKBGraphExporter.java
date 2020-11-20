@@ -95,7 +95,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             final Node node = createNodeFromModel(graph, variant);
             accessionNodeIdMap.put(variant.variantId, node.getId());
             if (variant.geneIds != null)
-                for (String geneId : (String[]) node.getProperty("gene_ids"))
+                for (String geneId : node.<String[]>getProperty("gene_ids"))
                     graph.addEdge(accessionNodeIdMap.get(geneId), node, "HAS_VARIANT");
         }
     }
