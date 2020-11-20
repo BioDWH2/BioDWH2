@@ -13,13 +13,14 @@ import org.slf4j.LoggerFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 public final class GraphMLGraphWriter extends GraphWriter {
     private static class Property {
@@ -31,9 +32,6 @@ public final class GraphMLGraphWriter extends GraphWriter {
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMLGraphWriter.class);
-    private static final String INVALID_XML_CHARS = new String(
-            new char[]{0x01, 0x02, 0x03, 0x04, 0x08, 0x1d, 0x12, 0x14, 0x18});
-
     private long labelKeyIdCounter;
     private final Map<String, String> labelKeyIdMap;
     private final List<Property> properties;
@@ -239,32 +237,9 @@ public final class GraphMLGraphWriter extends GraphWriter {
         if (value != null) {
             writer.writeStartElement("data");
             writer.writeAttribute("key", key);
-            writer.writeCharacters(getPropertyStringRepresentation(value));
+            writer.writeCharacters(GraphMLPropertyFormatter.format(value));
             writer.writeEndElement();
         }
-    }
-
-    private String getPropertyStringRepresentation(final Object property) {
-        return property.getClass().isArray() ? getArrayPropertyStringRepresentation((Object[]) property) :
-               replaceInvalidXmlCharacters(property.toString(), false);
-    }
-
-    private static String replaceInvalidXmlCharacters(final String s, final boolean escapeQuotes) {
-        final String cleanString = StringUtils.replaceChars(s, INVALID_XML_CHARS, "");
-        return escapeQuotes ? StringUtils.replace(cleanString, "\"", "\\\"") : cleanString;
-    }
-
-    private String getArrayPropertyStringRepresentation(final Object... property) {
-        final String[] arrayValues = new String[property.length];
-        for (int i = 0; i < arrayValues.length; i++)
-            arrayValues[i] = replaceInvalidXmlCharacters(property[i].toString(), true);
-        final Collector<CharSequence, ?, String> collector = isArrayPropertyStringArray(property) ? Collectors.joining(
-                "\",\"", "[\"", "\"]") : Collectors.joining(",", "[", "]");
-        return Arrays.stream(arrayValues).collect(collector);
-    }
-
-    private static boolean isArrayPropertyStringArray(final Object... property) {
-        return property.length > 0 && property[0] instanceof CharSequence;
     }
 
     private void writeEdge(final XMLStreamWriter writer, final Edge edge) throws XMLStreamException {

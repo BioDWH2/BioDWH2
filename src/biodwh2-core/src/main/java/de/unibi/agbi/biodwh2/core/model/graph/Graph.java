@@ -57,7 +57,7 @@ public final class Graph {
 
     private void addIndexIfNotExists(final ObjectRepository<?> repository, final String key) {
         if (!repository.hasIndex(key))
-            repository.createIndex(key, IndexOptions.indexOptions(IndexType.NonUnique, false));
+            repository.createIndex(key, IndexOptions.indexOptions(IndexType.NonUnique, true));
     }
 
     public void setNodeIndexPropertyKeys(final String... keys) {
@@ -532,10 +532,10 @@ public final class Graph {
         final Graph databaseToMerge = new Graph(filePath, true);
         for (final Index index : databaseToMerge.nodes.listIndices())
             if (!nodes.hasIndex(index.getField()))
-                nodes.createIndex(index.getField(), IndexOptions.indexOptions(index.getIndexType(), false));
+                nodes.createIndex(index.getField(), IndexOptions.indexOptions(index.getIndexType(), true));
         for (final Index index : databaseToMerge.edges.listIndices())
             if (!edges.hasIndex(index.getField()))
-                edges.createIndex(index.getField(), IndexOptions.indexOptions(index.getIndexType(), false));
+                edges.createIndex(index.getField(), IndexOptions.indexOptions(index.getIndexType(), true));
         final Map<Long, Long> mapping = new HashMap<>();
         for (final Node n : databaseToMerge.nodes.find()) {
             final Long oldId = n.getId();
