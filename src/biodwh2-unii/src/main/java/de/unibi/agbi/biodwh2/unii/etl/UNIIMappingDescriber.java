@@ -13,23 +13,16 @@ public class UNIIMappingDescriber extends MappingDescriber {
     @Override
     public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
         if ("UNII".equals(localMappingLabel)) {
-            NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
-            final String name = node.getProperty("name");
-            if (name != null)
-                description.addName(name);
-            final String[] officialNames = node.getProperty("official_names");
-            if (officialNames != null)
-                description.addNames(officialNames);
+            final NodeMappingDescription description = new NodeMappingDescription(
+                    NodeMappingDescription.NodeType.COMPOUND);
+            description.addName(node.getProperty("name"));
+            description.addName(node.getProperty("preferred_term"));
+            description.addNames(node.<String[]>getProperty("official_names"));
             description.addIdentifier(IdentifierType.UNII, node.getProperty("id"));
-            if (node.hasProperty("cas") && node.getProperty("cas") != null)
-                description.addIdentifier(IdentifierType.CAS, node.getProperty("cas"));
-            if (node.hasProperty("pubchem_cid") && node.getProperty("pubchem_cid") != null)
-                description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, node.getProperty("pubchem_cid"));
-            if (node.hasProperty("ec") && node.getProperty("ec") != null)
-                description.addIdentifier(IdentifierType.EUROPEAN_CHEMICALS_AGENCY_EC, node.getProperty("ec"));
-            if (node.hasProperty("rx_cui") && node.getProperty("rx_cui") != null)
-                description.addIdentifier(IdentifierType.RX_NORM_CUI, node.getProperty("rx_cui"));
-            // TODO: more ids
+            description.addIdentifier(IdentifierType.CAS, node.getProperty("cas"));
+            description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, node.getProperty("pubchem_cid"));
+            description.addIdentifier(IdentifierType.EUROPEAN_CHEMICALS_AGENCY_EC, node.getProperty("ec"));
+            description.addIdentifier(IdentifierType.RX_NORM_CUI, node.getProperty("rx_cui"));
             return description;
         }
         return null;

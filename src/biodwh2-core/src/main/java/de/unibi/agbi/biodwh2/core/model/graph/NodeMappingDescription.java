@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -33,23 +34,30 @@ public final class NodeMappingDescription {
         names = new HashSet<>();
     }
 
-    public void addName(final String name) {
-        names.add(name);
+    public void addNames(final String... names) {
+        if (names != null)
+            for (final String name : names)
+                addName(name);
     }
 
-    public void addNames(final String... names) {
-        this.names.addAll(Arrays.asList(names));
+    public void addName(final String name) {
+        if (StringUtils.isNotEmpty(name))
+            names.add(name);
     }
 
     public void addNames(final Collection<String> names) {
-        this.names.addAll(names);
+        if (names != null)
+            for (final String name : names)
+                addName(name);
     }
 
     public void addIdentifier(final IdentifierType type, final String value) {
-        if (!identifier.containsKey(type))
-            identifier.put(type, new HashSet<>());
-        identifier.get(type).add(value);
-        identifierCache = null;
+        if (StringUtils.isNotEmpty(value)) {
+            if (!identifier.containsKey(type))
+                identifier.put(type, new HashSet<>());
+            identifier.get(type).add(value);
+            identifierCache = null;
+        }
     }
 
     public Set<String> getIdentifiers() {
