@@ -14,6 +14,10 @@ import java.util.*;
 
 public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(MEDRTGraphExporter.class);
+    static final String HAS_PREFERRED_TERM_LABEL = "HAS_PREFERRED_TERM";
+    static final String HAS_SYNONYM_LABEL = "HAS_SYNONYM";
+    static final String TERM_LABEL = "Term";
+
     private final Map<String, String> conceptLabelMap;
 
     public MEDRTGraphExporter(final MEDRTDataSource dataSource) {
@@ -122,8 +126,8 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
         concept.properties.stream().filter(p -> !"CTY".equals(p.name)).forEach(p -> properties.put(p.name, p.value));
         final Node conceptNode = g.addNode(label, properties);
         for (final Synonym synonym : concept.synonyms) {
-            final String edgeLabel = synonym.preferred ? "HAS_PREFERRED_TERM" : "HAS_SYNONYM";
-            final Node termNode = g.findNode("Term", "name", synonym.toName, "namespace", synonym.toNamespace);
+            final String edgeLabel = synonym.preferred ? HAS_PREFERRED_TERM_LABEL : HAS_SYNONYM_LABEL;
+            final Node termNode = g.findNode(TERM_LABEL, "name", synonym.toName, "namespace", synonym.toNamespace);
             g.addEdge(conceptNode, termNode, edgeLabel);
         }
     }

@@ -6,13 +6,13 @@ import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 public class DrugBankMappingDescriber extends MappingDescriber {
-    public DrugBankMappingDescriber(DataSource dataSource) {
+    public DrugBankMappingDescriber(final DataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    public NodeMappingDescription describe(Graph graph, Node node) {
-        if (node.getLabel().endsWith("Drug")) {
+    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+        if ("Drug".equals(localMappingLabel)) {
             NodeMappingDescription description = new NodeMappingDescription();
             description.type = NodeMappingDescription.NodeType.DRUG;
             description.addIdentifier(IdentifierType.DRUG_BANK, node.getProperty("id"));
@@ -27,7 +27,7 @@ public class DrugBankMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public PathMappingDescription describe(Graph graph, Node[] nodes, Edge[] edges) {
+    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
         return null;
     }
 

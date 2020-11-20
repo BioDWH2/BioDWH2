@@ -12,12 +12,12 @@ public class NDFRTMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node) {
-        if (node.getLabel().endsWith("Drug"))
+    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+        if ("Drug".equals(localMappingLabel))
             return describeDrug(node);
-        if (node.getLabel().endsWith("Ingredient"))
+        if ("Ingredient".equals(localMappingLabel))
             return describeIngredient(node);
-        if (node.getLabel().endsWith("Disease"))
+        if ("Disease".equals(localMappingLabel))
             return describeDisease(node);
         return null;
     }

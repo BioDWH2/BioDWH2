@@ -9,13 +9,13 @@ public class HGNCMappingDescriber extends MappingDescriber {
     private static final String HGNC_ID_KEY = "hgnc_id";
     private static final String OMIM_ID_KEY = "omim_id";
 
-    public HGNCMappingDescriber(DataSource dataSource) {
+    public HGNCMappingDescriber(final DataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node) {
-        if (node.getLabel().endsWith("Gene"))
+    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+        if ("Gene".equals(localMappingLabel))
             return describeGene(node);
         return null;
     }
@@ -48,7 +48,7 @@ public class HGNCMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public PathMappingDescription describe(Graph graph, Node[] nodes, Edge[] edges) {
+    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
         return null;
     }
 

@@ -7,24 +7,23 @@ import de.unibi.agbi.biodwh2.core.model.graph.*;
 import org.apache.commons.lang3.StringUtils;
 
 public class PharmGKBMappingDescriber extends MappingDescriber {
-    public PharmGKBMappingDescriber(DataSource dataSource) {
+    public PharmGKBMappingDescriber(final DataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node) {
-        final String label = node.getLabel();
-        if (label.endsWith("Drug"))
+    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+        if ("Drug".equals(localMappingLabel))
             return describeDrug(node);
-        if (label.endsWith("Chemical"))
+        if ("Chemical".equals(localMappingLabel))
             return describeChemical(node);
-        if (label.endsWith("Haplotype") || label.endsWith("HaplotypeSet"))
+        if ("Haplotype".equals(localMappingLabel) || "HaplotypeSet".equals(localMappingLabel))
             return describeHaplotype(node);
-        if (label.endsWith("Gene"))
+        if ("Gene".equals(localMappingLabel))
             return describeGene(node);
-        if (label.endsWith("Variant"))
+        if ("Variant".equals(localMappingLabel))
             return describeVariant(node);
-        if (label.endsWith("Pathway"))
+        if ("Pathway".equals(localMappingLabel))
             return describePathway(node);
         return null;
     }

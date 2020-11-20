@@ -5,22 +5,44 @@ import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class MEDRTMappingDescriber extends MappingDescriber {
-    public MEDRTMappingDescriber(DataSource dataSource) {
+    private final String synonymOfLabel;
+
+    public MEDRTMappingDescriber(final DataSource dataSource) {
         super(dataSource);
+        synonymOfLabel = dataSource.getId() + "_SYNONYM_OF";
     }
 
     @Override
-    public NodeMappingDescription describe(Graph graph, Node node) {
-        if (node.getLabel().endsWith("Drug"))
-            return describeDrug(node);
+    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+        if ("Drug".equals(localMappingLabel))
+            return describeDrug(graph, node);
         return null;
     }
 
-    private NodeMappingDescription describeDrug(final Node node) {
+    private NodeMappingDescription describeDrug(final Graph graph, final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
+        final String name = node.getProperty("name");
+        if (name != null)
+            description.addName(name);
+        description.addNames(findSynonyms(graph, node));
         description.addIdentifier(IdentifierType.RX_NORM_CUI, node.getProperty("code"));
         return description;
+    }
+
+    private Set<String> findSynonyms(final Graph graph, final Node node) {
+        final Iterable<Edge> edges = graph.findEdges(synonymOfLabel, Edge.FROM_ID_FIELD, node.getId());
+        final Set<String> terms = new HashSet<>();
+        for (final Edge edge : edges) {
+            final Node termNode = graph.getNode(edge.getToId());
+            final String name = termNode.getProperty("name");
+            if (name != null)
+                terms.add(name);
+        }
+        return terms;
     }
 
     @Override
@@ -29,7 +51,7 @@ public class MEDRTMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public PathMappingDescription describe(Graph graph, Node[] nodes, Edge[] edges) {
+    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
         return null;
     }
 

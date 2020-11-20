@@ -6,23 +6,25 @@ import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 public final class Mock1MappingDescriber extends MappingDescriber {
-    public Mock1MappingDescriber(DataSource dataSource) {
+    public Mock1MappingDescriber(final DataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node) {
-        if (node.getLabel().endsWith("Gene")) {
+    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+        if ("Gene".equals(localMappingLabel)) {
             NodeMappingDescription description = new NodeMappingDescription();
             description.type = NodeMappingDescription.NodeType.GENE;
             description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.getProperty("hgnc_id"));
             return description;
-        } else if (node.getLabel().endsWith("Drug")) {
+        }
+        if ("Drug".equals(localMappingLabel)) {
             NodeMappingDescription description = new NodeMappingDescription();
             description.type = NodeMappingDescription.NodeType.DRUG;
             description.addIdentifier(IdentifierType.DRUG_BANK, node.getProperty("drugbank_id"));
             return description;
-        } else if (node.getLabel().endsWith("Dummy1")) {
+        }
+        if ("Dummy1".equals(localMappingLabel)) {
             NodeMappingDescription description = new NodeMappingDescription();
             description.type = NodeMappingDescription.NodeType.DUMMY;
             description.addIdentifier(IdentifierType.DUMMY, node.getProperty("id"));

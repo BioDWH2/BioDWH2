@@ -63,12 +63,14 @@ public final class GraphMapper {
     private void mapNodes(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
         final Map<String, Set<Long>> idNodeIdMap = new HashMap<>();
         for (final MappingDescriber describer : dataSourceDescriberMap.values()) {
-            final String[] mappingLabels = describer.getPrefixedNodeMappingLabels();
-            for (final String mappingLabel : mappingLabels) {
+            final String[] localMappingLabels = describer.getNodeMappingLabels();
+            for (final String localMappingLabel : localMappingLabels) {
+                final String prefixedMappingLabel = describer.prefixLabel(localMappingLabel);
                 if (LOGGER.isInfoEnabled())
-                    LOGGER.info("Mapping nodes with label '" + mappingLabel + "'");
-                for (final Node node : graph.getNodes(mappingLabel)) {
-                    final NodeMappingDescription mappingDescription = describer.describe(graph, node);
+                    LOGGER.info("Mapping nodes with label '" + prefixedMappingLabel + "'");
+                for (final Node node : graph.getNodes(prefixedMappingLabel)) {
+                    final NodeMappingDescription mappingDescription = describer.describe(graph, node,
+                                                                                         localMappingLabel);
                     if (mappingDescription != null)
                         mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId());
                 }

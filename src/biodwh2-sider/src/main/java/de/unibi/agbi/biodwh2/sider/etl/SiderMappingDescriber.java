@@ -7,13 +7,13 @@ import de.unibi.agbi.biodwh2.core.model.graph.*;
 import org.apache.commons.lang3.StringUtils;
 
 public class SiderMappingDescriber extends MappingDescriber {
-    public SiderMappingDescriber(DataSource dataSource) {
+    public SiderMappingDescriber(final DataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    public NodeMappingDescription describe(Graph graph, Node node) {
-        switch (node.getLabel()) {
+    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+        switch (localMappingLabel) {
             case "Drug": {
                 NodeMappingDescription description = new NodeMappingDescription();
                 description.type = NodeMappingDescription.NodeType.DRUG;
@@ -43,7 +43,7 @@ public class SiderMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public PathMappingDescription describe(Graph graph, Node[] nodes, Edge[] edges) {
+    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
         return null;
     }
 

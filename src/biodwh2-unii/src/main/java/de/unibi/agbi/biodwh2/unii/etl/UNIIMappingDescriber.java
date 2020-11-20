@@ -6,15 +6,20 @@ import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 public class UNIIMappingDescriber extends MappingDescriber {
-    public UNIIMappingDescriber(DataSource dataSource) {
+    public UNIIMappingDescriber(final DataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    public NodeMappingDescription describe(Graph graph, Node node) {
-        if (node.getLabel().endsWith("UNII")) {
-            NodeMappingDescription description = new NodeMappingDescription();
-            description.type = NodeMappingDescription.NodeType.COMPOUND;
+    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+        if ("UNII".equals(localMappingLabel)) {
+            NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
+            final String name = node.getProperty("name");
+            if (name != null)
+                description.addName(name);
+            final String[] officialNames = node.getProperty("official_names");
+            if (officialNames != null)
+                description.addNames(officialNames);
             description.addIdentifier(IdentifierType.UNII, node.getProperty("id"));
             if (node.hasProperty("cas") && node.getProperty("cas") != null)
                 description.addIdentifier(IdentifierType.CAS, node.getProperty("cas"));
@@ -36,7 +41,7 @@ public class UNIIMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public PathMappingDescription describe(Graph graph, Node[] nodes, Edge[] edges) {
+    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
         return null;
     }
 
