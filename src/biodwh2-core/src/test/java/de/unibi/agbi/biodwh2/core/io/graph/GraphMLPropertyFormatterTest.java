@@ -1,9 +1,10 @@
 package de.unibi.agbi.biodwh2.core.io.graph;
 
-import com.sun.deploy.util.OrderedHashSet;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,8 +37,9 @@ class GraphMLPropertyFormatterTest {
     @Test
     void formatCollectionTest() {
         assertEquals("[\"a\",\"b\",\"c\"]", GraphMLPropertyFormatter.format(Arrays.asList("a", "b", "c")));
-        final OrderedHashSet set = new OrderedHashSet();
-        set.addAll(Arrays.asList("a", "b", "c"));
-        assertEquals("[\"a\",\"b\",\"c\"]", GraphMLPropertyFormatter.format(set));
+        // Set may be unordered
+        final Set<String> set = new HashSet<>(Arrays.asList("a", "b"));
+        final String formatted = GraphMLPropertyFormatter.format(set);
+        assertTrue(formatted.equals("[\"a\",\"b\"]") || formatted.equals("[\"b\",\"a\"]"));
     }
 }
