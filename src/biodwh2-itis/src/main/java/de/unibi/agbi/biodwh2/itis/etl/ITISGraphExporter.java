@@ -16,15 +16,15 @@ import java.util.Set;
 
 public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ITISGraphExporter.class);
-    private static final String GEOGRAPHIC_DIVISION_LABEL = "GeographicDivision";
-    private static final String JURISDICTION_LABEL = "Jurisdiction";
-    private static final String EXPERT_LABEL = "Expert";
-    private static final String KINGDOM_LABEL = "Kingdom";
-    private static final String RANK_LABEL = "Rank";
-    private static final String TAXON_LABEL = "Taxon";
-    private static final String COMMENT_LABEL = "Comment";
-    private static final String PUBLICATION_LABEL = "Publication";
-    private static final String SOURCE_LABEL = "Source";
+    static final String GEOGRAPHIC_DIVISION_LABEL = "GeographicDivision";
+    static final String JURISDICTION_LABEL = "Jurisdiction";
+    static final String EXPERT_LABEL = "Expert";
+    static final String KINGDOM_LABEL = "Kingdom";
+    static final String RANK_LABEL = "Rank";
+    static final String TAXON_LABEL = "Taxon";
+    static final String COMMENT_LABEL = "Comment";
+    static final String PUBLICATION_LABEL = "Publication";
+    static final String SOURCE_LABEL = "Source";
 
     public ITISGraphExporter(final ITISDataSource dataSource) {
         super(dataSource);
@@ -76,8 +76,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
 
     private void createExpertNodes(final Graph graph) {
         for (final Expert expert : dataSource.experts)
-            graph.buildNode().withLabel(EXPERT_LABEL).withProperty("id", expert.id).withProperty("name", expert.name)
-                 .withProperty("comment", expert.comment).build();
+            graph.addNode(EXPERT_LABEL, "id", expert.id, "name", expert.name, "comment", expert.comment);
     }
 
     private void createSourceNodes(final Graph graph) {
@@ -127,6 +126,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
             if (nodcId != null)
                 node.setProperty("nodc_id", nodcId);
             taxonTsnNodeIdMap.put(taxon.tsn, node.getId());
+            graph.update(node);
         }
         return taxonTsnNodeIdMap;
     }
