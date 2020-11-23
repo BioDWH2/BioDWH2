@@ -34,6 +34,7 @@
         <module>biodwh2-unii</module>
         <module>biodwh2-ncbi</module>
         <module>biodwh2-itis</module>
+        <module>biodwh2-usdaplants</module>
     </modules>
 
     <packaging>pom</packaging>

@@ -74,6 +74,8 @@ public abstract class Updater<D extends DataSource> {
     }
 
     private boolean isDataSourceUpToDate(Version newestVersion, Version workspaceVersion) {
+        if (versionNotAvailable())
+            return false;
         return workspaceVersion != null && newestVersion.compareTo(workspaceVersion) == 0;
     }
 
@@ -97,5 +99,9 @@ public abstract class Updater<D extends DataSource> {
     protected static Version convertDateTimeToVersion(LocalDateTime dateTime) {
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd.HHmmss");
         return Version.parse(dateTime.format(formatter));
+    }
+
+    protected boolean versionNotAvailable() {
+        return false;
     }
 }
