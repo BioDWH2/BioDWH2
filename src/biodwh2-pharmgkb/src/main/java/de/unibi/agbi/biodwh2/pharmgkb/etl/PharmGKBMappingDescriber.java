@@ -30,7 +30,7 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription describeDrug(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
-        description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         final String[] crossReferences = getCrossReferences(node);
         for (final String reference : crossReferences)
             if (reference.startsWith("DrugBank"))
@@ -48,7 +48,7 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription describeChemical(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
-        description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         final String[] crossReferences = getCrossReferences(node);
         for (final String reference : crossReferences)
             if (reference.startsWith("DrugBank"))
@@ -61,13 +61,13 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     private NodeMappingDescription describeHaplotype(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(
                 NodeMappingDescription.NodeType.HAPLOTYPE);
-        description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         return description;
     }
 
     private NodeMappingDescription describeGene(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
-        description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         final String geneSymbol = node.getProperty("symbol");
         if (geneSymbol != null)
             description.addIdentifier(IdentifierType.HGNC_SYMBOL, geneSymbol.trim());
@@ -88,13 +88,13 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription describeVariant(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.VARIANT);
-        description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         return description;
     }
 
     private NodeMappingDescription describePathway(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PATHWAY);
-        description.addIdentifier(IdentifierType.PHARM_GKB, node.getProperty("id"));
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         return description;
     }
 

@@ -43,27 +43,24 @@ public class UNIIDataEntry {
     public String rxCui;
     @JsonProperty("PUBCHEM")
     @GraphProperty("pubchem_cid")
-    public String pubchem;
+    public Long pubchem;
     /*
      * Integrated Taxonomic Information System Taxonomic Serial Number (ITIS TSN)
      * https://www.itis.gov/
      */
     @JsonProperty("ITIS")
-    @GraphProperty("itis_taxonomy_id")
-    public String itis;
+    public Long itis;
     /*
      * NCBI taxonomy organism ID
      * https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Root
      */
     @JsonProperty("NCBI")
-    @GraphProperty("ncbi_taxonomy_organism_id")
-    public String ncbi;
+    public Long ncbi;
     /*
      * USDA PLANTS organism ID
      * https://plants.usda.gov/java/
      */
     @JsonProperty("PLANTS")
-    @GraphProperty("usda_plants_organism_id")
     public String plants;
     /*
      * USDA Agricultural Research Service Germplasm Resources Information Network (GRIN) nomen ID

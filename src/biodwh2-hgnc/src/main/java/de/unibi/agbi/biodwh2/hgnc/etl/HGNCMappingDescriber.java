@@ -29,8 +29,8 @@ public class HGNCMappingDescriber extends MappingDescriber {
         if (prevSymbols != null)
             for (final String symbol : prevSymbols)
                 description.addIdentifier(IdentifierType.HGNC_SYMBOL, symbol);
-        description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.getProperty("symbol"));
-        description.addIdentifier(IdentifierType.OMIM, node.getProperty(OMIM_ID_KEY));
+        description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("symbol"));
+        description.addIdentifier(IdentifierType.OMIM, node.<String>getProperty(OMIM_ID_KEY));
         // TODO: more ids
         return description;
     }

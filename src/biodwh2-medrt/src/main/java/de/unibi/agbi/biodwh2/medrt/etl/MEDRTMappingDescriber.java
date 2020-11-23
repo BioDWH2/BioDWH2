@@ -27,7 +27,7 @@ public class MEDRTMappingDescriber extends MappingDescriber {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
         description.addName(node.getProperty("name"));
         description.addNames(findSynonyms(graph, node));
-        description.addIdentifier(IdentifierType.RX_NORM_CUI, node.getProperty("code"));
+        description.addIdentifier(IdentifierType.RX_NORM_CUI, node.<String>getProperty("code"));
         return description;
     }
 

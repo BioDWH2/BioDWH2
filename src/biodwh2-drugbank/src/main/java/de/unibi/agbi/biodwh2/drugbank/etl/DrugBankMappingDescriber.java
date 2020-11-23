@@ -15,7 +15,7 @@ public class DrugBankMappingDescriber extends MappingDescriber {
         if ("Drug".equals(localMappingLabel)) {
             NodeMappingDescription description = new NodeMappingDescription();
             description.type = NodeMappingDescription.NodeType.DRUG;
-            description.addIdentifier(IdentifierType.DRUG_BANK, node.getProperty("id"));
+            description.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("id"));
             return description;
         }
         return null;

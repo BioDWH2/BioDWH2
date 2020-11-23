@@ -23,7 +23,10 @@ public enum IdentifierType {
     NDF_RT_NUI("NDF-RT_NUI"),
     VANDF_VUID("VANDF_VUID"),
     ITIS_TAXON("ITIS_Taxon"),
-    ENSEMBL_GENE_ID("ENSEMBL_Gene");
+    NCBI_TAXON("NCBI_Taxon"),
+    USDA_PLANTS_SYMBOL("USDA_PLANTS_Symbol"),
+    ENSEMBL_GENE_ID("ENSEMBL_Gene"),
+    INTERNATIONAL_NONPROPRIETARY_NAMES("INN");
 
     IdentifierType(final String prefix) {
         this.prefix = prefix;

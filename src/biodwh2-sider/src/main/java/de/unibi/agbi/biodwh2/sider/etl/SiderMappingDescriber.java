@@ -24,13 +24,13 @@ public class SiderMappingDescriber extends MappingDescriber {
             case "Disease": {
                 NodeMappingDescription description = new NodeMappingDescription();
                 description.type = NodeMappingDescription.NodeType.DISEASE;
-                description.addIdentifier(IdentifierType.UMLS_CUI, node.getProperty("id"));
+                description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
                 return description;
             }
             case "SideEffect": {
                 NodeMappingDescription description = new NodeMappingDescription();
                 description.type = NodeMappingDescription.NodeType.SIDE_EFFECT;
-                description.addIdentifier(IdentifierType.UMLS_CUI, node.getProperty("id"));
+                description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
                 return description;
             }
         }

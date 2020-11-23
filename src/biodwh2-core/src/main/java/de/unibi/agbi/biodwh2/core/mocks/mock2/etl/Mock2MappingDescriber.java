@@ -21,9 +21,9 @@ public final class Mock2MappingDescriber extends MappingDescriber {
         if ("Dummy2".equals(localMappingLabel)) {
             NodeMappingDescription description = new NodeMappingDescription();
             description.type = NodeMappingDescription.NodeType.DUMMY;
-            description.addIdentifier(IdentifierType.DUMMY, node.getProperty("id"));
+            description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id"));
             if (node.hasProperty("id2"))
-                description.addIdentifier(IdentifierType.DUMMY, node.getProperty("id2"));
+                description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id2"));
             return description;
         }
         return null;

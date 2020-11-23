@@ -16,7 +16,8 @@ public final class NodeMappingDescription {
         SIDE_EFFECT,
         VARIANT,
         HAPLOTYPE,
-        PATHWAY
+        PATHWAY,
+        SPECIES
     }
 
     public NodeType type;
@@ -49,6 +50,11 @@ public final class NodeMappingDescription {
         if (names != null)
             for (final String name : names)
                 addName(name);
+    }
+
+    public void addIdentifier(final IdentifierType type, final Long longValue) {
+        if (longValue != null)
+            addIdentifier(type, longValue.toString());
     }
 
     public void addIdentifier(final IdentifierType type, final String value) {
