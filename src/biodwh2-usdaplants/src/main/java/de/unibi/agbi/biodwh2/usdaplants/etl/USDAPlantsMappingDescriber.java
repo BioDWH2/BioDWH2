@@ -18,7 +18,7 @@ public class USDAPlantsMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription describePlant(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.SPECIES);
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.TAXON);
         description.addIdentifier(IdentifierType.USDA_PLANTS_SYMBOL, node.<String>getProperty("symbol"));
         description.addIdentifier(IdentifierType.USDA_PLANTS_SYMBOL, node.<String>getProperty("synonym_symbol"));
         description.addName(node.getProperty("scientific_name_with_author"));

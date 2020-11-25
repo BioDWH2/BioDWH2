@@ -47,6 +47,11 @@ public abstract class GraphExporter<D extends DataSource> {
         return new GraphMLGraphWriter().write(workspace, dataSource, g);
     }
 
+    protected final <T> void createNodesFromModels(final Graph g, final Iterable<T> models) {
+        for (T obj : models)
+            g.addNodeFromModel(obj);
+    }
+
     protected final <T> Node createNodeFromModel(final Graph g, final T obj) {
         return g.addNodeFromModel(obj);
     }

@@ -9,11 +9,11 @@ public class Hierarchy {
     @JsonProperty("hierarchy_string")
     public String value;
     @JsonProperty("TSN")
-    public int tsn;
+    public Integer tsn;
     @JsonProperty("Parent_TSN")
-    public int parentTsn;
+    public Integer parentTsn;
     @JsonProperty("level")
-    public int level;
+    public Integer level;
     @JsonProperty("ChildrenCount")
-    public int childrenCount;
+    public Integer childrenCount;
 }

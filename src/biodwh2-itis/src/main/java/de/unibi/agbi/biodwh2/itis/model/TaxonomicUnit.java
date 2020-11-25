@@ -16,7 +16,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 public class TaxonomicUnit {
     @JsonProperty("tsn")
     @GraphProperty("id")
-    public int tsn;
+    public Integer tsn;
     @JsonProperty("unit_ind1")
     public String unitInd1;
     @JsonProperty("unit_name1")

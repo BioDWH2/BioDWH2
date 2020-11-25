@@ -17,7 +17,7 @@ public final class NodeMappingDescription {
         VARIANT,
         HAPLOTYPE,
         PATHWAY,
-        SPECIES
+        TAXON
     }
 
     public NodeType type;
@@ -64,6 +64,11 @@ public final class NodeMappingDescription {
             identifier.get(type).add(value);
             identifierCache = null;
         }
+    }
+
+    public void addIdentifier(final IdentifierType type, final Integer intValue) {
+        if (intValue != null)
+            addIdentifier(type, intValue.toString());
     }
 
     public Set<String> getIdentifiers() {

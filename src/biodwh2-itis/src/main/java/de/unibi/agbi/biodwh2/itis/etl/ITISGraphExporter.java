@@ -34,15 +34,15 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         graph.setNodeIndexPropertyKeys("id");
         LOGGER.info("Exporting comments...");
-        createCommentNodes(graph);
+        createNodesFromModels(graph, dataSource.comments);
         LOGGER.info("Exporting experts...");
-        createExpertNodes(graph);
+        createNodesFromModels(graph, dataSource.experts);
         LOGGER.info("Exporting sources...");
-        createSourceNodes(graph);
+        createNodesFromModels(graph, dataSource.otherSources);
         LOGGER.info("Exporting publications...");
-        createPublicationNodes(graph);
+        createNodesFromModels(graph, dataSource.publications);
         LOGGER.info("Exporting kingdoms...");
-        createKingdomNodes(graph);
+        createNodesFromModels(graph, dataSource.kingdoms);
         LOGGER.info("Exporting taxon authors...");
         createTaxonAuthorNodes(graph);
         LOGGER.info("Exporting ranks...");
@@ -67,31 +67,6 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
         LOGGER.info("Exporting vernacular reference links...");
         createVernacularReferenceEdges(graph, vernacularIdNodeIdMap);
         return true;
-    }
-
-    private void createCommentNodes(final Graph graph) {
-        for (final Comment comment : dataSource.comments)
-            createNodeFromModel(graph, comment);
-    }
-
-    private void createExpertNodes(final Graph graph) {
-        for (final Expert expert : dataSource.experts)
-            graph.addNode(EXPERT_LABEL, "id", expert.id, "name", expert.name, "comment", expert.comment);
-    }
-
-    private void createSourceNodes(final Graph graph) {
-        for (final OtherSource source : dataSource.otherSources)
-            createNodeFromModel(graph, source);
-    }
-
-    private void createPublicationNodes(final Graph graph) {
-        for (final Publication publication : dataSource.publications)
-            createNodeFromModel(graph, publication);
-    }
-
-    private void createKingdomNodes(final Graph graph) {
-        for (final Kingdom kingdom : dataSource.kingdoms)
-            createNodeFromModel(graph, kingdom);
     }
 
     private void createTaxonAuthorNodes(final Graph graph) {
@@ -137,7 +112,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
 
     private void createHierarchyEdges(final Graph graph, final Map<Integer, Long> taxonTsnNodeIdMap) {
         for (final Hierarchy hierarchy : dataSource.hierarchies)
-            if (hierarchy.parentTsn > 0)
+            if (hierarchy.parentTsn != null && hierarchy.parentTsn > 0)
                 graph.addEdge(taxonTsnNodeIdMap.get(hierarchy.parentTsn), taxonTsnNodeIdMap.get(hierarchy.tsn),
                               "HAS_CHILD");
     }

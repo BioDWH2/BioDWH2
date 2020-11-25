@@ -37,7 +37,7 @@ public class UNIIMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription describeSpecies(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.SPECIES);
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.TAXON);
         for (Long itisId : node.<Set<Long>>getProperty(UNIIGraphExporter.ITIS_IDS_KEY))
             description.addIdentifier(IdentifierType.ITIS_TAXON, itisId);
         for (Long ncbiTaxonId : node.<Set<Long>>getProperty(UNIIGraphExporter.NCBI_TAXONOMY_IDS_KEY))
