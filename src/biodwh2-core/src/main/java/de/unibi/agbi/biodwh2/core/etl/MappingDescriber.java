@@ -19,7 +19,7 @@ public abstract class MappingDescriber {
     protected abstract String[] getNodeMappingLabels();
 
     final String prefixLabel(final String label) {
-        return dataSource.getId() + GraphExporter.LABEL_PREFIX_SEPARATOR + label;
+        return dataSource.getId() + Graph.LABEL_PREFIX_SEPARATOR + label;
     }
 
     final String[][] getPrefixedEdgeMappingPaths() {

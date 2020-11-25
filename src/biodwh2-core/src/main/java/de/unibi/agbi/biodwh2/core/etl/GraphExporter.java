@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class GraphExporter<D extends DataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphExporter.class);
-    static final String LABEL_PREFIX_SEPARATOR = "_";
+    public static final String ID_KEY = "id";
 
     protected final D dataSource;
 
@@ -22,11 +22,7 @@ public abstract class GraphExporter<D extends DataSource> {
         final Graph g = new Graph(dataSource.getGraphDatabaseFilePath(workspace));
         boolean exportSuccessful;
         try {
-            exportSuccessful = exportGraph(workspace, g);
-            if (exportSuccessful) {
-                addDataSourcePrefixToGraph(g);
-                exportSuccessful = trySaveGraphToFile(workspace, g);
-            }
+            exportSuccessful = exportGraph(workspace, g) && trySaveGraphToFile(workspace, g);
         } finally {
             g.dispose();
         }
@@ -34,12 +30,6 @@ public abstract class GraphExporter<D extends DataSource> {
     }
 
     protected abstract boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException;
-
-    private void addDataSourcePrefixToGraph(final Graph g) {
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Add '" + dataSource.getId() + "' data source prefix to graph");
-        g.prefixAllLabels(dataSource.getId() + LABEL_PREFIX_SEPARATOR);
-    }
 
     private boolean trySaveGraphToFile(final Workspace workspace, final Graph g) {
         if (LOGGER.isInfoEnabled())

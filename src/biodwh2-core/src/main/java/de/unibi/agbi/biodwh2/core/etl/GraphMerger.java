@@ -29,7 +29,7 @@ public class GraphMerger {
             LOGGER.info("Merging data source " + dataSource.getId());
         final String intermediateGraphFilePath = dataSource.getGraphDatabaseFilePath(workspace);
         try {
-            mergedGraph.mergeDatabase(intermediateGraphFilePath);
+            mergedGraph.mergeDatabase(dataSource.getId(), intermediateGraphFilePath);
             dataSource.getMetadata().mergeSuccessful = true;
         } catch (GraphCacheException e) {
             throw new MergerException("Failed to merge data source " + dataSource.getId(), e);

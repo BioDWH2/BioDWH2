@@ -14,12 +14,15 @@ import java.util.*;
 import static org.dizitart.no2.objects.filters.ObjectFilters.*;
 
 public final class Graph {
+    public static final String LABEL_PREFIX_SEPARATOR = "_";
+    //private static final char NODE_REPOSITORY_PREFIX = '$';
+    private static final char EDGE_REPOSITORY_PREFIX = '!';
     public static final String EXTENSION = "db";
     private static final FindOptions LIMIT_ONE_OPTION = FindOptions.limit(0, 1);
 
     private Nitrite database;
     private ObjectRepository<Node> nodes;
-    private ObjectRepository<Edge> edges;
+    private final Map<String, ObjectRepository<Edge>> edgeRepositories;
     private final Map<Class<?>, ClassMapping> classMappingsCache = new HashMap<>();
     private final Set<String> userDefinedNodeIndexPropertyKeys = new HashSet<>();
 
@@ -30,9 +33,12 @@ public final class Graph {
     public Graph(final String databaseFilePath, final boolean reopen) {
         if (!reopen)
             deleteOldDatabaseFile(databaseFilePath);
+        edgeRepositories = new HashMap<>();
         database = openDatabase(databaseFilePath);
         nodes = database.getRepository(Node.class);
-        edges = database.getRepository(Edge.class);
+        for (final String repositoryKey : database.listRepositories())
+            if (repositoryKey.charAt(0) == EDGE_REPOSITORY_PREFIX)
+                edgeRepositories.put(repositoryKey.substring(1), database.getRepository(repositoryKey, Edge.class));
         createInternalIndicesIfNotExist();
     }
 
@@ -50,9 +56,8 @@ public final class Graph {
 
     private void createInternalIndicesIfNotExist() {
         addIndexIfNotExists(nodes, Node.LABEL_FIELD);
-        addIndexIfNotExists(edges, Edge.FROM_ID_FIELD);
-        addIndexIfNotExists(edges, Edge.TO_ID_FIELD);
-        addIndexIfNotExists(edges, Edge.LABEL_FIELD);
+        for (final ObjectRepository<Edge> edges : edgeRepositories.values())
+            createEdgeRepositoryIndicesIfNotExist(edges);
     }
 
     private void addIndexIfNotExists(final ObjectRepository<?> repository, final String key) {
@@ -60,36 +65,15 @@ public final class Graph {
             repository.createIndex(key, IndexOptions.indexOptions(IndexType.NonUnique, true));
     }
 
+    private void createEdgeRepositoryIndicesIfNotExist(final ObjectRepository<Edge> edges) {
+        addIndexIfNotExists(edges, Edge.FROM_ID_FIELD);
+        addIndexIfNotExists(edges, Edge.TO_ID_FIELD);
+    }
+
     public void setNodeIndexPropertyKeys(final String... keys) {
         userDefinedNodeIndexPropertyKeys.addAll(Arrays.asList(keys));
         for (final String key : keys)
             addIndexIfNotExists(nodes, key);
-    }
-
-    public void prefixAllLabels(final String prefix) {
-        dropIndexIfExists(nodes, Node.LABEL_FIELD);
-        dropIndexIfExists(edges, Edge.LABEL_FIELD);
-        for (final Document document : nodes.getDocumentCollection().find()) {
-            document.put(Node.LABEL_FIELD, prefix + document.get(Node.LABEL_FIELD));
-            nodes.getDocumentCollection().update(document);
-        }
-        for (final Document document : edges.getDocumentCollection().find()) {
-            document.put(Edge.LABEL_FIELD, prefix + document.get(Edge.LABEL_FIELD));
-            edges.getDocumentCollection().update(document);
-        }
-        createInternalIndicesIfNotExist();
-    }
-
-    private void dropIndexIfExists(final ObjectRepository<?> repository, final String key) {
-        if (repository.hasIndex(key))
-            repository.dropIndex(key);
-    }
-
-    private void dropAllInternalIndices() {
-        dropIndexIfExists(nodes, Node.LABEL_FIELD);
-        dropIndexIfExists(edges, Edge.FROM_ID_FIELD);
-        dropIndexIfExists(edges, Edge.TO_ID_FIELD);
-        dropIndexIfExists(edges, Edge.LABEL_FIELD);
     }
 
     public Node addNode(final String label) {
@@ -151,16 +135,36 @@ public final class Graph {
 
     public final <T> Node addNodeFromModel(final T obj) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node node = new Node(mapping.label);
-        mapping.setNodeProperties(node, obj);
-        nodes.insert(node);
-        return node;
+        final Node n = new Node(mapping.label);
+        mapping.setNodeProperties(n, obj);
+        nodes.insert(n);
+        return n;
     }
 
     private ClassMapping getClassMappingFromCache(final Class<?> type) {
         if (!classMappingsCache.containsKey(type))
             classMappingsCache.put(type, new ClassMapping(type));
         return classMappingsCache.get(type);
+    }
+
+    public final <T> Node addNodeFromModel(final T obj, final String propertyKey, final Object propertyValue) {
+        final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
+        final Node n = new Node(mapping.label);
+        mapping.setNodeProperties(n, obj);
+        n.setProperty(propertyKey, propertyValue);
+        nodes.insert(n);
+        return n;
+    }
+
+    public final <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
+                                           final String propertyKey2, final Object propertyValue2) {
+        final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
+        final Node n = new Node(mapping.label);
+        mapping.setNodeProperties(n, obj);
+        n.setProperty(propertyKey1, propertyValue1);
+        n.setProperty(propertyKey2, propertyValue2);
+        nodes.insert(n);
+        return n;
     }
 
     public void update(final Node node) {
@@ -198,13 +202,23 @@ public final class Graph {
     public Edge addEdge(final long fromId, final long toId, final String label) {
         validateEdgeLabel(label);
         final Edge e = new Edge(fromId, toId, label);
-        edges.insert(e);
+        getOrCreateEdgeRepository(label).insert(e);
         return e;
     }
 
     private void validateEdgeLabel(final String label) {
         if (label == null || label.length() == 0)
             throw new GraphCacheException("Failed to add edge because the label is null or empty");
+    }
+
+    private ObjectRepository<Edge> getOrCreateEdgeRepository(final String label) {
+        ObjectRepository<Edge> edges = edgeRepositories.get(label);
+        if (edges == null) {
+            edges = database.getRepository(EDGE_REPOSITORY_PREFIX + label, Edge.class);
+            edgeRepositories.put(label, edges);
+            createEdgeRepositoryIndicesIfNotExist(edges);
+        }
+        return edges;
     }
 
     public Edge addEdge(final Node from, final Node to, final String label, final String propertyKey,
@@ -231,7 +245,7 @@ public final class Graph {
         validateEdgeLabel(label);
         final Edge e = new Edge(fromId, toId, label);
         e.setProperty(propertyKey, propertyValue);
-        edges.insert(e);
+        getOrCreateEdgeRepository(label).insert(e);
         return e;
     }
 
@@ -260,7 +274,7 @@ public final class Graph {
         final Edge e = new Edge(fromId, toId, label);
         e.setProperty(propertyKey1, propertyValue1);
         e.setProperty(propertyKey2, propertyValue2);
-        edges.insert(e);
+        getOrCreateEdgeRepository(label).insert(e);
         return e;
     }
 
@@ -285,7 +299,7 @@ public final class Graph {
         final Edge e = new Edge(fromId, toId, label);
         for (Map.Entry<String, Object> entry : properties.entrySet())
             e.setProperty(entry.getKey(), entry.getValue());
-        edges.insert(e);
+        getOrCreateEdgeRepository(label).insert(e);
         return e;
     }
 
@@ -296,7 +310,7 @@ public final class Graph {
     public void update(final Edge edge) {
         if (edge == null)
             throw new GraphCacheException("Failed to update edge because it is null");
-        edges.update(edge.getEqFilter(), edge, false);
+        getOrCreateEdgeRepository(edge.getLabel()).update(edge.getEqFilter(), edge, false);
     }
 
     public Iterable<Node> getNodes() {
@@ -310,13 +324,30 @@ public final class Graph {
     }
 
     public Iterable<Edge> getEdges() {
-        return () -> edges.find().iterator();
+        return () -> new Iterator<Edge>() {
+            private Iterator<Edge> current = null;
+            private final Iterator<ObjectRepository<Edge>> repositories = edgeRepositories.values().iterator();
+
+            @Override
+            public boolean hasNext() {
+                while ((current == null || !current.hasNext()) && repositories.hasNext())
+                    current = repositories.next().find().iterator();
+                return current != null && current.hasNext();
+            }
+
+            @Override
+            public Edge next() {
+                while ((current == null || !current.hasNext()) && repositories.hasNext())
+                    current = repositories.next().find().iterator();
+                return current != null ? current.next() : null;
+            }
+        };
     }
 
     public Iterable<Edge> getEdges(final String label) {
         if (label == null || label.length() == 0)
             return getEdges();
-        return () -> edges.find(eq(Edge.LABEL_FIELD, label)).iterator();
+        return () -> getOrCreateEdgeRepository(label).find().iterator();
     }
 
     public long getNumberOfNodes() {
@@ -324,7 +355,10 @@ public final class Graph {
     }
 
     public long getNumberOfEdges() {
-        return edges.size();
+        long result = 0;
+        for (final ObjectRepository<Edge> edges : edgeRepositories.values())
+            result += edges.size();
+        return result;
     }
 
     public Node getNode(final long nodeId) {
@@ -332,7 +366,13 @@ public final class Graph {
     }
 
     public Edge getEdge(final long edgeId) {
-        return edges.getById(NitriteId.createId(edgeId));
+        final NitriteId id = NitriteId.createId(edgeId);
+        for (final ObjectRepository<Edge> edges : edgeRepositories.values()) {
+            final Edge edge = edges.getById(id);
+            if (edge != null)
+                return edge;
+        }
+        return null;
     }
 
     public Node findNode(final String label) {
@@ -445,69 +485,67 @@ public final class Graph {
     }
 
     public Edge findEdge(final String label) {
-        return edges.find(eq(Edge.LABEL_FIELD, label), LIMIT_ONE_OPTION).firstOrDefault();
+        return getOrCreateEdgeRepository(label).find(LIMIT_ONE_OPTION).firstOrDefault();
     }
 
     public Edge findEdge(final String label, final String propertyKey, final Object value) {
-        return edges.find(and(eq(Edge.LABEL_FIELD, label), eq(propertyKey, value)), LIMIT_ONE_OPTION).firstOrDefault();
+        return getOrCreateEdgeRepository(label).find(eq(propertyKey, value), LIMIT_ONE_OPTION).firstOrDefault();
     }
 
     public Edge findEdge(final String label, final String propertyKey1, final Object value1, final String propertyKey2,
                          final Object value2) {
-        return edges.find(and(eq(Edge.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2)),
-                          LIMIT_ONE_OPTION).firstOrDefault();
+        return getOrCreateEdgeRepository(label).find(and(eq(propertyKey1, value1), eq(propertyKey2, value2)),
+                                                     LIMIT_ONE_OPTION).firstOrDefault();
     }
 
     public Edge findEdge(final String label, final String propertyKey1, final Object value1, final String propertyKey2,
                          final Object value2, final String propertyKey3, final Object value3) {
-        return edges.find(and(eq(Edge.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2),
-                              eq(propertyKey3, value3)), LIMIT_ONE_OPTION).firstOrDefault();
+        return getOrCreateEdgeRepository(label).find(
+                and(eq(propertyKey1, value1), eq(propertyKey2, value2), eq(propertyKey3, value3)), LIMIT_ONE_OPTION)
+                                               .firstOrDefault();
     }
 
     public Edge findEdge(final String label, final Map<String, Object> properties) {
-        final ObjectFilter[] filter = new ObjectFilter[properties.size() + 1];
-        filter[0] = eq(Edge.LABEL_FIELD, label);
-        int index = 1;
+        final ObjectFilter[] filter = new ObjectFilter[properties.size()];
+        int index = 0;
         for (final String propertyKey : properties.keySet())
             filter[index++] = eq(propertyKey, properties.get(propertyKey));
-        return edges.find(and(filter), LIMIT_ONE_OPTION).firstOrDefault();
+        return getOrCreateEdgeRepository(label).find(and(filter), LIMIT_ONE_OPTION).firstOrDefault();
     }
 
     public Iterable<Edge> findEdges(final String label) {
-        return () -> edges.find(eq(Edge.LABEL_FIELD, label)).iterator();
+        return () -> getOrCreateEdgeRepository(label).find().iterator();
     }
 
     public Iterable<Edge> findEdges(final String label, final String propertyKey, final Object value) {
-        return () -> edges.find(and(eq(Edge.LABEL_FIELD, label), eq(propertyKey, value))).iterator();
+        return () -> getOrCreateEdgeRepository(label).find(eq(propertyKey, value)).iterator();
     }
 
     public Iterable<Edge> findEdges(final String label, final String propertyKey1, final Object value1,
                                     final String propertyKey2, final Object value2) {
-        return () -> edges.find(and(eq(Edge.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2)))
-                          .iterator();
+        return () -> getOrCreateEdgeRepository(label).find(and(eq(propertyKey1, value1), eq(propertyKey2, value2)))
+                                                     .iterator();
     }
 
     public Iterable<Edge> findEdges(final String label, final String propertyKey1, final Object value1,
                                     final String propertyKey2, final Object value2, final String propertyKey3,
                                     final Object value3) {
-        return () -> edges.find(and(eq(Edge.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2),
-                                    eq(propertyKey3, value3))).iterator();
+        return () -> getOrCreateEdgeRepository(label).find(
+                and(eq(propertyKey1, value1), eq(propertyKey2, value2), eq(propertyKey3, value3))).iterator();
     }
 
     public Iterable<Edge> findEdges(final String label, final Map<String, Object> properties) {
-        final ObjectFilter[] filter = new ObjectFilter[properties.size() + 1];
-        filter[0] = eq(Edge.LABEL_FIELD, label);
-        int index = 1;
+        final ObjectFilter[] filter = new ObjectFilter[properties.size()];
+        int index = 0;
         for (final String propertyKey : properties.keySet())
             filter[index++] = eq(propertyKey, properties.get(propertyKey));
-        return () -> edges.find(and(filter)).iterator();
+        return () -> getOrCreateEdgeRepository(label).find(and(filter)).iterator();
     }
 
     public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId, final String edgeLabel) {
         final Set<Long> nodeIds = new HashSet<>();
-        final ObjectFilter filter = and(eq(Edge.LABEL_FIELD, edgeLabel),
-                                        or(eq(Edge.FROM_ID_FIELD, nodeId), eq(Edge.TO_ID_FIELD, nodeId)));
-        for (final Edge edge : edges.find(filter)) {
+        final ObjectFilter filter = or(eq(Edge.FROM_ID_FIELD, nodeId), eq(Edge.TO_ID_FIELD, nodeId));
+        for (final Edge edge : getOrCreateEdgeRepository(edgeLabel).find(filter)) {
             nodeIds.add(edge.getFromId());
             nodeIds.add(edge.getToId());
         }
@@ -516,38 +554,43 @@ public final class Graph {
     }
 
     public void mergeNodes(final Node first, final Node second) {
-        for (final Edge edge : edges.find(eq(Edge.FROM_ID_FIELD, second.getId()))) {
-            edge.setFromId(first.getId());
-            update(edge);
-        }
-        for (final Edge edge : edges.find(eq(Edge.TO_ID_FIELD, second.getId()))) {
-            edge.setToId(first.getId());
-            update(edge);
+        for (final ObjectRepository<Edge> edges : edgeRepositories.values()) {
+            for (final Edge edge : edges.find(eq(Edge.FROM_ID_FIELD, second.getId()))) {
+                edge.setFromId(first.getId());
+                update(edge);
+            }
+            for (final Edge edge : edges.find(eq(Edge.TO_ID_FIELD, second.getId()))) {
+                edge.setToId(first.getId());
+                update(edge);
+            }
         }
         // TODO: properties
         nodes.remove(second);
     }
 
-    public void mergeDatabase(final String filePath) {
+    public void mergeDatabase(final String dataSourceId, final String filePath) {
+        final String dataSourcePrefix = dataSourceId + LABEL_PREFIX_SEPARATOR;
         final Graph databaseToMerge = new Graph(filePath, true);
         for (final Index index : databaseToMerge.nodes.listIndices())
             if (!nodes.hasIndex(index.getField()))
                 nodes.createIndex(index.getField(), IndexOptions.indexOptions(index.getIndexType(), true));
-        for (final Index index : databaseToMerge.edges.listIndices())
-            if (!edges.hasIndex(index.getField()))
-                edges.createIndex(index.getField(), IndexOptions.indexOptions(index.getIndexType(), true));
         final Map<Long, Long> mapping = new HashMap<>();
         for (final Node n : databaseToMerge.nodes.find()) {
             final Long oldId = n.getId();
             n.resetId();
+            n.setProperty(Node.LABEL_FIELD, dataSourcePrefix + n.getLabel());
             nodes.insert(n);
             mapping.put(oldId, n.getId());
         }
-        for (final Edge e : databaseToMerge.edges.find()) {
-            e.resetId();
-            e.setProperty(Edge.FROM_ID_FIELD, mapping.get(e.getFromId()));
-            e.setProperty(Edge.TO_ID_FIELD, mapping.get(e.getToId()));
-            edges.insert(e);
+        for (final String sourceLabel : databaseToMerge.edgeRepositories.keySet()) {
+            final String targetLabel = dataSourcePrefix + sourceLabel;
+            for (final Edge e : databaseToMerge.edgeRepositories.get(sourceLabel).find()) {
+                e.resetId();
+                e.setProperty(Edge.LABEL_FIELD, targetLabel);
+                e.setProperty(Edge.FROM_ID_FIELD, mapping.get(e.getFromId()));
+                e.setProperty(Edge.TO_ID_FIELD, mapping.get(e.getToId()));
+                getOrCreateEdgeRepository(e.getLabel()).insert(e);
+            }
         }
         databaseToMerge.dispose();
     }
@@ -556,7 +599,7 @@ public final class Graph {
         if (database != null && !database.isClosed())
             database.close();
         nodes = null;
-        edges = null;
+        edgeRepositories.clear();
         database = null;
     }
 
