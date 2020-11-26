@@ -9,7 +9,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 @JsonPropertyOrder({
         "cd_id", "cd_formula", "cd_molweight", "id", "clogp", "alogs", "cas_reg_no", "tpsa", "lipinski", "name",
         "no_formulations", "stem", "molfile", "mrdef", "enhanced_stereo", "arom_c", "sp3_c", "sp2_c", "sp_c", "halogen",
-        "hetero_sp2_c", "rotb", "molimg", "o_n", "oh_nh", "inchi", "smiles", "rgb", "fda_labels", "inchikey"
+        "hetero_sp2_c", "rotb", "molimg", "o_n", "oh_nh", "inchi", "smiles", "rgb", "fda_labels", "inchikey", "status"
 })
 @NodeLabel("Structure")
 public final class Structure {
@@ -101,4 +101,7 @@ public final class Structure {
     @JsonProperty("inchikey")
     @GraphProperty("inchikey")
     public String inchiKey;
+    @JsonProperty("status")
+    @GraphProperty("status")
+    public String status;
 }

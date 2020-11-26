@@ -13,12 +13,13 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
 public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
-    private static final String DownloadPageUrl = "http://drugcentral.org/ActiveDownload";
+    private static final String DownloadPageUrl = "https://drugcentral.org/ActiveDownload";
 
     public DrugCentralUpdater(DrugCentralDataSource dataSource) {
         super(dataSource);
@@ -29,8 +30,8 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
         try {
             String html = HTTPClient.getWebsiteSource(DownloadPageUrl);
             for (String word : html.split(" {4}")) {
-                if (word.contains("drugcentral.dump.")) {
-                    String version = word.split("href=\"")[1].split("\\.")[3];
+                if (word.contains("drugcentral-pgdump_")) {
+                    String version = word.split("drugcentral-pgdump_")[1].split("\\.")[0];
                     return parseVersion(
                             version.substring(4) + "." + version.substring(0, 2) + "." + version.substring(2, 4));
                 }
@@ -72,12 +73,20 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
         try {
             String html = HTTPClient.getWebsiteSource(DownloadPageUrl);
             for (String word : html.split(" {4}"))
-                if (word.contains("drugcentral.dump."))
-                    return new URL(word.split("\"")[3]);
+                if (word.contains("drugcentral-pgdump_"))
+                    return resolveRedirectUrl(new URL(word.split("\"")[3]));
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
         throw new UpdaterConnectionException("Failed to get database download URL from download page");
+    }
+
+    private URL resolveRedirectUrl(URL url) throws IOException {
+        final HttpURLConnection connection = (HttpURLConnection) (url.openConnection());
+        connection.setInstanceFollowRedirects(false);
+        connection.connect();
+        String location = connection.getHeaderField("Location");
+        return StringUtils.isNotEmpty(location) ? new URL(location) : url;
     }
 
     private void removeOldExtractedTsvFiles(final Workspace workspace, final DataSource dataSource) {
