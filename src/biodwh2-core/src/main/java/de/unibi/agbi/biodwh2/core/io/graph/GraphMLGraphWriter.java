@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.graph;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.io.IndentingXMLStreamWriter;
+import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreModel;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -21,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public final class GraphMLGraphWriter extends GraphWriter {
     private static class Property {
@@ -95,7 +97,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
         final Map<String, Class<?>> propertyKeyTypes = new HashMap<>();
         propertyKeyTypes.put("labels", String.class);
         for (final Node node : nodes) {
-            final Map<String, Class<?>> nodePropertyKeyTypes = node.getPropertyKeyTypes();
+            final Map<String, Class<?>> nodePropertyKeyTypes = getPropertyKeyTypes(node);
             for (final String key : nodePropertyKeyTypes.keySet()) {
                 final String labelKeyId = getNodeLabelKeyId(node, key);
                 if (!propertyKeyTypes.containsKey(labelKeyId) || nodePropertyKeyTypes.get(key) != null)
@@ -107,8 +109,16 @@ public final class GraphMLGraphWriter extends GraphWriter {
         return propertyKeyTypes;
     }
 
+    private Map<String, Class<?>> getPropertyKeyTypes(final MVStoreModel obj) {
+        final Map<String, Class<?>> keyTypeMap = new HashMap<>();
+        for (final String key : obj.keySet())
+            keyTypeMap.put(key, obj.get(key) == null ? null : obj.get(key).getClass());
+        return keyTypeMap;
+    }
+
     private String getNodeLabelKeyId(final Node node, final String key) {
-        final String labelKey = "node|" + node.getLabel() + "|" + key;
+        final String sortedLabels = Arrays.stream(node.getLabels()).sorted().collect(Collectors.joining(","));
+        final String labelKey = "node|" + sortedLabels + "|" + key;
         if (!labelKeyIdMap.containsKey(labelKey)) {
             labelKeyIdMap.put(labelKey, "nt" + labelKeyIdCounter);
             labelKeyIdCounter++;
@@ -147,7 +157,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
         final Map<String, Class<?>> propertyKeyTypes = new HashMap<>();
         propertyKeyTypes.put("label", String.class);
         for (final Edge edge : edges) {
-            final Map<String, Class<?>> edgePropertyKeyTypes = edge.getPropertyKeyTypes();
+            final Map<String, Class<?>> edgePropertyKeyTypes = getPropertyKeyTypes(edge);
             for (final String key : edgePropertyKeyTypes.keySet()) {
                 final String labelKeyId = getEdgeLabelKeyId(edge, key);
                 if (!propertyKeyTypes.containsKey(labelKeyId) || edgePropertyKeyTypes.get(key) != null)
@@ -218,17 +228,14 @@ public final class GraphMLGraphWriter extends GraphWriter {
     }
 
     private void writeNode(final XMLStreamWriter writer, final Node node) throws XMLStreamException {
-        final String label = ":" + node.getLabel();
+        final String label = Arrays.stream(node.getLabels()).sorted().collect(Collectors.joining(":", ":", ""));
         writer.writeStartElement("node");
         writer.writeAttribute("id", "n" + node.getId());
         writer.writeAttribute("labels", label);
         writePropertyIfNotNull(writer, "labels", label);
-        for (final String key : node.getPropertyKeys()) {
-            if (!Node.IGNORED_FIELDS.contains(key)) {
-                final String labelKeyId = getNodeLabelKeyId(node, key);
-                writePropertyIfNotNull(writer, labelKeyId, node.getProperty(key));
-            }
-        }
+        for (final String key : node.keySet())
+            if (!Node.IGNORED_FIELDS.contains(key))
+                writePropertyIfNotNull(writer, getNodeLabelKeyId(node, key), node.getProperty(key));
         writer.writeEndElement();
     }
 
@@ -249,7 +256,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
         writer.writeAttribute("target", "n" + edge.getToId());
         writer.writeAttribute("label", edge.getLabel());
         writePropertyIfNotNull(writer, "label", edge.getLabel());
-        for (final String key : edge.getPropertyKeys())
+        for (final String key : edge.keySet())
             if (!Edge.IGNORED_FIELDS.contains(key))
                 writePropertyIfNotNull(writer, getEdgeLabelKeyId(edge, key), edge.getProperty(key));
         writer.writeEndElement();

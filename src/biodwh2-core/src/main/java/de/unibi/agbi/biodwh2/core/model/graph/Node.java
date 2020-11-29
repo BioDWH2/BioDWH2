@@ -1,174 +1,52 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
-import org.dizitart.no2.Document;
-import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.mapper.Mappable;
-import org.dizitart.no2.mapper.NitriteMapper;
-import org.dizitart.no2.objects.Id;
-import org.dizitart.no2.objects.ObjectFilter;
-import org.dizitart.no2.objects.filters.ObjectFilters;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreId;
+import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreModel;
 
-import java.io.Serializable;
-import java.util.*;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-public class Node implements PropertyContainer, Map<String, Object>, Mappable, Serializable {
+public class Node extends MVStoreModel {
     private static final long serialVersionUID = -5027987220033105538L;
-    private static final String ID_FIELD = "__id";
-    static final String LABEL_FIELD = "__label";
-    public static final Set<String> IGNORED_FIELDS = new HashSet<>(
-            Arrays.asList(ID_FIELD, LABEL_FIELD, "_modified", "_revision", "_id"));
+    public static final String LABELS_FIELD = "__labels";
+    public static final Set<String> IGNORED_FIELDS = new HashSet<>(Arrays.asList(ID_FIELD, LABELS_FIELD));
 
-    @Id
-    private NitriteId __id;
-    private Document document;
-
-    @SuppressWarnings("unused")
     private Node() {
+        super();
     }
 
-    Node(final String label) {
-        document = new Document();
-        document.put(LABEL_FIELD, label);
+    public static Node newNode(final String... labels) {
+        Node node = new Node();
+        node.put(ID_FIELD, new MVStoreId());
+        node.put(LABELS_FIELD, labels);
+        return node;
     }
 
-    ObjectFilter getEqFilter() {
-        return ObjectFilters.eq(ID_FIELD, __id);
+    public static NodeBuilder newNodeBuilder(final Graph graph) {
+        return new NodeBuilder(graph);
+    }
+
+    private void writeObject(java.io.ObjectOutputStream s) throws IOException {
+        final String[] labels = getProperty(LABELS_FIELD);
+        s.writeByte(labels.length);
+        for (String label : labels)
+            s.writeUTF(label);
+    }
+
+    private void readObject(java.io.ObjectInputStream s) throws IOException, ClassNotFoundException {
+        final String[] labels = new String[s.readByte()];
+        for (int i = 0; i < labels.length; i++)
+            labels[i] = s.readUTF();
+        put(LABELS_FIELD, labels);
     }
 
     void resetId() {
-        document.remove(ID_FIELD);
-        __id = null;
+        put(ID_FIELD, new MVStoreId());
     }
 
-    public Long getId() {
-        return __id == null ? null : __id.getIdValue();
-    }
-
-    @Override
-    public String getLabel() {
-        return (String) document.get(LABEL_FIELD);
-    }
-
-    @Override
-    public Collection<String> getPropertyKeys() {
-        return document.keySet();
-    }
-
-    @Override
-    public Map<String, Class<?>> getPropertyKeyTypes() {
-        final Map<String, Class<?>> keyTypeMap = new HashMap<>();
-        for (final String key : document.keySet())
-            if (!IGNORED_FIELDS.contains(key))
-                keyTypeMap.put(key, document.get(key) == null ? null : document.get(key).getClass());
-        return keyTypeMap;
-    }
-
-    @Override
-    public <T> T getProperty(String key) {
-        //noinspection unchecked
-        return (T) document.get(key);
-    }
-
-    @Override
-    public void setProperty(final String key, final Object value) {
-        document.put(key, value);
-    }
-
-    @Override
-    public boolean hasProperty(final String key) {
-        return document.containsKey(key);
-    }
-
-    @Override
-    public int size() {
-        return document.size();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return document.isEmpty();
-    }
-
-    @Override
-    public boolean containsKey(Object o) {
-        return document.containsKey(o);
-    }
-
-    @Override
-    public boolean containsValue(Object o) {
-        return document.containsValue(o);
-    }
-
-    @Override
-    public Object get(Object o) {
-        return document.get(o);
-    }
-
-    @Nullable
-    @Override
-    public Object put(String s, Object o) {
-        return document.put(s, o);
-    }
-
-    @Override
-    public Object remove(Object o) {
-        return document.remove(o);
-    }
-
-    @Override
-    public void putAll(@NotNull Map<? extends String, ?> map) {
-        document.putAll(map);
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException("Clear is not permitted on Nodes");
-    }
-
-    @NotNull
-    @Override
-    public Set<String> keySet() {
-        return document.keySet();
-    }
-
-    @NotNull
-    @Override
-    public Collection<Object> values() {
-        return document.values();
-    }
-
-    @NotNull
-    @Override
-    public Set<Entry<String, Object>> entrySet() {
-        return document.entrySet();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        final Node node = (Node) o;
-        return document.getId().equals(node.document.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return document.getId().hashCode();
-    }
-
-    @Override
-    public Document write(NitriteMapper nitriteMapper) {
-        document.put(ID_FIELD, __id);
-        return document;
-    }
-
-    @Override
-    public void read(NitriteMapper nitriteMapper, Document document) {
-        this.document = document;
-        __id = NitriteId.createId((long) document.get(ID_FIELD));
+    public String[] getLabels() {
+        return getProperty(LABELS_FIELD);
     }
 }

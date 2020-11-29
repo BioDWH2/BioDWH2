@@ -13,6 +13,7 @@ public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
+        graph.setNodeIndexPropertyKeys("hgnc_id", "symbol");
         for (final Gene gene : dataSource.genes)
             createNodeFromModel(graph, gene);
         return true;

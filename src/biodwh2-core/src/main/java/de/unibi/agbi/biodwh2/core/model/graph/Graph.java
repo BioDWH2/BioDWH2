@@ -1,9 +1,10 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
-import org.dizitart.no2.*;
-import org.dizitart.no2.objects.ObjectFilter;
-import org.dizitart.no2.objects.ObjectRepository;
+import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreCollection;
+import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreDB;
+import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreId;
+import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreIndex;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,18 +12,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static org.dizitart.no2.objects.filters.ObjectFilters.*;
-
 public final class Graph {
     public static final String LABEL_PREFIX_SEPARATOR = "_";
     //private static final char NODE_REPOSITORY_PREFIX = '$';
     private static final char EDGE_REPOSITORY_PREFIX = '!';
     public static final String EXTENSION = "db";
-    private static final FindOptions LIMIT_ONE_OPTION = FindOptions.limit(0, 1);
 
-    private Nitrite database;
-    private ObjectRepository<Node> nodes;
-    private final Map<String, ObjectRepository<Edge>> edgeRepositories;
+    private MVStoreDB database;
+    private MVStoreCollection<Node> nodes;
+    private final Map<String, MVStoreCollection<Edge>> edgeRepositories;
     private final Map<Class<?>, ClassMapping> classMappingsCache = new HashMap<>();
     private final Set<String> userDefinedNodeIndexPropertyKeys = new HashSet<>();
 
@@ -35,10 +33,10 @@ public final class Graph {
             deleteOldDatabaseFile(databaseFilePath);
         edgeRepositories = new HashMap<>();
         database = openDatabase(databaseFilePath);
-        nodes = database.getRepository(Node.class);
-        for (final String repositoryKey : database.listRepositories())
+        nodes = database.getCollection("nodes");
+        for (final String repositoryKey : database.getCollectionNames())
             if (repositoryKey.charAt(0) == EDGE_REPOSITORY_PREFIX)
-                edgeRepositories.put(repositoryKey.substring(1), database.getRepository(repositoryKey, Edge.class));
+                edgeRepositories.put(repositoryKey.substring(1), database.getCollection(repositoryKey));
         createInternalIndicesIfNotExist();
     }
 
@@ -50,94 +48,93 @@ public final class Graph {
         }
     }
 
-    private static Nitrite openDatabase(final String filePath) {
-        return Nitrite.builder().compressed().filePath(filePath).openOrCreate();
+    private static MVStoreDB openDatabase(final String filePath) {
+        return new MVStoreDB(filePath);
     }
 
     private void createInternalIndicesIfNotExist() {
-        addIndexIfNotExists(nodes, Node.LABEL_FIELD);
-        for (final ObjectRepository<Edge> edges : edgeRepositories.values())
+        addIndexIfNotExists(nodes, Node.LABELS_FIELD, true);
+        for (final MVStoreCollection<Edge> edges : edgeRepositories.values())
             createEdgeRepositoryIndicesIfNotExist(edges);
     }
 
-    private void addIndexIfNotExists(final ObjectRepository<?> repository, final String key) {
-        if (!repository.hasIndex(key))
-            repository.createIndex(key, IndexOptions.indexOptions(IndexType.NonUnique, true));
+    private void addIndexIfNotExists(final MVStoreCollection<?> repository, final String key, final boolean array) {
+        repository.getIndex(key, array);
     }
 
-    private void createEdgeRepositoryIndicesIfNotExist(final ObjectRepository<Edge> edges) {
-        addIndexIfNotExists(edges, Edge.FROM_ID_FIELD);
-        addIndexIfNotExists(edges, Edge.TO_ID_FIELD);
+    private void createEdgeRepositoryIndicesIfNotExist(final MVStoreCollection<Edge> edges) {
+        addIndexIfNotExists(edges, Edge.FROM_ID_FIELD, false);
+        addIndexIfNotExists(edges, Edge.TO_ID_FIELD, false);
     }
 
     public void setNodeIndexPropertyKeys(final String... keys) {
         userDefinedNodeIndexPropertyKeys.addAll(Arrays.asList(keys));
         for (final String key : keys)
-            addIndexIfNotExists(nodes, key);
+            addIndexIfNotExists(nodes, key, false);
     }
 
     public Node addNode(final String label) {
-        final Node n = new Node(label);
-        nodes.insert(n);
+        final Node n = Node.newNode(label);
+        nodes.put(n);
         return n;
     }
 
     public Node addNode(final String label, final String propertyKey, final Object propertyValue) {
-        final Node n = new Node(label);
+        final Node n = Node.newNode(label);
         n.setProperty(propertyKey, propertyValue);
-        nodes.insert(n);
+        nodes.put(n);
         return n;
     }
 
     public Node addNode(final String label, final String propertyKey1, final Object propertyValue1,
                         final String propertyKey2, final Object propertyValue2) {
-        final Node n = new Node(label);
+        final Node n = Node.newNode(label);
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);
-        nodes.insert(n);
+        nodes.put(n);
         return n;
     }
 
     public Node addNode(final String label, final String propertyKey1, final Object propertyValue1,
                         final String propertyKey2, final Object propertyValue2, final String propertyKey3,
                         final Object propertyValue3) {
-        final Node n = new Node(label);
+        final Node n = Node.newNode(label);
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);
         n.setProperty(propertyKey3, propertyValue3);
-        nodes.insert(n);
+        nodes.put(n);
         return n;
     }
 
     public Node addNode(final String label, final String propertyKey1, final Object propertyValue1,
                         final String propertyKey2, final Object propertyValue2, final String propertyKey3,
                         final Object propertyValue3, final String propertyKey4, final Object propertyValue4) {
-        final Node n = new Node(label);
+        final Node n = Node.newNode(label);
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);
         n.setProperty(propertyKey3, propertyValue3);
         n.setProperty(propertyKey4, propertyValue4);
-        nodes.insert(n);
+        nodes.put(n);
         return n;
     }
 
     public Node addNode(final String label, final Map<String, Object> properties) {
-        final Node n = new Node(label);
+        final Node n = Node.newNode(label);
         for (Map.Entry<String, Object> entry : properties.entrySet())
             n.setProperty(entry.getKey(), entry.getValue());
-        nodes.insert(n);
+        nodes.put(n);
         return n;
     }
 
     public NodeBuilder buildNode() {
-        return new NodeBuilder(this);
+        return Node.newNodeBuilder(this);
     }
 
     public final <T> Node addNodeFromModel(final T obj) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node n = new Node(mapping.label);
+        final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
-        nodes.insert(n);
+        nodes.put(n);
         return n;
     }
 
@@ -149,34 +146,34 @@ public final class Graph {
 
     public final <T> Node addNodeFromModel(final T obj, final String propertyKey, final Object propertyValue) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node n = new Node(mapping.label);
+        final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey, propertyValue);
-        nodes.insert(n);
+        nodes.put(n);
         return n;
     }
 
     public final <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
                                            final String propertyKey2, final Object propertyValue2) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node n = new Node(mapping.label);
+        final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);
-        nodes.insert(n);
+        nodes.put(n);
         return n;
     }
 
     public void update(final Node node) {
         if (node == null)
             throw new GraphCacheException("Failed to update node because it is null");
-        nodes.update(node.getEqFilter(), node, false);
+        nodes.put(node);
     }
 
     public Edge addEdge(final Node from, final Node to, final String label) {
         validateSourceNode(from);
         validateTargetNode(to);
-        return addEdge(from.getId(), to.getId(), label);
+        return addEdge(from.getId().getIdValue(), to.getId().getIdValue(), label);
     }
 
     private void validateSourceNode(final Node node) {
@@ -191,18 +188,18 @@ public final class Graph {
 
     public Edge addEdge(final long fromId, final Node to, final String label) {
         validateTargetNode(to);
-        return addEdge(fromId, to.getId(), label);
+        return addEdge(fromId, to.getId().getIdValue(), label);
     }
 
     public Edge addEdge(final Node from, final long toId, final String label) {
         validateSourceNode(from);
-        return addEdge(from.getId(), toId, label);
+        return addEdge(from.getId().getIdValue(), toId, label);
     }
 
     public Edge addEdge(final long fromId, final long toId, final String label) {
         validateEdgeLabel(label);
-        final Edge e = new Edge(fromId, toId, label);
-        getOrCreateEdgeRepository(label).insert(e);
+        final Edge e = Edge.newEdge(new MVStoreId(fromId), new MVStoreId(toId), label);
+        getOrCreateEdgeRepository(label).put(e);
         return e;
     }
 
@@ -211,10 +208,10 @@ public final class Graph {
             throw new GraphCacheException("Failed to add edge because the label is null or empty");
     }
 
-    private ObjectRepository<Edge> getOrCreateEdgeRepository(final String label) {
-        ObjectRepository<Edge> edges = edgeRepositories.get(label);
+    private MVStoreCollection<Edge> getOrCreateEdgeRepository(final String label) {
+        MVStoreCollection<Edge> edges = edgeRepositories.get(label);
         if (edges == null) {
-            edges = database.getRepository(EDGE_REPOSITORY_PREFIX + label, Edge.class);
+            edges = database.getCollection(EDGE_REPOSITORY_PREFIX + label);
             edgeRepositories.put(label, edges);
             createEdgeRepositoryIndicesIfNotExist(edges);
         }
@@ -225,27 +222,27 @@ public final class Graph {
                         final Object propertyValue) {
         validateSourceNode(from);
         validateTargetNode(to);
-        return addEdge(from.getId(), to.getId(), label, propertyKey, propertyValue);
+        return addEdge(from.getId().getIdValue(), to.getId().getIdValue(), label, propertyKey, propertyValue);
     }
 
     public Edge addEdge(final long fromId, final Node to, final String label, final String propertyKey,
                         final Object propertyValue) {
         validateTargetNode(to);
-        return addEdge(fromId, to.getId(), label, propertyKey, propertyValue);
+        return addEdge(fromId, to.getId().getIdValue(), label, propertyKey, propertyValue);
     }
 
     public Edge addEdge(final Node from, final long toId, final String label, final String propertyKey,
                         final Object propertyValue) {
         validateSourceNode(from);
-        return addEdge(from.getId(), toId, label, propertyKey, propertyValue);
+        return addEdge(from.getId().getIdValue(), toId, label, propertyKey, propertyValue);
     }
 
     public Edge addEdge(final long fromId, final long toId, final String label, final String propertyKey,
                         final Object propertyValue) {
         validateEdgeLabel(label);
-        final Edge e = new Edge(fromId, toId, label);
+        final Edge e = Edge.newEdge(new MVStoreId(fromId), new MVStoreId(toId), label);
         e.setProperty(propertyKey, propertyValue);
-        getOrCreateEdgeRepository(label).insert(e);
+        getOrCreateEdgeRepository(label).put(e);
         return e;
     }
 
@@ -253,53 +250,56 @@ public final class Graph {
                         final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
         validateSourceNode(from);
         validateTargetNode(to);
-        return addEdge(from.getId(), to.getId(), label, propertyKey1, propertyValue1, propertyKey2, propertyValue2);
+        return addEdge(from.getId().getIdValue(), to.getId().getIdValue(), label, propertyKey1, propertyValue1,
+                       propertyKey2, propertyValue2);
     }
 
     public Edge addEdge(final long fromId, final Node to, final String label, final String propertyKey1,
                         final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
         validateTargetNode(to);
-        return addEdge(fromId, to.getId(), label, propertyKey1, propertyValue1, propertyKey2, propertyValue2);
+        return addEdge(fromId, to.getId().getIdValue(), label, propertyKey1, propertyValue1, propertyKey2,
+                       propertyValue2);
     }
 
     public Edge addEdge(final Node from, final long toId, final String label, final String propertyKey1,
                         final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
         validateSourceNode(from);
-        return addEdge(from.getId(), toId, label, propertyKey1, propertyValue1, propertyKey2, propertyValue2);
+        return addEdge(from.getId().getIdValue(), toId, label, propertyKey1, propertyValue1, propertyKey2,
+                       propertyValue2);
     }
 
     public Edge addEdge(final long fromId, final long toId, final String label, final String propertyKey1,
                         final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
         validateEdgeLabel(label);
-        final Edge e = new Edge(fromId, toId, label);
+        final Edge e = Edge.newEdge(new MVStoreId(fromId), new MVStoreId(toId), label);
         e.setProperty(propertyKey1, propertyValue1);
         e.setProperty(propertyKey2, propertyValue2);
-        getOrCreateEdgeRepository(label).insert(e);
+        getOrCreateEdgeRepository(label).put(e);
         return e;
     }
 
     public Edge addEdge(final Node from, final Node to, final String label, final Map<String, Object> properties) {
         validateSourceNode(from);
         validateTargetNode(to);
-        return addEdge(from.getId(), to.getId(), label, properties);
+        return addEdge(from.getId().getIdValue(), to.getId().getIdValue(), label, properties);
     }
 
     public Edge addEdge(final long fromId, final Node to, final String label, final Map<String, Object> properties) {
         validateTargetNode(to);
-        return addEdge(fromId, to.getId(), label, properties);
+        return addEdge(fromId, to.getId().getIdValue(), label, properties);
     }
 
     public Edge addEdge(final Node from, final long toId, final String label, final Map<String, Object> properties) {
         validateSourceNode(from);
-        return addEdge(from.getId(), toId, label, properties);
+        return addEdge(from.getId().getIdValue(), toId, label, properties);
     }
 
     public Edge addEdge(final long fromId, final long toId, final String label, final Map<String, Object> properties) {
         validateEdgeLabel(label);
-        final Edge e = new Edge(fromId, toId, label);
+        final Edge e = Edge.newEdge(new MVStoreId(fromId), new MVStoreId(toId), label);
         for (Map.Entry<String, Object> entry : properties.entrySet())
             e.setProperty(entry.getKey(), entry.getValue());
-        getOrCreateEdgeRepository(label).insert(e);
+        getOrCreateEdgeRepository(label).put(e);
         return e;
     }
 
@@ -310,35 +310,35 @@ public final class Graph {
     public void update(final Edge edge) {
         if (edge == null)
             throw new GraphCacheException("Failed to update edge because it is null");
-        getOrCreateEdgeRepository(edge.getLabel()).update(edge.getEqFilter(), edge, false);
+        getOrCreateEdgeRepository(edge.getLabel()).put(edge);
     }
 
     public Iterable<Node> getNodes() {
-        return () -> nodes.find().iterator();
+        return nodes;
     }
 
     public Iterable<Node> getNodes(final String label) {
         if (label == null || label.length() == 0)
             return getNodes();
-        return () -> nodes.find(eq(Node.LABEL_FIELD, label)).iterator();
+        return nodes.find(Node.LABELS_FIELD, label);
     }
 
     public Iterable<Edge> getEdges() {
         return () -> new Iterator<Edge>() {
             private Iterator<Edge> current = null;
-            private final Iterator<ObjectRepository<Edge>> repositories = edgeRepositories.values().iterator();
+            private final Iterator<MVStoreCollection<Edge>> repositories = edgeRepositories.values().iterator();
 
             @Override
             public boolean hasNext() {
                 while ((current == null || !current.hasNext()) && repositories.hasNext())
-                    current = repositories.next().find().iterator();
+                    current = repositories.next().iterator();
                 return current != null && current.hasNext();
             }
 
             @Override
             public Edge next() {
                 while ((current == null || !current.hasNext()) && repositories.hasNext())
-                    current = repositories.next().find().iterator();
+                    current = repositories.next().iterator();
                 return current != null ? current.next() : null;
             }
         };
@@ -347,7 +347,7 @@ public final class Graph {
     public Iterable<Edge> getEdges(final String label) {
         if (label == null || label.length() == 0)
             return getEdges();
-        return () -> getOrCreateEdgeRepository(label).find().iterator();
+        return getOrCreateEdgeRepository(label);
     }
 
     public long getNumberOfNodes() {
@@ -356,19 +356,18 @@ public final class Graph {
 
     public long getNumberOfEdges() {
         long result = 0;
-        for (final ObjectRepository<Edge> edges : edgeRepositories.values())
+        for (final MVStoreCollection<Edge> edges : edgeRepositories.values())
             result += edges.size();
         return result;
     }
 
     public Node getNode(final long nodeId) {
-        return nodes.getById(NitriteId.createId(nodeId));
+        return nodes.get(nodeId);
     }
 
     public Edge getEdge(final long edgeId) {
-        final NitriteId id = NitriteId.createId(edgeId);
-        for (final ObjectRepository<Edge> edges : edgeRepositories.values()) {
-            final Edge edge = edges.getById(id);
+        for (final MVStoreCollection<Edge> edges : edgeRepositories.values()) {
+            final Edge edge = edges.get(edgeId);
             if (edge != null)
                 return edge;
         }
@@ -376,191 +375,214 @@ public final class Graph {
     }
 
     public Node findNode(final String label) {
-        return nodes.find(eq(Node.LABEL_FIELD, label), LIMIT_ONE_OPTION).firstOrDefault();
+        return firstOrDefault(nodes.find(Node.LABELS_FIELD, label));
     }
 
-    public Node findNode(final String label, final String propertyKey, final Object value) {
-        return nodes.find(and(eq(Node.LABEL_FIELD, label), eq(propertyKey, value)), LIMIT_ONE_OPTION).firstOrDefault();
+    private <T> T firstOrDefault(final Iterable<T> iterable) {
+        return firstOrDefault(iterable.iterator());
     }
 
-    public Node findNode(final String label, final String propertyKey1, final Object value1, final String propertyKey2,
-                         final Object value2) {
-        return nodes.find(and(eq(Node.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2)),
-                          LIMIT_ONE_OPTION).firstOrDefault();
+    private <T> T firstOrDefault(final Iterator<T> iterator) {
+        return iterator.hasNext() ? iterator.next() : null;
     }
 
-    public Node findNode(final String label, final String propertyKey1, final Object value1, final String propertyKey2,
-                         final Object value2, final String propertyKey3, final Object value3) {
-        return nodes.find(and(eq(Node.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2),
-                              eq(propertyKey3, value3)), LIMIT_ONE_OPTION).firstOrDefault();
+    public Node findNode(final String label, final String propertyKey, final Comparable<?> value) {
+        return firstOrDefault(nodes.find(Node.LABELS_FIELD, label, propertyKey, value));
     }
 
-    public Node findNode(final String label, final Map<String, Object> properties) {
-        final ObjectFilter[] filter = new ObjectFilter[properties.size() + 1];
-        filter[0] = eq(Node.LABEL_FIELD, label);
+    public Node findNode(final String label, final String propertyKey1, final Comparable<?> value1,
+                         final String propertyKey2, final Comparable<?> value2) {
+        return firstOrDefault(nodes.find(Node.LABELS_FIELD, label, propertyKey1, value1, propertyKey2, value2));
+    }
+
+    public Node findNode(final String label, final String propertyKey1, final Comparable<?> value1,
+                         final String propertyKey2, final Comparable<?> value2, final String propertyKey3,
+                         final Comparable<?> value3) {
+        return firstOrDefault(
+                nodes.find(Node.LABELS_FIELD, label, propertyKey1, value1, propertyKey2, value2, propertyKey3, value3));
+    }
+
+    public Node findNode(final String label, final Map<String, Comparable<?>> properties) {
+        final String[] keys = new String[properties.size() + 1];
+        final Comparable<?>[] values = new Comparable<?>[properties.size() + 1];
+        keys[0] = Node.LABELS_FIELD;
+        values[0] = label;
         int index = 1;
-        for (final String propertyKey : properties.keySet())
-            filter[index++] = eq(propertyKey, properties.get(propertyKey));
-        return nodes.find(and(filter), LIMIT_ONE_OPTION).firstOrDefault();
+        for (final String propertyKey : properties.keySet()) {
+            keys[index] = propertyKey;
+            values[index++] = properties.get(propertyKey);
+        }
+        return firstOrDefault(nodes.find(keys, values));
     }
 
-    public Node findNode(final String propertyKey, final Object value) {
-        return nodes.find(eq(propertyKey, value), LIMIT_ONE_OPTION).firstOrDefault();
+    public Node findNode(final String propertyKey, final Comparable<?> value) {
+        return firstOrDefault(nodes.find(propertyKey, value));
     }
 
-    public Node findNode(final String propertyKey1, final Object value1, final String propertyKey2,
-                         final Object value2) {
-        return nodes.find(and(eq(propertyKey1, value1), eq(propertyKey2, value2)), LIMIT_ONE_OPTION).firstOrDefault();
+    public Node findNode(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
+                         final Comparable<?> value2) {
+        return firstOrDefault(nodes.find(propertyKey1, value1, propertyKey2, value2));
     }
 
-    public Node findNode(final String propertyKey1, final Object value1, final String propertyKey2, final Object value2,
-                         final String propertyKey3, final Object value3) {
-        return nodes.find(and(eq(propertyKey1, value1), eq(propertyKey2, value2), eq(propertyKey3, value3)),
-                          LIMIT_ONE_OPTION).firstOrDefault();
+    public Node findNode(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
+                         final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3) {
+        return firstOrDefault(nodes.find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3));
     }
 
-    public Node findNode(final Map<String, Object> properties) {
+    public Node findNode(final Map<String, Comparable<?>> properties) {
         if (properties.size() == 0)
             return null;
-        final ObjectFilter[] filter = new ObjectFilter[properties.size()];
+        final String[] keys = new String[properties.size()];
+        final Comparable<?>[] values = new Comparable<?>[properties.size()];
         int index = 0;
-        for (final String propertyKey : properties.keySet())
-            filter[index++] = eq(propertyKey, properties.get(propertyKey));
-        return nodes.find(and(filter), LIMIT_ONE_OPTION).firstOrDefault();
+        for (final String propertyKey : properties.keySet()) {
+            keys[index] = propertyKey;
+            values[index++] = properties.get(propertyKey);
+        }
+        return firstOrDefault(nodes.find(keys, values));
     }
 
     public Iterable<Node> findNodes(final String label) {
-        return () -> nodes.find(eq(Node.LABEL_FIELD, label)).iterator();
+        return nodes.find(Node.LABELS_FIELD, label);
     }
 
-    public Iterable<Node> findNodes(final String label, final String propertyKey, final Object value) {
-        return () -> nodes.find(and(eq(Node.LABEL_FIELD, label), eq(propertyKey, value))).iterator();
+    public Iterable<Node> findNodes(final String label, final String propertyKey, final Comparable<?> value) {
+        return nodes.find(Node.LABELS_FIELD, label, propertyKey, value);
     }
 
-    public Iterable<Node> findNodes(final String label, final String propertyKey1, final Object value1,
-                                    final String propertyKey2, final Object value2) {
-        return () -> nodes.find(and(eq(Node.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2)))
-                          .iterator();
+    public Iterable<Node> findNodes(final String label, final String propertyKey1, final Comparable<?> value1,
+                                    final String propertyKey2, final Comparable<?> value2) {
+        return nodes.find(Node.LABELS_FIELD, label, propertyKey1, value1, propertyKey2, value2);
     }
 
-    public Iterable<Node> findNodes(final String label, final String propertyKey1, final Object value1,
-                                    final String propertyKey2, final Object value2, final String propertyKey3,
-                                    final Object value3) {
-        return () -> nodes.find(and(eq(Node.LABEL_FIELD, label), eq(propertyKey1, value1), eq(propertyKey2, value2),
-                                    eq(propertyKey3, value3))).iterator();
+    public Iterable<Node> findNodes(final String label, final String propertyKey1, final Comparable<?> value1,
+                                    final String propertyKey2, final Comparable<?> value2, final String propertyKey3,
+                                    final Comparable<?> value3) {
+        return nodes.find(Node.LABELS_FIELD, label, propertyKey1, value1, propertyKey2, value2, propertyKey3, value3);
     }
 
-    public Iterable<Node> findNodes(final String label, final Map<String, Object> properties) {
-        final ObjectFilter[] filter = new ObjectFilter[properties.size() + 1];
-        filter[0] = eq(Node.LABEL_FIELD, label);
+    public Iterable<Node> findNodes(final String label, final Map<String, Comparable<?>> properties) {
+        final String[] keys = new String[properties.size() + 1];
+        final Comparable<?>[] values = new Comparable<?>[properties.size() + 1];
+        keys[0] = Node.LABELS_FIELD;
+        values[0] = label;
         int index = 1;
-        for (final String propertyKey : properties.keySet())
-            filter[index++] = eq(propertyKey, properties.get(propertyKey));
-        return () -> nodes.find(and(filter)).iterator();
+        for (final String propertyKey : properties.keySet()) {
+            keys[index] = propertyKey;
+            values[index++] = properties.get(propertyKey);
+        }
+        return nodes.find(keys, values);
     }
 
-    public Iterable<Node> findNodes(final String propertyKey, final Object value) {
-        return () -> nodes.find(eq(propertyKey, value)).iterator();
+    public Iterable<Node> findNodes(final String propertyKey, final Comparable<?> value) {
+        return nodes.find(propertyKey, value);
     }
 
-    public Iterable<Node> findNodes(final String propertyKey1, final Object value1, final String propertyKey2,
-                                    final Object value2) {
-        return () -> nodes.find(and(eq(propertyKey1, value1), eq(propertyKey2, value2))).iterator();
+    public Iterable<Node> findNodes(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
+                                    final Comparable<?> value2) {
+        return nodes.find(propertyKey1, value1, propertyKey2, value2);
     }
 
-    public Iterable<Node> findNodes(final String propertyKey1, final Object value1, final String propertyKey2,
-                                    final Object value2, final String propertyKey3, final Object value3) {
-        return () -> nodes.find(and(eq(propertyKey1, value1), eq(propertyKey2, value2), eq(propertyKey3, value3)))
-                          .iterator();
+    public Iterable<Node> findNodes(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
+                                    final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3) {
+        return nodes.find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3);
     }
 
-    public Iterable<Node> findNodes(final Map<String, Object> properties) {
+    public Iterable<Node> findNodes(final Map<String, Comparable<?>> properties) {
         if (properties.size() == 0)
-            return () -> nodes.find().iterator();
-        final ObjectFilter[] filter = new ObjectFilter[properties.size()];
+            return getNodes();
+        final String[] keys = new String[properties.size()];
+        final Comparable<?>[] values = new Comparable<?>[properties.size()];
         int index = 0;
-        for (final String propertyKey : properties.keySet())
-            filter[index++] = eq(propertyKey, properties.get(propertyKey));
-        return () -> nodes.find(and(filter)).iterator();
+        for (final String propertyKey : properties.keySet()) {
+            keys[index] = propertyKey;
+            values[index++] = properties.get(propertyKey);
+        }
+        return nodes.find(keys, values);
     }
 
     public Edge findEdge(final String label) {
-        return getOrCreateEdgeRepository(label).find(LIMIT_ONE_OPTION).firstOrDefault();
+        return firstOrDefault(getOrCreateEdgeRepository(label));
     }
 
-    public Edge findEdge(final String label, final String propertyKey, final Object value) {
-        return getOrCreateEdgeRepository(label).find(eq(propertyKey, value), LIMIT_ONE_OPTION).firstOrDefault();
+    public Edge findEdge(final String label, final String propertyKey, final Comparable<?> value) {
+        return firstOrDefault(getOrCreateEdgeRepository(label).find(propertyKey, value));
     }
 
-    public Edge findEdge(final String label, final String propertyKey1, final Object value1, final String propertyKey2,
-                         final Object value2) {
-        return getOrCreateEdgeRepository(label).find(and(eq(propertyKey1, value1), eq(propertyKey2, value2)),
-                                                     LIMIT_ONE_OPTION).firstOrDefault();
+    public Edge findEdge(final String label, final String propertyKey1, final Comparable<?> value1,
+                         final String propertyKey2, final Comparable<?> value2) {
+        return firstOrDefault(getOrCreateEdgeRepository(label).find(propertyKey1, value1, propertyKey2, value2));
     }
 
-    public Edge findEdge(final String label, final String propertyKey1, final Object value1, final String propertyKey2,
-                         final Object value2, final String propertyKey3, final Object value3) {
-        return getOrCreateEdgeRepository(label).find(
-                and(eq(propertyKey1, value1), eq(propertyKey2, value2), eq(propertyKey3, value3)), LIMIT_ONE_OPTION)
-                                               .firstOrDefault();
+    public Edge findEdge(final String label, final String propertyKey1, final Comparable<?> value1,
+                         final String propertyKey2, final Comparable<?> value2, final String propertyKey3,
+                         final Comparable<?> value3) {
+        return firstOrDefault(getOrCreateEdgeRepository(label)
+                                      .find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3));
     }
 
-    public Edge findEdge(final String label, final Map<String, Object> properties) {
-        final ObjectFilter[] filter = new ObjectFilter[properties.size()];
+    public Edge findEdge(final String label, final Map<String, Comparable<?>> properties) {
+        if (properties.size() == 0)
+            return null;
+        final String[] keys = new String[properties.size()];
+        final Comparable<?>[] values = new Comparable<?>[properties.size()];
         int index = 0;
-        for (final String propertyKey : properties.keySet())
-            filter[index++] = eq(propertyKey, properties.get(propertyKey));
-        return getOrCreateEdgeRepository(label).find(and(filter), LIMIT_ONE_OPTION).firstOrDefault();
+        for (final String propertyKey : properties.keySet()) {
+            keys[index] = propertyKey;
+            values[index++] = properties.get(propertyKey);
+        }
+        return firstOrDefault(getOrCreateEdgeRepository(label).find(keys, values));
     }
 
     public Iterable<Edge> findEdges(final String label) {
-        return () -> getOrCreateEdgeRepository(label).find().iterator();
+        return getOrCreateEdgeRepository(label);
     }
 
-    public Iterable<Edge> findEdges(final String label, final String propertyKey, final Object value) {
-        return () -> getOrCreateEdgeRepository(label).find(eq(propertyKey, value)).iterator();
+    public Iterable<Edge> findEdges(final String label, final String propertyKey, final Comparable<?> value) {
+        return getOrCreateEdgeRepository(label).find(propertyKey, value);
     }
 
-    public Iterable<Edge> findEdges(final String label, final String propertyKey1, final Object value1,
-                                    final String propertyKey2, final Object value2) {
-        return () -> getOrCreateEdgeRepository(label).find(and(eq(propertyKey1, value1), eq(propertyKey2, value2)))
-                                                     .iterator();
+    public Iterable<Edge> findEdges(final String label, final String propertyKey1, final Comparable<?> value1,
+                                    final String propertyKey2, final Comparable<?> value2) {
+        return getOrCreateEdgeRepository(label).find(propertyKey1, value1, propertyKey2, value2);
     }
 
-    public Iterable<Edge> findEdges(final String label, final String propertyKey1, final Object value1,
-                                    final String propertyKey2, final Object value2, final String propertyKey3,
-                                    final Object value3) {
-        return () -> getOrCreateEdgeRepository(label).find(
-                and(eq(propertyKey1, value1), eq(propertyKey2, value2), eq(propertyKey3, value3))).iterator();
+    public Iterable<Edge> findEdges(final String label, final String propertyKey1, final Comparable<?> value1,
+                                    final String propertyKey2, final Comparable<?> value2, final String propertyKey3,
+                                    final Comparable<?> value3) {
+        return getOrCreateEdgeRepository(label).find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3);
     }
 
-    public Iterable<Edge> findEdges(final String label, final Map<String, Object> properties) {
-        final ObjectFilter[] filter = new ObjectFilter[properties.size()];
+    public Iterable<Edge> findEdges(final String label, final Map<String, Comparable<?>> properties) {
+        if (properties.size() == 0)
+            return getEdges();
+        final String[] keys = new String[properties.size()];
+        final Comparable<?>[] values = new Comparable<?>[properties.size()];
         int index = 0;
-        for (final String propertyKey : properties.keySet())
-            filter[index++] = eq(propertyKey, properties.get(propertyKey));
-        return () -> getOrCreateEdgeRepository(label).find(and(filter)).iterator();
+        for (final String propertyKey : properties.keySet()) {
+            keys[index] = propertyKey;
+            values[index++] = properties.get(propertyKey);
+        }
+        return getOrCreateEdgeRepository(label).find(keys, values);
     }
 
     public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId, final String edgeLabel) {
         final Set<Long> nodeIds = new HashSet<>();
-        final ObjectFilter filter = or(eq(Edge.FROM_ID_FIELD, nodeId), eq(Edge.TO_ID_FIELD, nodeId));
-        for (final Edge edge : getOrCreateEdgeRepository(edgeLabel).find(filter)) {
-            nodeIds.add(edge.getFromId());
+        for (final Edge edge : getOrCreateEdgeRepository(edgeLabel).find(Edge.FROM_ID_FIELD, nodeId))
             nodeIds.add(edge.getToId());
-        }
-        nodeIds.remove(nodeId);
+        for (final Edge edge : getOrCreateEdgeRepository(edgeLabel).find(Edge.TO_ID_FIELD, nodeId))
+            nodeIds.add(edge.getFromId());
         return nodeIds.toArray(new Long[0]);
     }
 
     public void mergeNodes(final Node first, final Node second) {
-        for (final ObjectRepository<Edge> edges : edgeRepositories.values()) {
-            for (final Edge edge : edges.find(eq(Edge.FROM_ID_FIELD, second.getId()))) {
-                edge.setFromId(first.getId());
+        for (final MVStoreCollection<Edge> edges : edgeRepositories.values()) {
+            for (final Edge edge : edges.find(Edge.FROM_ID_FIELD, second.getId())) {
+                edge.setFromId(first.getId().getIdValue());
                 update(edge);
             }
-            for (final Edge edge : edges.find(eq(Edge.TO_ID_FIELD, second.getId()))) {
-                edge.setToId(first.getId());
+            for (final Edge edge : edges.find(Edge.TO_ID_FIELD, second.getId())) {
+                edge.setToId(first.getId().getIdValue());
                 update(edge);
             }
         }
@@ -571,32 +593,34 @@ public final class Graph {
     public void mergeDatabase(final String dataSourceId, final String filePath) {
         final String dataSourcePrefix = dataSourceId + LABEL_PREFIX_SEPARATOR;
         final Graph databaseToMerge = new Graph(filePath, true);
-        for (final Index index : databaseToMerge.nodes.listIndices())
-            if (!nodes.hasIndex(index.getField()))
-                nodes.createIndex(index.getField(), IndexOptions.indexOptions(index.getIndexType(), true));
+        for (final MVStoreIndex index : databaseToMerge.nodes.getIndices())
+            nodes.getIndex(index.getKey(), index.isArrayIndex());
         final Map<Long, Long> mapping = new HashMap<>();
-        for (final Node n : databaseToMerge.nodes.find()) {
-            final Long oldId = n.getId();
+        for (final Node n : databaseToMerge.nodes) {
+            final Long oldId = n.getId().getIdValue();
             n.resetId();
-            n.setProperty(Node.LABEL_FIELD, dataSourcePrefix + n.getLabel());
-            nodes.insert(n);
-            mapping.put(oldId, n.getId());
+            final String[] labels = n.getLabels();
+            for (int i = 0; i < labels.length; i++)
+                labels[i] = dataSourcePrefix + labels[i];
+            n.setProperty(Node.LABELS_FIELD, labels);
+            nodes.put(n);
+            mapping.put(oldId, n.getId().getIdValue());
         }
         for (final String sourceLabel : databaseToMerge.edgeRepositories.keySet()) {
             final String targetLabel = dataSourcePrefix + sourceLabel;
-            for (final Edge e : databaseToMerge.edgeRepositories.get(sourceLabel).find()) {
+            for (final Edge e : databaseToMerge.edgeRepositories.get(sourceLabel)) {
                 e.resetId();
                 e.setProperty(Edge.LABEL_FIELD, targetLabel);
-                e.setProperty(Edge.FROM_ID_FIELD, mapping.get(e.getFromId()));
-                e.setProperty(Edge.TO_ID_FIELD, mapping.get(e.getToId()));
-                getOrCreateEdgeRepository(e.getLabel()).insert(e);
+                e.setFromId(mapping.get(e.getFromId()));
+                e.setToId(mapping.get(e.getToId()));
+                getOrCreateEdgeRepository(e.getLabel()).put(e);
             }
         }
         databaseToMerge.dispose();
     }
 
     public void dispose() {
-        if (database != null && !database.isClosed())
+        if (database != null)
             database.close();
         nodes = null;
         edgeRepositories.clear();
