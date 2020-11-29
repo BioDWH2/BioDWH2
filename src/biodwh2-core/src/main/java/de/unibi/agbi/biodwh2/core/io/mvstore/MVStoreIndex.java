@@ -43,7 +43,9 @@ public final class MVStoreIndex {
             }
             if (metadata.slotsUsed > 0)
                 metadata.minId = page.peek();
+            pagesMetadataMap.put(pageIndex, metadata);
         }
+        sortAllPages();
     }
 
     public String getName() {
@@ -89,19 +91,18 @@ public final class MVStoreIndex {
             pagesMap.put(nextPageIndex, page);
             pagesMetadataMap.put(nextPageIndex, metadata);
             nextPageIndex++;
+            pagesChanged = true;
         } else {
             final PageMetadata metadata = pagesMetadataMap.get(matchedPage);
             final ConcurrentLinkedQueue<Long> page = pagesMap.get(matchedPage);
-            if (metadata.maxId > id) {
-                // TODO: insert
-            } else {
+            if (!page.contains(id)) {
                 page.add(id);
                 metadata.slotsUsed++;
-                metadata.maxId = id;
+                if (metadata.maxId < id)
+                    metadata.maxId = id;
+                pagesMap.put(matchedPage, page);
             }
-            pagesMap.put(matchedPage, page);
         }
-
         if (pagesChanged)
             map.put(indexKey, pages);
     }
@@ -177,5 +178,39 @@ public final class MVStoreIndex {
         for (final Comparable<?> indexKey : indexKeys)
             if (indexKey != null)
                 removeFromPage(indexKey, id);
+    }
+
+    private void sortAllPages() {
+        for (final Comparable<?> key : map.keySet())
+            sortKeyPages(key);
+    }
+
+    private void sortKeyPages(final Comparable<?> key) {
+        final ConcurrentLinkedQueue<Long> pageIndicesQueue = map.get(key);
+        if (pageIndicesQueue == null || pageIndicesQueue.size() == 0)
+            return;
+        final Long[] pageIndices = pageIndicesQueue.stream().sorted().toArray(Long[]::new);
+        final Set<Long> ids = new HashSet<>();
+        for (final Long pageIndex : pageIndices)
+            ids.addAll(pagesMap.get(pageIndex));
+        Long[] sortedIds = ids.stream().sorted().toArray(Long[]::new);
+        int nextPageIndex = 0;
+        for (int i = 0; i < sortedIds.length; i += PAGE_SIZE) {
+            final Long pageIndex = pageIndices[nextPageIndex];
+            final Long[] page = new Long[Math.min(PAGE_SIZE, sortedIds.length - i)];
+            System.arraycopy(sortedIds, i, page, 0, page.length);
+            pagesMap.put(pageIndex, new ConcurrentLinkedQueue<>(Arrays.asList(page)));
+            final PageMetadata metadata = pagesMetadataMap.get(pageIndex);
+            metadata.minId = page[0];
+            metadata.maxId = page[page.length - 1];
+            metadata.slotsUsed = page.length;
+            pagesMetadataMap.put(pageIndex, metadata);
+            nextPageIndex++;
+        }
+        if (nextPageIndex < pageIndices.length) {
+            final Long[] newPageIndices = new Long[nextPageIndex];
+            System.arraycopy(pageIndices, 0, newPageIndices, 0, newPageIndices.length);
+            map.put(key, new ConcurrentLinkedQueue<>(Arrays.asList(newPageIndices)));
+        }
     }
 }
