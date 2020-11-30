@@ -5,31 +5,55 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
-public abstract class MVStoreModel extends HashMap<String, Object> implements Serializable {
+public abstract class MVStoreModel implements Serializable {
     private static final long serialVersionUID = 3622312710000754490L;
     public static final String ID_FIELD = "__id";
+    private HashMap<String, Object> properties;
+    private Set<String> changedKeys;
 
     protected MVStoreModel() {
-        super();
+        properties = new HashMap<>();
+        changedKeys = new HashSet<>();
     }
 
-    public void setProperty(final String key, final Object value) {
-        put(key, value);
+    public Set<String> getChangedKeys() {
+        return changedKeys;
     }
 
-    public <T> T getProperty(final String key) {
-        final Object value = get(key);
+    void resetChangedKeys() {
+        changedKeys.clear();
+    }
+
+    public final void put(final String key, final Object value) {
+        setProperty(key, value);
+    }
+
+    public final void setProperty(final String key, final Object value) {
+        changedKeys.add(key);
+        properties.put(key, value);
+    }
+
+    public final Object get(final String key) {
+        return properties.get(key);
+    }
+
+    public final <T> T getProperty(final String key) {
+        final Object value = properties.get(key);
         //noinspection unchecked
         return value != null ? (T) value : null;
     }
 
     private void writeObject(final ObjectOutputStream s) throws IOException {
-        s.writeLong(this.<MVStoreId>getProperty(ID_FIELD).getIdValue());
+        s.writeObject(properties);
     }
 
     private void readObject(final ObjectInputStream s) throws IOException, ClassNotFoundException {
-        put(ID_FIELD, new MVStoreId(s.readLong()));
+        //noinspection unchecked
+        properties = (HashMap<String, Object>) s.readObject();
+        changedKeys = new HashSet<>();
     }
 
     @Override
@@ -46,6 +70,10 @@ public abstract class MVStoreModel extends HashMap<String, Object> implements Se
     }
 
     public final boolean hasProperty(final String key) {
-        return containsKey(key);
+        return properties.containsKey(key);
+    }
+
+    public final Set<String> keySet() {
+        return properties.keySet();
     }
 }

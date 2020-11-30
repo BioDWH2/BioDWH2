@@ -39,10 +39,10 @@ class MVStoreCollectionTest {
 
     @Test
     void multipleCollectionsTest() throws IOException {
-        final Path tempFilePath = Files.createTempFile("test", ".db");
-        MVStoreDB db = new MVStoreDB(tempFilePath.toString());
-        MVStoreCollection<TestModel1> collection1 = db.getCollection("test1");
-        MVStoreCollection<TestModel2> collection2 = db.getCollection("test2");
+        final Path tempFilePath = Files.createTempFile("multipleCollectionsTest", ".db");
+        final MVStoreDB db = new MVStoreDB(tempFilePath.toString());
+        final MVStoreCollection<TestModel1> collection1 = db.getCollection("test1");
+        final MVStoreCollection<TestModel2> collection2 = db.getCollection("test2");
         collection1.getIndex(MVStoreModel.ID_FIELD);
         collection2.getIndex(MVStoreModel.ID_FIELD);
         collection1.put(TestModel1.newTestModel());

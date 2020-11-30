@@ -78,11 +78,12 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
 
     public void put(final T obj) {
         isDirty = true;
-        final T oldVersion = map.get(obj.getIdValue());
-        // TODO: only update changed properties in indices!
-        if (oldVersion != null)
-            for (final MVStoreIndex index : indices.values())
-                index.remove(obj.get(index.getKey()), obj.getId());
+        for (final String changedKey : obj.getChangedKeys()) {
+            final MVStoreIndex index = indices.get(changedKey);
+            if (index != null)
+                index.remove(obj.get(changedKey), obj.getId());
+        }
+        obj.resetChangedKeys();
         map.put(obj.getIdValue(), obj);
         for (final MVStoreIndex index : indices.values())
             index.put(obj.get(index.getKey()), obj.getId());
