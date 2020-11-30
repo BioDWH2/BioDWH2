@@ -21,16 +21,20 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
         map = db.openMap(name);
         metaMap = db.openMap(name + "!meta");
         indices = new HashMap<>();
-        String[] indexKeys = (String[]) metaMap.get(INDEX_KEYS);
-        boolean[] indexArrayFlags = (boolean[]) metaMap.get(INDEX_ARRAY_FLAGS);
-        if (indexKeys != null) {
-            for (int i = 0; i < indexKeys.length; i++)
-                getIndex(indexKeys[i], indexArrayFlags[i], true);
-        } else {
+        initIndices();
+        isDirty = false;
+    }
+
+    private void initIndices() {
+        final String[] indexKeys = (String[]) metaMap.get(INDEX_KEYS);
+        final boolean[] indexArrayFlags = (boolean[]) metaMap.get(INDEX_ARRAY_FLAGS);
+        if (indexKeys == null) {
             metaMap.put(INDEX_KEYS, new String[0]);
             metaMap.put(INDEX_ARRAY_FLAGS, new boolean[0]);
+        } else {
+            for (int i = 0; i < indexKeys.length; i++)
+                getIndex(indexKeys[i], indexArrayFlags[i], true);
         }
-        isDirty = false;
     }
 
     public MVStoreIndex getIndex(final String key) {
@@ -47,27 +51,38 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
             index = new MVStoreIndex(db, name + "$" + key, key, arrayIndex);
             indices.put(key, index);
             if (!reopen) {
-                String[] indexKeys = (String[]) metaMap.get(INDEX_KEYS);
-                String[] newIndexKeys = indexKeys != null ? Arrays.copyOf(indexKeys, indexKeys.length + 1) :
-                                        new String[1];
-                newIndexKeys[newIndexKeys.length - 1] = index.getKey();
-                boolean[] indexArrayFlags = (boolean[]) metaMap.get(INDEX_ARRAY_FLAGS);
-                boolean[] newIndexArrayFlags = indexArrayFlags != null ? Arrays.copyOf(indexArrayFlags,
-                                                                                       indexArrayFlags.length + 1) :
-                                               new boolean[1];
-                newIndexArrayFlags[newIndexArrayFlags.length - 1] = arrayIndex;
-                metaMap.put(INDEX_KEYS, newIndexKeys);
-                metaMap.put(INDEX_ARRAY_FLAGS, newIndexArrayFlags);
-                if (isDirty)
-                    for (final T obj : map.values())
-                        index.put(obj.get(key), obj.getId());
+                addIndexMetadata(index);
+                populateNewIndexIfDirty(index);
             }
         }
         return index;
     }
 
+    private void addIndexMetadata(final MVStoreIndex index) {
+        String[] indexKeys = (String[]) metaMap.get(INDEX_KEYS);
+        indexKeys = indexKeys == null ? new String[1] : Arrays.copyOf(indexKeys, indexKeys.length + 1);
+        indexKeys[indexKeys.length - 1] = index.getKey();
+        boolean[] indexArrayFlags = (boolean[]) metaMap.get(INDEX_ARRAY_FLAGS);
+        indexArrayFlags = indexArrayFlags == null ? new boolean[1] : Arrays.copyOf(indexArrayFlags,
+                                                                                   indexArrayFlags.length + 1);
+        indexArrayFlags[indexArrayFlags.length - 1] = index.isArrayIndex();
+        metaMap.put(INDEX_KEYS, indexKeys);
+        metaMap.put(INDEX_ARRAY_FLAGS, indexArrayFlags);
+    }
+
+    private void populateNewIndexIfDirty(final MVStoreIndex index) {
+        if (isDirty)
+            for (final T obj : map.values())
+                index.put(obj.get(index.getKey()), obj.getId());
+    }
+
     public void put(final T obj) {
         isDirty = true;
+        final T oldVersion = map.get(obj.getIdValue());
+        // TODO: only update changed properties in indices!
+        if (oldVersion != null)
+            for (final MVStoreIndex index : indices.values())
+                index.remove(obj.get(index.getKey()), obj.getId());
         map.put(obj.getIdValue(), obj);
         for (final MVStoreIndex index : indices.values())
             index.put(obj.get(index.getKey()), obj.getId());
@@ -134,7 +149,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
                             ids.add(id);
                     }
                 } else {
-                    Set<Long> matchedIds = new HashSet<>();
+                    final Set<Long> matchedIds = new HashSet<>();
                     for (final Long id : ids) {
                         final T obj = map.get(id);
                         final Object value = obj.get(propertyKeys[i]);
@@ -143,7 +158,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
                                 matchedIds.add(id);
                         } else if (value instanceof Comparable<?>[]) {
                             final Comparable<?>[] valueArray = (Comparable<?>[]) value;
-                            for (Comparable<?> comparable : valueArray) {
+                            for (final Comparable<?> comparable : valueArray) {
                                 if (comparable != null && comparable.equals(searchValue)) {
                                     matchedIds.add(id);
                                     break;
