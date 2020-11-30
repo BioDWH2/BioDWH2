@@ -60,7 +60,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
                 metaMap.put(INDEX_ARRAY_FLAGS, newIndexArrayFlags);
                 if (isDirty)
                     for (final T obj : map.values())
-                        index.update(obj);
+                        index.put(obj.get(key), obj.getId());
             }
         }
         return index;
@@ -70,7 +70,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
         isDirty = true;
         map.put(obj.getIdValue(), obj);
         for (final MVStoreIndex index : indices.values())
-            index.update(obj);
+            index.put(obj.get(index.getKey()), obj.getId());
     }
 
     public T get(final MVStoreId id) {
@@ -176,6 +176,6 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
         isDirty = true;
         map.remove(obj.getId().getIdValue());
         for (final MVStoreIndex index : indices.values())
-            index.remove(obj);
+            index.remove(obj.get(index.getKey()), obj.getId());
     }
 }

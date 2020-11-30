@@ -4,6 +4,8 @@ package de.unibi.agbi.biodwh2.core.collections;
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/licenses/publicdomain
+ *
+ * http://www.java2s.com/Code/Java/Collections-Data-Structure/ConcurrentDoublyLinkedList.htm
  */
 
 import java.util.AbstractCollection;
@@ -45,6 +47,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Doug Lea
  */
 
+@SuppressWarnings("unused")
 public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> implements java.io.Serializable {
 
     /*
@@ -86,13 +89,13 @@ public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> impleme
     // Minor convenience utilities
 
     /**
-     * Returns true if given reference is non-null and isn't a header, trailer, or marker.
+     * Returns true if given reference is null or a header, trailer, or marker.
      *
      * @param n (possibly null) node
-     * @return true if n exists as a user node
+     * @return false if n is null or not a user node
      */
-    private static boolean usable(Node<?> n) {
-        return n != null && !n.isSpecial();
+    private static boolean notUsable(Node<?> n) {
+        return n == null || n.isSpecial();
     }
 
     /**
@@ -123,7 +126,7 @@ public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> impleme
      * @return the arrayList
      */
     private ArrayList<E> toArrayList() {
-        ArrayList<E> c = new ArrayList<E>();
+        ArrayList<E> c = new ArrayList<>();
         for (Node<E> n = header.forward(); n != null; n = n.forward())
             c.add(n.element);
         return c;
@@ -147,8 +150,8 @@ public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> impleme
      * Constructs an empty deque.
      */
     public ConcurrentDoublyLinkedList() {
-        Node h = new Node(null, null, null);
-        Node t = new Node(null, null, h);
+        Node<E> h = new Node<>(null, null, null);
+        Node<E> t = new Node<>(null, null, h);
         h.setNext(t);
         header = h;
         trailer = t;
@@ -263,7 +266,7 @@ public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> impleme
     public E pollFirst() {
         for (; ; ) {
             Node<E> n = header.successor();
-            if (!usable(n))
+            if (notUsable(n))
                 return null;
             if (n.delete())
                 return n.element;
@@ -278,7 +281,7 @@ public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> impleme
     public E pollLast() {
         for (; ; ) {
             Node<E> n = trailer.predecessor();
-            if (!usable(n))
+            if (notUsable(n))
                 return null;
             if (n.delete())
                 return n.element;
@@ -416,7 +419,7 @@ public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> impleme
      * @return <tt>true</tt> if this collection contains no elements.
      */
     public boolean isEmpty() {
-        return !usable(header.successor());
+        return notUsable(header.successor());
     }
 
     /**
@@ -525,7 +528,6 @@ public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> impleme
 
     final class CLDIterator implements Iterator<E> {
         Node<E> last;
-
         Node<E> next = header.forward();
 
         public boolean hasNext() {
@@ -548,9 +550,7 @@ public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> impleme
                 ;
         }
     }
-
 }
-
 
 /**
  * Linked Nodes. As a minor efficiency hack, this class opportunistically inherits from AtomicReference, with the atomic
@@ -568,10 +568,8 @@ public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> impleme
  * using prev pointers is not guaranteed to see all live nodes since a prev pointer of a deleted node can become
  * unrecoverably stale.
  */
-
 class Node<E> extends AtomicReference<Node<E>> {
     private volatile Node<E> prev;
-
     final E element;
 
     /**
