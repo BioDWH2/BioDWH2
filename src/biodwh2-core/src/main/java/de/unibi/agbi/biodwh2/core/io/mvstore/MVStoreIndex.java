@@ -158,8 +158,8 @@ public final class MVStoreIndex {
             if (metadata.slotsUsed == 0) {
                 pageIndexToRemove = pageIndex;
             } else {
-                metadata.minId = 0L;
-                metadata.maxId = 0L;
+                metadata.minId = page.getFirst();
+                metadata.maxId = page.getFirst();
                 for (final Long value : page) {
                     metadata.minId = Math.min(value, metadata.minId);
                     metadata.maxId = Math.max(value, metadata.maxId);

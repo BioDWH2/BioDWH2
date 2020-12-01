@@ -5,26 +5,25 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 
 public abstract class MVStoreModel implements Serializable {
     private static final long serialVersionUID = 3622312710000754490L;
     public static final String ID_FIELD = "__id";
     private HashMap<String, Object> properties;
-    private Set<String> changedKeys;
+    private HashMap<String, Object> modifiedProperties;
 
     protected MVStoreModel() {
         properties = new HashMap<>();
-        changedKeys = new HashSet<>();
+        modifiedProperties = new HashMap<>();
     }
 
-    public Set<String> getChangedKeys() {
-        return changedKeys;
+    HashMap<String, Object> getModifiedProperties() {
+        return modifiedProperties;
     }
 
-    void resetChangedKeys() {
-        changedKeys.clear();
+    void resetModifiedProperties() {
+        modifiedProperties.clear();
     }
 
     public final void put(final String key, final Object value) {
@@ -32,7 +31,9 @@ public abstract class MVStoreModel implements Serializable {
     }
 
     public final void setProperty(final String key, final Object value) {
-        changedKeys.add(key);
+        final Object oldValue = properties.get(key);
+        if (oldValue != null)
+            modifiedProperties.put(key, oldValue);
         properties.put(key, value);
     }
 
@@ -53,7 +54,7 @@ public abstract class MVStoreModel implements Serializable {
     private void readObject(final ObjectInputStream s) throws IOException, ClassNotFoundException {
         //noinspection unchecked
         properties = (HashMap<String, Object>) s.readObject();
-        changedKeys = new HashSet<>();
+        modifiedProperties = new HashMap<>();
     }
 
     @Override
