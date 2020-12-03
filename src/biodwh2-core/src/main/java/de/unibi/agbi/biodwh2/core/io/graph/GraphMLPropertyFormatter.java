@@ -2,10 +2,16 @@ package de.unibi.agbi.biodwh2.core.io.graph;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 import java.util.Locale;
 
 public final class GraphMLPropertyFormatter {
+    public static class PropertyType {
+        public String typeName;
+        public String listTypeName;
+    }
+
     private static final String INVALID_XML_CHARS = new String(
             new char[]{0x01, 0x02, 0x03, 0x04, 0x08, 0x1d, 0x12, 0x14, 0x18});
     private static final String FORMAT = "%s";
@@ -15,6 +21,28 @@ public final class GraphMLPropertyFormatter {
     private static final String STRING_ARRAY_SEPARATOR = "\",\"";
 
     private GraphMLPropertyFormatter() {
+    }
+
+    public static PropertyType getPropertyType(final Class<?> type) {
+        final PropertyType p = new PropertyType();
+        // Allowed types: boolean, int, long, float, double, string
+        if (type.isArray()) {
+            p.listTypeName = getTypeName(type.getComponentType());
+            p.typeName = "string";
+        } else if (Collection.class.isAssignableFrom(type)) {
+            ParameterizedType superclass = (ParameterizedType) type.getGenericSuperclass();
+            p.listTypeName = "string"; // TODO
+            p.typeName = "string";
+        } else
+            p.typeName = getTypeName(type);
+        return p;
+    }
+
+    private static String getTypeName(final Class<?> type) {
+        if (CharSequence.class.isAssignableFrom(type) || type.equals(Character.class) || type.equals(char.class))
+            return "string";
+        final String typeName = type.getSimpleName().toLowerCase(Locale.US);
+        return typeName.replace("integer", "int");
     }
 
     public static String format(final Object value) {
@@ -98,18 +126,18 @@ public final class GraphMLPropertyFormatter {
     public static String format(final float[] array) {
         final StringBuilder builder = new StringBuilder(ARRAY_START);
         if (array.length > 0)
-            builder.append(array[0]);
+            builder.append(formatString(array[0]));
         for (int i = 1; i < array.length; i++)
-            builder.append(ARRAY_SEPARATOR).append(String.format(Locale.US, FORMAT, array[i]));
+            builder.append(ARRAY_SEPARATOR).append(formatString(array[i]));
         return builder.append(ARRAY_END).toString();
     }
 
     public static String format(final double[] array) {
         final StringBuilder builder = new StringBuilder(ARRAY_START);
         if (array.length > 0)
-            builder.append(array[0]);
+            builder.append(formatString(array[0]));
         for (int i = 1; i < array.length; i++)
-            builder.append(ARRAY_SEPARATOR).append(String.format(Locale.US, FORMAT, array[i]));
+            builder.append(ARRAY_SEPARATOR).append(formatString(array[i]));
         return builder.append(ARRAY_END).toString();
     }
 
@@ -139,16 +167,20 @@ public final class GraphMLPropertyFormatter {
         final Class<?> componentType = array.getClass().getComponentType();
         if (componentType.equals(CharSequence.class))
             return format((CharSequence[]) array);
-        // If type erasure removed CharSequence as the component type, check the elements directly
-        if (array.length > 0)
-            for (Object o : array)
+        // If type erasure removed CharSequence or Character as the component type, check the elements directly
+        if (array.length > 0) {
+            for (Object o : array) {
                 if (o instanceof CharSequence)
                     return format(convertToStringArray(array));
+                if (o instanceof Character)
+                    return format(convertToCharArray(array));
+            }
+        }
         final StringBuilder builder = new StringBuilder(ARRAY_START);
         if (array.length > 0)
-            builder.append(replaceInvalidXmlCharacters(array[0].toString(), true));
+            builder.append(replaceInvalidXmlCharacters(formatString(array[0]), true));
         for (int i = 1; i < array.length; i++)
-            builder.append(ARRAY_SEPARATOR).append(replaceInvalidXmlCharacters(array[i].toString(), true));
+            builder.append(ARRAY_SEPARATOR).append(replaceInvalidXmlCharacters(formatString(array[i]), true));
         return builder.append(ARRAY_END).toString();
     }
 
@@ -157,5 +189,16 @@ public final class GraphMLPropertyFormatter {
         for (int i = 0; i < array.length; i++)
             stringArray[i] = array[i] == null ? null : array[i].toString();
         return stringArray;
+    }
+
+    private static char[] convertToCharArray(final Object[] array) {
+        final char[] charArray = new char[array.length];
+        for (int i = 0; i < array.length; i++)
+            charArray[i] = (char) array[i];
+        return charArray;
+    }
+
+    private static String formatString(Object value) {
+        return String.format(Locale.US, FORMAT, value);
     }
 }

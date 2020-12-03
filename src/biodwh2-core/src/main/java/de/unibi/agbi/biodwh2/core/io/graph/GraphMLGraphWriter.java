@@ -117,9 +117,12 @@ public final class GraphMLGraphWriter extends GraphWriter {
     }
 
     private Property generateProperty(final String key, final Class<?> type, final String forType) {
+        final GraphMLPropertyFormatter.PropertyType propertyType = GraphMLPropertyFormatter.getPropertyType(type);
         final Property p = new Property();
         p.id = key;
         p.forType = forType;
+        p.list = propertyType.listTypeName;
+        p.type = propertyType.typeName;
         if (labelKeyIdMap.containsValue(key)) {
             final Optional<Map.Entry<String, String>> entry = labelKeyIdMap.entrySet().stream().filter(
                     e -> e.getValue().equals(key)).findFirst();
@@ -130,17 +133,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
                 p.name = key;
         } else
             p.name = key;
-        // Allowed types: boolean, int, long, float, double, string
-        if (type.isArray()) {
-            p.list = getTypeName(type.getComponentType());
-            p.type = getTypeName(String.class);
-        } else
-            p.type = getTypeName(type);
         return p;
-    }
-
-    private String getTypeName(Class<?> type) {
-        return type.getSimpleName().toLowerCase(Locale.US).replace("integer", "int");
     }
 
     private Map<String, Class<?>> collectAllEdgePropertyKeyTypes(final Iterable<Edge> edges) {
