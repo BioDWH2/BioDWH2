@@ -12,7 +12,7 @@ public class NDFRTMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+    public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
         if ("Drug".equals(localMappingLabel))
             return describeDrug(node);
         if ("Ingredient".equals(localMappingLabel))
@@ -22,14 +22,14 @@ public class NDFRTMappingDescriber extends MappingDescriber {
         return null;
     }
 
-    private NodeMappingDescription describeDrug(final Node node) {
+    private NodeMappingDescription[] describeDrug(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
         addIdentifierIfNotEmpty(description, node, IdentifierType.NDF_RT_NUI, "NUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.RX_NORM_CUI, "RxNorm_CUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.UMLS_CUI, "UMLS_CUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.VANDF_VUID, "VUID");
         addIdentifierIfNotEmpty(description, node, IdentifierType.UNII, "FDA_UNII");
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
     private void addIdentifierIfNotEmpty(final NodeMappingDescription description, final Node node,
@@ -39,23 +39,23 @@ public class NDFRTMappingDescriber extends MappingDescriber {
             description.addIdentifier(type, identifier);
     }
 
-    private NodeMappingDescription describeIngredient(final Node node) {
+    private NodeMappingDescription[] describeIngredient(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
         addIdentifierIfNotEmpty(description, node, IdentifierType.NDF_RT_NUI, "NUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.RX_NORM_CUI, "RxNorm_CUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.UMLS_CUI, "UMLS_CUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.MESH, "MeSH_DUI");
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
-    private NodeMappingDescription describeDisease(final Node node) {
+    private NodeMappingDescription[] describeDisease(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
         addIdentifierIfNotEmpty(description, node, IdentifierType.NDF_RT_NUI, "NUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.RX_NORM_CUI, "RxNorm_CUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.UMLS_CUI, "UMLS_CUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.SNOMED_CT, "SNOMED_CID");
         addIdentifierIfNotEmpty(description, node, IdentifierType.MESH, "MeSH_DUI");
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
     @Override

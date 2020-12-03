@@ -10,7 +10,7 @@ public class NCBIMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+    public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
         return null;
     }
 

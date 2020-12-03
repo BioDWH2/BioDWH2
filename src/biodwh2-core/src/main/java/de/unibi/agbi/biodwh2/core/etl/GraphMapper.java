@@ -69,10 +69,11 @@ public final class GraphMapper {
                 if (LOGGER.isInfoEnabled())
                     LOGGER.info("Mapping nodes with label '" + prefixedMappingLabel + "'");
                 for (final Node node : graph.getNodes(prefixedMappingLabel)) {
-                    final NodeMappingDescription mappingDescription = describer.describe(graph, node,
-                                                                                         localMappingLabel);
-                    if (mappingDescription != null)
-                        mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId());
+                    final NodeMappingDescription[] mappingDescriptions = describer.describe(graph, node,
+                                                                                            localMappingLabel);
+                    if (mappingDescriptions != null)
+                        for (final NodeMappingDescription mappingDescription : mappingDescriptions)
+                            mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId());
                 }
             }
         }

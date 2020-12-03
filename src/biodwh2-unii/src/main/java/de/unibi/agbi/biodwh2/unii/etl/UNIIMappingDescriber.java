@@ -13,7 +13,7 @@ public class UNIIMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+    public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
         if ("UNII".equals(localMappingLabel))
             return describeCompound(node);
         if (UNIIGraphExporter.SPECIES_LABEL.equals(localMappingLabel))
@@ -21,7 +21,7 @@ public class UNIIMappingDescriber extends MappingDescriber {
         return null;
     }
 
-    private NodeMappingDescription describeCompound(final Node node) {
+    private NodeMappingDescription[] describeCompound(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
         description.addName(node.getProperty("name"));
         description.addName(node.getProperty("preferred_term"));
@@ -33,10 +33,10 @@ public class UNIIMappingDescriber extends MappingDescriber {
         description.addIdentifier(IdentifierType.RX_NORM_CUI, node.<String>getProperty("rx_cui"));
         description.addIdentifier(IdentifierType.INTERNATIONAL_NONPROPRIETARY_NAMES,
                                   node.<String>getProperty("inn_id"));
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
-    private NodeMappingDescription describeSpecies(final Node node) {
+    private NodeMappingDescription[] describeSpecies(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.TAXON);
         for (Long itisId : node.<Set<Long>>getProperty(UNIIGraphExporter.ITIS_IDS_KEY))
             description.addIdentifier(IdentifierType.ITIS_TAXON, itisId);
@@ -44,7 +44,7 @@ public class UNIIMappingDescriber extends MappingDescriber {
             description.addIdentifier(IdentifierType.NCBI_TAXON, ncbiTaxonId);
         for (String plantsSymbol : node.<Set<String>>getProperty(UNIIGraphExporter.USDA_PLANTS_SYMBOLS_KEY))
             description.addIdentifier(IdentifierType.USDA_PLANTS_SYMBOL, plantsSymbol);
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
     @Override

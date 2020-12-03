@@ -17,18 +17,18 @@ public class MEDRTMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+    public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
         if ("Drug".equals(localMappingLabel))
             return describeDrug(graph, node);
         return null;
     }
 
-    private NodeMappingDescription describeDrug(final Graph graph, final Node node) {
+    private NodeMappingDescription[] describeDrug(final Graph graph, final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
         description.addName(node.getProperty("name"));
         description.addNames(findSynonyms(graph, node));
         description.addIdentifier(IdentifierType.RX_NORM_CUI, node.<String>getProperty("code"));
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
     private Set<String> findSynonyms(final Graph graph, final Node node) {

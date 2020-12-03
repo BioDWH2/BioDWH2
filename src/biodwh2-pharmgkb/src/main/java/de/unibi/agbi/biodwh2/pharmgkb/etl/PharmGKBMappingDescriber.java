@@ -12,7 +12,7 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+    public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
         if ("Drug".equals(localMappingLabel))
             return describeDrug(node);
         if ("Chemical".equals(localMappingLabel))
@@ -28,7 +28,7 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
         return null;
     }
 
-    private NodeMappingDescription describeDrug(final Node node) {
+    private NodeMappingDescription[] describeDrug(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         final String[] crossReferences = getCrossReferences(node);
@@ -39,14 +39,14 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
                 description.addIdentifier(IdentifierType.KEGG, StringUtils.split(reference, ":", 2)[1]);
             else if (reference.startsWith("Chemical Abstracts Service"))
                 description.addIdentifier(IdentifierType.CAS, StringUtils.split(reference, ":", 2)[1]);
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
     private String[] getCrossReferences(final Node node) {
         return node.hasProperty("cross_references") ? node.getProperty("cross_references") : new String[0];
     }
 
-    private NodeMappingDescription describeChemical(final Node node) {
+    private NodeMappingDescription[] describeChemical(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         final String[] crossReferences = getCrossReferences(node);
@@ -55,17 +55,17 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
                 description.addIdentifier(IdentifierType.DRUG_BANK, StringUtils.split(reference, ":", 2)[1]);
             else if (reference.startsWith("PubChem Compound"))
                 description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, StringUtils.split(reference, ":", 2)[1]);
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
-    private NodeMappingDescription describeHaplotype(final Node node) {
+    private NodeMappingDescription[] describeHaplotype(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(
                 NodeMappingDescription.NodeType.HAPLOTYPE);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
-    private NodeMappingDescription describeGene(final Node node) {
+    private NodeMappingDescription[] describeGene(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         final String geneSymbol = node.getProperty("symbol");
@@ -83,19 +83,19 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
                 description.addIdentifier(IdentifierType.GENE_CARD, StringUtils.split(reference, ":", 2)[1]);
             else if (reference.startsWith("GenAtlas"))
                 description.addIdentifier(IdentifierType.GEN_ATLAS, StringUtils.split(reference, ":", 2)[1]);
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
-    private NodeMappingDescription describeVariant(final Node node) {
+    private NodeMappingDescription[] describeVariant(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.VARIANT);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
-    private NodeMappingDescription describePathway(final Node node) {
+    private NodeMappingDescription[] describePathway(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PATHWAY);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
     @Override

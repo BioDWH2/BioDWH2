@@ -11,18 +11,18 @@ public final class Mock1MappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+    public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
         if ("Gene".equals(localMappingLabel)) {
             NodeMappingDescription description = new NodeMappingDescription();
             description.type = NodeMappingDescription.NodeType.GENE;
             description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("hgnc_id"));
-            return description;
+            return new NodeMappingDescription[]{description};
         }
         if ("Drug".equals(localMappingLabel)) {
             NodeMappingDescription description = new NodeMappingDescription();
             description.type = NodeMappingDescription.NodeType.DRUG;
             description.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
-            return description;
+            return new NodeMappingDescription[]{description};
         }
         if ("Dummy1".equals(localMappingLabel)) {
             NodeMappingDescription description = new NodeMappingDescription();
@@ -30,7 +30,7 @@ public final class Mock1MappingDescriber extends MappingDescriber {
             description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id"));
             if (node.hasProperty("id2"))
                 description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id2"));
-            return description;
+            return new NodeMappingDescription[]{description};
         }
         return null;
     }

@@ -11,19 +11,19 @@ public class USDAPlantsMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+    public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
         if ("Plant".equals(localMappingLabel))
             return describePlant(node);
         return null;
     }
 
-    private NodeMappingDescription describePlant(final Node node) {
+    private NodeMappingDescription[] describePlant(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.TAXON);
         description.addIdentifier(IdentifierType.USDA_PLANTS_SYMBOL, node.<String>getProperty("symbol"));
         description.addIdentifier(IdentifierType.USDA_PLANTS_SYMBOL, node.<String>getProperty("synonym_symbol"));
         description.addName(node.getProperty("scientific_name_with_author"));
         description.addName(node.getProperty("common_name"));
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
     @Override

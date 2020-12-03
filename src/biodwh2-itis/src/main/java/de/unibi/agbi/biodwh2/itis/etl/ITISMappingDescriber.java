@@ -11,16 +11,16 @@ public class ITISMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+    public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
         if (ITISGraphExporter.TAXON_LABEL.equals(localMappingLabel))
             return describeTaxon(graph, node);
         return null;
     }
 
-    private NodeMappingDescription describeTaxon(final Graph graph, final Node node) {
+    private NodeMappingDescription[] describeTaxon(final Graph graph, final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.TAXON);
         description.addIdentifier(IdentifierType.ITIS_TAXON, node.<Integer>getProperty("id"));
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
     @Override

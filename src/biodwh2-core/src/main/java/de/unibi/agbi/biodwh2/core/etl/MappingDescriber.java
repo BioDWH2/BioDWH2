@@ -12,7 +12,8 @@ public abstract class MappingDescriber {
         this.dataSource = dataSource;
     }
 
-    public abstract NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel);
+    public abstract NodeMappingDescription[] describe(final Graph graph, final Node node,
+                                                      final String localMappingLabel);
 
     public abstract PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges);
 

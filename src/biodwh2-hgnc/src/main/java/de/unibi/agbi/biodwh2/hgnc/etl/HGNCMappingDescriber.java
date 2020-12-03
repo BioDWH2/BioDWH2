@@ -14,13 +14,13 @@ public class HGNCMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+    public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
         if ("Gene".equals(localMappingLabel))
             return describeGene(node);
         return null;
     }
 
-    private NodeMappingDescription describeGene(final Node node) {
+    private NodeMappingDescription[] describeGene(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
         description.addName(node.getProperty("name"));
         description.addNames(node.<String[]>getProperty("alias_names"));
@@ -32,7 +32,7 @@ public class HGNCMappingDescriber extends MappingDescriber {
         description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("symbol"));
         description.addIdentifier(IdentifierType.OMIM, node.<String>getProperty(OMIM_ID_KEY));
         // TODO: more ids
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
     private String getHGNCIdFromNode(final Node node) {
