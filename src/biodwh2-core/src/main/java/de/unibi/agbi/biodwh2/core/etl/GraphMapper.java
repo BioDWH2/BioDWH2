@@ -28,7 +28,7 @@ public final class GraphMapper {
                                       true);
         mapGraph(graph, dataSources);
         saveGraph(graph, outputGraphFilePath);
-        graph.dispose();
+        graph.close();
     }
 
     private void copyGraph(final String inputGraphFilePath, final String outputGraphFilePath) {

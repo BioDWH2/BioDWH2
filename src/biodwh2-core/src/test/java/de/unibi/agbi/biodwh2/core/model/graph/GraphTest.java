@@ -50,7 +50,7 @@ class GraphTest {
         Graph g = new Graph(tempFilePath.toString());
         Node n = g.addNode("Test");
         long id = n.getIdValue();
-        g.dispose();
+        g.close();
         g = new Graph(tempFilePath.toString(), true);
         n = g.getNodes().iterator().next();
         assertEquals(id, n.getIdValue());

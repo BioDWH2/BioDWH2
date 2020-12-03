@@ -24,7 +24,7 @@ public abstract class GraphExporter<D extends DataSource> {
         try {
             exportSuccessful = exportGraph(workspace, g) && trySaveGraphToFile(workspace, g);
         } finally {
-            g.dispose();
+            g.close();
         }
         return exportSuccessful;
     }

@@ -177,7 +177,19 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
 
     @Override
     public Iterator<T> iterator() {
-        return map.values().iterator();
+        return new Iterator<T>() {
+            final Iterator<Map.Entry<Long, T>> entries = map.entrySet().iterator();
+
+            @Override
+            public boolean hasNext() {
+                return entries.hasNext();
+            }
+
+            @Override
+            public T next() {
+                return entries.next().getValue();
+            }
+        };
     }
 
     public long size() {

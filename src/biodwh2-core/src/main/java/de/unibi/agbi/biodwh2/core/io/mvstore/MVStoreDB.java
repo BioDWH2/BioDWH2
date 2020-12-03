@@ -5,7 +5,7 @@ import org.h2.mvstore.MVStore;
 
 import java.util.*;
 
-public final class MVStoreDB {
+public final class MVStoreDB implements AutoCloseable {
     private final MVStore store;
     private final MVMap<String, Object> metaMap;
     private final Map<String, MVStoreCollection<?>> collections;

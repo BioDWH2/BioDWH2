@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-public final class Graph {
+public final class Graph implements AutoCloseable {
     public static final String LABEL_PREFIX_SEPARATOR = "_";
     //private static final char NODE_REPOSITORY_PREFIX = '$';
     private static final char EDGE_REPOSITORY_PREFIX = '!';
@@ -590,9 +590,8 @@ public final class Graph {
         nodes.remove(second);
     }
 
-    public void mergeDatabase(final String dataSourceId, final String filePath) {
+    public void mergeDatabase(final String dataSourceId, final Graph databaseToMerge) {
         final String dataSourcePrefix = dataSourceId + LABEL_PREFIX_SEPARATOR;
-        final Graph databaseToMerge = new Graph(filePath, true);
         for (final MVStoreIndex index : databaseToMerge.nodes.getIndices())
             nodes.getIndex(index.getKey(), index.isArrayIndex());
         final Map<Long, Long> mapping = new HashMap<>();
@@ -616,10 +615,9 @@ public final class Graph {
                 getOrCreateEdgeRepository(e.getLabel()).put(e);
             }
         }
-        databaseToMerge.dispose();
     }
 
-    public void dispose() {
+    public void close() {
         if (database != null)
             database.close();
         nodes = null;

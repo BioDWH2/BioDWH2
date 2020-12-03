@@ -6,8 +6,14 @@ package de.unibi.agbi.biodwh2.core.collections;
  * http://creativecommons.org/licenses/publicdomain
  *
  * http://www.java2s.com/Code/Java/Collections-Data-Structure/ConcurrentDoublyLinkedList.htm
+ *
+ * Adapted for use in BioDWH2 (mainly serialization)
  */
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,19 +43,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * <em>NOT</em> a constant-time operation. Because of the asynchronous nature
  * of these deques, determining the current number of elements requires a traversal of the elements.
  *
- * <p>
- * This class is <tt>Serializable</tt>, but relies on default serialization mechanisms. Usually, it is a better idea for
- * any serializable class using a
- * <tt>ConcurrentLinkedDeque</tt> to instead serialize a snapshot of the
- * elements obtained by method <tt>toArray</tt>.
- *
  * @param <E> the type of elements held in this collection
  * @author Doug Lea
  */
-
 @SuppressWarnings("unused")
-public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> implements java.io.Serializable {
-
+public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> implements Serializable {
     /*
      * This is an adaptation of an algorithm described in Paul Martin's "A
      * Practical Lock-Free Doubly-Linked List". Sun Labs Tech report. The basic
@@ -86,7 +84,44 @@ public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> impleme
      * successor s : some other successor
      */
 
-    // Minor convenience utilities
+    private static final long serialVersionUID = 876323262645176354L;
+
+    /**
+     * List header. First usable node is at header.forward().
+     */
+    private Node<E> header;
+
+    /**
+     * List trailer. Last usable node is at trailer.back().
+     */
+    private Node<E> trailer;
+
+    /**
+     * Constructs an empty deque.
+     */
+    public ConcurrentDoublyLinkedList() {
+        initHeaderAndTrailer();
+    }
+
+    private void initHeaderAndTrailer() {
+        Node<E> h = new Node<>(null, null, null);
+        Node<E> t = new Node<>(null, null, h);
+        h.setNext(t);
+        header = h;
+        trailer = t;
+    }
+
+    /**
+     * Constructs a deque containing the elements of the specified collection, in the order they are returned by the
+     * collection's iterator.
+     *
+     * @param c the collection whose elements are to be placed into this deque.
+     * @throws NullPointerException if <tt>c</tt> or any element within it is <tt>null</tt>
+     */
+    public ConcurrentDoublyLinkedList(Collection<? extends E> c) {
+        this();
+        addAll(c);
+    }
 
     /**
      * Returns true if given reference is null or a header, trailer, or marker.
@@ -130,43 +165,6 @@ public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> impleme
         for (Node<E> n = header.forward(); n != null; n = n.forward())
             c.add(n.element);
         return c;
-    }
-
-    // Fields and constructors
-
-    private static final long serialVersionUID = 876323262645176354L;
-
-    /**
-     * List header. First usable node is at header.forward().
-     */
-    private final Node<E> header;
-
-    /**
-     * List trailer. Last usable node is at trailer.back().
-     */
-    private final Node<E> trailer;
-
-    /**
-     * Constructs an empty deque.
-     */
-    public ConcurrentDoublyLinkedList() {
-        Node<E> h = new Node<>(null, null, null);
-        Node<E> t = new Node<>(null, null, h);
-        h.setNext(t);
-        header = h;
-        trailer = t;
-    }
-
-    /**
-     * Constructs a deque containing the elements of the specified collection, in the order they are returned by the
-     * collection's iterator.
-     *
-     * @param c the collection whose elements are to be placed into this deque.
-     * @throws NullPointerException if <tt>c</tt> or any element within it is <tt>null</tt>
-     */
-    public ConcurrentDoublyLinkedList(Collection<? extends E> c) {
-        this();
-        addAll(c);
     }
 
     /**
@@ -550,6 +548,18 @@ public class ConcurrentDoublyLinkedList<E> extends AbstractCollection<E> impleme
                 ;
         }
     }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeObject(toArray());
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        initHeaderAndTrailer();
+        final Object[] array = (Object[]) in.readObject();
+        for (final Object obj : array)
+            //noinspection unchecked
+            addLast((E) obj);
+    }
 }
 
 /**
@@ -773,7 +783,7 @@ class Node<E> extends AtomicReference<Node<E>> {
             Node<E> f = getNext();
             if (f == null || f.isMarker())
                 return null;
-            Node<E> x = new Node<E>(element, f, this);
+            Node<E> x = new Node<>(element, f, this);
             if (casNext(f, x)) {
                 f.setPrev(x); // optimistically link
                 return x;
@@ -792,7 +802,7 @@ class Node<E> extends AtomicReference<Node<E>> {
             Node<E> b = predecessor();
             if (b == null)
                 return null;
-            Node<E> x = new Node<E>(element, this, b);
+            Node<E> x = new Node<>(element, this, b);
             if (b.casNext(this, x)) {
                 setPrev(x); // optimistically link
                 return x;
@@ -808,7 +818,7 @@ class Node<E> extends AtomicReference<Node<E>> {
     boolean delete() {
         Node<E> b = getPrev();
         Node<E> f = getNext();
-        if (b != null && f != null && !f.isMarker() && casNext(f, new Node(f))) {
+        if (b != null && f != null && !f.isMarker() && casNext(f, new Node<>(f))) {
             if (b.casNext(this, f))
                 f.setPrev(b);
             return true;
@@ -828,8 +838,8 @@ class Node<E> extends AtomicReference<Node<E>> {
             Node<E> f = getNext();
             if (b == null || f == null || f.isMarker())
                 return null;
-            Node<E> x = new Node<E>(newElement, f, b);
-            if (casNext(f, new Node(x))) {
+            Node<E> x = new Node<>(newElement, f, b);
+            if (casNext(f, new Node<>(x))) {
                 b.successor(); // to relink b
                 x.successor(); // to relink f
                 return x;

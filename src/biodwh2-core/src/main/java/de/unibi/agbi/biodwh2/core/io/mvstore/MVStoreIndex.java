@@ -2,6 +2,8 @@ package de.unibi.agbi.biodwh2.core.io.mvstore;
 
 import de.unibi.agbi.biodwh2.core.collections.ConcurrentDoublyLinkedList;
 import org.h2.mvstore.MVMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -12,6 +14,7 @@ public final class MVStoreIndex {
         public int slotsUsed;
     }
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MVStoreIndex.class);
     public static final int DEFAULT_PAGE_SIZE = 1000;
 
     private final String name;
@@ -42,6 +45,9 @@ public final class MVStoreIndex {
             final PageMetadata metadata = new PageMetadata();
             pagesMetadataMap.put(pageIndex, metadata);
         }
+        if (LOGGER.isDebugEnabled())
+            LOGGER.debug("Open mvstore index " + name + "[isArray=" + arrayIndex + ", pageSize=" + pageSize +
+                         "], loaded pages=" + pagesMap.size());
         sortAllPages();
     }
 
@@ -195,6 +201,8 @@ public final class MVStoreIndex {
         final Set<Long> ids = new HashSet<>();
         for (final Long pageIndex : pageIndices)
             ids.addAll(pagesMap.get(pageIndex));
+        if (ids.size() <= 1)
+            return;
         final Long[] sortedIds = ids.stream().sorted().toArray(Long[]::new);
         int nextPageIndex = 0;
         for (int i = 0; i < sortedIds.length; i += pageSize) {
