@@ -37,6 +37,10 @@ public abstract class MVStoreModel implements Serializable {
         properties.put(key, value);
     }
 
+    protected final void setPropertyUnmodified(final String key, final Object value) {
+        properties.put(key, value);
+    }
+
     public final Object get(final String key) {
         return properties.get(key);
     }

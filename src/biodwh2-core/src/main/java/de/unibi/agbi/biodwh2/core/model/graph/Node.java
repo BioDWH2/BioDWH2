@@ -39,7 +39,7 @@ public class Node extends MVStoreModel {
         final String[] labels = new String[s.readByte()];
         for (int i = 0; i < labels.length; i++)
             labels[i] = s.readUTF();
-        put(LABELS_FIELD, labels);
+        setPropertyUnmodified(LABELS_FIELD, labels);
     }
 
     void resetId() {

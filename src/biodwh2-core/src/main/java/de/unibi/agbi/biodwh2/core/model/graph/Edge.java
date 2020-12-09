@@ -36,9 +36,9 @@ public class Edge extends MVStoreModel {
     }
 
     private void readObject(java.io.ObjectInputStream s) throws IOException, ClassNotFoundException {
-        put(FROM_ID_FIELD, new MVStoreId(s.readLong()));
-        put(TO_ID_FIELD, new MVStoreId(s.readLong()));
-        put(LABEL_FIELD, s.readUTF());
+        setPropertyUnmodified(FROM_ID_FIELD, new MVStoreId(s.readLong()));
+        setPropertyUnmodified(TO_ID_FIELD, new MVStoreId(s.readLong()));
+        setPropertyUnmodified(LABEL_FIELD, s.readUTF());
     }
 
     void resetId() {
