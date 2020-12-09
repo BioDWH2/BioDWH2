@@ -49,7 +49,7 @@ public class UNIIMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{"UNII"};
+        return new String[]{UNIIGraphExporter.UNII_LABEL, UNIIGraphExporter.SPECIES_LABEL};
     }
 
     @Override

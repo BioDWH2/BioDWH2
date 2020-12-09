@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 
 public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
+    static final String UNII_LABEL = "UNII";
     static final String SPECIES_LABEL = "Species";
     static final String ITIS_IDS_KEY = "itis_ids";
     static final String NCBI_TAXONOMY_IDS_KEY = "ncbi_taxonomy_ids";
@@ -44,7 +45,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
     private void createUNIINode(final Graph graph, final List<UNIIEntry> entries, final UNIIDataEntry dataEntry) {
         Node uniiNode;
         if (dataEntry == null)
-            uniiNode = graph.addNode("UNII", "id", entries.get(0).unii);
+            uniiNode = graph.addNode(UNII_LABEL, "id", entries.get(0).unii);
         else
             uniiNode = createNodeFromModel(graph, dataEntry);
         uniiNode.setProperty("name", entries.get(0).displayName);
