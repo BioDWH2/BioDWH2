@@ -2,6 +2,8 @@ package de.unibi.agbi.biodwh2.core.mocks.mock1;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.mocks.MockParser;
+import de.unibi.agbi.biodwh2.core.mocks.MockUpdater;
 import de.unibi.agbi.biodwh2.core.mocks.mock1.etl.*;
 
 public final class Mock1DataSource extends DataSource {
@@ -12,12 +14,12 @@ public final class Mock1DataSource extends DataSource {
 
     @Override
     public Updater<Mock1DataSource> getUpdater() {
-        return new Mock1Updater(this);
+        return new MockUpdater<>(this);
     }
 
     @Override
     public Parser<Mock1DataSource> getParser() {
-        return new Mock1Parser(this);
+        return new MockParser<>(this);
     }
 
     @Override

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
+import java.util.Arrays;
 import java.util.List;
 
 public final class BioDWH2 {
@@ -43,7 +44,9 @@ public final class BioDWH2 {
     private void listDataSources() {
         if (LOGGER.isInfoEnabled()) {
             final DataSourceLoader loader = new DataSourceLoader();
-            LOGGER.info("Available data source IDs: " + StringUtils.join(loader.getDataSourceIds(), ", "));
+            final String[] dataSourceIds = Arrays.stream(loader.getDataSourceIds()).filter(id -> !id.startsWith("Mock"))
+                                                 .sorted().toArray(String[]::new);
+            LOGGER.info("Available data source IDs: " + StringUtils.join(dataSourceIds, ", "));
         }
     }
 
