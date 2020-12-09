@@ -1,7 +1,5 @@
 package de.unibi.agbi.biodwh2.core.io.mvstore;
 
-import org.h2.mvstore.MVMap;
-
 import java.util.*;
 
 public final class MVStoreCollection<T extends MVStoreModel> implements Iterable<T> {
@@ -10,8 +8,8 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
 
     private final MVStoreDB db;
     private final String name;
-    private final MVMap<Long, T> map;
-    private final MVMap<String, Object> metaMap;
+    private final MVMapWrapper<Long, T> map;
+    private final MVMapWrapper<String, Object> metaMap;
     private final Map<String, MVStoreIndex> indices;
     private boolean isDirty;
 
@@ -177,8 +175,9 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
 
     @Override
     public Iterator<T> iterator() {
+        final Set<Long> keys = new HashSet<>(map.keySet());
         return new Iterator<T>() {
-            final Iterator<Map.Entry<Long, T>> entries = map.entrySet().iterator();
+            final Iterator<Long> entries = keys.iterator();
 
             @Override
             public boolean hasNext() {
@@ -187,7 +186,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
 
             @Override
             public T next() {
-                return entries.next().getValue();
+                return get(entries.next());
             }
         };
     }

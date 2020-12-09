@@ -1,7 +1,6 @@
 package de.unibi.agbi.biodwh2.core.io.mvstore;
 
 import de.unibi.agbi.biodwh2.core.collections.ConcurrentDoublyLinkedList;
-import org.h2.mvstore.MVMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +20,8 @@ public final class MVStoreIndex {
     private final String key;
     private final boolean arrayIndex;
     private final int pageSize;
-    private final MVMap<Comparable<?>, ConcurrentDoublyLinkedList<Long>> map;
-    private final MVMap<Long, ConcurrentDoublyLinkedList<Long>> pagesMap;
+    private final MVMapWrapper<Comparable<?>, ConcurrentDoublyLinkedList<Long>> map;
+    private final MVMapWrapper<Long, ConcurrentDoublyLinkedList<Long>> pagesMap;
     private final Map<Long, PageMetadata> pagesMetadataMap;
     private long nextPageIndex;
 

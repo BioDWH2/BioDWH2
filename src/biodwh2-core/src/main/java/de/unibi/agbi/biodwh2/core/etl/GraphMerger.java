@@ -31,7 +31,7 @@ public class GraphMerger {
         try (Graph databaseToMerge = new Graph(intermediateGraphFilePath, true)) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Adding " + databaseToMerge.getNumberOfNodes() + " nodes and " +
-                            databaseToMerge.getNumberOfEdges() + "edges");
+                            databaseToMerge.getNumberOfEdges() + " edges");
             mergedGraph.mergeDatabase(dataSource.getId(), databaseToMerge);
             dataSource.getMetadata().mergeSuccessful = true;
         } catch (GraphCacheException e) {

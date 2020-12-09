@@ -1,13 +1,12 @@
 package de.unibi.agbi.biodwh2.core.io.mvstore;
 
-import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 
 import java.util.*;
 
 public final class MVStoreDB implements AutoCloseable {
     private final MVStore store;
-    private final MVMap<String, Object> metaMap;
+    private final MVMapWrapper<String, Object> metaMap;
     private final Map<String, MVStoreCollection<?>> collections;
     private final List<String> collectionNames;
 
@@ -21,8 +20,8 @@ public final class MVStoreDB implements AutoCloseable {
             Collections.addAll(collectionNames, collectionNamesArray);
     }
 
-    <K, V> MVMap<K, V> openMap(final String name) {
-        return store.openMap(name);
+    <K, V> MVMapWrapper<K, V> openMap(final String name) {
+        return new MVMapWrapper<>(store, store.openMap(name));
     }
 
     public <T extends MVStoreModel> MVStoreCollection<T> getCollection(final String name) {
