@@ -535,7 +535,7 @@ public final class Graph implements AutoCloseable {
     }
 
     public Iterable<Edge> findEdges(final String label) {
-        return getOrCreateEdgeRepository(label);
+        return () -> getOrCreateEdgeRepository(label).iterator();
     }
 
     public Iterable<Edge> findEdges(final String label, final String propertyKey, final Comparable<?> value) {

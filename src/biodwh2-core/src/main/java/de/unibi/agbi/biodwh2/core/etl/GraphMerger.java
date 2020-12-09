@@ -15,11 +15,14 @@ public class GraphMerger {
 
     public final boolean merge(final Workspace workspace, final DataSource[] dataSources,
                                final String outputFilePath) throws MergerException {
-        final Graph mergedGraph = new Graph(
-                outputFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION));
-        for (final DataSource dataSource : dataSources)
-            mergeDataSource(workspace, dataSource, mergedGraph);
-        saveMergedGraph(outputFilePath, mergedGraph);
+        final String graphFilePath = outputFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION);
+        try (final Graph mergedGraph = new Graph(graphFilePath)) {
+            for (final DataSource dataSource : dataSources)
+                mergeDataSource(workspace, dataSource, mergedGraph);
+            saveMergedGraph(outputFilePath, mergedGraph);
+        } catch (final Exception ex) {
+            throw new MergerException(ex);
+        }
         return true;
     }
 

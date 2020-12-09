@@ -45,7 +45,7 @@ public final class MVStoreIndex {
             pagesMetadataMap.put(pageIndex, metadata);
         }
         if (LOGGER.isDebugEnabled())
-            LOGGER.debug("Open mvstore index " + name + "[isArray=" + arrayIndex + ", pageSize=" + pageSize +
+            LOGGER.debug("Open MVStore index " + name + "[isArray=" + arrayIndex + ", pageSize=" + pageSize +
                          "], loaded pages=" + pagesMap.size());
         sortAllPages();
     }

@@ -24,11 +24,11 @@ public final class GraphMapper {
     public void map(final Workspace workspace, final DataSource[] dataSources, final String inputGraphFilePath,
                     final String outputGraphFilePath) {
         copyGraph(inputGraphFilePath, outputGraphFilePath);
-        final Graph graph = new Graph(outputGraphFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION),
-                                      true);
-        mapGraph(graph, dataSources);
-        saveGraph(graph, outputGraphFilePath);
-        graph.close();
+        final String graphFilePath = outputGraphFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION);
+        try (final Graph graph = new Graph(graphFilePath, true)) {
+            mapGraph(graph, dataSources);
+            saveGraph(graph, outputGraphFilePath);
+        }
     }
 
     private void copyGraph(final String inputGraphFilePath, final String outputGraphFilePath) {
