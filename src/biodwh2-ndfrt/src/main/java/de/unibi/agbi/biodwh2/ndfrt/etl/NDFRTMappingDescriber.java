@@ -80,7 +80,7 @@ public class NDFRTMappingDescriber extends MappingDescriber {
     protected String[][] getEdgeMappingPaths() {
         return new String[][]{
                 {"Drug", "INDUCES", "Disease"}, {"Drug", "CI_WITH", "Disease"}, {"Drug", "MAY_TREAT", "Disease"},
-                {"Drug", "EFFECT_MAY_BE_INHIBITED_BY", "Drug", "Drug", "CI_CHEMCLASS", "Ingredient"}
+                {"Drug", "EFFECT_MAY_BE_INHIBITED_BY", "Drug"}, {"Drug", "CI_CHEMCLASS", "Ingredient"}
         };
     }
 }
