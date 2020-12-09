@@ -11,11 +11,11 @@ public class Mock3MappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node, final String localMappingLabel) {
+    public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
         if ("Test".equals(localMappingLabel)) {
             final NodeMappingDescription d = new NodeMappingDescription(NodeMappingDescription.NodeType.DUMMY);
             d.addIdentifier(IdentifierType.DUMMY, "MOCK3:" + node.getProperty("id"));
-            return d;
+            return new NodeMappingDescription[]{d};
         }
         return null;
     }
