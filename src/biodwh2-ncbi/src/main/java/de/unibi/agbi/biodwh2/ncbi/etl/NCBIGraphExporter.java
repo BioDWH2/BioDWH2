@@ -6,12 +6,12 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
+import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreModel;
 import de.unibi.agbi.biodwh2.core.io.sdf.SdfEntry;
 import de.unibi.agbi.biodwh2.core.io.sdf.SdfReader;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
-import de.unibi.agbi.biodwh2.core.model.graph.PropertyContainer;
 import de.unibi.agbi.biodwh2.ncbi.NCBIDataSource;
 import de.unibi.agbi.biodwh2.ncbi.model.GeneAccession;
 import de.unibi.agbi.biodwh2.ncbi.model.GeneGo;
@@ -74,7 +74,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             setArrayPropertyIfNotDash(geneNode, "feature_types", geneInfo.featureType);
             // TODO: mapLocation, symbolFromNomenclatureAuthority, fullNameFromNomenclatureAuthority,
             // TODO: nomenclatureStatus, otherDesignations
-            geneIdNodeIdMap.put(geneId, geneNode.getId());
+            geneIdNodeIdMap.put(geneId, geneNode.getIdValue());
             graph.update(geneNode);
         }
         LOGGER.info("Exporting gene2accession.gz...");
@@ -188,19 +188,17 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
         return accessionNode;
     }
 
-    private void setPropertyIfNotDash(final PropertyContainer container, final String propertyKey, final String value) {
+    private void setPropertyIfNotDash(final MVStoreModel container, final String propertyKey, final String value) {
         if (value != null && !"-".equals(value))
             container.setProperty(propertyKey, value);
     }
 
-    private void setLongPropertyIfNotDash(final PropertyContainer container, final String propertyKey,
-                                          final String value) {
+    private void setLongPropertyIfNotDash(final MVStoreModel container, final String propertyKey, final String value) {
         if (value != null && !"-".equals(value))
             container.setProperty(propertyKey, Long.parseLong(value));
     }
 
-    private void setArrayPropertyIfNotDash(final PropertyContainer container, final String propertyKey,
-                                           final String value) {
+    private void setArrayPropertyIfNotDash(final MVStoreModel container, final String propertyKey, final String value) {
         if (value != null && !"-".equals(value) && value.trim().length() > 0)
             container.setProperty(propertyKey, StringUtils.split(value, "|"));
     }

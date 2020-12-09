@@ -293,7 +293,7 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
     private Node findConceptNode(final Graph g, final String ref) {
         final Iterable<Node> nodes = g.findNodes(dataSource.terminology.refBy, ref);
         for (Node node : nodes)
-            if (!"PropertyDefinition".equals(node.getLabel()))
+            if (!"PropertyDefinition".equals(node.getLabels()[0]))
                 return node;
         return null;
     }

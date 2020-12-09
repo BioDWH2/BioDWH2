@@ -20,7 +20,7 @@ class GraphTest {
         g.update(node);
         node = g.findNode("Gene", "test", "Hello");
         assertNotNull(node);
-        assertEquals("Gene", node.getLabel());
+        assertEquals("Gene", node.getLabels()[0]);
         assertTrue(node.hasProperty("test"));
         assertEquals("Hello", node.getProperty("test"));
     }
@@ -29,19 +29,19 @@ class GraphTest {
     void nodeKeepsIdOnRetrieve() throws IOException {
         final Graph g = Graph.createTempGraph();
         Node n = g.addNode("Test");
-        long id = n.getId();
+        long id = n.getIdValue();
         n = g.getNodes().iterator().next();
-        assertEquals(id, n.getId());
+        assertEquals(id, n.getIdValue());
     }
 
     @Test
     void nodeKeepsIdOnUpdate() throws IOException {
         final Graph g = Graph.createTempGraph();
         Node n = g.addNode("Test");
-        long id = n.getId();
+        long id = n.getIdValue();
         n.setProperty("key", "value");
         g.update(n);
-        assertEquals(id, n.getId());
+        assertEquals(id, n.getIdValue());
     }
 
     @Test
@@ -49,11 +49,11 @@ class GraphTest {
         Path tempFilePath = Files.createTempFile("graphdb_test", ".db");
         Graph g = new Graph(tempFilePath.toString());
         Node n = g.addNode("Test");
-        long id = n.getId();
-        g.dispose();
+        long id = n.getIdValue();
+        g.close();
         g = new Graph(tempFilePath.toString(), true);
         n = g.getNodes().iterator().next();
-        assertEquals(id, n.getId());
+        assertEquals(id, n.getIdValue());
     }
 
     @Test
@@ -89,10 +89,10 @@ class GraphTest {
         Edge e1 = g.addEdge(n1, n2, "LABEL1");
         Edge e2 = g.addEdge(n1, n2, "LABEL2");
         Edge e3 = g.addEdge(n1, n2, "LABEL3");
-        Set<Long> remainingIds = new HashSet<>(Arrays.asList(e1.getId(), e2.getId(), e3.getId()));
+        Set<Long> remainingIds = new HashSet<>(Arrays.asList(e1.getIdValue(), e2.getIdValue(), e3.getIdValue()));
         assertEquals(3, remainingIds.size());
         for (Edge e : g.getEdges())
-            remainingIds.remove(e.getId());
+            remainingIds.remove(e.getIdValue());
         assertEquals(0, remainingIds.size());
     }
 }

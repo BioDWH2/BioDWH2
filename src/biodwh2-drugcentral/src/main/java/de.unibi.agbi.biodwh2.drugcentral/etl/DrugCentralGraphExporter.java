@@ -38,7 +38,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         createNodesFromTsvFile(workspace, dataSource, g, TargetDictionary.class, "target_dictionary.tsv");
         for (final Product entry : parseTsvFile(workspace, dataSource, Product.class, "product.tsv")) {
             final Node node = createNodeFromModel(g, entry);
-            productCodeNodeIdMap.put(entry.ndcProductCode, node.getId());
+            productCodeNodeIdMap.put(entry.ndcProductCode, node.getIdValue());
         }
         createNodesFromTsvFile(workspace, dataSource, g, ObPatent.class, "ob_patent.tsv");
         createNodesFromTsvFile(workspace, dataSource, g, ObPatentUseCode.class, "ob_patent_use_code.tsv");
@@ -211,7 +211,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
             structureIdTypeMap.put(structureType.structId, structureType.type);
         for (final Structure structure : parseTsvFile(workspace, dataSource, Structure.class, "structures.tsv")) {
             final Node structureNode = createNodeFromModel(g, structure);
-            structureIdNodeIdMap.put(structure.id, structureNode.getId());
+            structureIdNodeIdMap.put(structure.id, structureNode.getIdValue());
             if (structureIdTypeMap.containsKey(structure.id))
                 structureNode.setProperty("type", structureIdTypeMap.get(structure.id));
             g.update(structureNode);

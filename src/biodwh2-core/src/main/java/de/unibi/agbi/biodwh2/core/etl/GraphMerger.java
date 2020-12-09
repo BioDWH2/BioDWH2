@@ -28,8 +28,11 @@ public class GraphMerger {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Merging data source " + dataSource.getId());
         final String intermediateGraphFilePath = dataSource.getGraphDatabaseFilePath(workspace);
-        try {
-            mergedGraph.mergeDatabase(dataSource.getId(), intermediateGraphFilePath);
+        try (Graph databaseToMerge = new Graph(intermediateGraphFilePath, true)) {
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Adding " + databaseToMerge.getNumberOfNodes() + " nodes and " +
+                            databaseToMerge.getNumberOfEdges() + " edges");
+            mergedGraph.mergeDatabase(dataSource.getId(), databaseToMerge);
             dataSource.getMetadata().mergeSuccessful = true;
         } catch (GraphCacheException e) {
             throw new MergerException("Failed to merge data source " + dataSource.getId(), e);
@@ -39,6 +42,6 @@ public class GraphMerger {
     private void saveMergedGraph(final String outputFilePath, final Graph mergedGraph) {
         final GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
         graphMLWriter.write(outputFilePath, mergedGraph);
-        mergedGraph.dispose();
+        mergedGraph.close();
     }
 }

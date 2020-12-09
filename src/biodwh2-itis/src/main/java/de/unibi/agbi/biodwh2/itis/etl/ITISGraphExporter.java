@@ -80,7 +80,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
         final Map<Integer, Long> rankNodeIdLookup = new HashMap<>();
         for (final TaxonUnitType rank : dataSource.taxonUnitTypes) {
             final Node node = graph.addNode(RANK_LABEL, ID_KEY, rank.id, "name", rank.name);
-            rankNodeIdLookup.put(rank.id, node.getId());
+            rankNodeIdLookup.put(rank.id, node.getIdValue());
             graph.addEdge(graph.findNode(KINGDOM_LABEL, ID_KEY, rank.kingdomId), node, "HAS_RANK");
         }
         for (final TaxonUnitType rank : dataSource.taxonUnitTypes) {
@@ -104,7 +104,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
                 node = graph.addNodeFromModel(taxon, "nodc_id", nodcId);
             else
                 node = graph.addNodeFromModel(taxon);
-            taxonTsnNodeIdMap.put(taxon.tsn, node.getId());
+            taxonTsnNodeIdMap.put(taxon.tsn, node.getIdValue());
         }
         return taxonTsnNodeIdMap;
     }
@@ -138,7 +138,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
         final Map<String, Long> divisionNodeIdMap = new HashMap<>();
         for (final String division : uniqueDivisions) {
             final Node node = graph.addNode(GEOGRAPHIC_DIVISION_LABEL, ID_KEY, division);
-            divisionNodeIdMap.put(division, node.getId());
+            divisionNodeIdMap.put(division, node.getIdValue());
         }
         for (final GeographicDivision division : dataSource.geographicDivisions)
             graph.addEdge(taxonTsnNodeIdMap.get(division.tsn), divisionNodeIdMap.get(division.value),
@@ -152,7 +152,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
         final Map<String, Long> jurisdictionNodeIdMap = new HashMap<>();
         for (final String jurisdiction : uniqueJurisdictions) {
             final Node node = graph.addNode(JURISDICTION_LABEL, ID_KEY, jurisdiction);
-            jurisdictionNodeIdMap.put(jurisdiction, node.getId());
+            jurisdictionNodeIdMap.put(jurisdiction, node.getIdValue());
         }
         for (final Jurisdiction jurisdiction : dataSource.jurisdictions)
             graph.addEdge(taxonTsnNodeIdMap.get(jurisdiction.tsn), jurisdictionNodeIdMap.get(jurisdiction.value),
@@ -163,25 +163,33 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
         final Map<Integer, Long> vernacularIdNodeIdMap = new HashMap<>();
         for (final Vernacular vernacular : dataSource.vernaculars) {
             final Node node = createNodeFromModel(graph, vernacular);
-            vernacularIdNodeIdMap.put(vernacular.vernacularId, node.getId());
+            vernacularIdNodeIdMap.put(vernacular.vernacularId, node.getIdValue());
             graph.addEdge(taxonTsnNodeIdMap.get(vernacular.tsn), node, "HAS_VERNACULAR");
         }
         return vernacularIdNodeIdMap;
     }
 
     private void createVernacularReferenceEdges(final Graph graph, final Map<Integer, Long> vernacularIdNodeIdMap) {
+        final Set<Integer> warnedVernacularIds = new HashSet<>();
         for (final VernacularReferenceLink link : dataSource.vernacularReferenceLinks) {
             Node referenceNode;
             if ("PUB".equals(link.docIdPrefix))
                 referenceNode = graph.findNode(PUBLICATION_LABEL, ID_KEY, link.documentationId);
             else if ("SRC".equals(link.docIdPrefix))
                 referenceNode = graph.findNode(SOURCE_LABEL, ID_KEY, link.documentationId);
+            else if ("EXP".equals(link.docIdPrefix))
+                referenceNode = graph.findNode(EXPERT_LABEL, ID_KEY, link.documentationId);
             else {
                 LOGGER.warn("Unknown vernacular reference prefix '" + link.docIdPrefix + "'");
                 continue;
             }
-            graph.addEdge(vernacularIdNodeIdMap.get(link.vernacularId), referenceNode, "HAS_REFERENCE", "tsn",
-                          link.tsn);
+            final Long vernacularNodeId = vernacularIdNodeIdMap.get(link.vernacularId);
+            if (vernacularNodeId != null)
+                graph.addEdge(vernacularNodeId, referenceNode, "HAS_REFERENCE", "tsn", link.tsn);
+            else if (!warnedVernacularIds.contains(link.vernacularId)) {
+                LOGGER.warn("Unknown reference to vernacular id '" + link.vernacularId + "'");
+                warnedVernacularIds.add(link.vernacularId);
+            }
         }
     }
 }
