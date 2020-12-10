@@ -29,6 +29,8 @@ public class NDFRTMappingDescriber extends MappingDescriber {
         addIdentifierIfNotEmpty(description, node, IdentifierType.UMLS_CUI, "UMLS_CUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.VANDF_VUID, "VUID");
         addIdentifierIfNotEmpty(description, node, IdentifierType.UNII, "FDA_UNII");
+        description.addName(node.getProperty("Display_Name"));
+        description.addName(node.getProperty("RxNorm_Name"));
         return new NodeMappingDescription[]{description};
     }
 
@@ -45,6 +47,9 @@ public class NDFRTMappingDescriber extends MappingDescriber {
         addIdentifierIfNotEmpty(description, node, IdentifierType.RX_NORM_CUI, "RxNorm_CUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.UMLS_CUI, "UMLS_CUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.MESH, "MeSH_DUI");
+        description.addName(node.getProperty("Display_Name"));
+        description.addName(node.getProperty("RxNorm_Name"));
+        description.addName(node.getProperty("MeSH_Name"));
         return new NodeMappingDescription[]{description};
     }
 
@@ -55,6 +60,8 @@ public class NDFRTMappingDescriber extends MappingDescriber {
         addIdentifierIfNotEmpty(description, node, IdentifierType.UMLS_CUI, "UMLS_CUI");
         addIdentifierIfNotEmpty(description, node, IdentifierType.SNOMED_CT, "SNOMED_CID");
         addIdentifierIfNotEmpty(description, node, IdentifierType.MESH, "MeSH_DUI");
+        description.addName(node.getProperty("Display_Name"));
+        description.addName(node.getProperty("MeSH_Name"));
         return new NodeMappingDescription[]{description};
     }
 
