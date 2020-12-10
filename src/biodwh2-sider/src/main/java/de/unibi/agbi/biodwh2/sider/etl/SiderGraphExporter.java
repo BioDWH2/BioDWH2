@@ -67,7 +67,7 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
         final Map<String, Long> drugIdNodeIdMap = new HashMap<>();
         for (final DrugName drug : parseTsvFile(workspace, SiderUpdater.DRUG_NAMES_FILE_NAME, DrugName.class)) {
             final Node node = createNodeFromModel(graph, drug);
-            drugIdNodeIdMap.put(drug.id, node.getIdValue());
+            drugIdNodeIdMap.put(drug.id, node.getId());
         }
         return drugIdNodeIdMap;
     }
@@ -131,8 +131,8 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
         else
             node = graph.addNode(MEDDRA_TERM_LABEL, MEDDRA_ID_KEY, conceptId, UMLS_ID_KEY, umlsConceptId, "meddra_name",
                                  conceptName, "umls_name", umlsConceptName);
-        meddraIdNodeIdMap.put(conceptId, node.getIdValue());
-        return node.getIdValue();
+        meddraIdNodeIdMap.put(conceptId, node.getId());
+        return node.getId();
     }
 
     private long getOrAddDrugNode(final Graph graph, final String flatId, final String stereoId,
@@ -145,14 +145,14 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
             if (!node.hasProperty(STEREO_ID_KEY)) {
                 node.setProperty(STEREO_ID_KEY, stereoId);
                 graph.update(node);
-                drugIdNodeIdMap.put(stereoId, node.getIdValue());
+                drugIdNodeIdMap.put(stereoId, node.getId());
             }
             return nodeId;
         }
         Node node = graph.addNode("Drug", FLAT_ID_KEY, flatId, STEREO_ID_KEY, stereoId);
-        drugIdNodeIdMap.put(flatId, node.getIdValue());
-        drugIdNodeIdMap.put(stereoId, node.getIdValue());
-        return node.getIdValue();
+        drugIdNodeIdMap.put(flatId, node.getId());
+        drugIdNodeIdMap.put(stereoId, node.getId());
+        return node.getId();
     }
 
     private <T> Iterable<T> parseGzipTsvFile(final Workspace workspace, final String fileName,

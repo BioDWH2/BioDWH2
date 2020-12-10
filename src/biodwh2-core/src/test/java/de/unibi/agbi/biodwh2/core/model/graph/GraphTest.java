@@ -29,38 +29,38 @@ class GraphTest {
     void nodeKeepsIdOnRetrieve() throws IOException {
         final Graph g = Graph.createTempGraph();
         Node n = g.addNode("Test");
-        long id = n.getIdValue();
+        long id = n.getId();
         n = g.getNodes().iterator().next();
-        assertEquals(id, n.getIdValue());
+        assertEquals(id, n.getId());
     }
 
     @Test
     void nodeKeepsIdOnUpdate() throws IOException {
         final Graph g = Graph.createTempGraph();
-        Node n = g.addNode("Test");
-        long id = n.getIdValue();
+        final Node n = g.addNode("Test");
+        long id = n.getId();
         n.setProperty("key", "value");
         g.update(n);
-        assertEquals(id, n.getIdValue());
+        assertEquals(id, n.getId());
     }
 
     @Test
     void nodeKeepsIdOnRetrieveReopenedGraph() throws IOException {
-        Path tempFilePath = Files.createTempFile("graphdb_test", ".db");
+        final Path tempFilePath = Files.createTempFile("graphdb_test", ".db");
         Graph g = new Graph(tempFilePath.toString());
         Node n = g.addNode("Test");
-        long id = n.getIdValue();
+        long id = n.getId();
         g.close();
         g = new Graph(tempFilePath.toString(), true);
         n = g.getNodes().iterator().next();
-        assertEquals(id, n.getIdValue());
+        assertEquals(id, n.getId());
     }
 
     @Test
     void numberOfNodesAndEdges() throws IOException {
         final Graph g = Graph.createTempGraph();
-        Node n1 = g.addNode("Test");
-        Node n2 = g.addNode("Test");
+        final Node n1 = g.addNode("Test");
+        final Node n2 = g.addNode("Test");
         g.addEdge(n1, n2, "LABEL1");
         g.addEdge(n1, n2, "LABEL2");
         g.addEdge(n1, n2, "LABEL3");
@@ -71,11 +71,11 @@ class GraphTest {
     @Test
     void differentEdgeLabelsAreRetrievedCorrectly() throws IOException {
         final Graph g = Graph.createTempGraph();
-        Node n1 = g.addNode("Test");
-        Node n2 = g.addNode("Test");
-        Edge e1 = g.addEdge(n1, n2, "LABEL1");
-        Edge e2 = g.addEdge(n1, n2, "LABEL2");
-        Edge e3 = g.addEdge(n1, n2, "LABEL3");
+        final Node n1 = g.addNode("Test");
+        final Node n2 = g.addNode("Test");
+        final Edge e1 = g.addEdge(n1, n2, "LABEL1");
+        final Edge e2 = g.addEdge(n1, n2, "LABEL2");
+        final Edge e3 = g.addEdge(n1, n2, "LABEL3");
         assertEquals(e1.getId(), g.getEdges("LABEL1").iterator().next().getId());
         assertEquals(e2.getId(), g.getEdges("LABEL2").iterator().next().getId());
         assertEquals(e3.getId(), g.getEdges("LABEL3").iterator().next().getId());
@@ -84,15 +84,26 @@ class GraphTest {
     @Test
     void getEdgesReturnsAllEdges() throws IOException {
         final Graph g = Graph.createTempGraph();
-        Node n1 = g.addNode("Test");
-        Node n2 = g.addNode("Test");
-        Edge e1 = g.addEdge(n1, n2, "LABEL1");
-        Edge e2 = g.addEdge(n1, n2, "LABEL2");
-        Edge e3 = g.addEdge(n1, n2, "LABEL3");
-        Set<Long> remainingIds = new HashSet<>(Arrays.asList(e1.getIdValue(), e2.getIdValue(), e3.getIdValue()));
+        final Node n1 = g.addNode("Test");
+        final Node n2 = g.addNode("Test");
+        final Edge e1 = g.addEdge(n1, n2, "LABEL1");
+        final Edge e2 = g.addEdge(n1, n2, "LABEL2");
+        final Edge e3 = g.addEdge(n1, n2, "LABEL3");
+        final Set<Long> remainingIds = new HashSet<>(Arrays.asList(e1.getId(), e2.getId(), e3.getId()));
         assertEquals(3, remainingIds.size());
         for (Edge e : g.getEdges())
-            remainingIds.remove(e.getIdValue());
+            remainingIds.remove(e.getId());
         assertEquals(0, remainingIds.size());
+    }
+
+    @Test
+    void findEdgeByLongFromId() throws IOException {
+        final Graph g = Graph.createTempGraph();
+        final Node n1 = g.addNode("Test");
+        final Node n2 = g.addNode("Test");
+        final Edge e1 = g.addEdge(n1, n2, "LABEL1");
+        final Edge foundEdge = g.findEdge("LABEL1", Edge.FROM_ID_FIELD, n1.getId());
+        assertNotNull(foundEdge);
+        assertEquals(e1.getId(), foundEdge.getId());
     }
 }

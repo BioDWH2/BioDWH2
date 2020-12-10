@@ -80,7 +80,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
         final Map<Integer, Long> rankNodeIdLookup = new HashMap<>();
         for (final TaxonUnitType rank : dataSource.taxonUnitTypes) {
             final Node node = graph.addNode(RANK_LABEL, ID_KEY, rank.id, "name", rank.name);
-            rankNodeIdLookup.put(rank.id, node.getIdValue());
+            rankNodeIdLookup.put(rank.id, node.getId());
             graph.addEdge(graph.findNode(KINGDOM_LABEL, ID_KEY, rank.kingdomId), node, "HAS_RANK");
         }
         for (final TaxonUnitType rank : dataSource.taxonUnitTypes) {
@@ -104,7 +104,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
                 node = graph.addNodeFromModel(taxon, "nodc_id", nodcId);
             else
                 node = graph.addNodeFromModel(taxon);
-            taxonTsnNodeIdMap.put(taxon.tsn, node.getIdValue());
+            taxonTsnNodeIdMap.put(taxon.tsn, node.getId());
         }
         return taxonTsnNodeIdMap;
     }
@@ -138,7 +138,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
         final Map<String, Long> divisionNodeIdMap = new HashMap<>();
         for (final String division : uniqueDivisions) {
             final Node node = graph.addNode(GEOGRAPHIC_DIVISION_LABEL, ID_KEY, division);
-            divisionNodeIdMap.put(division, node.getIdValue());
+            divisionNodeIdMap.put(division, node.getId());
         }
         for (final GeographicDivision division : dataSource.geographicDivisions)
             graph.addEdge(taxonTsnNodeIdMap.get(division.tsn), divisionNodeIdMap.get(division.value),
@@ -152,7 +152,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
         final Map<String, Long> jurisdictionNodeIdMap = new HashMap<>();
         for (final String jurisdiction : uniqueJurisdictions) {
             final Node node = graph.addNode(JURISDICTION_LABEL, ID_KEY, jurisdiction);
-            jurisdictionNodeIdMap.put(jurisdiction, node.getIdValue());
+            jurisdictionNodeIdMap.put(jurisdiction, node.getId());
         }
         for (final Jurisdiction jurisdiction : dataSource.jurisdictions)
             graph.addEdge(taxonTsnNodeIdMap.get(jurisdiction.tsn), jurisdictionNodeIdMap.get(jurisdiction.value),
@@ -163,7 +163,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
         final Map<Integer, Long> vernacularIdNodeIdMap = new HashMap<>();
         for (final Vernacular vernacular : dataSource.vernaculars) {
             final Node node = createNodeFromModel(graph, vernacular);
-            vernacularIdNodeIdMap.put(vernacular.vernacularId, node.getIdValue());
+            vernacularIdNodeIdMap.put(vernacular.vernacularId, node.getId());
             graph.addEdge(taxonTsnNodeIdMap.get(vernacular.tsn), node, "HAS_VERNACULAR");
         }
         return vernacularIdNodeIdMap;

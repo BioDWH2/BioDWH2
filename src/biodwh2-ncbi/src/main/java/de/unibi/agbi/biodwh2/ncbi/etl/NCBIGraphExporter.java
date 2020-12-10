@@ -74,7 +74,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             setArrayPropertyIfNotDash(geneNode, "feature_types", geneInfo.featureType);
             // TODO: mapLocation, symbolFromNomenclatureAuthority, fullNameFromNomenclatureAuthority,
             // TODO: nomenclatureStatus, otherDesignations
-            geneIdNodeIdMap.put(geneId, geneNode.getIdValue());
+            geneIdNodeIdMap.put(geneId, geneNode.getId());
             graph.update(geneNode);
         }
         LOGGER.info("Exporting gene2accession.gz...");

@@ -3,10 +3,10 @@ package de.unibi.agbi.biodwh2.core.io.mvstore;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 /**
  * Wrapper for the {@link MVStore} {@link MVMap} class to prevent concurrency issues with auto-commit. See:
@@ -50,7 +50,19 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
 
     @Override
     public V get(Object key) {
-        return mvMap.get(key);
+        return clone(mvMap.get(key));
+    }
+
+    private V clone(final V value) {
+        try {
+            final ByteArrayOutputStream output = new ByteArrayOutputStream();
+            new ObjectOutputStream(output).writeObject(value);
+            final ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(output.toByteArray()));
+            //noinspection unchecked
+            return (V) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            return null;
+        }
     }
 
     @Override
@@ -108,7 +120,7 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     public Collection<V> values() {
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
-            return mvMap.values();
+            return mvMap.values().stream().map(this::clone).collect(Collectors.toList());
         } finally {
             mvStore.deregisterVersionUsage(txCounter);
         }
@@ -118,7 +130,9 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     public Set<Entry<K, V>> entrySet() {
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
-            return mvMap.entrySet();
+            return mvMap.entrySet().stream().map(
+                    e -> new AbstractMap.SimpleImmutableEntry<>(e.getKey(), clone(e.getValue()))).collect(
+                    Collectors.toSet());
         } finally {
             mvStore.deregisterVersionUsage(txCounter);
         }
@@ -148,6 +162,7 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     public boolean replace(K key, V oldValue, V newValue) {
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
+            // TODO: cloned object?
             return mvMap.replace(key, oldValue, newValue);
         } finally {
             mvStore.deregisterVersionUsage(txCounter);

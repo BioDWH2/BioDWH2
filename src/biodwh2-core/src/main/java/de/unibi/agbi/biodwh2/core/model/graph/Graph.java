@@ -173,7 +173,7 @@ public final class Graph implements AutoCloseable {
     public Edge addEdge(final Node from, final Node to, final String label) {
         validateSourceNode(from);
         validateTargetNode(to);
-        return addEdge(from.getId().getIdValue(), to.getId().getIdValue(), label);
+        return addEdge(from.getId(), to.getId(), label);
     }
 
     private void validateSourceNode(final Node node) {
@@ -188,17 +188,17 @@ public final class Graph implements AutoCloseable {
 
     public Edge addEdge(final long fromId, final Node to, final String label) {
         validateTargetNode(to);
-        return addEdge(fromId, to.getId().getIdValue(), label);
+        return addEdge(fromId, to.getId(), label);
     }
 
     public Edge addEdge(final Node from, final long toId, final String label) {
         validateSourceNode(from);
-        return addEdge(from.getId().getIdValue(), toId, label);
+        return addEdge(from.getId(), toId, label);
     }
 
     public Edge addEdge(final long fromId, final long toId, final String label) {
         validateEdgeLabel(label);
-        final Edge e = Edge.newEdge(new MVStoreId(fromId), new MVStoreId(toId), label);
+        final Edge e = Edge.newEdge(fromId, toId, label);
         getOrCreateEdgeRepository(label).put(e);
         return e;
     }
@@ -222,25 +222,25 @@ public final class Graph implements AutoCloseable {
                         final Object propertyValue) {
         validateSourceNode(from);
         validateTargetNode(to);
-        return addEdge(from.getId().getIdValue(), to.getId().getIdValue(), label, propertyKey, propertyValue);
+        return addEdge(from.getId(), to.getId(), label, propertyKey, propertyValue);
     }
 
     public Edge addEdge(final long fromId, final Node to, final String label, final String propertyKey,
                         final Object propertyValue) {
         validateTargetNode(to);
-        return addEdge(fromId, to.getId().getIdValue(), label, propertyKey, propertyValue);
+        return addEdge(fromId, to.getId(), label, propertyKey, propertyValue);
     }
 
     public Edge addEdge(final Node from, final long toId, final String label, final String propertyKey,
                         final Object propertyValue) {
         validateSourceNode(from);
-        return addEdge(from.getId().getIdValue(), toId, label, propertyKey, propertyValue);
+        return addEdge(from.getId(), toId, label, propertyKey, propertyValue);
     }
 
     public Edge addEdge(final long fromId, final long toId, final String label, final String propertyKey,
                         final Object propertyValue) {
         validateEdgeLabel(label);
-        final Edge e = Edge.newEdge(new MVStoreId(fromId), new MVStoreId(toId), label);
+        final Edge e = Edge.newEdge(fromId, toId, label);
         e.setProperty(propertyKey, propertyValue);
         getOrCreateEdgeRepository(label).put(e);
         return e;
@@ -250,28 +250,25 @@ public final class Graph implements AutoCloseable {
                         final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
         validateSourceNode(from);
         validateTargetNode(to);
-        return addEdge(from.getId().getIdValue(), to.getId().getIdValue(), label, propertyKey1, propertyValue1,
-                       propertyKey2, propertyValue2);
+        return addEdge(from.getId(), to.getId(), label, propertyKey1, propertyValue1, propertyKey2, propertyValue2);
     }
 
     public Edge addEdge(final long fromId, final Node to, final String label, final String propertyKey1,
                         final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
         validateTargetNode(to);
-        return addEdge(fromId, to.getId().getIdValue(), label, propertyKey1, propertyValue1, propertyKey2,
-                       propertyValue2);
+        return addEdge(fromId, to.getId(), label, propertyKey1, propertyValue1, propertyKey2, propertyValue2);
     }
 
     public Edge addEdge(final Node from, final long toId, final String label, final String propertyKey1,
                         final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
         validateSourceNode(from);
-        return addEdge(from.getId().getIdValue(), toId, label, propertyKey1, propertyValue1, propertyKey2,
-                       propertyValue2);
+        return addEdge(from.getId(), toId, label, propertyKey1, propertyValue1, propertyKey2, propertyValue2);
     }
 
     public Edge addEdge(final long fromId, final long toId, final String label, final String propertyKey1,
                         final Object propertyValue1, final String propertyKey2, final Object propertyValue2) {
         validateEdgeLabel(label);
-        final Edge e = Edge.newEdge(new MVStoreId(fromId), new MVStoreId(toId), label);
+        final Edge e = Edge.newEdge(fromId, toId, label);
         e.setProperty(propertyKey1, propertyValue1);
         e.setProperty(propertyKey2, propertyValue2);
         getOrCreateEdgeRepository(label).put(e);
@@ -281,22 +278,22 @@ public final class Graph implements AutoCloseable {
     public Edge addEdge(final Node from, final Node to, final String label, final Map<String, Object> properties) {
         validateSourceNode(from);
         validateTargetNode(to);
-        return addEdge(from.getId().getIdValue(), to.getId().getIdValue(), label, properties);
+        return addEdge(from.getId(), to.getId(), label, properties);
     }
 
     public Edge addEdge(final long fromId, final Node to, final String label, final Map<String, Object> properties) {
         validateTargetNode(to);
-        return addEdge(fromId, to.getId().getIdValue(), label, properties);
+        return addEdge(fromId, to.getId(), label, properties);
     }
 
     public Edge addEdge(final Node from, final long toId, final String label, final Map<String, Object> properties) {
         validateSourceNode(from);
-        return addEdge(from.getId().getIdValue(), toId, label, properties);
+        return addEdge(from.getId(), toId, label, properties);
     }
 
     public Edge addEdge(final long fromId, final long toId, final String label, final Map<String, Object> properties) {
         validateEdgeLabel(label);
-        final Edge e = Edge.newEdge(new MVStoreId(fromId), new MVStoreId(toId), label);
+        final Edge e = Edge.newEdge(fromId, toId, label);
         for (Map.Entry<String, Object> entry : properties.entrySet())
             e.setProperty(entry.getKey(), entry.getValue());
         getOrCreateEdgeRepository(label).put(e);
@@ -578,11 +575,11 @@ public final class Graph implements AutoCloseable {
     public void mergeNodes(final Node first, final Node second) {
         for (final MVStoreCollection<Edge> edges : edgeRepositories.values()) {
             for (final Edge edge : edges.find(Edge.FROM_ID_FIELD, second.getId())) {
-                edge.setFromId(first.getId().getIdValue());
+                edge.setFromId(first.getId());
                 update(edge);
             }
             for (final Edge edge : edges.find(Edge.TO_ID_FIELD, second.getId())) {
-                edge.setToId(first.getId().getIdValue());
+                edge.setToId(first.getId());
                 update(edge);
             }
         }
@@ -596,14 +593,14 @@ public final class Graph implements AutoCloseable {
             nodes.getIndex(index.getKey(), index.isArrayIndex());
         final Map<Long, Long> mapping = new HashMap<>();
         for (final Node n : databaseToMerge.nodes) {
-            final Long oldId = n.getId().getIdValue();
+            final Long oldId = n.getId();
             n.resetId();
             final String[] labels = n.getLabels();
             for (int i = 0; i < labels.length; i++)
                 labels[i] = dataSourcePrefix + labels[i];
             n.setProperty(Node.LABELS_FIELD, labels);
             nodes.put(n);
-            mapping.put(oldId, n.getId().getIdValue());
+            mapping.put(oldId, n.getId());
         }
         for (final String sourceLabel : databaseToMerge.edgeRepositories.keySet()) {
             final String targetLabel = dataSourcePrefix + sourceLabel;

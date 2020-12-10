@@ -11,33 +11,16 @@ public abstract class MVStoreModel implements Serializable {
     private static final long serialVersionUID = 3622312710000754490L;
     public static final String ID_FIELD = "__id";
     private HashMap<String, Object> properties;
-    private HashMap<String, Object> modifiedProperties;
 
     protected MVStoreModel() {
         properties = new HashMap<>();
-        modifiedProperties = new HashMap<>();
-    }
-
-    HashMap<String, Object> getModifiedProperties() {
-        return modifiedProperties;
-    }
-
-    void resetModifiedProperties() {
-        modifiedProperties.clear();
     }
 
     public final void put(final String key, final Object value) {
-        setProperty(key, value);
-    }
-
-    public final void setProperty(final String key, final Object value) {
-        final Object oldValue = properties.get(key);
-        if (oldValue != null)
-            modifiedProperties.put(key, oldValue);
         properties.put(key, value);
     }
 
-    protected final void setPropertyUnmodified(final String key, final Object value) {
+    public final void setProperty(final String key, final Object value) {
         properties.put(key, value);
     }
 
@@ -58,7 +41,6 @@ public abstract class MVStoreModel implements Serializable {
     private void readObject(final ObjectInputStream s) throws IOException, ClassNotFoundException {
         //noinspection unchecked
         properties = (HashMap<String, Object>) s.readObject();
-        modifiedProperties = new HashMap<>();
     }
 
     @Override
@@ -66,12 +48,8 @@ public abstract class MVStoreModel implements Serializable {
         return getClass().getSimpleName() + super.toString();
     }
 
-    public final MVStoreId getId() {
+    public final Long getId() {
         return this.getProperty(ID_FIELD);
-    }
-
-    public final long getIdValue() {
-        return getId().getIdValue();
     }
 
     public final boolean hasProperty(final String key) {

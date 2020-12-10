@@ -3,7 +3,6 @@ package de.unibi.agbi.biodwh2.core.model.graph;
 import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreId;
 import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreModel;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,7 +18,7 @@ public class Node extends MVStoreModel {
 
     public static Node newNode(final String... labels) {
         Node node = new Node();
-        node.put(ID_FIELD, new MVStoreId());
+        node.put(ID_FIELD, new MVStoreId().getIdValue());
         node.put(LABELS_FIELD, labels);
         return node;
     }
@@ -28,22 +27,8 @@ public class Node extends MVStoreModel {
         return new NodeBuilder(graph);
     }
 
-    private void writeObject(java.io.ObjectOutputStream s) throws IOException {
-        final String[] labels = getProperty(LABELS_FIELD);
-        s.writeByte(labels.length);
-        for (String label : labels)
-            s.writeUTF(label);
-    }
-
-    private void readObject(java.io.ObjectInputStream s) throws IOException, ClassNotFoundException {
-        final String[] labels = new String[s.readByte()];
-        for (int i = 0; i < labels.length; i++)
-            labels[i] = s.readUTF();
-        setPropertyUnmodified(LABELS_FIELD, labels);
-    }
-
     void resetId() {
-        put(ID_FIELD, new MVStoreId());
+        put(ID_FIELD, new MVStoreId().getIdValue());
     }
 
     public String[] getLabels() {

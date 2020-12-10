@@ -54,11 +54,11 @@ public final class MVStoreIndex {
         return name;
     }
 
-    public void put(final Object key, final MVStoreId id) {
+    public void put(final Object key, final long id) {
         if (arrayIndex)
-            put((Comparable<?>[]) key, id.getIdValue());
+            put((Comparable<?>[]) key, id);
         else
-            put((Comparable<?>) key, id.getIdValue());
+            put((Comparable<?>) key, id);
     }
 
     private void put(final Comparable<?> indexKey, final long id) {
@@ -136,11 +136,11 @@ public final class MVStoreIndex {
         return arrayIndex;
     }
 
-    public void remove(final Object key, final MVStoreId id) {
+    public void remove(final Object key, final long id) {
         if (arrayIndex)
-            remove((Comparable<?>[]) key, id.getIdValue());
+            remove((Comparable<?>[]) key, id);
         else
-            remove((Comparable<?>) key, id.getIdValue());
+            remove((Comparable<?>) key, id);
     }
 
     private void remove(final Comparable<?> indexKey, final long id) {

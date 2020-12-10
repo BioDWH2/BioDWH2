@@ -16,7 +16,7 @@ public final class EdgeBuilder {
     }
 
     public EdgeBuilder fromNode(Node node) {
-        fromId = node.getId().getIdValue();
+        fromId = node.getId();
         return this;
     }
 
@@ -26,7 +26,7 @@ public final class EdgeBuilder {
     }
 
     public EdgeBuilder toNode(Node node) {
-        toId = node.getId().getIdValue();
+        toId = node.getId();
         return this;
     }
 

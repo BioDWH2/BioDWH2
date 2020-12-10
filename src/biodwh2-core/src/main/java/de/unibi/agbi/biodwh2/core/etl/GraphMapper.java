@@ -73,7 +73,7 @@ public final class GraphMapper {
                                                                                             localMappingLabel);
                     if (mappingDescriptions != null)
                         for (final NodeMappingDescription mappingDescription : mappingDescriptions)
-                            mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId().getIdValue());
+                            mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId());
                 }
             }
         }
@@ -87,7 +87,7 @@ public final class GraphMapper {
         for (final String id : mergedNode.<Set<String>>getProperty(IDS_NODE_PROPERTY)) {
             if (!idNodeIdMap.containsKey(id))
                 idNodeIdMap.put(id, new HashSet<>());
-            idNodeIdMap.get(id).add(mergedNode.getId().getIdValue());
+            idNodeIdMap.get(id).add(mergedNode.getId());
         }
     }
 
@@ -151,7 +151,7 @@ public final class GraphMapper {
         logPath(path);
         for (Node node : graph.getNodes(path[0])) {
             final long[] currentPathIds = new long[path.length];
-            currentPathIds[0] = node.getId().getIdValue();
+            currentPathIds[0] = node.getId();
             buildPathRecursively(graph, describer, path, 1, currentPathIds);
         }
     }
@@ -175,20 +175,20 @@ public final class GraphMapper {
             return;
         }
         for (final Edge edge : graph.findEdges(path[edgeIndex], Edge.FROM_ID_FIELD, currentPathIds[edgeIndex - 1])) {
-            currentPathIds[edgeIndex] = edge.getId().getIdValue();
+            currentPathIds[edgeIndex] = edge.getId();
             final Node nextNode = graph.getNode(edge.getToId());
             if (nextNode.getLabels()[0].equals(path[edgeIndex + 1])) {
                 final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
-                nextPathIds[edgeIndex + 1] = nextNode.getId().getIdValue();
+                nextPathIds[edgeIndex + 1] = nextNode.getId();
                 buildPathRecursively(graph, describer, path, edgeIndex + 2, nextPathIds);
             }
         }
         for (final Edge edge : graph.findEdges(path[edgeIndex], Edge.TO_ID_FIELD, currentPathIds[edgeIndex - 1])) {
-            currentPathIds[edgeIndex] = edge.getId().getIdValue();
+            currentPathIds[edgeIndex] = edge.getId();
             final Node nextNode = graph.getNode(edge.getFromId());
             if (nextNode.getLabels()[0].equals(path[edgeIndex + 1])) {
                 final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
-                nextPathIds[edgeIndex + 1] = nextNode.getId().getIdValue();
+                nextPathIds[edgeIndex + 1] = nextNode.getId();
                 buildPathRecursively(graph, describer, path, edgeIndex + 2, nextPathIds);
             }
         }

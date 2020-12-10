@@ -32,7 +32,7 @@ public class DGIdbGraphExporter extends GraphExporter<DGIdbDataSource> {
         for (Category category : dataSource.categories) {
             if (!categoryNodeIdMap.containsKey(category.category)) {
                 Node categoryNode = createNode(graph, "GeneCategory");
-                categoryNodeIdMap.put(category.category, categoryNode.getIdValue());
+                categoryNodeIdMap.put(category.category, categoryNode.getId());
             }
             Node gene = graph.findNode("Gene", "claim_name", category.entrezGeneSymbol);
             Edge edge = graph.addEdge(gene, categoryNodeIdMap.get(category.category), "IN_CATEGORY");

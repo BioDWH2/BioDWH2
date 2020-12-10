@@ -18,7 +18,7 @@ class MVStoreCollectionTest {
 
         public static TestModel1 newTestModel() {
             TestModel1 m = new TestModel1();
-            m.put(ID_FIELD, new MVStoreId());
+            m.put(ID_FIELD, new MVStoreId().getIdValue());
             return m;
         }
     }
@@ -32,7 +32,7 @@ class MVStoreCollectionTest {
 
         public static TestModel2 newTestModel() {
             TestModel2 m = new TestModel2();
-            m.put(ID_FIELD, new MVStoreId());
+            m.put(ID_FIELD, new MVStoreId().getIdValue());
             return m;
         }
     }

@@ -76,15 +76,22 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
 
     public void put(final T obj) {
         isDirty = true;
-        for (final Map.Entry<String, Object> modifiedProperty : obj.getModifiedProperties().entrySet()) {
-            final MVStoreIndex index = indices.get(modifiedProperty.getKey());
-            if (index != null)
-                index.remove(modifiedProperty.getValue(), obj.getId());
+        final T oldModel = map.get(obj.getId());
+        if (oldModel != null)
+            for (final String key : oldModel.keySet()) {
+                final MVStoreIndex index = indices.get(key);
+                if (index != null) {
+                    final Object property = oldModel.get(key);
+                    if (property != null)
+                        index.remove(property, obj.getId());
+                }
+            }
+        map.put(obj.getId(), obj);
+        for (final MVStoreIndex index : indices.values()) {
+            final Object property = obj.get(index.getKey());
+            if (property != null)
+                index.put(property, obj.getId());
         }
-        obj.resetModifiedProperties();
-        map.put(obj.getIdValue(), obj);
-        for (final MVStoreIndex index : indices.values())
-            index.put(obj.get(index.getKey()), obj.getId());
     }
 
     public T get(final MVStoreId id) {
@@ -200,9 +207,18 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     }
 
     public void remove(final T obj) {
+        final T oldModel = map.get(obj.getId());
+        if (oldModel == null)
+            return;
         isDirty = true;
-        map.remove(obj.getId().getIdValue());
-        for (final MVStoreIndex index : indices.values())
-            index.remove(obj.get(index.getKey()), obj.getId());
+        for (final MVStoreIndex index : indices.values()) {
+            final Object modifiedProperty = oldModel.get(index.getKey());
+            if (modifiedProperty != null)
+                index.remove(modifiedProperty, oldModel.getId());
+            final Object property = obj.get(index.getKey());
+            if (property != null)
+                index.remove(property, obj.getId());
+        }
+        map.remove(obj.getId());
     }
 }

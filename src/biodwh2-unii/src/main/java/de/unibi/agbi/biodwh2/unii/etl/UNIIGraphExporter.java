@@ -112,11 +112,11 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
             }
         }
         for (final Long itisId : itisIds)
-            itisIdNodeIdMap.put(itisId, node.getIdValue());
+            itisIdNodeIdMap.put(itisId, node.getId());
         for (final Long ncbiTaxonomyId : ncbiTaxonomyIds)
-            ncbiTaxonomyIdNodeIdMap.put(ncbiTaxonomyId, node.getIdValue());
+            ncbiTaxonomyIdNodeIdMap.put(ncbiTaxonomyId, node.getId());
         for (final String usdaPlantsSymbol : usdaPlantsSymbols)
-            usdaPlantsSymbolNodeIdMap.put(usdaPlantsSymbol, node.getIdValue());
+            usdaPlantsSymbolNodeIdMap.put(usdaPlantsSymbol, node.getId());
         return node;
     }
 }
