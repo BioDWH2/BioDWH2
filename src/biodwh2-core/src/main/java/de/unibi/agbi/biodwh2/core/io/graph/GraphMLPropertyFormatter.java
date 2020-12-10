@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.core.io.graph;
 
+import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreId;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.ParameterizedType;
@@ -26,7 +27,9 @@ public final class GraphMLPropertyFormatter {
     public static PropertyType getPropertyType(final Class<?> type) {
         final PropertyType p = new PropertyType();
         // Allowed types: boolean, int, long, float, double, string
-        if (type.isArray()) {
+        if (type.equals(MVStoreId.class)) {
+            p.typeName = "long";
+        } else if (type.isArray()) {
             p.listTypeName = getTypeName(type.getComponentType());
             p.typeName = "string";
         } else if (Collection.class.isAssignableFrom(type)) {

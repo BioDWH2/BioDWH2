@@ -99,9 +99,11 @@ public final class GraphMLGraphWriter extends GraphWriter {
         for (final Node node : nodes) {
             final Map<String, Class<?>> nodePropertyKeyTypes = getPropertyKeyTypes(node);
             for (final String key : nodePropertyKeyTypes.keySet()) {
-                final String labelKeyId = getNodeLabelKeyId(node, key);
-                if (!propertyKeyTypes.containsKey(labelKeyId) || nodePropertyKeyTypes.get(key) != null)
-                    propertyKeyTypes.put(labelKeyId, nodePropertyKeyTypes.get(key));
+                if (!Node.IGNORED_FIELDS.contains(key)) {
+                    final String labelKeyId = getNodeLabelKeyId(node, key);
+                    if (!propertyKeyTypes.containsKey(labelKeyId) || nodePropertyKeyTypes.get(key) != null)
+                        propertyKeyTypes.put(labelKeyId, nodePropertyKeyTypes.get(key));
+                }
             }
         }
         for (final String key : propertyKeyTypes.keySet())
@@ -152,9 +154,11 @@ public final class GraphMLGraphWriter extends GraphWriter {
         for (final Edge edge : edges) {
             final Map<String, Class<?>> edgePropertyKeyTypes = getPropertyKeyTypes(edge);
             for (final String key : edgePropertyKeyTypes.keySet()) {
-                final String labelKeyId = getEdgeLabelKeyId(edge, key);
-                if (!propertyKeyTypes.containsKey(labelKeyId) || edgePropertyKeyTypes.get(key) != null)
-                    propertyKeyTypes.put(labelKeyId, edgePropertyKeyTypes.get(key));
+                if (!Edge.IGNORED_FIELDS.contains(key)) {
+                    final String labelKeyId = getEdgeLabelKeyId(edge, key);
+                    if (!propertyKeyTypes.containsKey(labelKeyId) || edgePropertyKeyTypes.get(key) != null)
+                        propertyKeyTypes.put(labelKeyId, edgePropertyKeyTypes.get(key));
+                }
             }
         }
         for (final String key : propertyKeyTypes.keySet())
