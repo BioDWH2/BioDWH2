@@ -1,18 +1,13 @@
 package de.unibi.agbi.biodwh2.core.io.mvstore;
 
 import de.unibi.agbi.biodwh2.core.collections.ConcurrentDoublyLinkedList;
+import de.unibi.agbi.biodwh2.core.collections.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public final class MVStoreIndex {
-    private static class PageMetadata {
-        public Long minId;
-        public Long maxId;
-        public int slotsUsed;
-    }
-
     private static final Logger LOGGER = LoggerFactory.getLogger(MVStoreIndex.class);
     public static final int DEFAULT_PAGE_SIZE = 1000;
 
@@ -22,7 +17,7 @@ public final class MVStoreIndex {
     private final int pageSize;
     private final MVMapWrapper<Comparable<?>, ConcurrentDoublyLinkedList<Long>> map;
     private final MVMapWrapper<Long, ConcurrentDoublyLinkedList<Long>> pagesMap;
-    private final Map<Long, PageMetadata> pagesMetadataMap;
+    private final Map<Long, IndexPageMetadata> pagesMetadataMap;
     private long nextPageIndex;
 
     public MVStoreIndex(final MVStoreDB db, final String name, final String key, final boolean arrayIndex) {
@@ -41,7 +36,7 @@ public final class MVStoreIndex {
         nextPageIndex = 0;
         for (final Long pageIndex : pagesMap.keySet()) {
             nextPageIndex = pageIndex + 1;
-            final PageMetadata metadata = new PageMetadata();
+            final IndexPageMetadata metadata = new IndexPageMetadata();
             pagesMetadataMap.put(pageIndex, metadata);
         }
         if (LOGGER.isDebugEnabled())
@@ -76,7 +71,7 @@ public final class MVStoreIndex {
             createNewPage(pages, id);
             pagesChanged = true;
         } else {
-            final PageMetadata metadata = pagesMetadataMap.get(matchedPage);
+            final IndexPageMetadata metadata = pagesMetadataMap.get(matchedPage);
             final ConcurrentDoublyLinkedList<Long> page = pagesMap.get(matchedPage);
             if (!page.contains(id)) {
                 page.add(id);
@@ -92,7 +87,7 @@ public final class MVStoreIndex {
 
     private Long findMatchingPage(final ConcurrentDoublyLinkedList<Long> pages, final long id) {
         for (final Long pageIndex : pages) {
-            final PageMetadata metadata = pagesMetadataMap.get(pageIndex);
+            final IndexPageMetadata metadata = pagesMetadataMap.get(pageIndex);
             if (metadata.minId != null && metadata.minId <= id &&
                 (metadata.maxId > id || metadata.slotsUsed < pageSize))
                 return pageIndex;
@@ -103,7 +98,7 @@ public final class MVStoreIndex {
     private void createNewPage(final ConcurrentDoublyLinkedList<Long> pages, final long id) {
         final ConcurrentDoublyLinkedList<Long> page = new ConcurrentDoublyLinkedList<>();
         page.add(id);
-        final PageMetadata metadata = new PageMetadata();
+        final IndexPageMetadata metadata = new IndexPageMetadata();
         metadata.slotsUsed = 1;
         metadata.minId = metadata.maxId = id;
         pagesMap.put(nextPageIndex, page);
@@ -154,7 +149,7 @@ public final class MVStoreIndex {
             return;
         Long pageIndexToRemove = null;
         for (final Long pageIndex : pages) {
-            final PageMetadata metadata = pagesMetadataMap.get(pageIndex);
+            final IndexPageMetadata metadata = pagesMetadataMap.get(pageIndex);
             if (metadata.minId == null || metadata.minId > id || metadata.maxId < id)
                 continue;
             final ConcurrentDoublyLinkedList<Long> page = pagesMap.get(pageIndex);
@@ -193,39 +188,34 @@ public final class MVStoreIndex {
     }
 
     private void sortKeyPages(final Comparable<?> key) {
-        final ConcurrentDoublyLinkedList<Long> pageIndicesList = map.get(key);
-        if (pageIndicesList == null || pageIndicesList.size() == 0)
+        final Long[] pageIndices = getSortedPageIndices(key);
+        if (pageIndices == null)
             return;
-        final Long[] pageIndices = pageIndicesList.stream().sorted().toArray(Long[]::new);
+        final Set<Long> ids = collectAllIdsFromPages(pageIndices);
+        if (ids.size() <= 1)
+            return;
+        final Tuple2<IndexPageMetadata, ConcurrentDoublyLinkedList<Long>>[] newPages = IndexUtils.sortIdsIntoPages(ids,
+                                                                                                                   pageSize);
+        final ConcurrentDoublyLinkedList<Long> newPageIndicesList = new ConcurrentDoublyLinkedList<>();
+        for (int i = 0; i < newPages.length; i++) {
+            final long pageIndex = i < pageIndices.length ? pageIndices[i] : nextPageIndex++;
+            pagesMetadataMap.put(pageIndex, newPages[i].getFirst());
+            pagesMap.put(pageIndex, newPages[i].getSecond());
+            newPageIndicesList.add(pageIndex);
+        }
+        map.put(key, newPageIndicesList);
+    }
+
+    private Long[] getSortedPageIndices(final Comparable<?> key) {
+        final ConcurrentDoublyLinkedList<Long> pageIndicesList = map.get(key);
+        return pageIndicesList == null || pageIndicesList.size() == 0 ? null :
+               pageIndicesList.stream().sorted().toArray(Long[]::new);
+    }
+
+    private Set<Long> collectAllIdsFromPages(final Long[] pageIndices) {
         final Set<Long> ids = new HashSet<>();
         for (final Long pageIndex : pageIndices)
             ids.addAll(pagesMap.get(pageIndex));
-        if (ids.size() <= 1)
-            return;
-        final Long[] sortedIds = ids.stream().sorted().toArray(Long[]::new);
-        int nextPageIndex = 0;
-        for (int i = 0; i < sortedIds.length; i += pageSize) {
-            final Long pageIndex = pageIndices[nextPageIndex];
-            final int size = Math.min(pageSize, sortedIds.length - i);
-            final ConcurrentDoublyLinkedList<Long> page = createListFromSubArray(sortedIds, i, size);
-            final PageMetadata metadata = pagesMetadataMap.get(pageIndex);
-            metadata.minId = page.getFirst();
-            metadata.maxId = page.getLast();
-            metadata.slotsUsed = size;
-            pagesMetadataMap.put(pageIndex, metadata);
-            pagesMap.put(pageIndex, page);
-            nextPageIndex++;
-        }
-        if (nextPageIndex < pageIndices.length)
-            map.put(key, createListFromSubArray(pageIndices, 0, nextPageIndex));
-    }
-
-    private ConcurrentDoublyLinkedList<Long> createListFromSubArray(final Long[] source, final int start,
-                                                                    final int length) {
-        final ConcurrentDoublyLinkedList<Long> target = new ConcurrentDoublyLinkedList<>();
-        final int end = start + length;
-        for (int i = start; i < end; i++)
-            target.addLast(source[i]);
-        return target;
+        return ids;
     }
 }
