@@ -29,10 +29,9 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
         if (indexKeys == null) {
             metaMap.put(INDEX_KEYS, new String[0]);
             metaMap.put(INDEX_ARRAY_FLAGS, new boolean[0]);
-        } else {
+        } else
             for (int i = 0; i < indexKeys.length; i++)
                 getIndex(indexKeys[i], indexArrayFlags[i], true);
-        }
     }
 
     public MVStoreIndex getIndex(final String key) {
@@ -76,22 +75,23 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
 
     public void put(final T obj) {
         isDirty = true;
-        final T oldModel = map.get(obj.getId());
-        if (oldModel != null)
-            for (final String key : oldModel.keySet()) {
-                final MVStoreIndex index = indices.get(key);
-                if (index != null) {
-                    final Object property = oldModel.get(key);
-                    if (property != null)
-                        index.remove(property, obj.getId());
-                }
-            }
+        removeOldVersionFromIndices(map.get(obj.getId()));
         map.put(obj.getId(), obj);
         for (final MVStoreIndex index : indices.values()) {
             final Object property = obj.get(index.getKey());
             if (property != null)
                 index.put(property, obj.getId());
         }
+    }
+
+    private void removeOldVersionFromIndices(final T oldModel) {
+        if (oldModel != null)
+            for (final String key : oldModel.keySet()) {
+                final MVStoreIndex index = indices.get(key);
+                final Object property = oldModel.get(key);
+                if (index != null && property != null)
+                    index.remove(property, oldModel.getId());
+            }
     }
 
     public T get(final MVStoreId id) {
@@ -131,8 +131,17 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     }
 
     public synchronized Iterable<T> find(final String[] propertyKeys, final Comparable<?>[] propertyValues) {
-        Set<Long> ids = null;
         final boolean[] hasIndexFlags = new boolean[propertyKeys.length];
+        Set<Long> ids = retainIndexedIds(propertyKeys, propertyValues, hasIndexFlags);
+        if (isFindOnNonIndexedProperties(hasIndexFlags))
+            ids = retainUnindexedIds(propertyKeys, propertyValues, hasIndexFlags, ids);
+        final Set<Long> finalIds = ids != null ? ids : new HashSet<>();
+        return () -> finalIds.stream().map(this::get).iterator();
+    }
+
+    private Set<Long> retainIndexedIds(final String[] propertyKeys, final Comparable<?>[] propertyValues,
+                                       final boolean[] hasIndexFlags) {
+        Set<Long> ids = null;
         for (int i = 0; i < propertyKeys.length; i++) {
             final MVStoreIndex index = indices.get(propertyKeys[i]);
             if (index != null) {
@@ -143,41 +152,61 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
                     ids.retainAll(index.find(propertyValues[i]));
             }
         }
-        for (int i = 0; i < propertyKeys.length; i++) {
-            if (!hasIndexFlags[i]) {
-                final Comparable<?> searchValue = propertyValues[i];
-                if (ids == null) {
-                    ids = new HashSet<>();
-                    for (final Long id : map.keySet()) {
-                        final T obj = map.get(id);
-                        final Comparable<?> value = obj.getProperty(propertyKeys[i]);
-                        if (value != null && value.equals(searchValue))
-                            ids.add(id);
-                    }
-                } else {
-                    final Set<Long> matchedIds = new HashSet<>();
-                    for (final Long id : ids) {
-                        final T obj = map.get(id);
-                        final Object value = obj.get(propertyKeys[i]);
-                        if (value instanceof Comparable<?>) {
-                            if (value.equals(searchValue))
-                                matchedIds.add(id);
-                        } else if (value instanceof Comparable<?>[]) {
-                            final Comparable<?>[] valueArray = (Comparable<?>[]) value;
-                            for (final Comparable<?> comparable : valueArray) {
-                                if (comparable != null && comparable.equals(searchValue)) {
-                                    matchedIds.add(id);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    ids.retainAll(matchedIds);
-                }
-            }
+        return ids;
+    }
+
+    private boolean isFindOnNonIndexedProperties(final boolean[] hasIndexFlags) {
+        for (final boolean hasIndexFlag : hasIndexFlags)
+            if (!hasIndexFlag)
+                return true;
+        return false;
+    }
+
+    private Set<Long> retainUnindexedIds(final String[] propertyKeys, final Comparable<?>[] propertyValues,
+                                         final boolean[] hasIndexFlags, Set<Long> ids) {
+        if (ids == null) {
+            ids = new HashSet<>();
+            for (final Long id : map.keySet())
+                if (modelMatchesCriteria(id, propertyKeys, propertyValues, hasIndexFlags))
+                    ids.add(id);
+        } else {
+            final Set<Long> matchedIds = new HashSet<>();
+            for (final Long id : ids)
+                if (modelMatchesCriteria(id, propertyKeys, propertyValues, hasIndexFlags))
+                    matchedIds.add(id);
+            ids.retainAll(matchedIds);
         }
-        final Set<Long> finalIds = ids != null ? ids : new HashSet<>();
-        return () -> finalIds.stream().map(this::get).iterator();
+        return ids;
+    }
+
+    private boolean modelMatchesCriteria(final Long id, final String[] propertyKeys,
+                                         final Comparable<?>[] propertyValues, final boolean[] hasIndexFlags) {
+        final T obj = map.get(id);
+        boolean matched = false;
+        for (int i = 0; i < propertyKeys.length; i++) {
+            if (hasIndexFlags[i])
+                continue;
+            final Comparable<?> searchValue = propertyValues[i];
+            final Object value = obj.get(propertyKeys[i]);
+            if (value instanceof Comparable<?>) {
+                if (!value.equals(searchValue))
+                    return false;
+            } else if (value instanceof Comparable<?>[]) {
+                final Comparable<?>[] valueArray = (Comparable<?>[]) value;
+                boolean matchedAnyInArray = false;
+                for (final Comparable<?> comparable : valueArray) {
+                    if (comparable != null && comparable.equals(searchValue)) {
+                        matchedAnyInArray = true;
+                        break;
+                    }
+                }
+                if (!matchedAnyInArray)
+                    return false;
+            } else
+                return false;
+            matched = true;
+        }
+        return matched;
     }
 
     @Override
@@ -207,18 +236,8 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     }
 
     public void remove(final T obj) {
-        final T oldModel = map.get(obj.getId());
-        if (oldModel == null)
-            return;
-        isDirty = true;
-        for (final MVStoreIndex index : indices.values()) {
-            final Object modifiedProperty = oldModel.get(index.getKey());
-            if (modifiedProperty != null)
-                index.remove(modifiedProperty, oldModel.getId());
-            final Object property = obj.get(index.getKey());
-            if (property != null)
-                index.remove(property, obj.getId());
-        }
+        removeOldVersionFromIndices(map.get(obj.getId()));
         map.remove(obj.getId());
+        isDirty = true;
     }
 }
