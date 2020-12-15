@@ -19,6 +19,16 @@ public class UNIIDataSource extends DataSource {
     }
 
     @Override
+    public String getFullName() {
+        return "FDA UNII";
+    }
+
+    @Override
+    public String getDescription() {
+        return "FDA - Substance Registration System - Unique Ingredient Identifier (UNII)";
+    }
+
+    @Override
     public Updater<UNIIDataSource> getUpdater() {
         return new UNIIUpdater(this);
     }

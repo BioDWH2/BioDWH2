@@ -1,12 +1,15 @@
 package de.unibi.agbi.biodwh2;
 
+import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DataSourceLoader;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.text.TableFormatter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,7 +33,7 @@ public final class BioDWH2 {
 
     private void run(final CmdArgs commandLine) {
         if (commandLine.listDataSources)
-            listDataSources();
+            listDataSources(commandLine);
         else if (commandLine.create != null)
             createWorkspace(commandLine);
         else if (commandLine.status != null)
@@ -41,13 +44,20 @@ public final class BioDWH2 {
             printHelp(commandLine);
     }
 
-    private void listDataSources() {
-        if (LOGGER.isInfoEnabled()) {
-            final DataSourceLoader loader = new DataSourceLoader();
-            final String[] dataSourceIds = Arrays.stream(loader.getDataSourceIds()).filter(id -> !id.startsWith("Mock"))
-                                                 .sorted().toArray(String[]::new);
+    private void listDataSources(final CmdArgs commandLine) {
+        final DataSourceLoader loader = new DataSourceLoader();
+        final String[] dataSourceIds = Arrays.stream(loader.getDataSourceIds()).filter(id -> !id.startsWith("Mock"))
+                                             .sorted().toArray(String[]::new);
+        if (commandLine.verbose) {
+            final DataSource[] dataSources = loader.getDataSources(dataSourceIds);
+            final List<List<String>> rows = new ArrayList<>();
+            for (final DataSource dataSource : dataSources)
+                rows.add(Arrays.asList(dataSource.getId(), dataSource.getFullName(), dataSource.getDescription()));
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Available data sources:");
+            System.out.println(new TableFormatter(false).format(Arrays.asList("ID", "Name", "Description"), rows));
+        } else if (LOGGER.isInfoEnabled())
             LOGGER.info("Available data source IDs: " + StringUtils.join(dataSourceIds, ", "));
-        }
     }
 
     private void createWorkspace(final CmdArgs commandLine) {

@@ -16,6 +16,17 @@ public class HGNCDataSource extends DataSource {
     }
 
     @Override
+    public String getFullName() {
+        return "HUGO Gene Nomenclature Committee (HGNC)";
+    }
+
+    @Override
+    public String getDescription() {
+        return "The HGNC sets the standards for human gene nomenclature and approves a unique and meaningful name " +
+               "for every known human gene, based on a query of experts.";
+    }
+
+    @Override
     public Updater<HGNCDataSource> getUpdater() {
         return new HGNCUpdater(this);
     }

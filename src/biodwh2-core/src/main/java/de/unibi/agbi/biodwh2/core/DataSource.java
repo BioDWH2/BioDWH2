@@ -24,11 +24,19 @@ public abstract class DataSource {
 
     private DataSourceMetadata metadata;
 
-    public DataSourceMetadata getMetadata() {
+    public final DataSourceMetadata getMetadata() {
         return metadata;
     }
 
     public abstract String getId();
+
+    public String getFullName() {
+        return "-";
+    }
+
+    public String getDescription() {
+        return "-";
+    }
 
     protected abstract Updater<? extends DataSource> getUpdater();
 
@@ -38,7 +46,7 @@ public abstract class DataSource {
 
     public abstract MappingDescriber getMappingDescriber();
 
-    void prepare(final Workspace workspace) throws DataSourceException {
+    final void prepare(final Workspace workspace) throws DataSourceException {
         try {
             createFolderStructureIfNotExists(workspace);
             createOrLoadMetadata(workspace);
