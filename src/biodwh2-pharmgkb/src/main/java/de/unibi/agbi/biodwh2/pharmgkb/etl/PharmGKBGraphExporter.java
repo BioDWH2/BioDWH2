@@ -437,8 +437,10 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                 final String[] ids = StringUtils.split(metadata.variantAnnotationsId, ";");
                 String[] texts = StringUtils.split(metadata.variantAnnotation, ";");
                 if (ids.length != texts.length) {
-                    // hack fix as long \t chars are included in the variant annotation column
-                    texts = StringUtils.split(metadata.variantAnnotation + "\t" + metadata.relatedChemicals, ";");
+                    if (LOGGER.isWarnEnabled())
+                        LOGGER.warn("Skipping invalid variant annotation links for ClinicalAnnotationMetadata '" +
+                                    metadata.clinicalAnnotationId + "'.");
+                    return;
                 }
                 for (int i = 0; i < ids.length; i++) {
                     final Long annotationNodeId = variantAnnotationIdNodeIdMap.get(Integer.parseInt(ids[i]));
