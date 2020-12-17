@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugCentralGraphExporter.class);
@@ -385,18 +386,24 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
 
     private void addLINCSSignatures(final Workspace workspace, final Graph g,
                                     final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
+        final Set<Integer> missingStructureIds = new HashSet<>();
         for (final LincsSignature lincs : parseTsvFile(workspace, LincsSignature.class, "lincs_signature.tsv")) {
             final Long nodeId1 = structureIdNodeIdMap.get(lincs.structId1);
             final Long nodeId2 = structureIdNodeIdMap.get(lincs.structId2);
             if (nodeId1 == null || nodeId2 == null) {
-                if (LOGGER.isWarnEnabled())
-                    LOGGER.warn("ignoring LINCS signature referencing missing structure " + lincs.structId1 + "(" +
-                                nodeId1 + "), " + lincs.structId2 + "(" + nodeId2 + ")");
+                if (nodeId1 == null)
+                    missingStructureIds.add(lincs.structId1);
+                if (nodeId2 == null)
+                    missingStructureIds.add(lincs.structId2);
                 continue;
             }
             final Node node = g.addNodeFromModel(lincs);
             g.addEdge(node, nodeId1, "HAS_STRUCTURE", "is_parent", lincs.isParent1);
             g.addEdge(node, nodeId2, "HAS_STRUCTURE", "is_parent", lincs.isParent2);
         }
+        if (LOGGER.isWarnEnabled())
+            LOGGER.warn("Ignoring LINCS signatures referencing missing structures (" +
+                        missingStructureIds.stream().sorted().map(Object::toString).collect(Collectors.joining()) +
+                        ")");
     }
 }
