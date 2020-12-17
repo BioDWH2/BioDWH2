@@ -10,5 +10,5 @@ public final class Tdkey2Tc {
     @JsonProperty("tdkey_id")
     public String tdKeyId;
     @JsonProperty("component_id")
-    public String componentId;
+    public Integer componentId;
 }

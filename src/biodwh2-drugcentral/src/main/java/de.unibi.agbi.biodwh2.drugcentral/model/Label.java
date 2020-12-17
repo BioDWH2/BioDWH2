@@ -7,7 +7,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({"id", "category", "title", "effective_date", "assigned_entity", "pdf_url"})
-@NodeLabel("Label")
+@NodeLabel("DrugLabel")
 public final class Label {
     @JsonProperty("id")
     @GraphProperty("id")

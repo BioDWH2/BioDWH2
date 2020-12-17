@@ -13,7 +13,6 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 @NodeLabel("ActiveIngredient")
 public final class ActiveIngredient {
     @JsonProperty("id")
-    @GraphProperty("id")
     public String id;
     @JsonProperty("active_moiety_unii")
     @GraphProperty("active_moiety_unii")

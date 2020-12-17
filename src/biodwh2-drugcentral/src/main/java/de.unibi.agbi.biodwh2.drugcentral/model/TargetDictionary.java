@@ -7,11 +7,10 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({"id", "name", "target_class", "protein_components", "protein_type", "tdl"})
-@NodeLabel("TargetDictionary")
+@NodeLabel("Target")
 public final class TargetDictionary {
     @JsonProperty("id")
-    @GraphProperty("id")
-    public String id;
+    public Integer id;
     @JsonProperty("name")
     @GraphProperty("name")
     public String name;
@@ -20,7 +19,7 @@ public final class TargetDictionary {
     public String targetClass;
     @JsonProperty("protein_components")
     @GraphProperty("protein_components")
-    public String proteinComponents;
+    public Integer proteinComponents;
     @JsonProperty("protein_type")
     @GraphProperty("protein_type")
     public String proteinType;

@@ -8,7 +8,7 @@ public final class Struct2ObProd {
     @JsonProperty("struct_id")
     public Integer structId;
     @JsonProperty("prod_id")
-    public String prodId;
+    public Integer prodId;
     @JsonProperty("strength")
     public String strength;
 }

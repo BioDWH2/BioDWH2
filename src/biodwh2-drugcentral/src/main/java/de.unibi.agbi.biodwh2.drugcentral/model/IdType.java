@@ -6,18 +6,18 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
 @SuppressWarnings("unused")
-@JsonPropertyOrder({"id", "action_type", "description", "parent_type"})
-@NodeLabel("ActionType")
-public final class ActionType {
+@JsonPropertyOrder({"id", "type", "description", "url"})
+@NodeLabel("IdentifierType")
+public final class IdType {
     @JsonProperty("id")
     public String id;
-    @JsonProperty("action_type")
+    @JsonProperty("type")
     @GraphProperty("type")
-    public String actionType;
+    public String type;
     @JsonProperty("description")
     @GraphProperty("description")
     public String description;
-    @JsonProperty("parent_type")
-    @GraphProperty("parent_type")
-    public String parentType;
+    @JsonProperty("url")
+    @GraphProperty("url")
+    public String url;
 }

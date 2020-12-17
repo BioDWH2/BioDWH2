@@ -10,13 +10,12 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 @NodeLabel("Identifier")
 public final class Identifier {
     @JsonProperty("id")
-    @GraphProperty("id")
     public String id;
     @JsonProperty("identifier")
     @GraphProperty("identifier")
     public String identifier;
     @JsonProperty("id_type")
-    @GraphProperty("id_type")
+    @GraphProperty("type")
     public String idType;
     @JsonProperty("struct_id")
     public Integer structId;

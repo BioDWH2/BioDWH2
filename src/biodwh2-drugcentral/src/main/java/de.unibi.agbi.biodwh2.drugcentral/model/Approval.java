@@ -10,7 +10,6 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 @NodeLabel("Approval")
 public final class Approval {
     @JsonProperty("id")
-    @GraphProperty("id")
     public String id;
     @JsonProperty("struct_id")
     public Integer structId;

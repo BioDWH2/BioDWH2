@@ -13,7 +13,6 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 @NodeLabel("Product")
 public final class Product {
     @JsonProperty("id")
-    @GraphProperty("id")
     public String id;
     @JsonProperty("ndc_product_code")
     @GraphProperty("ndc_product_code")
@@ -35,5 +34,5 @@ public final class Product {
     public String marketingStatus;
     @JsonProperty("active_ingredient_count")
     @GraphProperty("active_ingredient_count")
-    public String activeIngredientCount;
+    public Integer activeIngredientCount;
 }

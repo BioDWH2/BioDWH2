@@ -7,7 +7,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({"id", "appl_type", "appl_no", "product_no", "exclusivity_code", "exclusivity_date"})
-@NodeLabel("ObExclusivity")
+@NodeLabel("OrangeBookExclusivity")
 public final class ObExclusivity {
     @JsonProperty("id")
     @GraphProperty("id")

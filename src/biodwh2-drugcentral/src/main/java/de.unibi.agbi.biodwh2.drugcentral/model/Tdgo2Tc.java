@@ -10,5 +10,5 @@ public final class Tdgo2Tc {
     @JsonProperty("go_id")
     public String goId;
     @JsonProperty("component_id")
-    public String componentId;
+    public Integer componentId;
 }

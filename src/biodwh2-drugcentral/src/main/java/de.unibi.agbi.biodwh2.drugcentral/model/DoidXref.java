@@ -7,10 +7,9 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({"id", "doid", "source", "xref"})
-@NodeLabel("DoidXref")
+@NodeLabel("DOTermXref")
 public final class DoidXref {
     @JsonProperty("id")
-    @GraphProperty("id")
     public String id;
     @JsonProperty("doid")
     public String doid;

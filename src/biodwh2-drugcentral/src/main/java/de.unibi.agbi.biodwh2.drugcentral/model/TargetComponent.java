@@ -6,13 +6,11 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
 @SuppressWarnings("unused")
-// id	accession	swissprot	organism	name	gene	geneid	tdl
 @JsonPropertyOrder({"id", "accession", "swissprot", "organism", "name", "gene", "geneid", "tdl"})
 @NodeLabel("TargetComponent")
 public final class TargetComponent {
     @JsonProperty("id")
-    @GraphProperty("id")
-    public String id;
+    public Integer id;
     @JsonProperty("accession")
     @GraphProperty("accession")
     public String accession;

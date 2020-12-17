@@ -7,10 +7,9 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({"id", "atc_code", "ddd", "unit_type", "route", "comment", "struct_id"})
-@NodeLabel("AtcDDD")
+@NodeLabel("ATCDDD")
 public final class AtcDdd {
     @JsonProperty("id")
-    @GraphProperty("id")
     public String id;
     @JsonProperty("atc_code")
     @GraphProperty("atc_code")

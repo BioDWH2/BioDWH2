@@ -10,7 +10,6 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 @NodeLabel("PharmaClass")
 public final class PharmaClass {
     @JsonProperty("id")
-    @GraphProperty("id")
     public String id;
     @JsonProperty("struct_id")
     public Integer structId;
@@ -21,7 +20,7 @@ public final class PharmaClass {
     @GraphProperty("name")
     public String name;
     @JsonProperty("class_code")
-    @GraphProperty("class_code")
+    @GraphProperty("code")
     public String classCode;
     @JsonProperty("source")
     @GraphProperty("source")

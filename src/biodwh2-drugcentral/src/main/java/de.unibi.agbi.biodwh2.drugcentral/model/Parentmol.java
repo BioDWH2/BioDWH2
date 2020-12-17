@@ -9,11 +9,11 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
 @JsonPropertyOrder({
         "cd_id", "name", "cas_reg_no", "inchi", "nostereo_inchi", "molfile", "molimg", "smiles", "inchikey"
 })
-@NodeLabel("Parentmol")
+@NodeLabel("ParentDrugMolecule")
 public final class Parentmol {
     @JsonProperty("cd_id")
     @GraphProperty("cd_id")
-    public String cdId;
+    public Integer cdId;
     @JsonProperty("name")
     @GraphProperty("name")
     public String name;

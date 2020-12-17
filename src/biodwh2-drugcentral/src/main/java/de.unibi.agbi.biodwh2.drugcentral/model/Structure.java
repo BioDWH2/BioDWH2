@@ -39,13 +39,13 @@ public final class Structure {
     public String tpsa;
     @JsonProperty("lipinski")
     @GraphProperty("lipinski")
-    public String lipinski;
+    public Integer lipinski;
     @JsonProperty("name")
     @GraphProperty("name")
     public String name;
     @JsonProperty("no_formulations")
     @GraphProperty("no_formulations")
-    public String noFormulations;
+    public Integer noFormulations;
     @JsonProperty("stem")
     public String stem;
     @JsonProperty("molfile")
@@ -59,33 +59,33 @@ public final class Structure {
     public String enhancedStereo;
     @JsonProperty("arom_c")
     @GraphProperty("arom_c")
-    public String aromC;
+    public Integer aromC;
     @JsonProperty("sp3_c")
     @GraphProperty("sp3_c")
-    public String sp3C;
+    public Integer sp3C;
     @JsonProperty("sp2_c")
     @GraphProperty("sp2_c")
-    public String sp2C;
+    public Integer sp2C;
     @JsonProperty("sp_c")
     @GraphProperty("sp_c")
-    public String spC;
+    public Integer spC;
     @JsonProperty("halogen")
     @GraphProperty("halogen")
-    public String halogen;
+    public Integer halogen;
     @JsonProperty("hetero_sp2_c")
     @GraphProperty("hetero_sp2_c")
-    public String heteroSp2C;
+    public Integer heteroSp2C;
     @JsonProperty("rotb")
     @GraphProperty("rotb")
-    public String rotb;
+    public Integer rotb;
     @JsonProperty("molimg")
     public String molimg;
     @JsonProperty("o_n")
     @GraphProperty("o_n")
-    public String oN;
+    public Integer oN;
     @JsonProperty("oh_nh")
     @GraphProperty("oh_nh")
-    public String oh_nh;
+    public Integer oh_nh;
     @JsonProperty("inchi")
     @GraphProperty("inchi")
     public String inchi;
@@ -94,10 +94,10 @@ public final class Structure {
     public String smiles;
     @JsonProperty("rgb")
     @GraphProperty("rgb")
-    public String rgb;
+    public Integer rgb;
     @JsonProperty("fda_labels")
     @GraphProperty("fda_labels")
-    public String fdaLabels;
+    public Integer fdaLabels;
     @JsonProperty("inchikey")
     @GraphProperty("inchikey")
     public String inchiKey;

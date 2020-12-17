@@ -12,15 +12,14 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
         "act_source_url", "moa_source_url", "action_type", "first_in_class", "tdl", "act_ref_id", "moa_ref_id",
         "organism"
 })
-@NodeLabel("ActTableFull")
+@NodeLabel("Bioactivity")
 public final class ActTableFull {
     @JsonProperty("act_id")
-    @GraphProperty("act_id")
-    public String actId;
+    public Integer actId;
     @JsonProperty("struct_id")
     public Integer structId;
     @JsonProperty("target_id")
-    public String targetId;
+    public Integer targetId;
     @JsonProperty("target_name")
     @GraphProperty("target_name")
     public String targetName;

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({"target_id", "component_id"})
 public final class Td2Tc {
     @JsonProperty("target_id")
-    public String targetId;
+    public Integer targetId;
     @JsonProperty("component_id")
-    public String componentId;
+    public Integer componentId;
 }

@@ -10,5 +10,5 @@ public final class Struct2DrgClass {
     @JsonProperty("struct_id")
     public Integer structId;
     @JsonProperty("drug_class_id")
-    public String drugClassId;
+    public Integer drugClassId;
 }
