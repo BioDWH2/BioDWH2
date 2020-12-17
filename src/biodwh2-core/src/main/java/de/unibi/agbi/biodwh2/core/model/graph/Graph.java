@@ -164,6 +164,34 @@ public final class Graph implements AutoCloseable {
         return n;
     }
 
+    public final <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
+                                           final String propertyKey2, final Object propertyValue2,
+                                           final String propertyKey3, final Object propertyValue3) {
+        final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
+        final Node n = Node.newNode(mapping.label);
+        mapping.setNodeProperties(n, obj);
+        n.setProperty(propertyKey1, propertyValue1);
+        n.setProperty(propertyKey2, propertyValue2);
+        n.setProperty(propertyKey3, propertyValue3);
+        nodes.put(n);
+        return n;
+    }
+
+    public final <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
+                                           final String propertyKey2, final Object propertyValue2,
+                                           final String propertyKey3, final Object propertyValue3,
+                                           final String propertyKey4, final Object propertyValue4) {
+        final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
+        final Node n = Node.newNode(mapping.label);
+        mapping.setNodeProperties(n, obj);
+        n.setProperty(propertyKey1, propertyValue1);
+        n.setProperty(propertyKey2, propertyValue2);
+        n.setProperty(propertyKey3, propertyValue3);
+        n.setProperty(propertyKey4, propertyValue4);
+        nodes.put(n);
+        return n;
+    }
+
     public void update(final Node node) {
         if (node == null)
             throw new GraphCacheException("Failed to update node because it is null");

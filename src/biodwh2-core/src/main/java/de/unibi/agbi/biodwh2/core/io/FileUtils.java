@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.core.io;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -120,6 +119,14 @@ public final class FileUtils {
                                                            final Class<T> typeClass) throws IOException {
         final InputStream stream = openInput(workspace, dataSource, fileName);
         return openSeparatedValuesFile(stream, typeClass, '\t', true);
+    }
+
+    public static <T> MappingIterator<T> openTsvWithHeaderWithoutQuoting(final Workspace workspace,
+                                                                         final DataSource dataSource,
+                                                                         final String fileName,
+                                                                         final Class<T> typeClass) throws IOException {
+        final InputStream stream = openInput(workspace, dataSource, fileName);
+        return openSeparatedValuesFile(stream, typeClass, '\t', true, false);
     }
 
     public static <T> MappingIterator<T> openGzipTsv(final Workspace workspace, final DataSource dataSource,
