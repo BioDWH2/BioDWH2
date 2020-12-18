@@ -33,6 +33,16 @@ public class PharmGKBDataSource extends DataSource {
     }
 
     @Override
+    public String getFullName() {
+        return "Pharmacogenomics Knowledgebase (PharmGKB)";
+    }
+
+    @Override
+    public String getDescription() {
+        return "PharmGKB provides information about how human genetic variation affects response to medications.";
+    }
+
+    @Override
     public Updater<PharmGKBDataSource> getUpdater() {
         return new PharmGKBUpdater(this);
     }

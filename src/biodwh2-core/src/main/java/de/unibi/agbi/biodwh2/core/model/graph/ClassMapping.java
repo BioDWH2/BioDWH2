@@ -36,13 +36,13 @@ class ClassMapping {
         }
     }
 
-    final String label;
+    final String[] labels;
     final ClassMappingField[] fields;
     final ClassMappingArrayField[] arrayFields;
     final ClassMappingBooleanField[] booleanFields;
 
     ClassMapping(final Class<?> type) {
-        label = type.getAnnotation(NodeLabel.class).value();
+        labels = type.getAnnotation(NodeLabels.class).value();
         fields = loadClassMappingFields(type);
         arrayFields = loadClassMappingArrayFields(type);
         booleanFields = loadClassMappingBooleanFields(type);

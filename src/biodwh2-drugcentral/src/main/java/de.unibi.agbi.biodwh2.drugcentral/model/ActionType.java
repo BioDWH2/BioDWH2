@@ -3,11 +3,11 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({"id", "action_type", "description", "parent_type"})
-@NodeLabel("ActionType")
+@NodeLabels("ActionType")
 public final class ActionType {
     @JsonProperty("id")
     public String id;

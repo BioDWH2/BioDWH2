@@ -1,9 +1,9 @@
 package de.unibi.agbi.biodwh2.medrt.model;
 
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@NodeLabel("Property")
+@NodeLabels("Property")
 public final class Property {
     public String namespace;
     @GraphProperty("name")

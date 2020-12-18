@@ -26,7 +26,8 @@ public enum IdentifierType {
     NCBI_TAXON("NCBI_Taxon"),
     USDA_PLANTS_SYMBOL("USDA_PLANTS_Symbol"),
     ENSEMBL_GENE_ID("ENSEMBL_Gene"),
-    INTERNATIONAL_NONPROPRIETARY_NAMES("INN");
+    INTERNATIONAL_NONPROPRIETARY_NAMES("INN"),
+    DB_SNP("dbSNP");
 
     IdentifierType(final String prefix) {
         this.prefix = prefix;

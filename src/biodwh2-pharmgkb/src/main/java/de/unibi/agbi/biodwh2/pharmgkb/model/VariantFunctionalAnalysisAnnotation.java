@@ -3,10 +3,10 @@ package de.unibi.agbi.biodwh2.pharmgkb.model;
 import com.univocity.parsers.annotations.Parsed;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 import de.unibi.agbi.biodwh2.pharmgkb.etl.PharmGKBGraphExporter;
 
-@NodeLabel("VariantFunctionalAnalysisAnnotation")
+@NodeLabels({"VariantAnnotation", "VariantFunctionalAnalysisAnnotation"})
 public class VariantFunctionalAnalysisAnnotation {
     @Parsed(field = "Annotation ID")
     @GraphProperty("id")

@@ -3,11 +3,11 @@ package de.unibi.agbi.biodwh2.itis.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({"expert_id_prefix", "expert_id", "expert", "exp_comment", "update_date"})
-@NodeLabel("Expert")
+@NodeLabels("Expert")
 public class Expert {
     @JsonProperty("expert_id_prefix")
     public String idPrefix;

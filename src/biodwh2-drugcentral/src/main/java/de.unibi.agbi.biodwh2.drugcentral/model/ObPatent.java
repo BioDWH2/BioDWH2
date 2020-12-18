@@ -4,14 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphBooleanProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({
         "id", "appl_type", "appl_no", "product_no", "patent_no", "patent_expire_date", "drug_substance_flag",
         "drug_product_flag", "patent_use_code", "delist_flag"
 })
-@NodeLabel("OrangeBookPatent")
+@NodeLabels("OrangeBookPatent")
 public final class ObPatent {
     @JsonProperty("id")
     public String id;

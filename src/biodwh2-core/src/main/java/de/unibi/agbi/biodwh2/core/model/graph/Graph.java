@@ -132,7 +132,7 @@ public final class Graph implements AutoCloseable {
 
     public final <T> Node addNodeFromModel(final T obj) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node n = Node.newNode(mapping.label);
+        final Node n = Node.newNode(mapping.labels);
         mapping.setNodeProperties(n, obj);
         nodes.put(n);
         return n;
@@ -146,7 +146,7 @@ public final class Graph implements AutoCloseable {
 
     public final <T> Node addNodeFromModel(final T obj, final String propertyKey, final Object propertyValue) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node n = Node.newNode(mapping.label);
+        final Node n = Node.newNode(mapping.labels);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey, propertyValue);
         nodes.put(n);
@@ -156,7 +156,7 @@ public final class Graph implements AutoCloseable {
     public final <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
                                            final String propertyKey2, final Object propertyValue2) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node n = Node.newNode(mapping.label);
+        final Node n = Node.newNode(mapping.labels);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);
@@ -168,7 +168,7 @@ public final class Graph implements AutoCloseable {
                                            final String propertyKey2, final Object propertyValue2,
                                            final String propertyKey3, final Object propertyValue3) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node n = Node.newNode(mapping.label);
+        final Node n = Node.newNode(mapping.labels);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);
@@ -182,7 +182,7 @@ public final class Graph implements AutoCloseable {
                                            final String propertyKey3, final Object propertyValue3,
                                            final String propertyKey4, final Object propertyValue4) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node n = Node.newNode(mapping.label);
+        final Node n = Node.newNode(mapping.labels);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);

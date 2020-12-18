@@ -13,17 +13,18 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if ("Drug".equals(localMappingLabel))
+        if (PharmGKBGraphExporter.DRUG_LABEL.equals(localMappingLabel))
             return describeDrug(node);
-        if ("Chemical".equals(localMappingLabel))
+        if (PharmGKBGraphExporter.CHEMICAL_LABEL.equals(localMappingLabel))
             return describeChemical(node);
-        if ("Haplotype".equals(localMappingLabel) || "HaplotypeSet".equals(localMappingLabel))
+        if (PharmGKBGraphExporter.HAPLOTYPE_LABEL.equals(localMappingLabel) ||
+            PharmGKBGraphExporter.HAPLOTYPE_SET_LABEL.equals(localMappingLabel))
             return describeHaplotype(node);
-        if ("Gene".equals(localMappingLabel))
+        if (PharmGKBGraphExporter.GENE_LABEL.equals(localMappingLabel))
             return describeGene(node);
-        if ("Variant".equals(localMappingLabel))
+        if (PharmGKBGraphExporter.VARIANT_LABEL.equals(localMappingLabel))
             return describeVariant(node);
-        if ("Pathway".equals(localMappingLabel))
+        if (PharmGKBGraphExporter.PATHWAY_LABEL.equals(localMappingLabel))
             return describePathway(node);
         return null;
     }
@@ -88,7 +89,12 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeVariant(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.VARIANT);
-        description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
+        final String pharmGKBId = node.getProperty("id");
+        final String name = node.getProperty("name");
+        if (pharmGKBId != null)
+            description.addIdentifier(IdentifierType.PHARM_GKB, pharmGKBId);
+        if (name != null && name.startsWith("rs"))
+            description.addIdentifier(IdentifierType.DB_SNP, name);
         return new NodeMappingDescription[]{description};
     }
 
@@ -100,7 +106,12 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{"Drug", "Chemical", "Haplotype", "HaplotypeSet", "Gene", "Variant", "Pathway"};
+        return new String[]{
+                PharmGKBGraphExporter.DRUG_LABEL, PharmGKBGraphExporter.CHEMICAL_LABEL,
+                PharmGKBGraphExporter.HAPLOTYPE_LABEL, PharmGKBGraphExporter.HAPLOTYPE_SET_LABEL,
+                PharmGKBGraphExporter.GENE_LABEL, PharmGKBGraphExporter.VARIANT_LABEL,
+                PharmGKBGraphExporter.PATHWAY_LABEL
+        };
     }
 
     @Override

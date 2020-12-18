@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({
@@ -11,7 +11,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
         "no_formulations", "stem", "molfile", "mrdef", "enhanced_stereo", "arom_c", "sp3_c", "sp2_c", "sp_c", "halogen",
         "hetero_sp2_c", "rotb", "molimg", "o_n", "oh_nh", "inchi", "smiles", "rgb", "fda_labels", "inchikey", "status"
 })
-@NodeLabel("Structure")
+@NodeLabels("Structure")
 public final class Structure {
     @JsonProperty("cd_id")
     @GraphProperty("cd_id")
