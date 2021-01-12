@@ -3,7 +3,7 @@
 The first step is to create a blank workspace in a new location:
 
 ~~~BASH
-> BioDWH2.jar -c /path/to/workspace
+> java -jar BioDWH2.jar -c /path/to/workspace
 ~~~
 
 Now the ```config.json``` needs to be adjusted for BioDWH2 to know, which data sources are to be included. A simple example with the HGNC and MED-RT database may look as follows:
@@ -22,13 +22,13 @@ Now the ```config.json``` needs to be adjusted for BioDWH2 to know, which data s
 Now, the workspace can be automatically updated, parsed, exported, merged, and mapped:
 
 ~~~BASH
-> BioDWH2.jar -u /path/to/workspace
+> java -jar BioDWH2.jar -u /path/to/workspace
 ~~~
 
 To check the current state of the workspace, whether new versions are available, something is missing, etc. execute:
 
 ~~~BASH
-> BioDWH2.jar -s /path/to/workspace
+> java -jar BioDWH2.jar -s /path/to/workspace
 ~~~
 
 ## The workspace

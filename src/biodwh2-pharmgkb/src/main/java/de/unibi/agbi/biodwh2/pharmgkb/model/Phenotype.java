@@ -15,12 +15,12 @@ public class Phenotype {
     @GraphProperty("name")
     public String name;
     @Parsed(field = "Alternate Names")
-    @GraphArrayProperty(value = "alternate_names", arrayDelimiter = PharmGKBGraphExporter.QUOTED_ARRAY_DELIMITER)
+    @GraphArrayProperty(value = "alternate_names", arrayDelimiter = ",", quotedArrayElements = true)
     public String alternateNames;
     @Parsed(field = "Cross-references")
-    @GraphArrayProperty(value = "cross_references", arrayDelimiter = PharmGKBGraphExporter.QUOTED_ARRAY_DELIMITER)
+    @GraphArrayProperty(value = "cross_references", arrayDelimiter = ",", quotedArrayElements = true)
     public String crossReferences;
     @Parsed(field = "External Vocabulary")
-    @GraphArrayProperty(value = "external_vocabulary", arrayDelimiter = PharmGKBGraphExporter.QUOTED_ARRAY_DELIMITER)
+    @GraphArrayProperty(value = "external_vocabulary", arrayDelimiter = ",", quotedArrayElements = true)
     public String externalVocabulary;
 }

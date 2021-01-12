@@ -24,6 +24,7 @@ public enum IdentifierType {
     VANDF_VUID("VANDF_VUID"),
     ITIS_TAXON("ITIS_Taxon"),
     NCBI_TAXON("NCBI_Taxon"),
+    NCBI_GENE("NCBI_Gene"),
     USDA_PLANTS_SYMBOL("USDA_PLANTS_Symbol"),
     ENSEMBL_GENE_ID("ENSEMBL_Gene"),
     INTERNATIONAL_NONPROPRIETARY_NAMES("INN"),

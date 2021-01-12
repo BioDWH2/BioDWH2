@@ -21,7 +21,7 @@ public class VariantFunctionalAnalysisAnnotation {
     @GraphProperty("pmid")
     public String pmid;
     @Parsed(field = "Phenotype Category")
-    @GraphArrayProperty(value = "phenotype_categories", arrayDelimiter = PharmGKBGraphExporter.QUOTED_ARRAY_DELIMITER)
+    @GraphArrayProperty(value = "phenotype_categories", arrayDelimiter = ",", quotedArrayElements = true)
     public String phenotypeCategory;
     @Parsed(field = "Significance")
     @GraphProperty("significance")

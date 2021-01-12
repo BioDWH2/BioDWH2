@@ -20,10 +20,15 @@ class ClassMapping {
 
     static class ClassMappingArrayField extends ClassMappingField {
         final String arrayDelimiter;
+        final String quotedArrayDelimiter;
+        final boolean quotedArrayElements;
 
-        ClassMappingArrayField(final Field field, final String propertyName, final String arrayDelimiter) {
+        ClassMappingArrayField(final Field field, final String propertyName, final String arrayDelimiter,
+                               final boolean quotedArrayElements) {
             super(field, propertyName);
             this.arrayDelimiter = arrayDelimiter;
+            quotedArrayDelimiter = "\"" + arrayDelimiter + "\"";
+            this.quotedArrayElements = quotedArrayElements;
         }
     }
 
@@ -73,7 +78,8 @@ class ClassMapping {
     private ClassMappingArrayField loadClassMappingArrayField(final Field field) {
         field.setAccessible(true);
         final GraphArrayProperty annotation = field.getAnnotation(GraphArrayProperty.class);
-        return new ClassMappingArrayField(field, annotation.value(), annotation.arrayDelimiter());
+        return new ClassMappingArrayField(field, annotation.value(), annotation.arrayDelimiter(),
+                                          annotation.quotedArrayElements());
     }
 
     private ClassMappingBooleanField[] loadClassMappingBooleanFields(final Class<?> type) {
@@ -111,9 +117,15 @@ class ClassMapping {
     private void setNodePropertiesFromArrayFields(final Node node, final Object obj) throws IllegalAccessException {
         for (final ClassMapping.ClassMappingArrayField field : arrayFields) {
             final Object value = field.field.get(obj);
-            if (value != null)
-                node.setProperty(field.propertyName,
-                                 StringUtils.splitByWholeSeparator(value.toString(), field.arrayDelimiter));
+            if (value != null) {
+                final String delimiter = field.quotedArrayElements ? field.quotedArrayDelimiter : field.arrayDelimiter;
+                final String[] elements = StringUtils.splitByWholeSeparator(value.toString(), delimiter);
+                if (field.quotedArrayElements && elements.length > 0) {
+                    elements[0] = StringUtils.stripStart(elements[0], "\"");
+                    elements[elements.length - 1] = StringUtils.stripEnd(elements[elements.length - 1], "\"");
+                }
+                node.setProperty(field.propertyName, elements);
+            }
         }
     }
 
