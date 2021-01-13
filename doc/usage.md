@@ -2,7 +2,7 @@
 
 ## Introduction
 
-BioDWH2 is an easy-to-use, automated, graph-based data warehouse and mapping tool for bioinformatics and medical informatics.
+BioDWH2 is an easy-to-use, automated, graph-based data warehouse and mapping tool for bioinformatics and medical informatics. The latest version can be downloaded [here](https://github.com/BioDWH2/BioDWH2/releases/latest).
 
 The workflow of BioDWH2 is split into several distinct steps as follows:
 
@@ -48,7 +48,7 @@ BioDWH2 requires the Java Runtime Environment version 8 to be installed. The JRE
 
 ## Creating a workspace
 
-> Please note: The following commands refer to the BioDWH2 executable as `BioDWH2.jar` for simplicity. The file name of the release downloads is versioned such as `BioDWH2-v0.1.7.jar`.
+> :warning: **Please note**: The following commands refer to the BioDWH2 executable as `BioDWH2.jar` for simplicity. The file name of the release downloads is versioned such as `BioDWH2-v0.1.7.jar`.
 
 The first step is to create a blank workspace in a new location using the `-c` or `--create` command line parameter.
 
@@ -58,16 +58,27 @@ $ java -jar BioDWH2.jar -c /path/to/workspace
 
 ## Configuring workspace data sources
 
-Now the ```config.json``` needs to be adjusted for BioDWH2 to know, which data sources are to be included. A simple example with the HGNC and MED-RT database may look as follows:
+After creation, the workspace is configured without any data sources. Adding and removing data sources to the workspace can be done either using the command line or directly in the `config.json` file. All available data source IDs can be listed using the following command:
+
+~~~BASH
+$ java -jar BioDWH2.jar --data-sources
+~~~
+
+Adding and removing via the command line can be done using the following commands:
+
+~~~BASH
+$ java -jar BioDWH2.jar --add-data-source /path/to/workspace HGNC
+$ java -jar BioDWH2.jar --remove-data-source /path/to/workspace HGNC
+~~~
+
+Alternatively open the `config.json` in your workspace with any text editor and add the data source IDs inside the square brackets of the `dataSourceIds` field. Following is an example of a config file with two data sources:
 
 ```
 {
   "version" : 1,
   "creationDateTime" : "2019-09-26T09:30:36.568",
-  "dataSourceIds" : ["HGNC", "MED-RT", "DrugBank"],
-  "dataSourceProperties": {
-    "DrugBank": { "username": "test@example.com", "password": "..." }
-  }
+  "dataSourceIds" : ["HGNC", "MED-RT"],
+  "dataSourceProperties": {}
 }
 ```
 
@@ -87,7 +98,11 @@ To check the current state of the workspace, whether new versions are available,
 $ java -jar BioDWH2.jar -s /path/to/workspace
 ~~~
 
-## Command line interface parameters
+## Analyzing the data
+
+After creating and processing the workspace, the resulting graph can be analyzed. For a detailed guide on analysis tasks, check [here](analysis.md).
+
+## Task command line parameters
 
 | Short parameter | Long parameter        | Values                           | Description                                 |
 | --------------- | --------------------- | -------------------------------- | ------------------------------------------- |
@@ -98,6 +113,12 @@ $ java -jar BioDWH2.jar -s /path/to/workspace
 |                 | --remove-data-sources | \<workspacePath> \<dataSourceId> | Remove a data source from the configuration |
 | -u              | --update              | \<workspacePath>                 | Update all data sources of a workspace      |
 | -s              | --status              | \<workspacePath>                 | Check and output the state of a workspace   |
+|                 |                       |                                  |                                             |
+
+## Additional command line parameters
+
+| Short parameter | Long parameter        | Values                           | Description                                 |
+| --------------- | --------------------- | -------------------------------- | ------------------------------------------- |
 |                 | --skip-update         | -                                | Skip update, only parse and export          |
 | -v              | --verbose             | -                                | Enable additional logging output            |
 |                 |                       |                                  |                                             |
