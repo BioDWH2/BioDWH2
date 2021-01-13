@@ -63,26 +63,20 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
-        if (workspace.getConfiguration().dataSourceProperties.containsKey("DrugBank")) {
-            Map<String, String> drugBankProperties = workspace.getConfiguration().dataSourceProperties.get("DrugBank");
-            if (drugBankProperties != null) {
-                final String username = drugBankProperties.getOrDefault("username", null);
-                final String password = drugBankProperties.getOrDefault("password", null);
-                if (username != null && username.length() > 0 && password != null && password.length() > 0) {
-                    try {
-                        String filePath = dataSource.resolveSourceFilePath(workspace,
-                                                                           "drugbank_all_full_database.xml.zip");
-                        HTTPClient.downloadFileAsBrowser(FullDatabaseUrl, filePath, username, password);
-                        filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_structures.sdf.zip");
-                        HTTPClient.downloadFileAsBrowser(DrugStructuresUrl, filePath, username, password);
-                        filePath = dataSource.resolveSourceFilePath(workspace,
-                                                                    "drugbank_all_metabolite-structures.sdf.zip");
-                        HTTPClient.downloadFileAsBrowser(MetaboliteStructuresUrl, filePath, username, password);
-                        return true;
-                    } catch (IOException e) {
-                        throw new UpdaterConnectionException("Failed to download files", e);
-                    }
-                }
+        final Map<String, String> drugBankProperties = dataSource.getProperties(workspace);
+        final String username = drugBankProperties.getOrDefault("username", null);
+        final String password = drugBankProperties.getOrDefault("password", null);
+        if (username != null && username.length() > 0 && password != null && password.length() > 0) {
+            try {
+                String filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_full_database.xml.zip");
+                HTTPClient.downloadFileAsBrowser(FullDatabaseUrl, filePath, username, password);
+                filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_structures.sdf.zip");
+                HTTPClient.downloadFileAsBrowser(DrugStructuresUrl, filePath, username, password);
+                filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_metabolite-structures.sdf.zip");
+                HTTPClient.downloadFileAsBrowser(MetaboliteStructuresUrl, filePath, username, password);
+                return true;
+            } catch (IOException e) {
+                throw new UpdaterConnectionException("Failed to download files", e);
             }
         }
         throw new UpdaterOnlyManuallyException();

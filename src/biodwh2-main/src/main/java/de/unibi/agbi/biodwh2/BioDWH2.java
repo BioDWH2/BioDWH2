@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +28,7 @@ public final class BioDWH2 {
     private static CmdArgs parseCommandLine(final String... args) {
         final CmdArgs result = new CmdArgs();
         final CommandLine cmd = new CommandLine(result);
+        cmd.setPosixClusteredShortOptionsAllowed(true);
         cmd.parseArgs(args);
         return result;
     }
@@ -34,6 +36,10 @@ public final class BioDWH2 {
     private void run(final CmdArgs commandLine) {
         if (commandLine.listDataSources)
             listDataSources(commandLine);
+        else if (commandLine.addDataSource != null)
+            addDataSource(commandLine);
+        else if (commandLine.removeDataSource != null)
+            removeDataSource(commandLine);
         else if (commandLine.create != null)
             createWorkspace(commandLine);
         else if (commandLine.status != null)
@@ -58,6 +64,48 @@ public final class BioDWH2 {
             System.out.println(new TableFormatter(false).format(Arrays.asList("ID", "Name", "Description"), rows));
         } else if (LOGGER.isInfoEnabled())
             LOGGER.info("Available data source IDs: " + StringUtils.join(dataSourceIds, ", "));
+    }
+
+    private void addDataSource(final CmdArgs commandLine) {
+        final String workspacePath = commandLine.addDataSource.get(0);
+        final String dataSourceId = commandLine.addDataSource.get(1);
+        final DataSourceLoader loader = new DataSourceLoader();
+        final String[] matchedIds = Arrays.stream(loader.getDataSourceIds()).filter(
+                id -> id.equalsIgnoreCase(dataSourceId)).toArray(String[]::new);
+        if (matchedIds.length > 0) {
+            final Workspace workspace = new Workspace(workspacePath);
+            workspace.addDataSource(dataSourceId);
+            try {
+                workspace.saveConfiguration();
+            } catch (IOException e) {
+                LOGGER.error("Failed to add data source with id '" + dataSourceId + "'", e);
+            }
+            LOGGER.info("Successfully added data source with id '" + dataSourceId + "'");
+        } else {
+            LOGGER.error("Could not find data source with id '" + dataSourceId + "'");
+            listDataSources(commandLine);
+        }
+    }
+
+    private void removeDataSource(final CmdArgs commandLine) {
+        final String workspacePath = commandLine.removeDataSource.get(0);
+        final String dataSourceId = commandLine.removeDataSource.get(1);
+        final DataSourceLoader loader = new DataSourceLoader();
+        final String[] matchedIds = Arrays.stream(loader.getDataSourceIds()).filter(
+                id -> id.equalsIgnoreCase(dataSourceId)).toArray(String[]::new);
+        if (matchedIds.length > 0) {
+            final Workspace workspace = new Workspace(workspacePath);
+            workspace.removeDataSource(dataSourceId);
+            try {
+                workspace.saveConfiguration();
+            } catch (IOException e) {
+                LOGGER.error("Failed to remove data source with id '" + dataSourceId + "'", e);
+            }
+            LOGGER.info("Successfully removed data source with id '" + dataSourceId + "'");
+        } else {
+            LOGGER.error("Could not find data source with id '" + dataSourceId + "'");
+            listDataSources(commandLine);
+        }
     }
 
     private void createWorkspace(final CmdArgs commandLine) {

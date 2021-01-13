@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Map;
 
 public abstract class DataSource {
@@ -207,7 +206,6 @@ public abstract class DataSource {
     }
 
     public final Map<String, String> getProperties(final Workspace workspace) {
-        final Map<String, String> properties = workspace.getConfiguration().dataSourceProperties.get(getId());
-        return properties == null ? new HashMap<>() : properties;
+        return workspace.getConfiguration().getDataSourceProperties(getId());
     }
 }
