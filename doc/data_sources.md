@@ -90,8 +90,10 @@
 
 ### UNII
 
-> 
+> https://fdasis.nlm.nih.gov/srs/
+
+> Except as otherwise noted, data is provided as Public Doman.
 
 ### USDA-PLANTS
 
-Plant information, including the distribution maps, lists, and text, is not copyrighted and is free for any use.  Please cite the PLANTS Database as: USDA, NRCS. 2020. The PLANTS Database (http://plants.usda.gov, 23 November 2020). National Plant Data Team, Greensboro, NC 27401-4901 USA.
+> Plant information, including the distribution maps, lists, and text, is not copyrighted and is free for any use. Please cite the PLANTS Database as: USDA, NRCS. 2020. The PLANTS Database (http://plants.usda.gov, 23 November 2020). National Plant Data Team, Greensboro, NC 27401-4901 USA.

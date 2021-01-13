@@ -1,41 +1,26 @@
-# BioDWH2 usage
+# Documentation
 
-The first step is to create a blank workspace in a new location:
+## Introduction
 
-~~~BASH
-> java -jar BioDWH2.jar -c /path/to/workspace
-~~~
+BioDWH2 is an easy-to-use, automated, graph-based data warehouse and mapping tool for bioinformatics and medical informatics.
 
-Now the ```config.json``` needs to be adjusted for BioDWH2 to know, which data sources are to be included. A simple example with the HGNC and MED-RT database may look as follows:
+The workflow of BioDWH2 is split into several distinct steps as follows:
 
-```
-{
-  "version" : 1,
-  "creationDateTime" : "2019-09-26T09:30:36.568",
-  "dataSourceIds" : ["HGNC", "MED-RT", "DrugBank"],
-  "dataSourceProperties": {
-    "DrugBank": { "username": "test@example.com", "password": "..." }
-  }
-}
-```
+![](img/biodwh2_process_flow.png "")
 
-Now, the workspace can be automatically updated, parsed, exported, merged, and mapped:
-
-~~~BASH
-> java -jar BioDWH2.jar -u /path/to/workspace
-~~~
-
-To check the current state of the workspace, whether new versions are available, something is missing, etc. execute:
-
-~~~BASH
-> java -jar BioDWH2.jar -s /path/to/workspace
-~~~
+1. First, a new project workspace has to be created in which all data sources will be stored and processed. This step is done once per project and all subsequent steps run in this workspace. More on the workspace concept will follow below.
+2. Configured data sources need to be updated, meaning BioDWH2 checks which is the newest available version online and compares it to the current version stored in the workspace. If no version has been stored or a new one is available, the data files are being downloaded to the workspace.
+3. After the update step follows the parsing of the raw data files, loading them into memory.
+4. Once loaded, the information are transformed and exported into a suitable graph structure representation.
+5. After all data sources finished exporting, the resulting graphs are merged into one big graph.
+6. Finally, this singular graph is then used in combination with the data source modules to describe entities and relationships. These descriptions result in the creation of nodes and relationships in a mapping layer on top of the existing graph. This mapping layer connects the heterogeneous data sources and helps uncover new and meaningful information.
+7. The process can be executed repeatedly and whenever the user sees fit.
 
 ## The workspace
 
 BioDWH2 is centered around the concept of a workspace containing all data sources, configurations and outputs in one central location. This enables all data to be available during processing and easy to backup if necessary.
 
-The basic structure is visualized below:
+The basic file structure is visualized below:
 
 ```
 .
@@ -57,15 +42,62 @@ The basic structure is visualized below:
 |   +-- mapped.graphml
 ```
 
+## Requirements
+
+BioDWH2 requires the Java Runtime Environment version 8 to be installed. The JRE 8 is available [here](https://www.oracle.com/java/technologies/javase-jre8-downloads.html).
+
+## Creating a workspace
+
+> Please note: The following commands refer to the BioDWH2 executable as `BioDWH2.jar` for simplicity. The file name of the release downloads is versioned such as `BioDWH2-v0.1.7.jar`.
+
+The first step is to create a blank workspace in a new location using the `-c` or `--create` command line parameter.
+
+~~~BASH
+$ java -jar BioDWH2.jar -c /path/to/workspace
+~~~
+
+## Configuring workspace data sources
+
+Now the ```config.json``` needs to be adjusted for BioDWH2 to know, which data sources are to be included. A simple example with the HGNC and MED-RT database may look as follows:
+
+```
+{
+  "version" : 1,
+  "creationDateTime" : "2019-09-26T09:30:36.568",
+  "dataSourceIds" : ["HGNC", "MED-RT", "DrugBank"],
+  "dataSourceProperties": {
+    "DrugBank": { "username": "test@example.com", "password": "..." }
+  }
+}
+```
+
+## Executing the workflow
+
+Now, the workspace can be automatically updated, parsed, exported, merged, and mapped:
+
+~~~BASH
+$ java -jar BioDWH2.jar -u /path/to/workspace
+~~~
+
+## Checking for updates
+
+To check the current state of the workspace, whether new versions are available, something is missing, etc. the `-s` or `--status` command line parameter can be used.
+
+~~~BASH
+$ java -jar BioDWH2.jar -s /path/to/workspace
+~~~
+
 ## Command line interface parameters
 
-| Short parameter | Long parameter | Values         | Description                               |
-| --------------- | -------------- | -------------- | ----------------------------------------- |
-| -h              | --help         | -              | Print the help message                    |
-| -su             | --skip-update  | -              | Skip update, only parse and export        |
-| -v              | --verbose      | -              | Enable additional logging output          |
-| -ds             | --data-sources | -              | List all available data sources           |
-| -c              | --create       | workspace path | Create a new empty workspace              |
-| -s              | --status       | workspace path | Check and output the state of a workspace |
-| -u              | --update       | workspace path | Update all data sources of a workspace    |
-|                 |                |                |                                           |
+| Short parameter | Long parameter        | Values                           | Description                                 |
+| --------------- | --------------------- | -------------------------------- | ------------------------------------------- |
+| -h              | --help                | -                                | Print the help message                      |
+| -c              | --create              | \<workspacePath>                 | Create a new empty workspace                |
+|                 | --data-sources        | -                                | List all available data sources             |
+|                 | --add-data-sources    | \<workspacePath> \<dataSourceId> | Add a data source to the configuration      |
+|                 | --remove-data-sources | \<workspacePath> \<dataSourceId> | Remove a data source from the configuration |
+| -u              | --update              | \<workspacePath>                 | Update all data sources of a workspace      |
+| -s              | --status              | \<workspacePath>                 | Check and output the state of a workspace   |
+|                 | --skip-update         | -                                | Skip update, only parse and export          |
+| -v              | --verbose             | -                                | Enable additional logging output            |
+|                 |                       |                                  |                                             |
