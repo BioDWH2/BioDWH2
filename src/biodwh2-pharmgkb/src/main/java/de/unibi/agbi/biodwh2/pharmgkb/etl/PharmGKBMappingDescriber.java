@@ -13,8 +13,6 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if (PharmGKBGraphExporter.DRUG_LABEL.equals(localMappingLabel))
-            return describeDrug(node);
         if (PharmGKBGraphExporter.CHEMICAL_LABEL.equals(localMappingLabel))
             return describeChemical(node);
         if (PharmGKBGraphExporter.HAPLOTYPE_LABEL.equals(localMappingLabel) ||
@@ -27,30 +25,6 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
         if (PharmGKBGraphExporter.PATHWAY_LABEL.equals(localMappingLabel))
             return describePathway(node);
         return null;
-    }
-
-    private NodeMappingDescription[] describeDrug(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
-        description.addName(node.getProperty("name"));
-        description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
-        for (final String reference : getCrossReferences(node))
-            if (reference.startsWith("DrugBank"))
-                description.addIdentifier(IdentifierType.DRUG_BANK, getIdFromPrefixIdPair(reference));
-            else if (reference.startsWith("KEGG Drug"))
-                description.addIdentifier(IdentifierType.KEGG, getIdFromPrefixIdPair(reference));
-            else if (reference.startsWith("KEGG Compound"))
-                description.addIdentifier(IdentifierType.KEGG, getIdFromPrefixIdPair(reference));
-            else if (reference.startsWith("Chemical Abstracts Service"))
-                description.addIdentifier(IdentifierType.CAS, getIdFromPrefixIdPair(reference));
-            /*
-            "PubChem Compound", "ChEBI", "ChemSpider", "PubChem Substance", "URL", "IUPHAR Ligand", "PDB",
-            "Drugs Product Database (DPD)", "Therapeutic Targets Database", "ClinicalTrials.gov",
-            "FDA Drug Label at DailyMed", "National Drug Code Directory", "BindingDB", "HET", "HMDB", "GenBank",
-            "UniProtKB", "ATCC"
-             */
-        for (final String rxNormIdentifier : getRxNormIdentifiers(node))
-            description.addIdentifier(IdentifierType.RX_NORM_CUI, rxNormIdentifier);
-        return new NodeMappingDescription[]{description};
     }
 
     private String[] getCrossReferences(final Node node) {
@@ -88,7 +62,42 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
              */
         for (final String rxNormIdentifier : getRxNormIdentifiers(node))
             description.addIdentifier(IdentifierType.RX_NORM_CUI, rxNormIdentifier);
+        if (isChemicalADrug(node))
+            return new NodeMappingDescription[]{description, describeDrug(node)};
         return new NodeMappingDescription[]{description};
+    }
+
+    private boolean isChemicalADrug(final Node node) {
+        final String[] types = node.getProperty("types");
+        if (types != null)
+            for (final String type : types)
+                if ("drug".equalsIgnoreCase(type))
+                    return true;
+        return false;
+    }
+
+    private NodeMappingDescription describeDrug(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
+        description.addName(node.getProperty("name"));
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
+        for (final String reference : getCrossReferences(node))
+            if (reference.startsWith("DrugBank"))
+                description.addIdentifier(IdentifierType.DRUG_BANK, getIdFromPrefixIdPair(reference));
+            else if (reference.startsWith("KEGG Drug"))
+                description.addIdentifier(IdentifierType.KEGG, getIdFromPrefixIdPair(reference));
+            else if (reference.startsWith("KEGG Compound"))
+                description.addIdentifier(IdentifierType.KEGG, getIdFromPrefixIdPair(reference));
+            else if (reference.startsWith("Chemical Abstracts Service"))
+                description.addIdentifier(IdentifierType.CAS, getIdFromPrefixIdPair(reference));
+            /*
+            "PubChem Compound", "ChEBI", "ChemSpider", "PubChem Substance", "URL", "IUPHAR Ligand", "PDB",
+            "Drugs Product Database (DPD)", "Therapeutic Targets Database", "ClinicalTrials.gov",
+            "FDA Drug Label at DailyMed", "National Drug Code Directory", "BindingDB", "HET", "HMDB", "GenBank",
+            "UniProtKB", "ATCC"
+             */
+        for (final String rxNormIdentifier : getRxNormIdentifiers(node))
+            description.addIdentifier(IdentifierType.RX_NORM_CUI, rxNormIdentifier);
+        return description;
     }
 
     private NodeMappingDescription[] describeHaplotype(final Node node) {
@@ -148,10 +157,9 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     @Override
     protected String[] getNodeMappingLabels() {
         return new String[]{
-                PharmGKBGraphExporter.DRUG_LABEL, PharmGKBGraphExporter.CHEMICAL_LABEL,
-                PharmGKBGraphExporter.HAPLOTYPE_LABEL, PharmGKBGraphExporter.HAPLOTYPE_SET_LABEL,
-                PharmGKBGraphExporter.GENE_LABEL, PharmGKBGraphExporter.VARIANT_LABEL,
-                PharmGKBGraphExporter.PATHWAY_LABEL
+                PharmGKBGraphExporter.CHEMICAL_LABEL, PharmGKBGraphExporter.HAPLOTYPE_LABEL,
+                PharmGKBGraphExporter.HAPLOTYPE_SET_LABEL, PharmGKBGraphExporter.GENE_LABEL,
+                PharmGKBGraphExporter.VARIANT_LABEL, PharmGKBGraphExporter.PATHWAY_LABEL
         };
     }
 
