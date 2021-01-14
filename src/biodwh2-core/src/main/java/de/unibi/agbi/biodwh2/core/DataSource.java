@@ -39,6 +39,8 @@ public abstract class DataSource {
         return "-";
     }
 
+    public abstract DevelopmentState getDevelopmentState();
+
     protected abstract Updater<? extends DataSource> getUpdater();
 
     protected abstract Parser<? extends DataSource> getParser();

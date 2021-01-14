@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.pharmgkb;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.pharmgkb.etl.*;
 import de.unibi.agbi.biodwh2.pharmgkb.model.*;
@@ -40,6 +41,11 @@ public class PharmGKBDataSource extends DataSource {
     @Override
     public String getDescription() {
         return "PharmGKB provides information about how human genetic variation affects response to medications.";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
     }
 
     @Override

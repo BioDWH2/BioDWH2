@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.usdaplants;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
@@ -30,6 +31,11 @@ public class USDAPlantsDataSource extends DataSource {
     public String getDescription() {
         return "The PLANTS Database provides standardized information about the vascular plants, mosses, liverworts, " +
                "hornworts, and lichens of the U.S. and its territories.";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.Usable;
     }
 
     @Override

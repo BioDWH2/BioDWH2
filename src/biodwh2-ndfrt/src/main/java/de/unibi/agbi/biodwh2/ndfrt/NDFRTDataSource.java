@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.ndfrt;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.ndfrt.etl.*;
 import de.unibi.agbi.biodwh2.ndfrt.model.Terminology;
@@ -11,6 +12,11 @@ public class NDFRTDataSource extends DataSource {
     @Override
     public String getId() {
         return "NDF-RT";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.Usable;
     }
 
     @Override

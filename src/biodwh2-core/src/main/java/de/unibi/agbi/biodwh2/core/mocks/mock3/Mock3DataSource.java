@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.core.mocks.mock3;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
@@ -14,6 +15,11 @@ public class Mock3DataSource extends DataSource {
     @Override
     public String getId() {
         return "Mock3";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
     }
 
     @Override

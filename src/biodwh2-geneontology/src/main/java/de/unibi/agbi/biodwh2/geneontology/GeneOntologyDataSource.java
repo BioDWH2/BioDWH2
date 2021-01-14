@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.geneontology;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.geneontology.etl.GeneOntologyGraphExporter;
 import de.unibi.agbi.biodwh2.geneontology.etl.GeneOntologyMappingDescriber;
@@ -11,6 +12,11 @@ public class GeneOntologyDataSource extends DataSource {
     @Override
     public String getId() {
         return "GeneOntology";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
     }
 
     @Override

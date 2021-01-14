@@ -58,10 +58,12 @@ public final class BioDWH2 {
             final DataSource[] dataSources = loader.getDataSources(dataSourceIds);
             final List<List<String>> rows = new ArrayList<>();
             for (final DataSource dataSource : dataSources)
-                rows.add(Arrays.asList(dataSource.getId(), dataSource.getFullName(), dataSource.getDescription()));
+                rows.add(Arrays.asList(dataSource.getId(), dataSource.getDevelopmentState().toString(),
+                                       dataSource.getFullName(), dataSource.getDescription()));
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Available data sources:");
-            System.out.println(new TableFormatter(false).format(Arrays.asList("ID", "Name", "Description"), rows));
+            final TableFormatter formatter = new TableFormatter(false);
+            System.out.println(formatter.format(Arrays.asList("ID", "State", "Name", "Description"), rows));
         } else if (LOGGER.isInfoEnabled())
             LOGGER.info("Available data source IDs: " + StringUtils.join(dataSourceIds, ", "));
     }

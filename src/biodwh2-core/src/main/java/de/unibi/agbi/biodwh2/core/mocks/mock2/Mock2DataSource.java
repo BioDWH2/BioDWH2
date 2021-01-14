@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.core.mocks.mock2;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.core.mocks.MockParser;
 import de.unibi.agbi.biodwh2.core.mocks.MockUpdater;
@@ -10,6 +11,11 @@ public class Mock2DataSource extends DataSource {
     @Override
     public String getId() {
         return "Mock2";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
     }
 
     @Override

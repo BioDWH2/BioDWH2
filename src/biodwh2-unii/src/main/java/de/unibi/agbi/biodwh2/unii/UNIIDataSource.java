@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.unii;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.unii.etl.*;
 import de.unibi.agbi.biodwh2.unii.model.UNIIDataEntry;
@@ -26,6 +27,11 @@ public class UNIIDataSource extends DataSource {
     @Override
     public String getDescription() {
         return "FDA - Substance Registration System - Unique Ingredient Identifier (UNII)";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.Usable;
     }
 
     @Override

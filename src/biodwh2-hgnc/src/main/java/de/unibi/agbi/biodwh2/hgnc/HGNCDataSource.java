@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.hgnc;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.hgnc.etl.*;
 import de.unibi.agbi.biodwh2.hgnc.model.Gene;
@@ -24,6 +25,11 @@ public class HGNCDataSource extends DataSource {
     public String getDescription() {
         return "The HGNC sets the standards for human gene nomenclature and approves a unique and meaningful name " +
                "for every known human gene, based on a query of experts.";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.Usable;
     }
 
     @Override

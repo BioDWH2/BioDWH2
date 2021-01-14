@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.medrt;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.medrt.etl.*;
 import de.unibi.agbi.biodwh2.medrt.model.Terminology;
@@ -11,6 +12,11 @@ public class MEDRTDataSource extends DataSource {
     @Override
     public String getId() {
         return "MED-RT";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
     }
 
     @Override

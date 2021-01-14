@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.dgidb;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.dgidb.etl.*;
 import de.unibi.agbi.biodwh2.dgidb.model.Category;
@@ -19,6 +20,11 @@ public class DGIdbDataSource extends DataSource {
     @Override
     public String getId() {
         return "DGIdb";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
     }
 
     @Override

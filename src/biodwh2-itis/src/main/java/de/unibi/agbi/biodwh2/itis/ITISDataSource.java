@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.itis;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
@@ -35,6 +36,11 @@ public class ITISDataSource extends DataSource {
     @Override
     public String getId() {
         return "ITIS";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
     }
 
     @Override

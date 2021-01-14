@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.ncbi;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.ncbi.etl.NCBIGraphExporter;
 import de.unibi.agbi.biodwh2.ncbi.etl.NCBIMappingDescriber;
@@ -11,6 +12,11 @@ public class NCBIDataSource extends DataSource {
     @Override
     public String getId() {
         return "NCBI";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
     }
 
     @Override
