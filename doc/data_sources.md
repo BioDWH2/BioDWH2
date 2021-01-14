@@ -30,7 +30,9 @@
 
 ### DisGeNET
 
-> 
+> https://www.disgenet.org/legal
+
+> The DisGeNET database is made available under the Attribution-NonCommercial-ShareAlike 4.0 International License whose text can be found here. If DisGeNET is incorporated into other works, we ask that DisGeNET is properly cited (see the citation guidelines ), and that the version number of DisGeNET is clearly displayed.
 
 ### DrugBank
 
@@ -46,13 +48,17 @@
 
 ### GeneOntology
 
-> Gene Ontology Consortium data and data products are licensed under the [Creative Commons Attribution 4.0 Unported License](https://creativecommons.org/licenses/by/4.0/legalcode).
+> Gene Ontology Consortium data and data products are licensed under the [Creative Commons Attribution 4.0 Unported License](https://creativecommons.org/licenses/by/4.0/legalcode)
 
-> For citation information see http://geneontology.org/docs/go-citation-policy/.
+> For citation information see http://geneontology.org/docs/go-citation-policy/
 
 ### HGNC
 
-> 
+> https://www.genenames.org/about/
+
+> **Data release policy**: No restrictions are imposed on access to, or use of, the data provided by the HGNC, which are provided to enhance knowledge and encourage progress in the scientific community. The HGNC provide these data in good faith, but make no warranty, express or implied, nor assume any legal liability or responsibility for any purpose for which they are used.
+
+> **Guidelines on use of data in publications (copyright and licensing)**: It is a condition of our funding from NIH and the Wellcome Trust that the nomenclature and information we provide is freely available to all. Anyone may use the HGNC data, but we request that they reference the "HUGO Gene Nomenclature Committee at the European Bioinformatics Institute" and the website where possible.
 
 ### HPO
 
@@ -64,15 +70,21 @@
 
 ### MED-RT
 
-> 
+> https://evs.nci.nih.gov/ftp1/MED-RT/medrt_about.html
+
+> MED-RT has no copyright acknowledgement required. However, users must adhere to the UMLS license.
 
 ### Mondo
 
-> 
+> https://mondo.monarchinitiative.org
+
+> Mondo Disease Ontology is licensed under the Creative Commons Attribution 3.0 Unported (CC BY 3.0)
 
 ### NDF-RT
 
-> 
+> https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/NDFRT/index.html
+
+> NDF-RT is made available via the UMLS. Users of all UMLS ontologies must abide by the terms of the UMLS license, available at https://uts.nlm.nih.gov/license.html
 
 ### PharmGKB
 
