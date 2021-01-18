@@ -210,4 +210,8 @@ public abstract class DataSource {
     public final Map<String, String> getProperties(final Workspace workspace) {
         return workspace.getConfiguration().getDataSourceProperties(getId());
     }
+
+    public final String getMetaGraphImageFilePath(final Workspace workspace) {
+        return Paths.get(workspace.getSourcesDirectory(), getId(), "meta-graph.png").toString();
+    }
 }

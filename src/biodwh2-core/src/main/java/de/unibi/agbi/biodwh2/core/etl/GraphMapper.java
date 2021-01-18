@@ -2,8 +2,10 @@ package de.unibi.agbi.biodwh2.core.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.graphics.MetaGraphImage;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +30,7 @@ public final class GraphMapper {
         try (final Graph graph = new Graph(graphFilePath, true)) {
             mapGraph(graph, dataSources);
             saveGraph(graph, outputGraphFilePath);
+            saveMetaGraph(graph, workspace.getMappedMetaGraphOutputFilePath());
         }
     }
 
@@ -219,5 +222,11 @@ public final class GraphMapper {
     private void saveGraph(final Graph graph, final String outputGraphFilePath) {
         final GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
         graphMLWriter.write(outputGraphFilePath, graph);
+    }
+
+    private void saveMetaGraph(final Graph graph, final String outputFilePath) {
+        final MetaGraph metaGraph = new MetaGraph(graph);
+        final MetaGraphImage image = new MetaGraphImage(metaGraph, 2048, 2048);
+        image.drawAndSaveImage(outputFilePath);
     }
 }

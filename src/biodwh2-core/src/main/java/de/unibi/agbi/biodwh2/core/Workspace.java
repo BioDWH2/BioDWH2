@@ -247,6 +247,10 @@ public final class Workspace {
         return Paths.get(getSourcesDirectory(), "mapped." + format.extension).toString();
     }
 
+    public String getMappedMetaGraphOutputFilePath() {
+        return Paths.get(getSourcesDirectory(), "mapped-meta-graph.png").toString();
+    }
+
     public void addDataSource(final String dataSourceId) {
         configuration.addDataSource(dataSourceId);
     }
