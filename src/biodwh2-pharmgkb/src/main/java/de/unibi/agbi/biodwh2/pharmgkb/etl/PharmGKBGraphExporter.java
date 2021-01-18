@@ -25,6 +25,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     static final String PATHWAY_LABEL = "Pathway";
     static final String CHEMICAL_LABEL = "Chemical";
     static final String PHENOTYPE_LABEL = "Phenotype";
+    static final String LITERATURE_LABEL = "Literature";
     private static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
     private static final String HAS_OCCURRENCE_LABEL = "HAS_OCCURRENCE";
     private static final String[] MERGE_HAPLOTYPE_NAME_PREFIXES = new String[]{
@@ -170,7 +171,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         LOGGER.info("Add Occurrences...");
         for (final Occurrence occurrence : occurrences) {
             final long nodeId;
-            if ("literature".equalsIgnoreCase(occurrence.sourceType))
+            if (LITERATURE_LABEL.equalsIgnoreCase(occurrence.sourceType))
                 nodeId = addLiteratureIfNotExists(graph, occurrence.sourceId, occurrence.sourceName);
             else if (PATHWAY_LABEL.equalsIgnoreCase(occurrence.sourceType))
                 nodeId = addPathwayIfNotExists(graph, occurrence.sourceId, occurrence.sourceName);
@@ -201,7 +202,11 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     private long addLiteratureIfNotExists(final Graph graph, final String id, final String name) {
         if (literatureIdNodeIdMap.containsKey(id))
             return literatureIdNodeIdMap.get(id);
-        final Node node = graph.addNode("Literature", ID_PROPERTY, id, "name", name);
+        final Node node;
+        if (name != null)
+            node = graph.addNode(LITERATURE_LABEL, ID_PROPERTY, id, "name", name);
+        else
+            node = graph.addNode(LITERATURE_LABEL, ID_PROPERTY, id);
         literatureIdNodeIdMap.put(id, node.getId());
         return node.getId();
     }
@@ -422,6 +427,10 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                     graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
                 }
             }
+            if (annotation.pmid != null) {
+                final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + annotation.pmid, null);
+                graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
+            }
             addVariantOrHaplotypeAssociations(graph, annotation.variant, node);
         }
     }
@@ -464,6 +473,10 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                     graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
                 }
             }
+            if (annotation.pmid != null) {
+                final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + annotation.pmid, null);
+                graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
+            }
             addVariantOrHaplotypeAssociations(graph, annotation.variant, node);
         }
     }
@@ -490,6 +503,10 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                     final Node studyParametersNode = graph.findNode("StudyParameters", ID_PROPERTY, studyParametersId);
                     graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
                 }
+            }
+            if (annotation.pmid != null) {
+                final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + annotation.pmid, null);
+                graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
             }
             addVariantOrHaplotypeAssociations(graph, annotation.variant, node);
         }
@@ -532,6 +549,12 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                         graph.addEdge(node, phenotypeNodeId, ASSOCIATED_WITH_LABEL);
                     else if (LOGGER.isWarnEnabled())
                         LOGGER.warn("Could not find disease '" + disease + "' from clinical annotation metadata");
+                }
+            }
+            if (metadata.pmids != null) {
+                for (final String pmid : metadata.pmids.split(";")) {
+                    final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + pmid, null);
+                    graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
                 }
             }
             if (metadata.genotypePhenotypesId != null) {
