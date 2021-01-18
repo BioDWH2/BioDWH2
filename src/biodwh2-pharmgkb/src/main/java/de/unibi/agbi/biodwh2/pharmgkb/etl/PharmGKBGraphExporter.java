@@ -27,6 +27,9 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     static final String PHENOTYPE_LABEL = "Phenotype";
     private static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
     private static final String HAS_OCCURRENCE_LABEL = "HAS_OCCURRENCE";
+    private static final String[] MERGE_HAPLOTYPE_NAME_PREFIXES = new String[]{
+            "Taiwan-Hakka", "Gifu-like", "Agrigento-like", "Dallas", "Panama' Sassari", "Cagliari", "Birmingham"
+    };
 
     private final Map<String, Long> accessionNodeIdMap = new HashMap<>();
     private final Map<String, Long> literatureIdNodeIdMap = new HashMap<>();
@@ -358,16 +361,38 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                 final Node phenotypeNode = graph.findNode(PHENOTYPE_LABEL, "name", phenotype);
                 graph.addEdge(node, phenotypeNode, ASSOCIATED_WITH_LABEL);
             }
-            for (final String variant : parseCommaSpaceStringArray(clinicalVariant.variant)) {
-                final long targetNodeId = variant.contains("rs") ? addVariantIfNotExists(graph, null, variant) :
-                                          addHaplotypeIfNotExists(graph, null, variant);
-                graph.addEdge(node, targetNodeId, ASSOCIATED_WITH_LABEL);
-            }
+            addVariantOrHaplotypeAssociations(graph, clinicalVariant.variant, node);
         }
     }
 
     private String[] parseStringArray(final String arrayString) {
         return arrayString != null ? arrayString.split("(?<=[^3]),(?=[^ ])") : new String[0];
+    }
+
+    private void addVariantOrHaplotypeAssociations(final Graph graph, final String variantsOrHaplotypes,
+                                                   final Node node) {
+        for (final String variant : parseVariantHaplotypeCommaSpaceStringArray(variantsOrHaplotypes)) {
+            final long targetNodeId;
+            if (variant.contains("rs"))
+                targetNodeId = addVariantIfNotExists(graph, null, variant);
+            else
+                targetNodeId = addHaplotypeIfNotExists(graph, null, variant);
+            graph.addEdge(node, targetNodeId, ASSOCIATED_WITH_LABEL);
+        }
+    }
+
+    private String[] parseVariantHaplotypeCommaSpaceStringArray(final String arrayString) {
+        final List<String> names = new ArrayList<>(Arrays.asList(parseCommaSpaceStringArray(arrayString)));
+        for (int i = names.size() - 1; i >= 1; i--) {
+            final String name = names.get(i);
+            for (final String prefix : MERGE_HAPLOTYPE_NAME_PREFIXES)
+                if (name.startsWith(prefix)) {
+                    names.set(i - 1, names.get(i - 1) + ", " + name);
+                    names.remove(i);
+                    break;
+                }
+        }
+        return names.toArray(new String[0]);
     }
 
     private String[] parseCommaSpaceStringArray(final String arrayString) {
@@ -397,12 +422,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                     graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
                 }
             }
-            for (String variant : parseCommaSpaceStringArray(annotation.variant)) {
-                variant = variant.trim();
-                final long targetNodeId = variant.contains("rs") ? addVariantIfNotExists(graph, null, variant) :
-                                          addHaplotypeIfNotExists(graph, null, variant);
-                graph.addEdge(node, targetNodeId, ASSOCIATED_WITH_LABEL);
-            }
+            addVariantOrHaplotypeAssociations(graph, annotation.variant, node);
         }
     }
 
@@ -444,12 +464,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                     graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
                 }
             }
-            for (String variant : parseCommaSpaceStringArray(annotation.variant)) {
-                variant = variant.trim();
-                final long targetNodeId = variant.contains("rs") ? addVariantIfNotExists(graph, null, variant) :
-                                          addHaplotypeIfNotExists(graph, null, variant);
-                graph.addEdge(node, targetNodeId, ASSOCIATED_WITH_LABEL);
-            }
+            addVariantOrHaplotypeAssociations(graph, annotation.variant, node);
         }
     }
 
@@ -476,12 +491,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                     graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
                 }
             }
-            for (String variant : parseCommaSpaceStringArray(annotation.variant)) {
-                variant = variant.trim();
-                final long targetNodeId = variant.contains("rs") ? addVariantIfNotExists(graph, null, variant) :
-                                          addHaplotypeIfNotExists(graph, null, variant);
-                graph.addEdge(node, targetNodeId, ASSOCIATED_WITH_LABEL);
-            }
+            addVariantOrHaplotypeAssociations(graph, annotation.variant, node);
         }
     }
 
@@ -491,20 +501,10 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         for (final ClinicalAnnotationMetadata metadata : clinicalAnnotationMetadata) {
             final Node node = createNodeFromModel(graph, metadata);
             if (metadata.location != null) {
-                boolean addAsProperty = false;
-                for (final String location : StringUtils.splitByWholeSeparator(metadata.location, ", ")) {
-                    if (location.contains(" "))
-                        addAsProperty = true;
-                    else {
-                        final long targetNodeId = location.contains("rs") ? addVariantIfNotExists(graph, null,
-                                                                                                  location) :
-                                                  addHaplotypeIfNotExists(graph, null, location);
-                        graph.addEdge(node, targetNodeId, "HAS_LOCATION");
-                    }
-                }
-                if (addAsProperty) {
-                    node.setProperty("location", metadata.location);
-                    graph.update(node);
+                for (final String location : parseVariantHaplotypeCommaSpaceStringArray(metadata.location)) {
+                    final long targetNodeId = location.contains("rs") ? addVariantIfNotExists(graph, null, location) :
+                                              addHaplotypeIfNotExists(graph, null, location);
+                    graph.addEdge(node, targetNodeId, "HAS_LOCATION");
                 }
             }
             if (metadata.gene != null) {
