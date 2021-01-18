@@ -1,25 +1,31 @@
 package de.unibi.agbi.biodwh2.core.model;
 
 public enum IdentifierType {
-    DUMMY("Dummy"),
-    HGNC_SYMBOL("HGNC_Symbol"),
-    HGNC_ID("HGNC"),
-    GENE_CARD("GeneCard"),
-    GEN_ATLAS("GenAtlas"),
+    CAS("CAS"),
+    CHEMSPIDER("ChemSpider"),
     DRUG_BANK("DrugBank"),
     DRUG_CENTRAL("DrugCentral"),
-    PHARM_GKB("PharmGKB"),
-    KEGG("KEGG"),
-    UNII("UNII"),
-    CAS("CAS"),
+    DUMMY("Dummy"),
     EUROPEAN_CHEMICALS_AGENCY_EC("ECA_EC"),
+    ENSEMBL_GENE_ID("ENSEMBL_Gene"),
+    GENE_CARD("GeneCard"),
+    GEN_ATLAS("GenAtlas"),
+    HGNC_SYMBOL("HGNC_Symbol"),
+    HGNC_ID("HGNC"),
+    ITIS_TAXON("ITIS_Taxon"),
+    KEGG("KEGG"),
     OMIM("OMIM"),
-    RX_NORM_CUI("RxNorm_CUI"),
+    PFAM("Pfam"),
+    PHARM_GKB("PharmGKB"),
     PUB_CHEM_COMPOUND("PubChem_CID"),
     PUB_CHEM_SUBSTANCE("PubChem_SID"),
+    PUBMED("PubMed"),
+    RX_NORM_CUI("RxNorm_CUI"),
+    SMP_DB_ID("SmallMoleculePathwayDB"),
     UMLS_CUI("UMLS_CUI"),
-    ITIS_TAXON("ITIS_Taxon"),
-    ENSEMBL_GENE_ID("ENSEMBL_Gene");
+    UNII("UNII"),
+    UNIPROT_ACC("UniProt_Accession"),
+    UNIPROTKB("UniProtKB");
 
     IdentifierType(final String prefix) {
         this.prefix = prefix;

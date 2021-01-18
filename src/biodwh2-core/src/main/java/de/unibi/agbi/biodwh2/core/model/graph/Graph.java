@@ -101,16 +101,21 @@ public final class Graph {
 
     public Node addNode(final String label, final String propertyKey, final Object propertyValue) {
         final Node n = new Node(label);
-        n.setProperty(propertyKey, propertyValue);
+        setPropertyIfNotNull(n, propertyKey, propertyValue);
         nodes.insert(n);
         return n;
+    }
+    public void setPropertyIfNotNull(Node node, String propertyKey, Object value){
+        if (value != null ){
+            node.setProperty(propertyKey, value);
+        }
     }
 
     public Node addNode(final String label, final String propertyKey1, final Object propertyValue1,
                         final String propertyKey2, final Object propertyValue2) {
         final Node n = new Node(label);
-        n.setProperty(propertyKey1, propertyValue1);
-        n.setProperty(propertyKey2, propertyValue2);
+        setPropertyIfNotNull(n, propertyKey1, propertyValue1);
+        setPropertyIfNotNull(n, propertyKey2, propertyValue2);
         nodes.insert(n);
         return n;
     }
@@ -119,9 +124,9 @@ public final class Graph {
                         final String propertyKey2, final Object propertyValue2, final String propertyKey3,
                         final Object propertyValue3) {
         final Node n = new Node(label);
-        n.setProperty(propertyKey1, propertyValue1);
-        n.setProperty(propertyKey2, propertyValue2);
-        n.setProperty(propertyKey3, propertyValue3);
+        setPropertyIfNotNull(n,propertyKey1, propertyValue1);
+        setPropertyIfNotNull(n,propertyKey2, propertyValue2);
+        setPropertyIfNotNull(n,propertyKey3, propertyValue3);
         nodes.insert(n);
         return n;
     }
@@ -130,10 +135,10 @@ public final class Graph {
                         final String propertyKey2, final Object propertyValue2, final String propertyKey3,
                         final Object propertyValue3, final String propertyKey4, final Object propertyValue4) {
         final Node n = new Node(label);
-        n.setProperty(propertyKey1, propertyValue1);
-        n.setProperty(propertyKey2, propertyValue2);
-        n.setProperty(propertyKey3, propertyValue3);
-        n.setProperty(propertyKey4, propertyValue4);
+        setPropertyIfNotNull(n,propertyKey1, propertyValue1);
+        setPropertyIfNotNull(n,propertyKey2, propertyValue2);
+        setPropertyIfNotNull(n,propertyKey3, propertyValue3);
+        setPropertyIfNotNull(n,propertyKey4, propertyValue4);
         nodes.insert(n);
         return n;
     }
@@ -141,7 +146,7 @@ public final class Graph {
     public Node addNode(final String label, final Map<String, Object> properties) {
         final Node n = new Node(label);
         for (Map.Entry<String, Object> entry : properties.entrySet())
-            n.setProperty(entry.getKey(), entry.getValue());
+            setPropertyIfNotNull(n,entry.getKey(), entry.getValue());
         nodes.insert(n);
         return n;
     }

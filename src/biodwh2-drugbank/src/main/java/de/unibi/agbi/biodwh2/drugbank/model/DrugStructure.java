@@ -27,4 +27,8 @@ public class DrugStructure {
     public DrugbankMetaboliteId drugbankId;
     @GraphProperty("name")
     public String name;
+    public String ruleOfFive;
+    public String ghoseFilter;
+    public String veberRule;
+    public String mddrLikeRule;
 }

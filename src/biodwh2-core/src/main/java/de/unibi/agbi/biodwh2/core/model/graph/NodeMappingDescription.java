@@ -6,16 +6,20 @@ import java.util.*;
 
 public final class NodeMappingDescription {
     public enum NodeType {
-        DUMMY,
-        UNKNOWN,
-        GENE,
-        DRUG,
         COMPOUND,
         DISEASE,
-        SIDE_EFFECT,
-        VARIANT,
+        DRUG,
+        DUMMY,
+        GENE,
         HAPLOTYPE,
-        PATHWAY
+        PATHWAY,
+        PROTEIN,
+        PUBLICATION,
+        SIDE_EFFECT,
+        UNKNOWN,
+        VARIANT
+
+
     }
 
     public NodeType type;

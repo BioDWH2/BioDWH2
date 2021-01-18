@@ -123,6 +123,10 @@ public class DrugBankParser extends Parser<DrugBankDataSource> {
         drug.drugbankId.value = entry.properties.get("DRUGBANK_ID");
         drug.drugbankId.primary = true;
         drug.name = entry.properties.get("GENERIC_NAME");
+        drug.ruleOfFive = entry.properties.get("JCHEM_RULE_OF_FIVE");
+        drug.ghoseFilter = entry.properties.get("JCHEM_GHOSE_FILTER");
+        drug.veberRule = entry.properties.get("JCHEM_VEBER_RULE");
+        drug.mddrLikeRule = entry.properties.get("JCHEM_MDDR_LIKE_RULE");
         return drug;
     }
 
@@ -155,6 +159,11 @@ public class DrugBankParser extends Parser<DrugBankDataSource> {
         metabolite.drugbankId.primary = true;
         metabolite.name = entry.properties.get("NAME");
         metabolite.unii = entry.properties.get("UNII");
+        metabolite.ruleOfFive = entry.properties.get("JCHEM_RULE_OF_FIVE");
+        metabolite.ghoseFilter = entry.properties.get("JCHEM_GHOSE_FILTER");
+        metabolite.veberRule = entry.properties.get("JCHEM_VEBER_RULE");
+        metabolite.mddrLikeRule = entry.properties.get("JCHEM_MDDR_LIKE_RULE");
+
         return metabolite;
     }
 }

@@ -27,6 +27,12 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         String description;
     }
 
+    private class MetaboliteTriple {
+        Long reactionsId;
+        String rightElementId;
+        String leftElementId;
+    }
+
     public DrugBankGraphExporter(final DrugBankDataSource dataSource) {
         super(dataSource);
     }
@@ -34,296 +40,284 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph g) {
         g.setNodeIndexPropertyKeys("id");
-        exportDrugStructures(g, dataSource.drugStructures);
         exportMetaboliteStructures(g, dataSource.metaboliteStructures);
         Hashtable<String, Node> drug_lookUp = new Hashtable<>();
+        Hashtable<String, Long> metabolite_lookUp = new Hashtable<>();
         Hashtable<String, Node> pathway_lookUp = new Hashtable<>();
         Hashtable<String, Node> organism_lookUp = new Hashtable<>();
         Hashtable<Object, Node> enzyme_lookUp = new Hashtable<>();
         Hashtable<Object, Node> carriers_lookUp = new Hashtable<>();
         Hashtable<Object, Node> transporters_lookUp = new Hashtable<>();
         Hashtable<Object, Node> referenceList_lookUp = new Hashtable<>();
-        Hashtable<Object, Node> reactionElement_lookUp = new Hashtable<>();
         Hashtable<String, Node> polypeptide_lookUp = new Hashtable<>();
         ArrayList<DrugInteractionTriple> drugInteractionCache = new ArrayList<>();
         ArrayList<PathwayDrugTriple> pathwayDrugCache = new ArrayList<>();
+        ArrayList<MetaboliteTriple> metaboliteCache = new ArrayList<>();
         ArrayList<Drug> drugs = ((DrugBankDataSource) dataSource).drugBankData.drugs;
+        ArrayList<MetaboliteStructure> metaboliteStructures = (ArrayList<MetaboliteStructure>) dataSource.metaboliteStructures;
+        int metaboliteCounter = 1;
+        int totalMetabolites = metaboliteStructures.size();
+        for (int metIndex = metaboliteStructures.size() - 1; metIndex >= 0; metIndex--) {
+            if (metaboliteCounter % 250 == 0) {
+                System.out.println("Exporting metabolite " + metaboliteCounter + " of " + totalMetabolites);
+                System.out.println("METindex: " + metIndex);
+            }
+            metaboliteCounter++;
+            MetaboliteStructure metabolite = metaboliteStructures.get(metIndex);
+            Node metaboliteNode = g.addNode("Metabolite", "name", metabolite.name, "inchi_id", metabolite.inchiId,
+                                            "inchi_key", metabolite.inchiKey);
+            setPropertyIfNotNull(metaboliteNode, "drugbank_id", metabolite.drugbankId.value);
+            setPropertyIfNotNull(metaboliteNode, "database_id", metabolite.databaseId);
+            setPropertyIfNotNull(metaboliteNode, "database_name", metabolite.databaseName);
+            setPropertyIfNotNull(metaboliteNode, "exact_mass", metabolite.exactMass);
+            setPropertyIfNotNull(metaboliteNode, "formula", metabolite.formula);
+            setPropertyIfNotNull(metaboliteNode, "iupac", metabolite.iupac);
+            setPropertyIfNotNull(metaboliteNode, "molecular_weight", metabolite.molecularWeight);
+            setPropertyIfNotNull(metaboliteNode, "smiles", metabolite.smiles);
+            setPropertyIfNotNull(metaboliteNode, "traditional_iupac", metabolite.traditionalIupac);
+            setPropertyIfNotNull(metaboliteNode, "unii", metabolite.unii);
+            setPropertyIfNotNull(metaboliteNode, "rule_of_five", metabolite.ruleOfFive);
+            setPropertyIfNotNull(metaboliteNode, "ghose_filter", metabolite.ghoseFilter);
+            setPropertyIfNotNull(metaboliteNode, "veber_rule", metabolite.veberRule);
+            setPropertyIfNotNull(metaboliteNode, "mddr_like_rule", metabolite.mddrLikeRule);
+            g.update(metaboliteNode);
+            metabolite_lookUp.put(metabolite.drugbankId.value, metaboliteNode.getId());
+        }
+        int total = drugs.size();
+        int counter = 1;
         for (int drugIndex = drugs.size() - 1; drugIndex >= 0; drugIndex--) {
+            if (counter % 250 == 0) {
+                System.out.println("Exporting drug " + counter + " of " + total);
+                System.out.println("drugindex: " + drugIndex);
+            }
+            counter++;
+            if (counter > 4000) {
+                break;
+            }
             Drug drug = drugs.get(drugIndex);
-            Node drugNode = createNode("Drug");
+            Node drugNode = g.addNode("Drug", "name", drug.name, "description", drug.description, "group",
+                                      drug.groups.toString());
             drug_lookUp.put(drug.drugbankIds.get(0).value, drugNode);
             for (int i = 0; i < drug.drugbankIds.size(); i++) {
-                if (drug.drugbankIds.get(i).primary == true) {
-                    drugNode.setProperty("drugbank_id", drug.drugbankIds.get(i).value);
+                if (drug.drugbankIds.get(i).primary) {
+                    setPropertyIfNotNull(drugNode, "drugbank_id", drug.drugbankIds.get(i).value);
                 }
             }
-            drugNode.setProperty("name", drug.name);
-            drugNode.setProperty("description", drug.description);
-            drugNode.setProperty("group", drug.groups.toString());
             //Chemical Property
-            Node chemicalPropertyNode = createNode("Chemical Property");
-            chemicalPropertyNode.setProperty("cas-number", drug.casNumber);
-            chemicalPropertyNode.setProperty("unii", drug.unii);
-            chemicalPropertyNode.setProperty("average-mass", drug.averageMass);
-            chemicalPropertyNode.setProperty("monoisotopic-mass", drug.monoisotopicMass);
-            chemicalPropertyNode.setProperty("state", drug.state);
-            chemicalPropertyNode.setProperty("synthesis-reference", drug.synthesisReference);
-            g.addNode(chemicalPropertyNode);
-            g.addEdge(new Edge(drugNode, chemicalPropertyNode, "HAS_CHEMICAL_PROPERTY"));
+            Node chemicalPropertyNode = g.addNode("Chemical_Property", "cas_number", drug.casNumber, "unii", drug.unii,
+                                                  "average_mass", drug.averageMass);
+            setPropertyIfNotNull(chemicalPropertyNode, "monoisotopic_mass", drug.monoisotopicMass);
+            if (drug.state != null) {
+                setPropertyIfNotNull(chemicalPropertyNode, "state", drug.state.toString());
+            }
+            setPropertyIfNotNull(chemicalPropertyNode, "synthesis_reference", drug.synthesisReference);
+            g.update(chemicalPropertyNode);
+            g.addEdge(drugNode, chemicalPropertyNode, "HAS_CHEMICAL_PROPERTY");
             //Pharmacology
-            Node pharmacologyNode = createNode("Pharmacology");
-            pharmacologyNode.setProperty("mechanism-of-action", drug.mechanismOfAction);
-            pharmacologyNode.setProperty("toxicity", drug.toxicity);
-            pharmacologyNode.setProperty("metabolism", drug.metabolism);
-            pharmacologyNode.setProperty("absorption", drug.absorption);
-            pharmacologyNode.setProperty("indication", drug.indication);
-            pharmacologyNode.setProperty("pharmacodynamics", drug.pharmacodynamics);
-            pharmacologyNode.setProperty("half-life", drug.halfLife);
-            pharmacologyNode.setProperty("protein-binding", drug.proteinBinding);
-            pharmacologyNode.setProperty("route-of-elimination", drug.routeOfElimination);
-            pharmacologyNode.setProperty("volume-of-distribution", drug.volumeOfDistribution);
-            pharmacologyNode.setProperty("clearance", drug.clearance);
-            g.addNode(pharmacologyNode);
-            g.addEdge(new Edge(drugNode, pharmacologyNode, "HAS_PHARMACOLOGY"));
-
+            Node pharmacologyNode = g.addNode("Pharmacology", "mechanism_of_action", drug.mechanismOfAction, "toxicity",
+                                              drug.toxicity, "metabolism", drug.metabolism);
+            setPropertyIfNotNull(pharmacologyNode, "absorption", drug.absorption);
+            setPropertyIfNotNull(pharmacologyNode, "indication", drug.indication);
+            setPropertyIfNotNull(pharmacologyNode, "pharmacodynamics", drug.pharmacodynamics);
+            setPropertyIfNotNull(pharmacologyNode, "half_life", drug.halfLife);
+            setPropertyIfNotNull(pharmacologyNode, "protein_binding", drug.proteinBinding);
+            setPropertyIfNotNull(pharmacologyNode, "route_of_elimination", drug.routeOfElimination);
+            setPropertyIfNotNull(pharmacologyNode, "volume_of_distribution", drug.volumeOfDistribution);
+            setPropertyIfNotNull(pharmacologyNode, "clearance", drug.clearance);
+            g.update(pharmacologyNode);
+            g.addEdge(drugNode, pharmacologyNode, "HAS_PHARMACOLOGY");
             if (drug.atcCodes != null) {
                 ArrayList<String> atcCodes = new ArrayList<>();
                 for (int j = 0; j < drug.atcCodes.size(); j++) {
                     atcCodes.add(drug.atcCodes.get(j).code);
                 }
-                drugNode.setProperty("atc-code", atcCodes.toArray(new String[atcCodes.size()]));
+                setPropertyIfNotNull(drugNode, "atc_code", atcCodes.toArray(new String[atcCodes.size()]));
             }
-
-            drugNode.setProperty("ahfs-code", drug.ahfsCodes);
-            drugNode.setProperty("pdb-entries", drug.pdbEntries);
-            drugNode.setProperty("fda-label", drug.fdaLabel);
-            drugNode.setProperty("msds", drug.msds);
+            setPropertyIfNotNull(drugNode, "ahfs_code", drug.ahfsCodes);
+            setPropertyIfNotNull(drugNode, "pdb_entries", drug.pdbEntries);
+            setPropertyIfNotNull(drugNode, "fda_label", drug.fdaLabel);
+            setPropertyIfNotNull(drugNode, "msds", drug.msds);
             if (drug.externalIdentifiers != null) {
                 for (int j = 0; j < drug.externalIdentifiers.size(); j++) {
-                    Node externalIdentifierNode = createNode("External Identifier");
-                    externalIdentifierNode.setProperty("resource", drug.externalIdentifiers.get(j).resource);
-                    externalIdentifierNode.setProperty("identifier", drug.externalIdentifiers.get(j).identifier);
-                    g.addNode(externalIdentifierNode);
-                    g.addEdge(new Edge(drugNode, externalIdentifierNode, "HAS_EXTERNAL_IDENTIFIER"));
+                    Node externalIdentifierNode = g.addNode("External_Identifier", "resource",
+                                                            drug.externalIdentifiers.get(j).resource.value,
+                                                            "identifier", drug.externalIdentifiers.get(j).identifier);
+                    g.addEdge(drugNode, externalIdentifierNode, "HAS_EXTERNAL_IDENTIFIER");
                 }
             }
-            g.addNode(drugNode);
-
+            g.update(drugNode);
             //ReferenceList -> Article, Attachement, Link, Textbook
             if (drug.generalReferences != null) {
                 createReferenceListNode(g, referenceList_lookUp, drugNode, drug.generalReferences);
             }
-
             //Classification
-            if(drug.classification != null){
-                Node classificationNode = createNode("Classification");
-                classificationNode.setProperty("description", drug.classification.description);
-                classificationNode.setProperty("direct-parent", drug.classification.directParent);
-                classificationNode.setProperty("kingdom", drug.classification.kingdom);
-                classificationNode.setProperty("superclass", drug.classification.superclass);
-                classificationNode.setProperty("class", drug.classification.class_);
-                classificationNode.setProperty("subclass", drug.classification.subclass);
-                if(drug.classification.alternativeParents != null) {
+            if (drug.classification != null) {
+                Node classificationNode = g.addNode("Classification", "description", drug.classification.description,
+                                                    "direct_parent", drug.classification.directParent, "kingdom",
+                                                    drug.classification.kingdom);
+                setPropertyIfNotNull(classificationNode, "superclass", drug.classification.superclass);
+                setPropertyIfNotNull(classificationNode, "class", drug.classification.class_);
+                setPropertyIfNotNull(classificationNode, "subclass", drug.classification.subclass);
+                if (drug.classification.alternativeParents != null) {
                     String alternativeParents = String.join("; ", drug.classification.alternativeParents);
-                    classificationNode.setProperty("alternative-parents", alternativeParents);
+                    setPropertyIfNotNull(classificationNode, "alternative_parents", alternativeParents);
                 }
-                if(drug.classification.substituents != null) {
+                if (drug.classification.substituents != null) {
                     String substituents = String.join("; ", drug.classification.substituents);
-                    classificationNode.setProperty("substituents", substituents);
+                    setPropertyIfNotNull(classificationNode, "substituents", substituents);
                 }
-                g.addNode(classificationNode);
-                g.addEdge(new Edge(drugNode, classificationNode, "CLASSIFIED_AS"));
+                g.update(classificationNode);
+                g.addEdge(drugNode, classificationNode, "CLASSIFIED_AS");
             }
-
             //External Links
             if (drug.externalLinks != null) {
                 for (int i = 0; i < drug.externalLinks.size(); i++) {
-                    Node externalLinkNode = createNode("External Link");
-                    externalLinkNode.setProperty("external-links", drug.externalLinks.get(i).url);
-                    externalLinkNode.setProperty("external-links-resource", drug.externalLinks.get(i).resource.toString());
-                    g.addNode(externalLinkNode);
-                    g.addEdge(new Edge(drugNode, externalLinkNode, "HAS_EXTERNAL_LINKS"));
+                    Node externalLinkNode = g.addNode("External_Link", "external_links", drug.externalLinks.get(i).url,
+                                                      "external_links_resource",
+                                                      drug.externalLinks.get(i).resource.toString());
+                    g.addEdge(drugNode, externalLinkNode, "HAS_EXTERNAL_LINKS");
                 }
             }
-
             //Salts
             if (drug.salts != null) {
                 for (int i = 0; i < drug.salts.size(); i++) {
-                    Node saltNode = createNode("Salt");
-                    saltNode.setProperty("drugbank_id", drug.salts.get(i).drugbankId.value);
-                    saltNode.setProperty("name", drug.salts.get(i).name);
-                    saltNode.setProperty("unii", drug.salts.get(i).unii);
-                    saltNode.setProperty("cas-number", drug.salts.get(i).casNumber);
-                    saltNode.setProperty("inchikey", drug.salts.get(i).inchikey);
-                    saltNode.setProperty("average-mass", drug.salts.get(i).averageMass);
-                    saltNode.setProperty("monoisotopic-mass", drug.salts.get(i).monoisotopicMass);
-                    g.addNode(saltNode);
-                    g.addEdge(new Edge(drugNode, saltNode, "HAS_SALT"));
+                    Node saltNode = g.addNode("Salt", "drugbank_id", drug.salts.get(i).drugbankId.value, "name",
+                                              drug.salts.get(i).name, "unii", drug.salts.get(i).unii);
+                    setPropertyIfNotNull(saltNode, "cas_number", drug.salts.get(i).casNumber);
+                    setPropertyIfNotNull(saltNode, "inchikey", drug.salts.get(i).inchikey);
+                    setPropertyIfNotNull(saltNode, "average_mass", drug.salts.get(i).averageMass);
+                    setPropertyIfNotNull(saltNode, "monoisotopic_mass", drug.salts.get(i).monoisotopicMass);
+                    g.update(saltNode);
+                    g.addEdge(drugNode, saltNode, "HAS_SALT");
                 }
             }
-
             //Synonyms
             if (drug.synonyms != null) {
                 for (int i = 0; i < drug.synonyms.size(); i++) {
-                    Node synonymNode = createNode("Synonym");
-                    synonymNode.setProperty("synonym", drug.synonyms.get(i).value);
-                    synonymNode.setProperty("language", drug.synonyms.get(i).language);
-                    synonymNode.setProperty("coder", drug.synonyms.get(i).coder);
-                    g.addNode(synonymNode);
-                    g.addEdge(new Edge(drugNode, synonymNode, "HAS_SYNONYM"));
+                    Node synonymNode = g.addNode("Synonym", "synonym", drug.synonyms.get(i).value, "language",
+                                                 drug.synonyms.get(i).language, "coder", drug.synonyms.get(i).coder);
+                    g.addEdge(drugNode, synonymNode, "HAS_SYNONYM");
                 }
             }
-
             //International Brands
             if (drug.internationalBrands != null) {
                 for (int i = 0; i < drug.internationalBrands.size(); i++) {
-                    Node internationalBrandsNode = createNode("International Brand");
-                    internationalBrandsNode.setProperty("name", drug.internationalBrands.get(i).name);
-                    internationalBrandsNode.setProperty("company", drug.internationalBrands.get(i).company);
-                    g.addNode(internationalBrandsNode);
-                    g.addEdge(new Edge(drugNode, internationalBrandsNode, "HAS_BRAND"));
+                    Node internationalBrandsNode = g.addNode("International_Brand", "name",
+                                                             drug.internationalBrands.get(i).name, "company",
+                                                             drug.internationalBrands.get(i).company);
+                    g.addEdge(drugNode, internationalBrandsNode, "HAS_BRAND");
                 }
             }
-
             //Mixtures
             if (drug.mixtures != null) {
                 for (int i = 0; i < drug.mixtures.size(); i++) {
-                    Node mixtureNode = createNode("Mixture");
-                    mixtureNode.setProperty("name", drug.mixtures.get(i).name);
-                    mixtureNode.setProperty("ingredients", drug.mixtures.get(i).ingredients);
-                    g.addNode(mixtureNode);
-                    g.addEdge(new Edge(drugNode, mixtureNode, "IS_IN_MIXTURE"));
+                    Node mixtureNode = g.addNode("Mixture", "name", drug.mixtures.get(i).name, "ingredients",
+                                                 drug.mixtures.get(i).ingredients);
+                    g.addEdge(drugNode, mixtureNode, "IS_IN_MIXTURE");
                 }
             }
-
             //Pharmaeconomics -> Manufacturer, Packager, Product, Prices
-            Node pharmacoeconomicsNode = createNode("Pharmacoeconomics");
-            g.addNode(pharmacoeconomicsNode);
-            g.addEdge(new Edge(drugNode, pharmacoeconomicsNode, "HAS_PHARMACOECONOMICS"));
-
+            Node pharmacoeconomicsNode = g.addNode("Pharmacoeconomics");
+            g.addEdge(drugNode, pharmacoeconomicsNode, "HAS_PHARMACOECONOMICS");
             //Product
             if (drug.products != null) {
                 for (int i = 0; i < drug.products.size(); i++) {
-                    Node productNode = createNode("Product");
-                    productNode.setProperty("name", drug.products.get(i).name);
-                    productNode.setProperty("labeller", drug.products.get(i).labeller);
-                    productNode.setProperty("ndc-id", drug.products.get(i).ndcId);
-                    productNode.setProperty("ndc-product-code", drug.products.get(i).ndcProductCode);
-                    productNode.setProperty("dpd-id", drug.products.get(i).dpdId);
-                    productNode.setProperty("ema-product-code", drug.products.get(i).emaProductCode);
-                    productNode.setProperty("ema-ma-number", drug.products.get(i).emaMaNumber);
-                    productNode.setProperty("started-marketing-on", drug.products.get(i).startedMarketingOn);
-                    productNode.setProperty("ended-marketing-on", drug.products.get(i).endedMarketingOn);
-                    productNode.setProperty("dosage-form", drug.products.get(i).dosageForm);
-                    productNode.setProperty("strength", drug.products.get(i).strength);
-                    productNode.setProperty("route", drug.products.get(i).route);
-                    productNode.setProperty("fda-application-number", drug.products.get(i).fdaApplicationNumber);
-                    productNode.setProperty("generic", drug.products.get(i).generic);
-                    productNode.setProperty("over-the-counter", drug.products.get(i).overTheCounter);
-                    productNode.setProperty("approved", drug.products.get(i).approved);
-                    productNode.setProperty("country", drug.products.get(i).country);
-                    productNode.setProperty("source", drug.products.get(i).source);
-                    g.addNode(productNode);
-                    g.addEdge(new Edge(pharmacoeconomicsNode, productNode, "IS_PRODUCT"));
+                    Node productNode = g.addNode("Product", "name", drug.products.get(i).name, "labeller",
+                                                 drug.products.get(i).labeller, "ndc_id", drug.products.get(i).ndcId);
+                    setPropertyIfNotNull(productNode, "ndc_product_code", drug.products.get(i).ndcProductCode);
+                    setPropertyIfNotNull(productNode, "dpd_id", drug.products.get(i).dpdId);
+                    setPropertyIfNotNull(productNode, "ema_product_code", drug.products.get(i).emaProductCode);
+                    setPropertyIfNotNull(productNode, "ema_ma_number", drug.products.get(i).emaMaNumber);
+                    setPropertyIfNotNull(productNode, "started_marketing_on", drug.products.get(i).startedMarketingOn);
+                    setPropertyIfNotNull(productNode, "ended_marketing_on", drug.products.get(i).endedMarketingOn);
+                    setPropertyIfNotNull(productNode, "dosage_form", drug.products.get(i).dosageForm);
+                    setPropertyIfNotNull(productNode, "strength", drug.products.get(i).strength);
+                    setPropertyIfNotNull(productNode, "route", drug.products.get(i).route);
+                    setPropertyIfNotNull(productNode, "fda_application_number",
+                                         drug.products.get(i).fdaApplicationNumber);
+                    setPropertyIfNotNull(productNode, "generic", drug.products.get(i).generic);
+                    setPropertyIfNotNull(productNode, "over_the_counter", drug.products.get(i).overTheCounter);
+                    setPropertyIfNotNull(productNode, "approved", drug.products.get(i).approved);
+                    setPropertyIfNotNull(productNode, "country", drug.products.get(i).country.value);
+                    setPropertyIfNotNull(productNode, "source", drug.products.get(i).source.value);
+                    g.update(productNode);
+                    g.addEdge(pharmacoeconomicsNode, productNode, "IS_PRODUCT");
                 }
             }
-
             //Packagers
             if (drug.packagers != null) {
                 for (int i = 0; i < drug.packagers.size(); i++) {
-                    Node packagersNode = createNode("Packager");
-                    packagersNode.setProperty("name", drug.packagers.get(i).name);
-                    packagersNode.setProperty("url", drug.packagers.get(i).url);
-                    g.addNode(packagersNode);
-                    g.addEdge(new Edge(pharmacoeconomicsNode, packagersNode, "HAS_PACKAGER"));
+                    Node packagersNode = g.addNode("Packager", "name", drug.packagers.get(i).name, "url",
+                                                   drug.packagers.get(i).url);
+                    g.addEdge(pharmacoeconomicsNode, packagersNode, "HAS_PACKAGER");
                 }
             }
-
             //Manufacturers
             if (drug.manufacturers != null) {
                 for (int i = 0; i < drug.manufacturers.size(); i++) {
-                    Node manufacturersNode = createNode("Manufacturer");
-                    manufacturersNode.setProperty("name", drug.manufacturers.get(i).value);
-                    manufacturersNode.setProperty("url", drug.manufacturers.get(i).url);
-                    g.addNode(manufacturersNode);
-                    g.addEdge(new Edge(pharmacoeconomicsNode, manufacturersNode, "HAS_MANUFACTURER"));
+                    Node manufacturersNode = g.addNode("Manufacturer", "name", drug.manufacturers.get(i).value, "url",
+                                                       drug.manufacturers.get(i).url);
+                    g.addEdge(pharmacoeconomicsNode, manufacturersNode, "HAS_MANUFACTURER");
                 }
             }
-
             //Prices
             if (drug.prices != null) {
                 for (int i = 0; i < drug.prices.size(); i++) {
-                    Node pricesNode = createNode("Price");
-                    pricesNode.setProperty("description", drug.prices.get(i).description);
-                    pricesNode.setProperty("cost", drug.prices.get(i).cost.value);
-                    pricesNode.setProperty("currency", drug.prices.get(i).cost.currency);
-                    pricesNode.setProperty("unit", drug.prices.get(i).unit);
-                    g.addNode(pricesNode);
-                    g.addEdge(new Edge(pharmacoeconomicsNode, pricesNode, "COSTS"));
+                    Node pricesNode = g.addNode("Price", "description", drug.prices.get(i).description, "cost",
+                                                drug.prices.get(i).cost.value, "currency",
+                                                drug.prices.get(i).cost.currency);
+                    setPropertyIfNotNull(pricesNode, "unit", drug.prices.get(i).unit);
+                    g.update(pricesNode);
+                    g.addEdge(pharmacoeconomicsNode, pricesNode, "COSTS");
                 }
             }
-
             //Dosages
             if (drug.dosages != null) {
                 for (int i = 0; i < drug.dosages.size(); i++) {
-                    Node dosageNode = createNode("Dosage");
-                    dosageNode.setProperty("form", drug.dosages.get(i).form);
-                    dosageNode.setProperty("route", drug.dosages.get(i).route);
-                    dosageNode.setProperty("strength", drug.dosages.get(i).strength);
-                    g.addNode(dosageNode);
-                    g.addEdge(new Edge(pharmacoeconomicsNode, dosageNode, "HAS_DOSAGE"));
+                    Node dosageNode = g.addNode("Dosage", "form", drug.dosages.get(i).form, "route",
+                                                drug.dosages.get(i).route, "strength", drug.dosages.get(i).strength);
+                    g.addEdge(pharmacoeconomicsNode, dosageNode, "HAS_DOSAGE");
                 }
             }
-
             //Patents
             if (drug.patents != null) {
                 for (int i = 0; i < drug.patents.size(); i++) {
-                    Node patentNode = createNode("Patent");
-                    patentNode.setProperty("number", drug.patents.get(i).number);
-                    patentNode.setProperty("country", drug.patents.get(i).country);
-                    patentNode.setProperty("approved", drug.patents.get(i).approved);
-                    patentNode.setProperty("expires", drug.patents.get(i).expires);
-                    patentNode.setProperty("pediatric-extension", drug.patents.get(i).pediatricExtension);
-                    g.addNode(patentNode);
-                    g.addEdge(new Edge(pharmacoeconomicsNode, patentNode, "IS_PATENTED"));
+                    Node patentNode = g.addNode("Patent", "number", drug.patents.get(i).number, "country",
+                                                drug.patents.get(i).country, "approved", drug.patents.get(i).approved);
+                    setPropertyIfNotNull(patentNode, "expires", drug.patents.get(i).expires);
+                    setPropertyIfNotNull(patentNode, "pediatric_extension", drug.patents.get(i).pediatricExtension);
+                    g.update(patentNode);
+                    g.addEdge(pharmacoeconomicsNode, patentNode, "IS_PATENTED");
                 }
             }
-
             //Categories
             if (drug.categories != null) {
                 for (int i = 0; i < drug.categories.size(); i++) {
-                    Node categoryNode = createNode("Category");
-                    categoryNode.setProperty("category", drug.categories.get(i).category);
-                    categoryNode.setProperty("mesh-id", drug.categories.get(i).meshId);
-                    g.addNode(categoryNode);
-                    g.addEdge(new Edge(drugNode, categoryNode, "CATEGORIZED_IN"));
+                    Node categoryNode = g.addNode("Category", "category", drug.categories.get(i).category, "mesh_id",
+                                                  drug.categories.get(i).meshId);
+                    g.addEdge(drugNode, categoryNode, "CATEGORIZED_IN");
                 }
             }
-
             //calculated Properties
             if (drug.calculatedProperties != null) {
                 for (int i = 0; i < drug.calculatedProperties.size(); i++) {
-                    Node calculatedPropertyNode = createNode("Calculated Property");
-                    calculatedPropertyNode.setProperty("value", drug.calculatedProperties.get(i).value);
-                    calculatedPropertyNode.setProperty("kind", drug.calculatedProperties.get(i).kind.toString());
-                    calculatedPropertyNode.setProperty("source", drug.calculatedProperties.get(i).source.toString());
-                    g.addNode(calculatedPropertyNode);
-                    g.addEdge(new Edge(drugNode, calculatedPropertyNode, "HAS_CALCULATED_PROPERTY"));
+                    Node calculatedPropertyNode = g.addNode("Calculated_Property", "value",
+                                                            drug.calculatedProperties.get(i).value, "kind",
+                                                            drug.calculatedProperties.get(i).kind.toString(), "source",
+                                                            drug.calculatedProperties.get(i).source.toString());
+                    g.addEdge(drugNode, calculatedPropertyNode, "HAS_CALCULATED_PROPERTY");
                 }
             }
-
             //experimental Properties
             if (drug.experimentalProperties != null) {
                 for (int i = 0; i < drug.experimentalProperties.size(); i++) {
-                    Node experimentalPropertyNode = createNode("Experimental Property");
-                    experimentalPropertyNode.setProperty("value", drug.experimentalProperties.get(i).value);
-                    experimentalPropertyNode.setProperty("kind", drug.experimentalProperties.get(i).kind.toString());
-                    experimentalPropertyNode.setProperty("source", drug.experimentalProperties.get(i).source);
-                    g.addNode(experimentalPropertyNode);
-                    g.addEdge(new Edge(drugNode, experimentalPropertyNode, "HAS_EXPERIMENTAL_PROPERTY"));
+                    Node experimentalPropertyNode = g.addNode("Experimental_Property", "value",
+                                                              drug.experimentalProperties.get(i).value, "kind",
+                                                              drug.experimentalProperties.get(i).kind.toString(),
+                                                              "source", drug.experimentalProperties.get(i).source);
+                    g.addEdge(drugNode, experimentalPropertyNode, "HAS_EXPERIMENTAL_PROPERTY");
                 }
             }
-
             //Drug Interactions
             if (drug.drugInteractions != null) {
                 for (int i = 0; i < drug.drugInteractions.size(); i++) {
@@ -334,16 +328,12 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
                     drugInteractionCache.add(triple);
                 }
             }
-
             //affected Organisms
             if (drug.affectedOrganisms != null) {
                 String organismNames = String.join("; ", drug.affectedOrganisms);
-                Node affectedOrganismNode = createNode("Affected Organism");
-                affectedOrganismNode.setProperty("names", organismNames);
-                g.addNode(affectedOrganismNode);
-                g.addEdge(new Edge(drugNode, affectedOrganismNode, "AFFECTS_ORG"));
+                Node affectedOrganismNode = g.addNode("Affected_Organism", "names", organismNames);
+                g.addEdge(drugNode, affectedOrganismNode, "AFFECTS_ORG");
             }
-
             //Pathways->Pathway-Enzymes
             if (drug.pathways != null) {
                 for (int i = 0; i < drug.pathways.size(); i++) {
@@ -355,61 +345,61 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
 
                     if (pathway_lookUp.containsKey(drug.pathways.get(i).smpdbId)) {
                         Pathway drugPathway = drug.pathways.get(i);
-                        g.addEdge(new Edge(drugNode, pathway_lookUp.get(drugPathway.smpdbId), "IS_IN_PATHWAY"));
+                        g.addEdge(drugNode, pathway_lookUp.get(drugPathway.smpdbId), "IS_IN_PATHWAY");
 
                     } else {
-                        Node pathwaysNode = createNode("Pathway");
+                        Node pathwaysNode = g.addNode("Pathway", "name", drug.pathways.get(i).name, "smpdbId",
+                                                      drug.pathways.get(i).smpdbId, "category",
+                                                      drug.pathways.get(i).category);
                         pathway_lookUp.put(drug.pathways.get(i).smpdbId, pathwaysNode);
-                        pathwaysNode.setProperty("name", drug.pathways.get(i).name);
-                        pathwaysNode.setProperty("smpdbId", drug.pathways.get(i).smpdbId);
-                        pathwaysNode.setProperty("category", drug.pathways.get(i).category);
-                        g.addNode(pathwaysNode);
-                        g.addEdge(new Edge(drugNode, pathwaysNode, "IS_IN_PATHWAY"));
+                        g.addEdge(drugNode, pathwaysNode, "IS_IN_PATHWAY");
                         if (drug.pathways.get(i).enzymes != null) {
                             String enzymes = String.join("; ", drug.pathways.get(i).enzymes);
-                            pathwaysNode.setProperty("enzymes", enzymes);
+                            setPropertyIfNotNull(pathwaysNode, "enzymes", enzymes);
                         }
                     }
                 }
             }
-
             //Food Interactions
             if (drug.foodInteractions != null) {
                 for (int i = 0; i < drug.foodInteractions.size(); i++) {
                     String foodInteractions = String.join("; ", drug.foodInteractions.get(i));
-                    Node foodInteractionsNode = createNode("Food Interaction");
-                    foodInteractionsNode.setProperty("foodInteraction", foodInteractions);
-                    g.addNode(foodInteractionsNode);
-                    g.addEdge(new Edge(drugNode, foodInteractionsNode, "HAS_FOOD_INTERACTION"));
+                    Node foodInteractionsNode = g.addNode("Food_Interaction", "food_interaction", foodInteractions);
+                    g.addEdge(drugNode, foodInteractionsNode, "HAS_FOOD_INTERACTION");
                 }
             }
-
+            //Sequences
+            if (drug.sequences != null) {
+                for (int i = 0; i < drug.sequences.size(); i++) {
+                    Node sequencesNode = g.addNode("Sequence", "value", drug.sequences.get(i).value, "format",
+                                                   drug.sequences.get(i).format);
+                    g.addEdge(drugNode, sequencesNode, "HAS_SEQUENCE");
+                }
+            }
             //Targets->Polypeptide->Synonyms, ExternalIdentifiers, Pfams, GO-Classifiers, Organism
             if (drug.targets != null) {
                 for (int i = 0; i < drug.targets.size(); i++) {
                     Target drugtarget = drug.targets.get(i);
-                    Node targetNode = createNode("Target");
-                    targetNode.setProperty("position", drugtarget.position);
-                    targetNode.setProperty("id", drugtarget.id);
-                    targetNode.setProperty("name", drugtarget.name);
-                    targetNode.setProperty("organism", drugtarget.organism);
-                    targetNode.setProperty("knownAction", drugtarget.knownAction.value);
+                    Node targetNode = g.addNode("Target", "position", drugtarget.position, "id", drugtarget.id, "name",
+                                                drugtarget.name);
+                    setPropertyIfNotNull(targetNode, "organism", drugtarget.organism);
+                    setPropertyIfNotNull(targetNode, "known_action", drugtarget.knownAction.value);
                     if (drugtarget.actions != null) {
                         String actions = String.join("; ", drugtarget.actions);
-                        targetNode.setProperty("actions", actions);
+                        setPropertyIfNotNull(targetNode, "actions", actions);
                     }
 
                     createReferenceListNode(g, referenceList_lookUp, targetNode, drugtarget.references);
-                    if(drugtarget.polypeptide != null) {
+                    if (drugtarget.polypeptide != null) {
                         if (polypeptide_lookUp.containsKey(drugtarget.polypeptide.id)) {
-                            g.addEdge(new Edge(drugNode, polypeptide_lookUp.get(drugtarget.polypeptide.id),
-                                               "IS_POLYPEPTIDE"));
+                            g.addEdge(drugNode, polypeptide_lookUp.get(drugtarget.polypeptide.id), "IS_POLYPEPTIDE");
                         } else {
-                            createPolypeptideNode(g, organism_lookUp, polypeptide_lookUp, targetNode, drugtarget.polypeptide);
+                            createPolypeptideNode(g, organism_lookUp, polypeptide_lookUp, targetNode,
+                                                  drugtarget.polypeptide);
                         }
                     }
-                    g.addNode(targetNode);
-                    g.addEdge(new Edge(drugNode, targetNode, "TARGETS"));
+                    g.update(targetNode);
+                    g.addEdge(drugNode, targetNode, "TARGETS");
                 }
             }
             //Interactant -> Carrier, Enzyme, Target, Transporter
@@ -418,30 +408,29 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
                 for (int i = 0; i < drug.enzymes.size(); i++) {
                     Enzyme drugEnzyme = drug.enzymes.get(i);
                     if (enzyme_lookUp.containsKey(drugEnzyme.id)) {
-                        g.addEdge(new Edge(drugNode, enzyme_lookUp.get(drugEnzyme.id), "IS_ENZYME"));
+                        g.addEdge(drugNode, enzyme_lookUp.get(drugEnzyme.id), "IS_ENZYME");
                     } else {
-                        Node enzymeNode = createNode("Enzyme");
-                        enzymeNode.setProperty("position", drugEnzyme.position);
-                        enzymeNode.setProperty("inhibitionStrength", drugEnzyme.inhibitionStrength);
-                        enzymeNode.setProperty("inductionStrength", drugEnzyme.inductionStrength);
-                        enzymeNode.setProperty("id", drugEnzyme.id);
-                        enzymeNode.setProperty("name", drugEnzyme.name);
-                        enzymeNode.setProperty("organism", drugEnzyme.organism);
+                        Node enzymeNode = g.addNode("Enzyme", "id", drugEnzyme.id, "name", drugEnzyme.name, "organism",
+                                                    drugEnzyme.organism);
+                        setPropertyIfNotNull(enzymeNode, "position", drugEnzyme.position);
+                        setPropertyIfNotNull(enzymeNode, "inhibition_strength", drugEnzyme.inhibitionStrength);
+                        setPropertyIfNotNull(enzymeNode, "induction_strength", drugEnzyme.inductionStrength);
                         if (drugEnzyme.actions != null) {
                             String actions = String.join("; ", drugEnzyme.actions);
-                            enzymeNode.setProperty("actions", actions);
+                            setPropertyIfNotNull(enzymeNode, "actions", actions);
                         }
                         createReferenceListNode(g, referenceList_lookUp, enzymeNode, drugEnzyme.references);
-                        if(drugEnzyme.polypeptide != null) {
+                        if (drugEnzyme.polypeptide != null) {
                             if (polypeptide_lookUp.containsKey(drugEnzyme.polypeptide.id)) {
-                                g.addEdge(new Edge(drugNode, polypeptide_lookUp.get(drugEnzyme.polypeptide.id),
-                                                   "IS_POLYPEPTIDE"));
+                                g.addEdge(drugNode, polypeptide_lookUp.get(drugEnzyme.polypeptide.id),
+                                          "IS_POLYPEPTIDE");
                             } else {
-                                createPolypeptideNode(g, organism_lookUp, polypeptide_lookUp, enzymeNode, drugEnzyme.polypeptide);
+                                createPolypeptideNode(g, organism_lookUp, polypeptide_lookUp, enzymeNode,
+                                                      drugEnzyme.polypeptide);
                             }
                         }
-                        g.addNode(enzymeNode);
-                        g.addEdge(new Edge(drugNode, enzymeNode, "TARGETS"));
+                        g.update(enzymeNode);
+                        g.addEdge(drugNode, enzymeNode, "TARGETS");
                     }
                 }
             }
@@ -450,28 +439,27 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
                 for (int i = 0; i < drug.carriers.size(); i++) {
                     Carrier drugCarrier = drug.carriers.get(i);
                     if (carriers_lookUp.containsKey(drugCarrier.id)) {
-                        g.addEdge(new Edge(drugNode, carriers_lookUp.get(drugCarrier.id), "IS_CARRIER"));
+                        g.addEdge(drugNode, carriers_lookUp.get(drugCarrier.id), "IS_CARRIER");
                     } else {
-                        Node carriersNode = createNode("Carrier");
-                        carriersNode.setProperty("position", drugCarrier.position);
-                        carriersNode.setProperty("id", drugCarrier.id);
-                        carriersNode.setProperty("name", drugCarrier.name);
-                        carriersNode.setProperty("organism", drugCarrier.organism);
+                        Node carriersNode = g.addNode("Carrier", "id", drugCarrier.id, "name", drugCarrier.name,
+                                                      "position", drugCarrier.position);
+                        setPropertyIfNotNull(carriersNode, "organism", drugCarrier.organism);
                         if (drugCarrier.actions != null) {
                             String actions = String.join("; ", drugCarrier.actions);
-                            carriersNode.setProperty("actions", actions);
+                            setPropertyIfNotNull(carriersNode, "actions", actions);
                         }
                         createReferenceListNode(g, referenceList_lookUp, carriersNode, drugCarrier.references);
-                        if(drugCarrier.polypeptide != null) {
+                        if (drugCarrier.polypeptide != null) {
                             if (polypeptide_lookUp.containsKey(drugCarrier.polypeptide.id)) {
-                                g.addEdge(new Edge(drugNode, polypeptide_lookUp.get(drugCarrier.polypeptide.id),
-                                                   "IS_POLYPEPTIDE"));
+                                g.addEdge(drugNode, polypeptide_lookUp.get(drugCarrier.polypeptide.id),
+                                          "IS_POLYPEPTIDE");
                             } else {
-                                createPolypeptideNode(g, organism_lookUp, polypeptide_lookUp, carriersNode, drugCarrier.polypeptide);
+                                createPolypeptideNode(g, organism_lookUp, polypeptide_lookUp, carriersNode,
+                                                      drugCarrier.polypeptide);
                             }
                         }
-                        g.addNode(carriersNode);
-                        g.addEdge(new Edge(drugNode, carriersNode, "TARGETS"));
+                        g.update(carriersNode);
+                        g.addEdge(drugNode, carriersNode, "TARGETS");
                     }
                 }
             }
@@ -480,141 +468,106 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
                 for (int i = 0; i < drug.transporters.size(); i++) {
                     Transporter drugTransporter = drug.transporters.get(i);
                     if (transporters_lookUp.containsKey(drugTransporter.id)) {
-                        g.addEdge(new Edge(drugNode, transporters_lookUp.get(drugTransporter.id), "IS_TRANSPORTER"));
+                        g.addEdge(drugNode, transporters_lookUp.get(drugTransporter.id), "IS_TRANSPORTER");
                     } else {
-                        Node transportersNode = createNode("Transporter");
-                        transportersNode.setProperty("position", drugTransporter.position);
-                        transportersNode.setProperty("id", drugTransporter.id);
-                        transportersNode.setProperty("name", drugTransporter.name);
-                        transportersNode.setProperty("organism", drugTransporter.organism);
+                        Node transportersNode = g.addNode("Transporter", "id", drugTransporter.id, "name",
+                                                          drugTransporter.name, "organism", drugTransporter.organism);
+                        setPropertyIfNotNull(transportersNode, "position", drugTransporter.position);
                         if (drugTransporter.actions != null) {
                             String actions = String.join("; ", drugTransporter.actions);
-                            transportersNode.setProperty("actions", actions);
+                            setPropertyIfNotNull(transportersNode, "actions", actions);
                         }
                         createReferenceListNode(g, referenceList_lookUp, transportersNode, drugTransporter.references);
-                        if(drugTransporter.polypeptide != null) {
+                        if (drugTransporter.polypeptide != null) {
                             if (polypeptide_lookUp.containsKey(drugTransporter.polypeptide.id)) {
-                                g.addEdge(new Edge(drugNode, polypeptide_lookUp.get(drugTransporter.polypeptide.id),
-                                                   "IS_POLYPEPTIDE"));
+                                g.addEdge(drugNode, polypeptide_lookUp.get(drugTransporter.polypeptide.id),
+                                          "IS_POLYPEPTIDE");
                             } else {
-                                createPolypeptideNode(g, organism_lookUp, polypeptide_lookUp, transportersNode, drugTransporter.polypeptide);
+                                createPolypeptideNode(g, organism_lookUp, polypeptide_lookUp, transportersNode,
+                                                      drugTransporter.polypeptide);
                             }
                         }
-                        g.addNode(transportersNode);
-                        g.addEdge(new Edge(drugNode, transportersNode, "TARGETS"));
+                        g.update(transportersNode);
+                        g.addEdge(drugNode, transportersNode, "TARGETS");
                     }
                 }
             }
-            //Sequences
-            if (drug.sequences != null) {
-                for (int i = 0; i < drug.sequences.size(); i++) {
-                    Node sequencesNode = createNode("Sequence");
-                    sequencesNode.setProperty("value", drug.sequences.get(i).value);
-                    sequencesNode.setProperty("format", drug.sequences.get(i).format);
-                    g.addNode(sequencesNode);
-                    g.addEdge(new Edge(drugNode, sequencesNode, "HAS_SEQUENCE"));
-                }
-            }
-            //Reactions: Drug -> Reaction -> Reaction-Enzyme -> Metabolite (dummy)
+            //Reactions: Drug -> Reaction -> Reaction-Enzyme -> Metabolite
             if (drug.reactions != null) {
                 for (int i = 0; i < drug.reactions.size(); i++) {
-                    Node reactionsNode = createNode("Reaction");
-                    reactionsNode.setProperty("sequence", drug.reactions.get(i).sequence);
-                    ReactionElement leftElement = drug.reactions.get(i).leftElement;
-                    if (reactionElement_lookUp.containsKey(leftElement.drugbankId)) {
-                        Edge leftElementEdge = new Edge(drugNode, reactionsNode, "SUBSTRATE_IN");
-                        g.addEdge(leftElementEdge);
-                    } else {
-                        Edge leftElementEdge = new Edge(drugNode, reactionsNode, "SUBSTRATE_IN");
-                        g.addEdge(leftElementEdge);
-                        leftElementEdge.setProperty("name", drug.reactions.get(i).leftElement.name);
-                    }
-
-                    ReactionElement rightElement = drug.reactions.get(i).rightElement;
-                    if (!reactionElement_lookUp.containsKey(rightElement.drugbankId)) {
-                        Node metaboliteNodeDummy = createNode("Metabolite Dummy");
-                        metaboliteNodeDummy.setProperty("I'm a dummy", rightElement.name);
-                        g.addNode(metaboliteNodeDummy);
-                        Edge rightElementEdge = new Edge(reactionsNode, metaboliteNodeDummy, "HAS_PRODUCT");
-                        g.addEdge(rightElementEdge);
-                        rightElementEdge.setProperty("name", drug.reactions.get(i).rightElement.name);
-
-                    } else {
-                        g.addEdge(new Edge(reactionsNode, reactionElement_lookUp.get(rightElement.drugbankId), "RIGHT_ELEMENT"));
-                        Node metaboliteNodeDummy = createNode("Metabolite Dummy");
-                        Edge rightElementEdge = new Edge(reactionsNode, metaboliteNodeDummy, "HAS_PRODUCT");
-                        rightElementEdge.setProperty("name", drug.reactions.get(i).rightElement.name);
-                        g.addEdge(rightElementEdge);
-
-                    }
+                    Node reactionsNode = g.addNode("Reaction");
+                    setPropertyIfNotNull(reactionsNode, "sequence", drug.reactions.get(i).sequence);
+                    MetaboliteTriple triple = new MetaboliteTriple();
+                    triple.reactionsId = reactionsNode.getId();
+                    triple.rightElementId = drug.reactions.get(i).rightElement.drugbankId;
+                    triple.leftElementId = drug.reactions.get(i).leftElement.drugbankId;
+                    metaboliteCache.add(triple);
 
                     if (drug.reactions.get(i).enzymes != null) {
                         for (int j = 0; j < drug.reactions.get(i).enzymes.size(); j++) {
-                            Node reactionEnzymeNode = createNode("Reaction Enzyme");
-                            reactionEnzymeNode.setProperty("drugbankId", drug.reactions.get(i).enzymes.get(j).drugbankId);
-                            reactionEnzymeNode.setProperty("name", drug.reactions.get(i).enzymes.get(j).name);
-                            reactionEnzymeNode.setProperty("uniProtId", drug.reactions.get(i).enzymes.get(j).uniprotId);
-                            g.addNode(reactionEnzymeNode);
-                            g.addEdge(new Edge(reactionEnzymeNode, reactionsNode, "IS_INFERRED_TO"));
+                            Node reactionEnzymeNode = g.addNode("Reaction_Enzyme");
+                            setPropertyIfNotNull(reactionEnzymeNode, "drugbank_id", drug.reactions.get(i).enzymes
+                                    .get(j).drugbankId);
+                            setPropertyIfNotNull(reactionEnzymeNode, "name", drug.reactions.get(i).enzymes.get(j).name);
+                            setPropertyIfNotNull(reactionEnzymeNode, "uniprot_id", drug.reactions.get(i).enzymes
+                                    .get(j).uniprotId);
+                            g.update(reactionEnzymeNode);
+                            g.addEdge(reactionEnzymeNode, reactionsNode, "IS_INFERRED_TO");
                         }
                     }
-                    g.addNode(reactionsNode);
+                    g.update(reactionsNode);
                 }
             }
-
             //SNP-Effects
             if (drug.snpEffects != null) {
                 for (int i = 0; i < drug.snpEffects.size(); i++) {
-                    Node snpEffectsNode = createNode("SNP Effect");
-                    snpEffectsNode.setProperty("proteinName", drug.snpEffects.get(i).proteinName);
-                    snpEffectsNode.setProperty("geneSymbol", drug.snpEffects.get(i).geneSymbol);
-                    snpEffectsNode.setProperty("uniprotId", drug.snpEffects.get(i).uniprotId);
-                    snpEffectsNode.setProperty("rsId", drug.snpEffects.get(i).rsId);
-                    snpEffectsNode.setProperty("allele", drug.snpEffects.get(i).allele);
-                    snpEffectsNode.setProperty("definingChange", drug.snpEffects.get(i).definingChange);
-                    snpEffectsNode.setProperty("description", drug.snpEffects.get(i).description);
-                    snpEffectsNode.setProperty("pubmedId", drug.snpEffects.get(i).pubmedId);
-                    g.addNode(snpEffectsNode);
-                    g.addEdge(new Edge(drugNode, snpEffectsNode, "HAS_SNP_EFFECT"));
+                    Node snpEffectsNode = g.addNode("SNP_Effect", "protein_name", drug.snpEffects.get(i).proteinName,
+                                                    "gene_symbol", drug.snpEffects.get(i).geneSymbol, "uniprot_id",
+                                                    drug.snpEffects.get(i).uniprotId);
+                    setPropertyIfNotNull(snpEffectsNode, "rs_id", drug.snpEffects.get(i).rsId);
+                    setPropertyIfNotNull(snpEffectsNode, "allele", drug.snpEffects.get(i).allele);
+                    setPropertyIfNotNull(snpEffectsNode, "defining_change", drug.snpEffects.get(i).definingChange);
+                    setPropertyIfNotNull(snpEffectsNode, "description", drug.snpEffects.get(i).description);
+                    setPropertyIfNotNull(snpEffectsNode, "pubmed_id", drug.snpEffects.get(i).pubmedId);
+                    g.update(snpEffectsNode);
+                    g.addEdge(drugNode, snpEffectsNode, "HAS_SNP_EFFECT");
                 }
             }
             //SNP-Adverse-Drug-Reactions
             if (drug.snpAdverseDrugReactions != null) {
                 for (int i = 0; i < drug.snpAdverseDrugReactions.size(); i++) {
-                    Node snpAdverseDrugReactionsNode = createNode("SNP Adverse Drug Reaction");
-                    snpAdverseDrugReactionsNode.setProperty("proteinName",
-                                                            drug.snpAdverseDrugReactions.get(i).proteinName);
-                    snpAdverseDrugReactionsNode.setProperty("geneSymbol",
-                                                            drug.snpAdverseDrugReactions.get(i).geneSymbol);
-                    snpAdverseDrugReactionsNode.setProperty("uniprotId", drug.snpAdverseDrugReactions.get(i).uniprotId);
-                    snpAdverseDrugReactionsNode.setProperty("rsId", drug.snpAdverseDrugReactions.get(i).rsId);
-                    snpAdverseDrugReactionsNode.setProperty("allele", drug.snpAdverseDrugReactions.get(i).allele);
-                    snpAdverseDrugReactionsNode.setProperty("adverseReaction",
-                                                            drug.snpAdverseDrugReactions.get(i).adverseReaction);
-                    snpAdverseDrugReactionsNode.setProperty("description",
-                                                            drug.snpAdverseDrugReactions.get(i).description);
-                    snpAdverseDrugReactionsNode.setProperty("pubmedId", drug.snpAdverseDrugReactions.get(i).pubmedId);
-                    g.addNode(snpAdverseDrugReactionsNode);
-                    g.addEdge(new Edge(drugNode, snpAdverseDrugReactionsNode, "HAS_SNP_ADVERSE_DRUG_REACTION"));
+                    Node snpAdverseDrugReactionsNode = g.addNode("SNP_Adverse_Drug_Reaction", "protein_name",
+                                                                 drug.snpAdverseDrugReactions.get(i).proteinName,
+                                                                 "gene_symbol",
+                                                                 drug.snpAdverseDrugReactions.get(i).geneSymbol,
+                                                                 "uniprot_id",
+                                                                 drug.snpAdverseDrugReactions.get(i).uniprotId);
+                    setPropertyIfNotNull(snpAdverseDrugReactionsNode, "rs_Id", drug.snpAdverseDrugReactions.get(i).rsId);
+                    setPropertyIfNotNull(snpAdverseDrugReactionsNode, "allele",
+                                         drug.snpAdverseDrugReactions.get(i).allele);
+                    setPropertyIfNotNull(snpAdverseDrugReactionsNode, "adverse_reaction",
+                                         drug.snpAdverseDrugReactions.get(i).adverseReaction);
+                    setPropertyIfNotNull(snpAdverseDrugReactionsNode, "description",
+                                         drug.snpAdverseDrugReactions.get(i).description);
+                    setPropertyIfNotNull(snpAdverseDrugReactionsNode, "pubmed_id",
+                                         drug.snpAdverseDrugReactions.get(i).pubmedId);
+                    g.update(snpAdverseDrugReactionsNode);
+                    g.addEdge(drugNode, snpAdverseDrugReactionsNode, "HAS_SNP_ADVERSE_DRUG_REACTION");
                 }
             }
 
             drugs.remove(drugIndex);
-            //System.gc();
-            //if (drugIndex < 12000) {
-            //    break;
-            //}
         }
         for (DrugInteractionTriple triple : drugInteractionCache) {
             if (drug_lookUp.containsKey(triple.drugBankIdTarget)) {
                 Node source = drug_lookUp.get(triple.drugBankIdSource);
                 Node target = drug_lookUp.get(triple.drugBankIdTarget);
-                Edge drugInteractionEdge = new Edge(source, target, "INTERACTS_WITH_DRUG");
-                g.addEdge(drugInteractionEdge);
+                Edge drugInteractionEdge = g.addEdge(source, target, "INTERACTS_WITH_DRUG");
                 drugInteractionEdge.setProperty("description", triple.description);
-            }
-            else{
+                g.update(drugInteractionEdge);
+            } else {
                 //Log-Message if key missing!
+                //System.out.println("DrugInteraction-Key is missing! ID: " + triple.drugBankIdTarget);
             }
 
         }
@@ -623,89 +576,110 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
             if (pathway_lookUp.containsKey(triple.drugBankIdTarget)) {
                 Node source = pathway_lookUp.get(triple.smpdIdSource);
                 Node target = drug_lookUp.get(triple.drugBankIdTarget);
-                Edge pathwayDrugEdge = new Edge(source, target, "IS_PATHWAYDRUG");
-                g.addEdge(pathwayDrugEdge);
+                Edge pathwayDrugEdge = g.addEdge(source, target, "IS_PATHWAYDRUG");
                 pathwayDrugEdge.setProperty("name", triple.description);
-            }
-            else{
+                g.update(pathwayDrugEdge);
+            } else {
                 //Log-Message if key missing!
+                //System.out.println("Pathway-Key is missing! ID: " + triple.drugBankIdTarget);
+            }
+        }
+
+        for (MetaboliteTriple triple : metaboliteCache){
+            if (metabolite_lookUp.containsKey(triple.leftElementId)) {
+                Long source = metabolite_lookUp.get(triple.leftElementId);
+                g.addEdge(source, triple.reactionsId, "SUBSTRATE_IN");
+            } else if (drug_lookUp.containsKey(triple.leftElementId)) {
+                Node source = drug_lookUp.get(triple.leftElementId);
+                g.addEdge(source, triple.reactionsId, "SUBSTRATE_IN");
+            } else{
+                if (triple.leftElementId.startsWith("DBMET")) {
+                Node metaboliteNode = g.addNode("Metabolite", "drugbank_id", triple.leftElementId);
+                metabolite_lookUp.put(triple.leftElementId, metaboliteNode.getId());
+                }
             }
 
+            if (drug_lookUp.containsKey(triple.rightElementId)) {
+                Node target = drug_lookUp.get(triple.rightElementId);
+                g.addEdge(triple.reactionsId, target, "METABOLIZED_TO");
+            } else if (metabolite_lookUp.containsKey(triple.rightElementId)) {
+                Long target = metabolite_lookUp.get(triple.rightElementId);
+                g.addEdge(triple.reactionsId, target, "METABOLIZED_TO");
+            } else {
+                if (triple.rightElementId.startsWith("DBMET")) {
+                    Node metaboliteNode = g.addNode("Metabolite", "drugbank_id", triple.rightElementId);
+                    metabolite_lookUp.put(triple.rightElementId, metaboliteNode.getId());
+
+                }
+            }
         }
 
         return true;
     }
+
     //Polypeptide
-    private void createPolypeptideNode(Graph g, Hashtable<String, Node> organism_lookUp, Hashtable<String, Node> polypeptide_lookUp, Node parentNode, Polypeptide polypeptide){
-        if(polypeptide != null){
-            Node polypeptideNode = createNode("Polypeptide");
+    private void createPolypeptideNode(Graph g, Hashtable<String, Node> organism_lookUp,
+                                       Hashtable<String, Node> polypeptide_lookUp, Node parentNode,
+                                       Polypeptide polypeptide) {
+        if (polypeptide != null) {
+            Node polypeptideNode = g.addNode("Polypeptide", "id", polypeptide.id, "name", polypeptide.name, "source",
+                                             polypeptide.source);
             polypeptide_lookUp.put(polypeptide.id, polypeptideNode);
-            polypeptideNode.setProperty("id", polypeptide.id);
-            polypeptideNode.setProperty("name", polypeptide.name);
-            polypeptideNode.setProperty("source", polypeptide.source);
-            polypeptideNode.setProperty("generalFunction", polypeptide.generalFunction);
-            polypeptideNode.setProperty("specificFunction",
-                                        polypeptide.specificFunction);
-            polypeptideNode.setProperty("geneName", polypeptide.geneName);
-            polypeptideNode.setProperty("locus", polypeptide.locus);
-            polypeptideNode.setProperty("cellularLocation",
-                                        polypeptide.cellularLocation);
-            polypeptideNode.setProperty("transmembraneRegions",
-                                        polypeptide.transmembraneRegions);
-            polypeptideNode.setProperty("signalRegions", polypeptide.signalRegions);
-            polypeptideNode.setProperty("theoreticalPi", polypeptide.theoreticalPi);
-            polypeptideNode.setProperty("molecularWeight", polypeptide.molecularWeight);
-            polypeptideNode.setProperty("chromosomeLocation",
-                                        polypeptide.chromosomeLocation);
-            polypeptideNode.setProperty("aminoAcidSequence",
-                                        polypeptide.aminoAcidSequence);
-            polypeptideNode.setProperty("geneSequence", polypeptide.geneSequence);
+            setPropertyIfNotNull(polypeptideNode, "general_function", polypeptide.generalFunction);
+            setPropertyIfNotNull(polypeptideNode, "specific_function", polypeptide.specificFunction);
+            setPropertyIfNotNull(polypeptideNode, "gene_name", polypeptide.geneName);
+            setPropertyIfNotNull(polypeptideNode, "locus", polypeptide.locus);
+            setPropertyIfNotNull(polypeptideNode, "cellular_location", polypeptide.cellularLocation);
+            setPropertyIfNotNull(polypeptideNode, "transmembrane_regions", polypeptide.transmembraneRegions);
+            setPropertyIfNotNull(polypeptideNode, "signal_regions", polypeptide.signalRegions);
+            setPropertyIfNotNull(polypeptideNode, "theoretical_pi", polypeptide.theoreticalPi);
+            setPropertyIfNotNull(polypeptideNode, "molecular_weight", polypeptide.molecularWeight);
+            setPropertyIfNotNull(polypeptideNode, "chromosome_location", polypeptide.chromosomeLocation);
+            setPropertyIfNotNull(polypeptideNode, "aminoacid_sequence", polypeptide.aminoAcidSequence.value);
+            setPropertyIfNotNull(polypeptideNode, "aminoacid_sequence_format", polypeptide.aminoAcidSequence.format);
+            setPropertyIfNotNull(polypeptideNode, "gene_sequence", polypeptide.geneSequence.value);
+            setPropertyIfNotNull(polypeptideNode, "gene_sequence_format", polypeptide.geneSequence.format);
             if (polypeptide.synonyms != null) {
                 String synonyms = String.join("; ", polypeptide.synonyms);
-                polypeptideNode.setProperty("aminoAcidSequence", synonyms);
+                setPropertyIfNotNull(polypeptideNode, "synonyms", synonyms);
             }
-            g.addNode(polypeptideNode);
-            g.addEdge(new Edge(parentNode, polypeptideNode, "IS_POLYPEPTIDE"));
+            g.update(polypeptideNode);
+            g.addEdge(parentNode, polypeptideNode, "IS_POLYPEPTIDE");
             if (polypeptide.externalIdentifiers != null) {
                 for (int j = 0; j < polypeptide.externalIdentifiers.size(); j++) {
-                    Node polypeptideExternalIdentifierNode = createNode("Polypeptide External Identifier");
-                    polypeptideExternalIdentifierNode.setProperty("resource", polypeptide.externalIdentifiers.get(j).resource);
-                    polypeptideExternalIdentifierNode.setProperty("identifier", polypeptide.externalIdentifiers.get(j).identifier);
-                    g.addNode(polypeptideExternalIdentifierNode);
-                    g.addEdge(new Edge(polypeptideNode, polypeptideExternalIdentifierNode,
-                                       "HAS_POLYPEPTIDE_EXTERNAL_IDENTIFIER"));
+                    Node polypeptideExternalIdentifierNode = g.addNode("Polypeptide_External_Identifier", "resource",
+                                                                       polypeptide.externalIdentifiers
+                                                                               .get(j).resource.value, "identifier",
+                                                                       polypeptide.externalIdentifiers
+                                                                               .get(j).identifier);
+                    g.addEdge(polypeptideNode, polypeptideExternalIdentifierNode,
+                              "HAS_POLYPEPTIDE_EXTERNAL_IDENTIFIER");
                 }
             }
             if (polypeptide.pfams != null) {
                 for (int j = 0; j < polypeptide.pfams.size(); j++) {
-                    Node pfamsNode = createNode("Pfam");
-                    pfamsNode.setProperty("identifier", polypeptide.pfams
-                            .get(j).identifier);
-                    pfamsNode.setProperty("name", polypeptide.pfams.get(j).name);
-                    g.addNode(pfamsNode);
-                    g.addEdge(new Edge(polypeptideNode, pfamsNode, "HAS_PFAM"));
+                    Node pfamsNode = g.addNode("Pfam", "identifier", polypeptide.pfams.get(j).identifier, "name",
+                                               polypeptide.pfams.get(j).name);
+                    g.addEdge(polypeptideNode, pfamsNode, "HAS_PFAM");
                 }
             }
             if (polypeptide.goClassifiers != null) {
                 for (int j = 0; j < polypeptide.goClassifiers.size(); j++) {
-                    Node goClassifiersNode = createNode("GO Classifiers");
-                    goClassifiersNode.setProperty("category", polypeptide.goClassifiers
-                            .get(j).category);
-                    goClassifiersNode.setProperty("description", polypeptide.goClassifiers.get(j).description);
-                    g.addNode(goClassifiersNode);
-                    g.addEdge(new Edge(polypeptideNode, goClassifiersNode, "HAS_GO_CLASSIFIER"));
+                    Node goClassifiersNode = g.addNode("GO Classifier", "category",
+                                                       polypeptide.goClassifiers.get(j).category, "description",
+                                                       polypeptide.goClassifiers.get(j).description);
+                    g.addEdge(polypeptideNode, goClassifiersNode, "HAS_GO_CLASSIFIER");
                 }
             }
             if (polypeptide.organism != null) {
                 Organism polypeptidesOrganism = polypeptide.organism;
                 if (organism_lookUp.containsKey(polypeptidesOrganism.ncbiTaxonomyId)) {
-                    g.addEdge(new Edge(polypeptideNode, organism_lookUp.get(polypeptidesOrganism.ncbiTaxonomyId), "ORGANISM"));
+                    g.addEdge(polypeptideNode, organism_lookUp.get(polypeptidesOrganism.ncbiTaxonomyId),
+                              "HAS_ORGANISM");
                 } else {
-                    Node organismNode = createNode("Organism");
-                    organismNode.setProperty("ncbiTaxonomyId", polypeptide.organism.ncbiTaxonomyId);
-                    organismNode.setProperty("value", polypeptide.organism.value);
-                    g.addNode(organismNode);
-                    g.addEdge(new Edge(polypeptideNode, organismNode, "HAS_ORGANISM"));
+                    Node organismNode = g.addNode("Organism", "ncbi_taxonomy_id", polypeptide.organism.ncbiTaxonomyId,
+                                                  "value", polypeptide.organism.value);
+                    g.addEdge(polypeptideNode, organismNode, "HAS_ORGANISM");
                     organism_lookUp.put(polypeptidesOrganism.ncbiTaxonomyId, organismNode);
                 }
             }
@@ -713,29 +687,26 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     }
 
     //References
-    private void createReferenceListNode(Graph g, Hashtable<Object, Node> referenceList_lookUp, Node parent, ReferenceList references ) {
+    private void createReferenceListNode(Graph g, Hashtable<Object, Node> referenceList_lookUp, Node parent,
+                                         ReferenceList references) {
         Node referenceListNode = null;
         if ((references.textbooks != null && references.textbooks.size() > 0) ||
             (references.articles != null && references.articles.size() > 0) ||
             (references.attachments != null && references.attachments.size() > 0) ||
             (references.links != null && references.links.size() > 0)) {
-            referenceListNode = createNode("Reference");
-            g.addNode(referenceListNode);
-            g.addEdge(new Edge(parent, referenceListNode, "HAS_REFERENCE"));
+            referenceListNode = g.addNode("Reference");
+            g.addEdge(parent, referenceListNode, "HAS_REFERENCE");
         }
         if (references.textbooks != null) {
             for (int j = 0; j < references.textbooks.size(); j++) {
                 Textbook rf = references.textbooks.get(j);
                 referenceListNode.setProperty("textbook", references.textbooks.get(j).refId);
                 if (referenceList_lookUp.containsKey(rf.refId)) {
-                    g.addEdge(new Edge(referenceListNode, referenceList_lookUp.get(rf.refId), "HAS_TEXTBOOK"));
+                    g.addEdge(referenceListNode, referenceList_lookUp.get(rf.refId), "HAS_TEXTBOOK");
                 } else {
-                    Node textbookNode = createNode("Textbook");
-                    textbookNode.setProperty("citation", rf.citation);
-                    textbookNode.setProperty("isbn", rf.isbn);
-                    textbookNode.setProperty("refId", rf.refId);
-                    g.addNode(textbookNode);
-                    g.addEdge(new Edge(referenceListNode, textbookNode, "HAS_TEXTBOOK"));
+                    Node textbookNode = g.addNode("Textbook", "citation", rf.citation, "isbn", rf.isbn, "ref_id",
+                                                  rf.refId);
+                    g.addEdge(referenceListNode, textbookNode, "HAS_TEXTBOOK");
                 }
             }
         }
@@ -744,14 +715,11 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
                 Article a = references.articles.get(j);
                 referenceListNode.setProperty("article", a.refId);
                 if (referenceList_lookUp.containsKey(a.refId)) {
-                    g.addEdge(new Edge(referenceListNode, referenceList_lookUp.get(a.refId), "HAS_ARTICLE"));
+                    g.addEdge(referenceListNode, referenceList_lookUp.get(a.refId), "HAS_ARTICLE");
                 } else {
-                    Node articleNode = createNode("Article");
-                    articleNode.setProperty("citation", a.citation);
-                    articleNode.setProperty("pubmedId", a.pubmedId);
-                    articleNode.setProperty("refId", a.refId);
-                    g.addNode(articleNode);
-                    g.addEdge(new Edge(referenceListNode, articleNode, "HAS_ARTICLE"));
+                    Node articleNode = g.addNode("Article", "citation", a.citation, "pubmed_id", a.pubmedId, "ref_id",
+                                                 a.refId);
+                    g.addEdge(referenceListNode, articleNode, "HAS_ARTICLE");
                 }
             }
         }
@@ -759,14 +727,10 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
             for (int j = 0; j < references.links.size(); j++) {
                 Link l = references.links.get(j);
                 if (referenceList_lookUp.containsKey(l.refId)) {
-                    g.addEdge(new Edge(referenceListNode, referenceList_lookUp.get(l.refId), "HAS_LINK"));
+                    g.addEdge(referenceListNode, referenceList_lookUp.get(l.refId), "HAS_LINK");
                 } else {
-                    Node linksNode = createNode("Link");
-                    linksNode.setProperty("title", l.title);
-                    linksNode.setProperty("url", l.url);
-                    linksNode.setProperty("refId", l.refId);
-                    g.addNode(linksNode);
-                    g.addEdge(new Edge(referenceListNode, linksNode, "HAS_LINK"));
+                    Node linksNode = g.addNode("Link", "title", l.title, "url", l.url, "ref_id", l.refId);
+                    g.addEdge(referenceListNode, linksNode, "HAS_LINK");
                 }
             }
         }
@@ -774,16 +738,18 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
             for (int j = 0; j < references.attachments.size(); j++) {
                 Attachment at = references.attachments.get(j);
                 if (referenceList_lookUp.containsKey(at.refId)) {
-                    g.addEdge(new Edge(referenceListNode, referenceList_lookUp.get(at.refId), "HAS_ATTACHMENT"));
+                    g.addEdge(referenceListNode, referenceList_lookUp.get(at.refId), "HAS_ATTACHMENT");
                 } else {
-                    Node attachmentNode = createNode("Attachment");
-                    attachmentNode.setProperty("title", at.title);
-                    attachmentNode.setProperty("url", at.url);
-                    attachmentNode.setProperty("refId", at.refId);
-                    g.addNode(attachmentNode);
-                    g.addEdge(new Edge(referenceListNode, attachmentNode, "HAS_ATTACHEMENT"));
+                    Node attachmentNode = g.addNode("Attachment", "title", at.title, "url", at.url, "ref_id", at.refId);
+                    g.addEdge(referenceListNode, attachmentNode, "HAS_ATTACHEMENT");
                 }
             }
+        }
+    }
+
+    public void setPropertyIfNotNull(Node node, String propertyKey, Object value) {
+        if (value != null) {
+            node.setProperty(propertyKey, value);
         }
     }
 

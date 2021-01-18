@@ -14,4 +14,8 @@ public class MetaboliteStructure {
     public DrugbankMetaboliteId drugbankId;
     public String name;
     public String unii;
+    public String ruleOfFive;
+    public String ghoseFilter;
+    public String veberRule;
+    public String mddrLikeRule;
 }
