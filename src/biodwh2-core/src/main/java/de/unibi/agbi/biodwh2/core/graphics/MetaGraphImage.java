@@ -6,7 +6,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaNode;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.font.GlyphVector;
+import java.awt.font.FontRenderContext;
+import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.awt.image.BufferedImage;
@@ -19,15 +20,17 @@ import java.util.Random;
 public final class MetaGraphImage {
     private static class MetaNodeLayout {
         Color color;
-        String[] labels;
+        String label;
         double x;
         double y;
         double displacementX;
         double displacementY;
     }
 
+    private static final int ARROW_TIP_LENGTH = 15;
     private static final int NODE_SIZE = 50;
     private static final int NODE_SIZE_HALF = NODE_SIZE / 2;
+    private static final int NODE_BORDER_WIDTH = 3;
     private static final double COOLING_RATE = 0.25;
     private static final double CRITERION = 15;
     private static final double C = 0.4;
@@ -42,10 +45,6 @@ public final class MetaGraphImage {
     private int cropRectMaxX;
     private int cropRectMaxY;
 
-    public MetaGraphImage(final MetaGraph graph) {
-        this(graph, 512, 512);
-    }
-
     public MetaGraphImage(final MetaGraph graph, final int width, final int height) {
         this.width = width;
         this.height = height;
@@ -54,15 +53,15 @@ public final class MetaGraphImage {
         int currentColor = 0;
         for (final MetaNode node : graph.getNodes()) {
             final MetaNodeLayout layout = new MetaNodeLayout();
-            layout.labels = node.labels;
+            layout.label = node.label;
             layout.color = Color.getHSBColor(currentColor / (float) graph.getNodeCount(), 0.85f, 1.0f);
             currentColor++;
-            nodes.put(node.id, layout);
+            nodes.put(node.label, layout);
         }
         for (final MetaEdge edge : graph.getEdges()) {
             final MetaEdge metaEdge = new MetaEdge();
-            metaEdge.fromId = edge.fromId;
-            metaEdge.toId = edge.toId;
+            metaEdge.fromLabel = edge.fromLabel;
+            metaEdge.toLabel = edge.toLabel;
             metaEdge.label = edge.label;
             metaEdge.id = edge.id;
             edges.put(edge.id, metaEdge);
@@ -94,6 +93,14 @@ public final class MetaGraphImage {
         for (final MetaNodeLayout v : nodes.values()) {
             v.displacementX = 0;
             v.displacementY = 0;
+            // Light attraction to center of canvas
+            final double centerOffsetX = (width * 0.5) - v.x;
+            final double centerOffsetY = (height * 0.5) - v.y;
+            final double distanceFromCenter = vectorLength(centerOffsetX, centerOffsetY);
+            final double centerAttraction = forceAttractive(distanceFromCenter, k);
+            v.displacementX += centerOffsetX * (1 / distanceFromCenter) * centerAttraction * 0.25;
+            v.displacementY += centerOffsetY * (1 / distanceFromCenter) * centerAttraction * 0.25;
+            // Repulsion from other nodes
             for (final MetaNodeLayout u : nodes.values()) {
                 if (v.equals(u))
                     continue;
@@ -107,9 +114,10 @@ public final class MetaGraphImage {
                 v.displacementY += deltaPosY;
             }
         }
+        // Attraction between connected nodes
         for (final MetaEdge e : edges.values()) {
-            final MetaNodeLayout v = nodes.get(e.fromId);
-            final MetaNodeLayout u = nodes.get(e.toId);
+            final MetaNodeLayout v = nodes.get(e.fromLabel);
+            final MetaNodeLayout u = nodes.get(e.toLabel);
             if (v.equals(u))
                 continue;
             double deltaPosX = v.x - u.x;
@@ -118,10 +126,10 @@ public final class MetaGraphImage {
             double attractiveForce = forceAttractive(length, k);
             deltaPosX *= (1 / length) * attractiveForce;
             deltaPosY *= (1 / length) * attractiveForce;
-            nodes.get(e.fromId).displacementX -= deltaPosX;
-            nodes.get(e.fromId).displacementY -= deltaPosY;
-            nodes.get(e.toId).displacementX += deltaPosX;
-            nodes.get(e.toId).displacementY += deltaPosY;
+            nodes.get(e.fromLabel).displacementX -= deltaPosX;
+            nodes.get(e.fromLabel).displacementY -= deltaPosY;
+            nodes.get(e.toLabel).displacementX += deltaPosX;
+            nodes.get(e.toLabel).displacementY += deltaPosY;
         }
         boolean equilibriumReached = true;
         for (final MetaNodeLayout v : nodes.values()) {
@@ -186,36 +194,55 @@ public final class MetaGraphImage {
         g.setStroke(new BasicStroke(3));
         g.setColor(Color.BLACK);
         for (final MetaEdge edge : edges.values()) {
-            final MetaNodeLayout fromNode = nodes.get(edge.fromId);
-            final MetaNodeLayout toNode = nodes.get(edge.toId);
+            final MetaNodeLayout fromNode = nodes.get(edge.fromLabel);
+            final MetaNodeLayout toNode = nodes.get(edge.toLabel);
             int fromX = (int) fromNode.x + NODE_SIZE_HALF;
             int fromY = (int) fromNode.y + NODE_SIZE_HALF;
             int toX = (int) toNode.x + NODE_SIZE_HALF;
             int toY = (int) toNode.y + NODE_SIZE_HALF;
+            float dirX = toX - fromX;
+            float dirY = toY - fromY;
+            double oneOverLength = 1 / vectorLength(dirX, dirY);
+            dirX *= oneOverLength;
+            dirY *= oneOverLength;
             if (fromNode.equals(toNode)) {
                 CubicCurve2D shape = new CubicCurve2D.Float();
                 shape.setCurve(fromX, fromY, fromX - 50, fromY - 80, toX + 50, toY - 80, toX, toY);
                 g.draw(shape);
                 updateCropRectangle(fromX - 50, fromY - 80);
                 updateCropRectangle(toX + 50, toY - 80);
-            } else
-                g.drawLine(fromX, fromY, toX, toY);
+            } else {
+                final int nodeCenterOffset = NODE_SIZE_HALF + NODE_BORDER_WIDTH;
+                final int arrowSourceX = fromX + (int) (dirX * nodeCenterOffset);
+                final int arrowSourceY = fromY + (int) (dirY * nodeCenterOffset);
+                final int arrowTargetX = toX - (int) (dirX * nodeCenterOffset);
+                final int arrowTargetY = toY - (int) (dirY * nodeCenterOffset);
+                g.drawLine(arrowSourceX, arrowSourceY, arrowTargetX, arrowTargetY);
+                final double angle = Math.toRadians(30);
+                final double arrowLeftEndX = Math.cos(angle) * -dirX - Math.sin(angle) * -dirY;
+                final double arrowLeftEndY = Math.sin(angle) * -dirX + Math.cos(angle) * -dirY;
+                final double arrowRightEndX = Math.cos(-angle) * -dirX - Math.sin(-angle) * -dirY;
+                final double arrowRightEndY = Math.sin(-angle) * -dirX + Math.cos(-angle) * -dirY;
+                g.drawLine(arrowTargetX, arrowTargetY, arrowTargetX + (int) (arrowLeftEndX * ARROW_TIP_LENGTH),
+                           arrowTargetY + (int) (arrowLeftEndY * ARROW_TIP_LENGTH));
+                g.drawLine(arrowTargetX, arrowTargetY, arrowTargetX + (int) (arrowRightEndX * ARROW_TIP_LENGTH),
+                           arrowTargetY + (int) (arrowRightEndY * ARROW_TIP_LENGTH));
+            }
         }
     }
 
     private void drawNodeCircles(final Graphics2D g, final Font font, final FontMetrics metrics) {
-        g.setStroke(new BasicStroke(3));
+        g.setStroke(new BasicStroke(NODE_BORDER_WIDTH));
         g.setFont(font);
         for (final MetaNodeLayout node : nodes.values()) {
             g.setColor(node.color);
             g.fillOval((int) node.x, (int) node.y, NODE_SIZE, NODE_SIZE);
             g.setColor(node.color.darker());
             g.drawOval((int) node.x, (int) node.y, NODE_SIZE, NODE_SIZE);
-            final String label = String.join("\n", node.labels);
-            final int stringWidth = metrics.stringWidth(label);
+            final int stringWidth = metrics.stringWidth(node.label);
             int textX = (int) node.x + (NODE_SIZE - stringWidth) / 2;
             int textY = (int) node.y + ((NODE_SIZE - metrics.getHeight()) / 2) + metrics.getAscent();
-            drawLabelWithOutline(g, font, label, textX, textY);
+            drawLabelWithOutline(g, font, node.label, textX, textY);
             updateCropRectangle((int) node.x, (int) node.y);
             updateCropRectangle((int) node.x + NODE_SIZE, (int) node.y + NODE_SIZE);
             updateCropRectangle(textX, textY);
@@ -225,13 +252,17 @@ public final class MetaGraphImage {
 
     private void drawLabelWithOutline(final Graphics2D g, final Font font, final String text, final int x,
                                       final int y) {
-        GlyphVector glyphVector = font.createGlyphVector(g.getFontRenderContext(), text);
-        Shape textShape = glyphVector.getOutline(x, y);
+        AffineTransform transform = g.getTransform();
+        g.translate(x, y);
+        FontRenderContext frc = g.getFontRenderContext();
+        TextLayout tl = new TextLayout(text, font, frc);
+        Shape shape = tl.getOutline(null);
         g.setColor(Color.WHITE);
         g.setStroke(new BasicStroke(4));
-        g.draw(textShape);
+        g.draw(shape);
         g.setColor(Color.BLACK);
-        g.drawString(text, x, y);
+        g.fill(shape);
+        g.setTransform(transform);
     }
 
     private void updateCropRectangle(int x, int y) {
@@ -244,8 +275,8 @@ public final class MetaGraphImage {
     private void drawEdgeLabels(final Graphics2D g, final Font font, final FontMetrics metrics) {
         g.setFont(font);
         for (final MetaEdge edge : edges.values()) {
-            final MetaNodeLayout fromNode = nodes.get(edge.fromId);
-            final MetaNodeLayout toNode = nodes.get(edge.toId);
+            final MetaNodeLayout fromNode = nodes.get(edge.fromLabel);
+            final MetaNodeLayout toNode = nodes.get(edge.toLabel);
             final int stringWidth = metrics.stringWidth(edge.label);
             final double textX;
             final double textY;

@@ -50,7 +50,12 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
 
     @Override
     public V get(Object key) {
-        return clone(mvMap.get(key));
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        try {
+            return clone(mvMap.get(key));
+        } finally {
+            mvStore.deregisterVersionUsage(txCounter);
+        }
     }
 
     private V clone(final V value) {

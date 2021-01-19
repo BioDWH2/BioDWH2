@@ -225,6 +225,8 @@ public final class GraphMapper {
     }
 
     private void saveMetaGraph(final Graph graph, final String outputFilePath) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Generating mapped meta graph image");
         final MetaGraph metaGraph = new MetaGraph(graph);
         final MetaGraphImage image = new MetaGraphImage(metaGraph, 2048, 2048);
         image.drawAndSaveImage(outputFilePath);

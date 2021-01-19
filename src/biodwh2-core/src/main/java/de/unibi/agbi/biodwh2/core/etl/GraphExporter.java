@@ -41,9 +41,9 @@ public abstract class GraphExporter<D extends DataSource> {
     }
 
     private void saveMetaGraph(final Workspace workspace, final Graph g) {
-        final MetaGraph metaGraph = new MetaGraph(g);
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Save '" + dataSource.getId() + "' data source meta graph image");
+            LOGGER.info("Generating '" + dataSource.getId() + "' data source meta graph image");
+        final MetaGraph metaGraph = new MetaGraph(g);
         final MetaGraphImage image = new MetaGraphImage(metaGraph, 1024, 1024);
         image.drawAndSaveImage(dataSource.getMetaGraphImageFilePath(workspace));
     }
