@@ -1,5 +1,7 @@
 package de.unibi.agbi.biodwh2.core.graphics;
 
+import de.unibi.agbi.biodwh2.core.math.CubicBezier;
+import de.unibi.agbi.biodwh2.core.math.Vector2D;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaEdge;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaNode;
@@ -13,9 +15,8 @@ import java.awt.geom.CubicCurve2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.List;
 
 public final class MetaGraphImage {
     private static class MetaNodeLayout {
@@ -27,7 +28,16 @@ public final class MetaGraphImage {
         double displacementY;
     }
 
-    private static final int ARROW_TIP_LENGTH = 15;
+    private static class MetaEdgeLayout {
+        String fromLabel;
+        String toLabel;
+        String label;
+        String id;
+        CubicBezier line;
+    }
+
+    private static final int MULTI_EDGE_SPACING = 40;
+    private static final int ARROW_TIP_LENGTH = 10;
     private static final int NODE_SIZE = 50;
     private static final int NODE_SIZE_HALF = NODE_SIZE / 2;
     private static final int NODE_BORDER_WIDTH = 3;
@@ -37,7 +47,8 @@ public final class MetaGraphImage {
     private final int width;
     private final int height;
     private final Map<String, MetaNodeLayout> nodes;
-    private final Map<String, MetaEdge> edges;
+    private final Map<String, MetaEdgeLayout> edges;
+    private final Map<String, List<MetaEdgeLayout>> edgesPerNodePair;
     private double k = 0;
     private double t = 0;
     private int cropRectMinX;
@@ -50,6 +61,7 @@ public final class MetaGraphImage {
         this.height = height;
         nodes = new HashMap<>();
         edges = new HashMap<>();
+        edgesPerNodePair = new HashMap<>();
         int currentColor = 0;
         for (final MetaNode node : graph.getNodes()) {
             final MetaNodeLayout layout = new MetaNodeLayout();
@@ -59,14 +71,20 @@ public final class MetaGraphImage {
             nodes.put(node.label, layout);
         }
         for (final MetaEdge edge : graph.getEdges()) {
-            final MetaEdge metaEdge = new MetaEdge();
+            final MetaEdgeLayout metaEdge = new MetaEdgeLayout();
             metaEdge.fromLabel = edge.fromLabel;
             metaEdge.toLabel = edge.toLabel;
             metaEdge.label = edge.label;
             metaEdge.id = edge.id;
             edges.put(edge.id, metaEdge);
+            final String nodePairKey = edge.fromLabel.compareTo(edge.toLabel) > 0 ?
+                                       edge.toLabel + "|" + edge.fromLabel : edge.fromLabel + "|" + edge.toLabel;
+            if (!edgesPerNodePair.containsKey(nodePairKey))
+                edgesPerNodePair.put(nodePairKey, new ArrayList<>());
+            edgesPerNodePair.get(nodePairKey).add(metaEdge);
         }
         calculateNodeLocations();
+        calculateEdgeLocations();
     }
 
     /**
@@ -115,7 +133,7 @@ public final class MetaGraphImage {
             }
         }
         // Attraction between connected nodes
-        for (final MetaEdge e : edges.values()) {
+        for (final MetaEdgeLayout e : edges.values()) {
             final MetaNodeLayout v = nodes.get(e.fromLabel);
             final MetaNodeLayout u = nodes.get(e.toLabel);
             if (v.equals(u))
@@ -161,6 +179,44 @@ public final class MetaGraphImage {
         return (k * k) / d;
     }
 
+    private void calculateEdgeLocations() {
+        for (final String nodePairKey : edgesPerNodePair.keySet()) {
+            final List<MetaEdgeLayout> pairEdges = edgesPerNodePair.get(nodePairKey);
+            final double allEdgesSizeHalf = (pairEdges.size() - 1) * MULTI_EDGE_SPACING * 0.5;
+            final MetaNodeLayout firstNode = nodes.get(pairEdges.get(0).fromLabel);
+            final MetaNodeLayout secondNode = nodes.get(pairEdges.get(0).toLabel);
+            final Vector2D firstVector = new Vector2D(firstNode.x, firstNode.y);
+            final Vector2D secondVector = new Vector2D(secondNode.x, secondNode.y);
+            final Vector2D direction = secondVector.subtract(firstVector).normalize();
+            final Vector2D normal = direction.rotate(Math.PI * 0.5);
+            final Vector2D normalOffset = normal.multiply(allEdgesSizeHalf, allEdgesSizeHalf);
+            final int nodeCenterOffset = NODE_SIZE_HALF + NODE_BORDER_WIDTH;
+            int edgeOffsetIndex = 0;
+            for (final MetaEdgeLayout edge : pairEdges) {
+                final MetaNodeLayout fromNode = nodes.get(edge.fromLabel);
+                final MetaNodeLayout toNode = nodes.get(edge.toLabel);
+                final Vector2D lineFrom = new Vector2D(fromNode.x, fromNode.y).add(NODE_SIZE_HALF, NODE_SIZE_HALF);
+                final Vector2D lineTo = new Vector2D(toNode.x, toNode.y).add(NODE_SIZE_HALF, NODE_SIZE_HALF);
+                final Vector2D controlPoint1;
+                final Vector2D controlPoint2;
+                if (fromNode.equals(toNode)) {
+                    controlPoint1 = lineFrom.subtract(50, 80);
+                    controlPoint2 = lineTo.subtract(-50, 80);
+                } else {
+                    final Vector2D arrowSource = lineFrom.add(direction.multiply(nodeCenterOffset, nodeCenterOffset));
+                    final Vector2D arrowTarget = lineTo.subtract(
+                            direction.multiply(nodeCenterOffset, nodeCenterOffset));
+                    final Vector2D offset = normal.multiply(edgeOffsetIndex * MULTI_EDGE_SPACING,
+                                                            edgeOffsetIndex * MULTI_EDGE_SPACING);
+                    controlPoint1 = arrowSource.subtract(normalOffset).add(offset);
+                    controlPoint2 = arrowTarget.subtract(normalOffset).add(offset);
+                }
+                edge.line = new CubicBezier(lineFrom, controlPoint1, controlPoint2, lineTo);
+                edgeOffsetIndex++;
+            }
+        }
+    }
+
     public void drawAndSaveImage(final String outputFilePath) {
         cropRectMinX = width;
         cropRectMinY = height;
@@ -172,11 +228,13 @@ public final class MetaGraphImage {
             g.setRenderingHints(new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON));
             g.setColor(Color.WHITE);
             g.fillRect(0, 0, width, height);
-            final Font font = new Font("Arial", Font.PLAIN, 12);
-            FontMetrics metrics = g.getFontMetrics(font);
             drawEdgeLines(g);
-            drawNodeCircles(g, font, metrics);
-            drawEdgeLabels(g, font, metrics);
+            final Font nodeFont = new Font("Arial", Font.PLAIN, 10);
+            final FontMetrics nodeFontMetrics = g.getFontMetrics(nodeFont);
+            drawNodeCircles(g, nodeFont, nodeFontMetrics);
+            final Font edgeFont = new Font("Arial", Font.PLAIN, 8);
+            final FontMetrics edgeFontMetrics = g.getFontMetrics(edgeFont);
+            drawEdgeLabels(g, edgeFont, edgeFontMetrics);
             cropRectMinX = Math.max(0, cropRectMinX - 10);
             cropRectMinY = Math.max(0, cropRectMinY - 10);
             cropRectMaxX = Math.min(width, cropRectMaxX + 10);
@@ -193,41 +251,30 @@ public final class MetaGraphImage {
     private void drawEdgeLines(final Graphics2D g) {
         g.setStroke(new BasicStroke(3));
         g.setColor(Color.BLACK);
-        for (final MetaEdge edge : edges.values()) {
-            final MetaNodeLayout fromNode = nodes.get(edge.fromLabel);
-            final MetaNodeLayout toNode = nodes.get(edge.toLabel);
-            int fromX = (int) fromNode.x + NODE_SIZE_HALF;
-            int fromY = (int) fromNode.y + NODE_SIZE_HALF;
-            int toX = (int) toNode.x + NODE_SIZE_HALF;
-            int toY = (int) toNode.y + NODE_SIZE_HALF;
-            float dirX = toX - fromX;
-            float dirY = toY - fromY;
-            double oneOverLength = 1 / vectorLength(dirX, dirY);
-            dirX *= oneOverLength;
-            dirY *= oneOverLength;
-            if (fromNode.equals(toNode)) {
-                CubicCurve2D shape = new CubicCurve2D.Float();
-                shape.setCurve(fromX, fromY, fromX - 50, fromY - 80, toX + 50, toY - 80, toX, toY);
-                g.draw(shape);
-                updateCropRectangle(fromX - 50, fromY - 80);
-                updateCropRectangle(toX + 50, toY - 80);
-            } else {
-                final int nodeCenterOffset = NODE_SIZE_HALF + NODE_BORDER_WIDTH;
-                final int arrowSourceX = fromX + (int) (dirX * nodeCenterOffset);
-                final int arrowSourceY = fromY + (int) (dirY * nodeCenterOffset);
-                final int arrowTargetX = toX - (int) (dirX * nodeCenterOffset);
-                final int arrowTargetY = toY - (int) (dirY * nodeCenterOffset);
-                g.drawLine(arrowSourceX, arrowSourceY, arrowTargetX, arrowTargetY);
-                final double angle = Math.toRadians(30);
-                final double arrowLeftEndX = Math.cos(angle) * -dirX - Math.sin(angle) * -dirY;
-                final double arrowLeftEndY = Math.sin(angle) * -dirX + Math.cos(angle) * -dirY;
-                final double arrowRightEndX = Math.cos(-angle) * -dirX - Math.sin(-angle) * -dirY;
-                final double arrowRightEndY = Math.sin(-angle) * -dirX + Math.cos(-angle) * -dirY;
-                g.drawLine(arrowTargetX, arrowTargetY, arrowTargetX + (int) (arrowLeftEndX * ARROW_TIP_LENGTH),
-                           arrowTargetY + (int) (arrowLeftEndY * ARROW_TIP_LENGTH));
-                g.drawLine(arrowTargetX, arrowTargetY, arrowTargetX + (int) (arrowRightEndX * ARROW_TIP_LENGTH),
-                           arrowTargetY + (int) (arrowRightEndY * ARROW_TIP_LENGTH));
-            }
+        for (final MetaEdgeLayout edge : edges.values()) {
+            final CubicCurve2D shape = new CubicCurve2D.Double();
+            shape.setCurve(edge.line.from.x, edge.line.from.y, edge.line.controlPoint1.x, edge.line.controlPoint1.y,
+                           edge.line.controlPoint2.x, edge.line.controlPoint2.y, edge.line.to.x, edge.line.to.y);
+            g.draw(shape);
+            double tipPointOffset = 1.0;
+            double distance;
+            do {
+                tipPointOffset -= 0.01;
+                final Vector2D point = edge.line.pointAt(tipPointOffset);
+                distance = edge.line.to.subtract(point).length();
+            } while (tipPointOffset > 0 && distance < NODE_SIZE_HALF);
+            final Vector2D tipPointStart = edge.line.pointAt(tipPointOffset - 0.01);
+            final Vector2D tipPointEnd = edge.line.pointAt(tipPointOffset);
+            final double angle = Math.toRadians(30);
+            final Vector2D dir = tipPointEnd.subtract(tipPointStart).normalize();
+            final Vector2D arrowLeftEnd = dir.negate().rotate(angle);
+            final Vector2D arrowRightEnd = dir.negate().rotate(-angle);
+            g.drawLine((int) tipPointEnd.x, (int) tipPointEnd.y,
+                       (int) (tipPointEnd.x + arrowLeftEnd.x * ARROW_TIP_LENGTH),
+                       (int) (tipPointEnd.y + arrowLeftEnd.y * ARROW_TIP_LENGTH));
+            g.drawLine((int) tipPointEnd.x, (int) tipPointEnd.y,
+                       (int) (tipPointEnd.x + arrowRightEnd.x * ARROW_TIP_LENGTH),
+                       (int) (tipPointEnd.y + arrowRightEnd.y * ARROW_TIP_LENGTH));
         }
     }
 
@@ -240,8 +287,8 @@ public final class MetaGraphImage {
             g.setColor(node.color.darker());
             g.drawOval((int) node.x, (int) node.y, NODE_SIZE, NODE_SIZE);
             final int stringWidth = metrics.stringWidth(node.label);
-            int textX = (int) node.x + (NODE_SIZE - stringWidth) / 2;
-            int textY = (int) node.y + ((NODE_SIZE - metrics.getHeight()) / 2) + metrics.getAscent();
+            final int textX = (int) node.x + (NODE_SIZE - stringWidth) / 2;
+            final int textY = (int) node.y + ((NODE_SIZE - metrics.getHeight()) / 2) + metrics.getAscent();
             drawLabelWithOutline(g, font, node.label, textX, textY);
             updateCropRectangle((int) node.x, (int) node.y);
             updateCropRectangle((int) node.x + NODE_SIZE, (int) node.y + NODE_SIZE);
@@ -252,17 +299,21 @@ public final class MetaGraphImage {
 
     private void drawLabelWithOutline(final Graphics2D g, final Font font, final String text, final int x,
                                       final int y) {
-        AffineTransform transform = g.getTransform();
+        final AffineTransform transform = g.getTransform();
         g.translate(x, y);
-        FontRenderContext frc = g.getFontRenderContext();
-        TextLayout tl = new TextLayout(text, font, frc);
-        Shape shape = tl.getOutline(null);
+        final FontRenderContext frc = g.getFontRenderContext();
+        final TextLayout tl = new TextLayout(text, font, frc);
+        final Shape shape = tl.getOutline(null);
         g.setColor(Color.WHITE);
-        g.setStroke(new BasicStroke(4));
+        g.setStroke(new BasicStroke(2));
         g.draw(shape);
         g.setColor(Color.BLACK);
         g.fill(shape);
         g.setTransform(transform);
+    }
+
+    private void updateCropRectangle(double x, double y) {
+        updateCropRectangle((int) x, (int) y);
     }
 
     private void updateCropRectangle(int x, int y) {
@@ -274,31 +325,32 @@ public final class MetaGraphImage {
 
     private void drawEdgeLabels(final Graphics2D g, final Font font, final FontMetrics metrics) {
         g.setFont(font);
-        for (final MetaEdge edge : edges.values()) {
-            final MetaNodeLayout fromNode = nodes.get(edge.fromLabel);
-            final MetaNodeLayout toNode = nodes.get(edge.toLabel);
+        for (final MetaEdgeLayout edge : edges.values()) {
+            final Vector2D halfPoint = edge.line.pointAt(0.5);
+            final Vector2D direction = edge.line.to.subtract(edge.line.from).normalize();
+            final Vector2D normal = direction.rotate(Math.PI * 0.5);
+            final Vector2D textCenter;
+            if (edge.fromLabel.equals(edge.toLabel))
+                textCenter = new Vector2D(halfPoint.x, halfPoint.y);
+            else
+                textCenter = new Vector2D(halfPoint.x, halfPoint.y).add(normal.multiply(10, 10));
             final int stringWidth = metrics.stringWidth(edge.label);
-            final double textX;
-            final double textY;
             double rotation;
-            if (fromNode.equals(toNode)) {
-                textX = fromNode.x + NODE_SIZE_HALF;
-                textY = fromNode.y + NODE_SIZE_HALF - 80 + metrics.getHeight();
-                rotation = 0;
-            } else {
-                textX = fromNode.x + NODE_SIZE_HALF + (toNode.x - fromNode.x) / 2;
-                textY = fromNode.y + NODE_SIZE_HALF + 10 + (toNode.y - fromNode.y) / 2;
-                rotation = (Math.atan2(toNode.y - fromNode.y, toNode.x - fromNode.x) + 3 * Math.PI) % (Math.PI * 2);
-                if (rotation > Math.PI * 0.5 && rotation < Math.PI * 1.5)
-                    rotation += Math.PI;
-            }
-            AffineTransform previousTransform = g.getTransform();
-            g.translate((int) textX, (int) textY);
+            if (edge.fromLabel.equals(edge.toLabel)) {
+                final Vector2D selfEdgeNormal = edge.line.pointAt(0.5).subtract(edge.line.from);
+                rotation = Math.atan2(selfEdgeNormal.x, selfEdgeNormal.y);
+            } else
+                rotation = Math.atan2(edge.line.to.y - edge.line.from.y, edge.line.to.x - edge.line.from.x);
+            rotation = (rotation + 3 * Math.PI) % (Math.PI * 2);
+            if (rotation > Math.PI * 0.5 && rotation < Math.PI * 1.5)
+                rotation += Math.PI;
+            final AffineTransform previousTransform = g.getTransform();
+            g.translate((int) textCenter.x, (int) textCenter.y);
             g.rotate(rotation);
             drawLabelWithOutline(g, font, edge.label, (int) (-stringWidth * 0.5), (int) (metrics.getHeight() * 0.5));
             g.setTransform(previousTransform);
-            updateCropRectangle((int) textX, (int) textY);
-            updateCropRectangle((int) textX + stringWidth, (int) textY + metrics.getHeight() + metrics.getAscent());
+            updateCropRectangle(textCenter.x, textCenter.y);
+            updateCropRectangle(textCenter.x + stringWidth, textCenter.y + metrics.getHeight() + metrics.getAscent());
         }
     }
 }
