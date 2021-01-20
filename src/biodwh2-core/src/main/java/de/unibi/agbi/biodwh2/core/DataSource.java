@@ -5,9 +5,10 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
+import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
+import de.unibi.agbi.biodwh2.core.model.WorkspaceFileType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +21,6 @@ import java.util.Map;
 public abstract class DataSource {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataSource.class);
     private static final String SOURCE_DIRECTORY_NAME = "source";
-    private static final String METADATA_FILE_NAME = "metadata.json";
-    private static final String PERSISTENT_GRAPH_FILE_NAME = "intermediate.db";
 
     private DataSourceMetadata metadata;
 
@@ -64,13 +63,17 @@ public abstract class DataSource {
     }
 
     private void createOrLoadMetadata(final Workspace workspace) throws IOException {
-        final Path path = Paths.get(workspace.getSourcesDirectory(), getId(), METADATA_FILE_NAME);
+        final Path path = getFilePath(workspace, DataSourceFileType.METADATA);
         if (Files.exists(path))
             metadata = loadMetadata(path);
         if (metadata == null) {
             metadata = new DataSourceMetadata();
             saveMetadata(workspace);
         }
+    }
+
+    public final Path getFilePath(final Workspace workspace, final DataSourceFileType type) {
+        return Paths.get(workspace.getSourcesDirectory(), getId(), type.getName());
     }
 
     private DataSourceMetadata loadMetadata(final Path filePath) {
@@ -89,7 +92,7 @@ public abstract class DataSource {
 
     private void saveMetadata(final Workspace workspace) throws IOException {
         final ObjectMapper objectMapper = new ObjectMapper();
-        final Path path = Paths.get(workspace.getSourcesDirectory(), getId(), METADATA_FILE_NAME);
+        final Path path = getFilePath(workspace, DataSourceFileType.METADATA);
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         objectMapper.writeValue(path.toFile(), metadata);
     }
@@ -174,15 +177,6 @@ public abstract class DataSource {
 
     protected abstract void unloadData();
 
-    public final String getGraphDatabaseFilePath(final Workspace workspace) {
-        return Paths.get(workspace.getSourcesDirectory(), getId(), PERSISTENT_GRAPH_FILE_NAME).toString();
-    }
-
-    public final String getIntermediateGraphFilePath(final Workspace workspace) {
-        final String fileName = "intermediate." + GraphFileFormat.GRAPH_ML.extension;
-        return Paths.get(workspace.getSourcesDirectory(), getId(), fileName).toString();
-    }
-
     public final String resolveSourceFilePath(final Workspace workspace, final String filePath) {
         return Paths.get(workspace.getSourcesDirectory(), getId(), SOURCE_DIRECTORY_NAME, filePath).toString();
     }
@@ -209,9 +203,5 @@ public abstract class DataSource {
 
     public final Map<String, String> getProperties(final Workspace workspace) {
         return workspace.getConfiguration().getDataSourceProperties(getId());
-    }
-
-    public final String getMetaGraphImageFilePath(final Workspace workspace) {
-        return Paths.get(workspace.getSourcesDirectory(), getId(), "meta-graph.png").toString();
     }
 }

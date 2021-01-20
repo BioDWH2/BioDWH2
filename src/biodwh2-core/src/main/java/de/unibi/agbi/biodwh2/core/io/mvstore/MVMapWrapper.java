@@ -115,7 +115,7 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     public Set<K> keySet() {
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
-            return mvMap.keySet();
+            return new HashSet<>(mvMap.keySet());
         } finally {
             mvStore.deregisterVersionUsage(txCounter);
         }

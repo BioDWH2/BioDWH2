@@ -3,7 +3,6 @@ package de.unibi.agbi.biodwh2.core.model.graph;
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
 import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreCollection;
 import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreDB;
-import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreId;
 import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreIndex;
 
 import java.io.IOException;
@@ -25,10 +24,14 @@ public final class Graph implements AutoCloseable {
     private final Set<String> userDefinedNodeIndexPropertyKeys = new HashSet<>();
 
     public Graph(final String databaseFilePath) {
+        this(Paths.get(databaseFilePath), false);
+    }
+
+    public Graph(final Path databaseFilePath) {
         this(databaseFilePath, false);
     }
 
-    public Graph(final String databaseFilePath, final boolean reopen) {
+    public Graph(final Path databaseFilePath, final boolean reopen) {
         if (!reopen)
             deleteOldDatabaseFile(databaseFilePath);
         edgeRepositories = new HashMap<>();
@@ -40,16 +43,16 @@ public final class Graph implements AutoCloseable {
         createInternalIndicesIfNotExist();
     }
 
-    private void deleteOldDatabaseFile(final String filePath) {
+    private void deleteOldDatabaseFile(final Path filePath) {
         try {
-            Files.deleteIfExists(Paths.get(filePath));
+            Files.deleteIfExists(filePath);
         } catch (IOException e) {
             throw new GraphCacheException("Failed to remove old persisted database file '" + filePath + "'", e);
         }
     }
 
-    private static MVStoreDB openDatabase(final String filePath) {
-        return new MVStoreDB(filePath);
+    private static MVStoreDB openDatabase(final Path filePath) {
+        return new MVStoreDB(filePath.toString());
     }
 
     private void createInternalIndicesIfNotExist() {

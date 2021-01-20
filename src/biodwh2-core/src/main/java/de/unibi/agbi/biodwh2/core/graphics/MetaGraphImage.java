@@ -13,8 +13,8 @@ import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
 
@@ -32,7 +32,6 @@ public final class MetaGraphImage {
         String fromLabel;
         String toLabel;
         String label;
-        String id;
         CubicBezier line;
     }
 
@@ -47,7 +46,7 @@ public final class MetaGraphImage {
     private final int width;
     private final int height;
     private final Map<String, MetaNodeLayout> nodes;
-    private final Map<String, MetaEdgeLayout> edges;
+    private final List<MetaEdgeLayout> edges;
     private final Map<String, List<MetaEdgeLayout>> edgesPerNodePair;
     private double k = 0;
     private double t = 0;
@@ -60,13 +59,13 @@ public final class MetaGraphImage {
         this.width = width;
         this.height = height;
         nodes = new HashMap<>();
-        edges = new HashMap<>();
+        edges = new ArrayList<>();
         edgesPerNodePair = new HashMap<>();
         int currentColor = 0;
         for (final MetaNode node : graph.getNodes()) {
             final MetaNodeLayout layout = new MetaNodeLayout();
             layout.label = node.label;
-            layout.color = Color.getHSBColor(currentColor / (float) graph.getNodeCount(), 0.85f, 1.0f);
+            layout.color = Color.getHSBColor(currentColor / (float) graph.getNodeLabelCount(), 0.85f, 1.0f);
             currentColor++;
             nodes.put(node.label, layout);
         }
@@ -75,8 +74,7 @@ public final class MetaGraphImage {
             metaEdge.fromLabel = edge.fromLabel;
             metaEdge.toLabel = edge.toLabel;
             metaEdge.label = edge.label;
-            metaEdge.id = edge.id;
-            edges.put(edge.id, metaEdge);
+            edges.add(metaEdge);
             final String nodePairKey = edge.fromLabel.compareTo(edge.toLabel) > 0 ?
                                        edge.toLabel + "|" + edge.fromLabel : edge.fromLabel + "|" + edge.toLabel;
             if (!edgesPerNodePair.containsKey(nodePairKey))
@@ -133,7 +131,7 @@ public final class MetaGraphImage {
             }
         }
         // Attraction between connected nodes
-        for (final MetaEdgeLayout e : edges.values()) {
+        for (final MetaEdgeLayout e : edges) {
             final MetaNodeLayout v = nodes.get(e.fromLabel);
             final MetaNodeLayout u = nodes.get(e.toLabel);
             if (v.equals(u))
@@ -217,7 +215,7 @@ public final class MetaGraphImage {
         }
     }
 
-    public void drawAndSaveImage(final String outputFilePath) {
+    public void drawAndSaveImage(final Path outputFilePath) {
         cropRectMinX = width;
         cropRectMinY = height;
         cropRectMaxX = 0;
@@ -242,7 +240,7 @@ public final class MetaGraphImage {
             final BufferedImage croppedImage = image.getSubimage(cropRectMinX, cropRectMinY,
                                                                  cropRectMaxX - cropRectMinX,
                                                                  cropRectMaxY - cropRectMinY);
-            ImageIO.write(croppedImage, "png", new File(outputFilePath));
+            ImageIO.write(croppedImage, "png", outputFilePath.toFile());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -251,7 +249,7 @@ public final class MetaGraphImage {
     private void drawEdgeLines(final Graphics2D g) {
         g.setStroke(new BasicStroke(3));
         g.setColor(Color.BLACK);
-        for (final MetaEdgeLayout edge : edges.values()) {
+        for (final MetaEdgeLayout edge : edges) {
             final CubicCurve2D shape = new CubicCurve2D.Double();
             shape.setCurve(edge.line.from.x, edge.line.from.y, edge.line.controlPoint1.x, edge.line.controlPoint1.y,
                            edge.line.controlPoint2.x, edge.line.controlPoint2.y, edge.line.to.x, edge.line.to.y);
@@ -325,7 +323,7 @@ public final class MetaGraphImage {
 
     private void drawEdgeLabels(final Graphics2D g, final Font font, final FontMetrics metrics) {
         g.setFont(font);
-        for (final MetaEdgeLayout edge : edges.values()) {
+        for (final MetaEdgeLayout edge : edges) {
             final Vector2D halfPoint = edge.line.pointAt(0.5);
             final Vector2D direction = edge.line.to.subtract(edge.line.from).normalize();
             final Vector2D normal = direction.rotate(Math.PI * 0.5);

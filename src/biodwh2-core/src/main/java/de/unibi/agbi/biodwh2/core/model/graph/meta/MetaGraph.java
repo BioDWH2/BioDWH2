@@ -16,32 +16,38 @@ public final class MetaGraph {
         nodes = new HashMap<>();
         edges = new HashMap<>();
         for (final Node node : graph.getNodes())
-            for (final String label : node.getLabels())
-                if (!nodes.containsKey(label)) {
-                    final MetaNode metaNode = new MetaNode();
-                    metaNode.label = label;
-                    nodes.put(label, metaNode);
-                }
+            for (final String label : node.getLabels()) {
+                if (!nodes.containsKey(label))
+                    nodes.put(label, new MetaNode(label));
+                nodes.get(label).count++;
+            }
         for (final Edge edge : graph.getEdges()) {
             final Node fromNode = graph.getNode(edge.getFromId());
             final Node toNode = graph.getNode(edge.getToId());
             for (final String fromLabel : fromNode.getLabels())
                 for (final String toLabel : toNode.getLabels()) {
                     final String key = edge.getLabel() + "|" + fromLabel + "|" + toLabel;
-                    if (!edges.containsKey(key)) {
-                        final MetaEdge metaEdge = new MetaEdge();
-                        metaEdge.id = key;
-                        metaEdge.label = edge.getLabel();
-                        metaEdge.fromLabel = fromLabel;
-                        metaEdge.toLabel = toLabel;
-                        edges.put(key, metaEdge);
-                    }
+                    if (!edges.containsKey(key))
+                        edges.put(key, new MetaEdge(fromLabel, toLabel, edge.getLabel()));
+                    edges.get(key).count++;
                 }
         }
     }
 
-    public int getNodeCount() {
+    public long getNodeLabelCount() {
         return nodes.size();
+    }
+
+    public long getTotalNodeCount() {
+        return nodes.values().stream().map(n -> n.count).reduce(0L, Long::sum);
+    }
+
+    public long getEdgeLabelCount() {
+        return edges.values().stream().map(e -> e.label).distinct().count();
+    }
+
+    public long getTotalEdgeCount() {
+        return edges.values().stream().map(e -> e.count).reduce(0L, Long::sum);
     }
 
     public Collection<MetaNode> getNodes() {

@@ -3,16 +3,18 @@ package de.unibi.agbi.biodwh2.core.etl;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.graphics.MetaGraphImage;
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
+import de.unibi.agbi.biodwh2.core.model.WorkspaceFileType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
+import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
@@ -23,23 +25,21 @@ public final class GraphMapper {
     private static final String NAMES_NODE_PROPERTY = "names";
     private static final String MAPPED_NODE_PROPERTY = "__mapped";
 
-    public void map(final Workspace workspace, final DataSource[] dataSources, final String inputGraphFilePath,
-                    final String outputGraphFilePath) {
-        copyGraph(inputGraphFilePath, outputGraphFilePath);
-        final String graphFilePath = outputGraphFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION);
+    public void map(final Workspace workspace, final DataSource[] dataSources) {
+        copyGraph(workspace);
+        final Path graphFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_PERSISTENT_GRAPH);
         try (final Graph graph = new Graph(graphFilePath, true)) {
             mapGraph(graph, dataSources);
-            saveGraph(graph, outputGraphFilePath);
-            saveMetaGraph(graph, workspace.getMappedMetaGraphOutputFilePath());
+            saveGraph(graph, workspace);
+            generateMetaGraphStatistics(graph, workspace);
         }
     }
 
-    private void copyGraph(final String inputGraphFilePath, final String outputGraphFilePath) {
-        final Path originalPath = Paths.get(
-                inputGraphFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION));
-        final Path copied = Paths.get(outputGraphFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION));
+    private void copyGraph(final Workspace workspace) {
         try {
-            Files.copy(originalPath, copied, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(workspace.getFilePath(WorkspaceFileType.MERGED_PERSISTENT_GRAPH),
+                       workspace.getFilePath(WorkspaceFileType.MAPPED_PERSISTENT_GRAPH),
+                       StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("Failed to copy merged graph to mapped graph file", e);
@@ -198,8 +198,6 @@ public final class GraphMapper {
     }
 
     private void mapPathInstance(final Graph graph, final MappingDescriber describer, final long[] pathIds) {
-        //if (LOGGER.isInfoEnabled())
-        //    LOGGER.info("Path instance IDs " + StringUtils.join(pathIds, ';'));
         final Node[] nodes = new Node[pathIds.length / 2 + 1];
         for (int i = 0; i < nodes.length; i++)
             nodes[i] = graph.getNode(pathIds[i * 2]);
@@ -219,16 +217,26 @@ public final class GraphMapper {
         }
     }
 
-    private void saveGraph(final Graph graph, final String outputGraphFilePath) {
+    private void saveGraph(final Graph graph, final Workspace workspace) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Save mapped graph to GraphML");
         final GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
-        graphMLWriter.write(outputGraphFilePath, graph);
+        graphMLWriter.write(workspace.getFilePath(WorkspaceFileType.MAPPED_GRAPHML), graph);
     }
 
-    private void saveMetaGraph(final Graph graph, final String outputFilePath) {
+    private void generateMetaGraphStatistics(final Graph graph, final Workspace workspace) {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Generating mapped meta graph image");
+            LOGGER.info("Generating mapped meta graph");
         final MetaGraph metaGraph = new MetaGraph(graph);
+        final Path metaGraphImageFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_META_GRAPH_IMAGE);
+        final String statistics = new MetaGraphStatisticsWriter(metaGraph).write();
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(statistics);
+            LOGGER.info("Exporting mapped meta graph image to " + metaGraphImageFilePath);
+        }
         final MetaGraphImage image = new MetaGraphImage(metaGraph, 2048, 2048);
-        image.drawAndSaveImage(outputFilePath);
+        image.drawAndSaveImage(metaGraphImageFilePath);
+        FileUtils.writeTextToUTF8File(workspace.getFilePath(WorkspaceFileType.MAPPED_META_GRAPH_STATISTICS),
+                                      statistics);
     }
 }

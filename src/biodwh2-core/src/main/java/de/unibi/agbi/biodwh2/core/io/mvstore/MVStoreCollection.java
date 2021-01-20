@@ -211,7 +211,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
 
     @Override
     public Iterator<T> iterator() {
-        final Set<Long> keys = new HashSet<>(map.keySet());
+        final Set<Long> keys = map.keySet();
         return new Iterator<T>() {
             final Iterator<Long> entries = keys.iterator();
 

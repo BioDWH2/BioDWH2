@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.io.IndentingXMLStreamWriter;
 import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreModel;
+import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -15,12 +16,11 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,12 +44,12 @@ public final class GraphMLGraphWriter extends GraphWriter {
         properties = new ArrayList<>();
     }
 
-    public boolean write(final String outputFilePath, final Graph graph) {
+    public boolean write(final Path outputFilePath, final Graph graph) {
         labelKeyIdCounter = 0;
         labelKeyIdMap.clear();
         properties.clear();
         generateProperties(graph);
-        try (OutputStream outputStream = Files.newOutputStream(Paths.get(outputFilePath))) {
+        try (OutputStream outputStream = Files.newOutputStream(outputFilePath)) {
             writeGraphFile(outputStream, graph);
         } catch (XMLStreamException | IOException e) {
             if (LOGGER.isErrorEnabled())
@@ -67,7 +67,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
         removeOldExport(workspace, dataSource);
         generateProperties(graph);
         try (final OutputStream outputStream = Files.newOutputStream(
-                Paths.get(dataSource.getIntermediateGraphFilePath(workspace)))) {
+                dataSource.getFilePath(workspace, DataSourceFileType.INTERMEDIATE_GRAPHML))) {
             writeGraphFile(outputStream, graph);
         } catch (XMLStreamException | IOException e) {
             if (LOGGER.isErrorEnabled())
@@ -78,10 +78,14 @@ public final class GraphMLGraphWriter extends GraphWriter {
     }
 
     private void removeOldExport(final Workspace workspace, final DataSource dataSource) {
-        final File file = new File(dataSource.getIntermediateGraphFilePath(workspace));
-        if (file.exists())
-            //noinspection ResultOfMethodCallIgnored
-            file.delete();
+        final Path path = dataSource.getFilePath(workspace, DataSourceFileType.INTERMEDIATE_GRAPHML);
+        if (Files.exists(path))
+            try {
+                Files.delete(path);
+            } catch (IOException e) {
+                if (LOGGER.isWarnEnabled())
+                    LOGGER.warn("Failed to remove old export", e);
+            }
     }
 
     private void generateProperties(final Graph graph) {

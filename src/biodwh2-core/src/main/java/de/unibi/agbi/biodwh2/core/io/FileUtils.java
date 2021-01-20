@@ -13,6 +13,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
@@ -141,5 +142,14 @@ public final class FileUtils {
                                                                final Class<T> typeClass) throws IOException {
         final InputStream stream = openGzip(workspace, dataSource, fileName);
         return openSeparatedValuesFile(stream, typeClass, '\t', true);
+    }
+
+    public static boolean writeTextToUTF8File(final Path path, final String text) {
+        try {
+            org.apache.commons.io.FileUtils.writeStringToFile(path.toFile(), text, StandardCharsets.UTF_8);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 }

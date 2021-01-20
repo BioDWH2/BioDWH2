@@ -47,11 +47,11 @@ class GraphTest {
     @Test
     void nodeKeepsIdOnRetrieveReopenedGraph() throws IOException {
         final Path tempFilePath = Files.createTempFile("graphdb_test", ".db");
-        Graph g = new Graph(tempFilePath.toString());
+        Graph g = new Graph(tempFilePath);
         Node n = g.addNode("Test");
         long id = n.getId();
         g.close();
-        g = new Graph(tempFilePath.toString(), true);
+        g = new Graph(tempFilePath, true);
         n = g.getNodes().iterator().next();
         assertEquals(id, n.getId());
     }
