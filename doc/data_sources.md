@@ -12,9 +12,8 @@
 | KEGG         | Kyoto Encyclopedia of Genes and Genomes                          | [Link](https://www.kegg.jp)                  | Work in progress |
 | MED-RT       | Medication Reference Terminology (MED-RT™)                       | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/) | Work in progress |
 | Mondo        | Mondo Disease Ontology                                           | [Link](https://mondo.monarchinitiative.org)  | Work in progress |
-| NCBI         |                                                                  |                                              | Work in progress |
 | NDF-RT       | National Drug File – Reference Terminology (NDF-RT™)             | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/) | Done             |
-| PharmGKB     | PharmGKB                                                         | [Link](https://www.pharmgkb.org)             | Work in progress |
+| PharmGKB     | PharmGKB                                                         | [Link](https://www.pharmgkb.org)             | Done             |
 | SIDER        | SIDER: Side Effect Resource                                      | [Link](http://sideeffects.embl.de)           | Work in progress |
 | UNII         | FDA Substance Registration System - Unique Ingredient Identifier | [Link](https://fdasis.nlm.nih.gov/srs/)      | Done             |
 | USDA-PLANTS  | USDA PLANTS Database                                             | [Link](http://plants.usda.gov/)              | Done             |

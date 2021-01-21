@@ -6,7 +6,7 @@ BioDWH2 is an easy-to-use, automated, graph-based data warehouse and mapping too
 ## Data sources
 Multiple data sources are readily available with many more under development or planned. A list of officially supported data sources is provided [here](doc/data_sources.md).
 
-Missing a data source important to you? Feel free to open a discussion [here](https://github.com/BioDWH2/BioDWH2/discussions)! Want to develop your own data source module? In that case consult the [development documentation](doc/setup.md).
+Missing a data source important to you? Feel free to open a discussion [here](https://github.com/BioDWH2/BioDWH2/discussions/categories/data-source-requests)! Want to develop your own data source module? In that case consult the [development documentation](doc/setup.md).
 
 ## Download
 The latest release version of BioDWH2 can be downloaded [here](https://github.com/BioDWH2/BioDWH2/releases/latest).
