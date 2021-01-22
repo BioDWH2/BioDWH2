@@ -6,7 +6,7 @@ BioDWH2 is an easy-to-use, automated, graph-based data warehouse and mapping too
 
 The workflow of BioDWH2 is split into several distinct steps as follows:
 
-![](img/biodwh2_process_flow.png "")
+![](img/biodwh2_process_flow.png)
 
 1. First, a new project workspace has to be created in which all data sources will be stored and processed. This step is done once per project and all subsequent steps run in this workspace. More on the workspace concept will follow below.
 2. Configured data sources need to be updated, meaning BioDWH2 checks which is the newest available version online and compares it to the current version stored in the workspace. If no version has been stored or a new one is available, the data files are being downloaded to the workspace.
