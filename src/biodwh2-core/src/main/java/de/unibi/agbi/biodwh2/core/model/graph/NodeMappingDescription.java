@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 
 public final class NodeMappingDescription {
+    @SuppressWarnings("unused")
     public enum NodeType {
         DUMMY,
         UNKNOWN,
@@ -20,16 +21,16 @@ public final class NodeMappingDescription {
         TAXON
     }
 
-    public NodeType type;
+    private final String type;
     private final Map<IdentifierType, Set<String>> identifier;
     private Set<String> identifierCache;
     private final Set<String> names;
 
-    public NodeMappingDescription() {
-        this(NodeType.UNKNOWN);
+    public NodeMappingDescription(final NodeType type) {
+        this(type.name());
     }
 
-    public NodeMappingDescription(final NodeType type) {
+    public NodeMappingDescription(final String type) {
         this.type = type;
         identifier = new HashMap<>();
         names = new HashSet<>();
@@ -103,5 +104,9 @@ public final class NodeMappingDescription {
                 if (other.identifier.get(identifierType).contains(id))
                     return true;
         return false;
+    }
+
+    public String getType() {
+        return type;
     }
 }

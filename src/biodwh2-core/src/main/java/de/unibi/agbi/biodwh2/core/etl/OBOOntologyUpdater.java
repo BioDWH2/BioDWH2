@@ -18,7 +18,7 @@ public abstract class OBOOntologyUpdater<D extends DataSource> extends Updater<D
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public final Version getNewestVersion() throws UpdaterException {
         try {
             return getVersionFromDownloadFile();
         } catch (IOException e) {
@@ -41,7 +41,7 @@ public abstract class OBOOntologyUpdater<D extends DataSource> extends Updater<D
     protected abstract Version getVersionFromDataVersionLine(final String dataVersion);
 
     @Override
-    protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
+    protected final boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         try {
             final String targetFilePath = dataSource.resolveSourceFilePath(workspace, getTargetFileName());
             HTTPClient.downloadFileAsBrowser(getDownloadUrl(), targetFilePath);

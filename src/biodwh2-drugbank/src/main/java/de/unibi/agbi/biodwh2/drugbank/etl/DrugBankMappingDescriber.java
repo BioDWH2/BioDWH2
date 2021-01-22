@@ -13,8 +13,7 @@ public class DrugBankMappingDescriber extends MappingDescriber {
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
         if ("Drug".equals(localMappingLabel)) {
-            NodeMappingDescription description = new NodeMappingDescription();
-            description.type = NodeMappingDescription.NodeType.DRUG;
+            NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
             description.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("id"));
             return new NodeMappingDescription[]{description};
         }

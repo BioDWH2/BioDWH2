@@ -13,20 +13,17 @@ public final class Mock1MappingDescriber extends MappingDescriber {
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
         if ("Gene".equals(localMappingLabel)) {
-            NodeMappingDescription description = new NodeMappingDescription();
-            description.type = NodeMappingDescription.NodeType.GENE;
+            NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
             description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("hgnc_id"));
             return new NodeMappingDescription[]{description};
         }
         if ("Drug".equals(localMappingLabel)) {
-            NodeMappingDescription description = new NodeMappingDescription();
-            description.type = NodeMappingDescription.NodeType.DRUG;
+            NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
             description.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
             return new NodeMappingDescription[]{description};
         }
         if ("Dummy1".equals(localMappingLabel)) {
-            NodeMappingDescription description = new NodeMappingDescription();
-            description.type = NodeMappingDescription.NodeType.DUMMY;
+            NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DUMMY);
             description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id"));
             if (node.hasProperty("id2"))
                 description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id2"));
@@ -42,11 +39,8 @@ public final class Mock1MappingDescriber extends MappingDescriber {
 
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
-        if (edges[0].getLabel().endsWith("TARGETS")) {
-            PathMappingDescription description = new PathMappingDescription();
-            description.type = PathMappingDescription.EdgeType.TARGETS;
-            return description;
-        }
+        if (edges[0].getLabel().endsWith("TARGETS"))
+            return new PathMappingDescription(PathMappingDescription.EdgeType.TARGETS);
         return null;
     }
 

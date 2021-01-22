@@ -128,7 +128,7 @@ public final class GraphMapper {
             }
         }
         if (mergedNode == null) {
-            mergedNode = graph.addNode(description.type.toString(), MAPPED_NODE_PROPERTY, true, IDS_NODE_PROPERTY, ids,
+            mergedNode = graph.addNode(description.getType(), MAPPED_NODE_PROPERTY, true, IDS_NODE_PROPERTY, ids,
                                        NAMES_NODE_PROPERTY, names);
         } else {
             if (idsCount != ids.size() || namesCount != names.size()) {
@@ -141,7 +141,7 @@ public final class GraphMapper {
     }
 
     private boolean hasMatchedNodeSameLabel(final NodeMappingDescription description, final Node node) {
-        return description.type.toString().equals(node.getLabels()[0]);
+        return description.getType().equals(node.getLabels()[0]);
     }
 
     private void mapPaths(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
@@ -211,7 +211,7 @@ public final class GraphMapper {
                                                                                 MAPPED_TO_EDGE_LABEL);
             if (mappedFromNodeIds.length > 0 && mappedToNodeIds.length > 0) {
                 final Edge mappedEdge = graph.addEdge(mappedFromNodeIds[0], mappedToNodeIds[0],
-                                                      mappingDescription.type.name());
+                                                      mappingDescription.getType());
                 mappedEdge.setProperty("source", describer.getDataSourceId());
             }
         }

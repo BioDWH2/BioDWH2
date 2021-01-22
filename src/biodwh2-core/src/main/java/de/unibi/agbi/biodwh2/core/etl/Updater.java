@@ -95,7 +95,6 @@ public abstract class Updater<D extends DataSource> {
         return isDataSourceUpToDate(newestVersion, workspaceVersion);
     }
 
-
     protected static Version convertDateTimeToVersion(LocalDateTime dateTime) {
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd.HHmmss");
         return Version.parse(dateTime.format(formatter));

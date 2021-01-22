@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
 public class PathMappingDescription {
+    @SuppressWarnings("unused")
     public enum EdgeType {
         UNKNOWN,
         DUMMY,
@@ -11,12 +12,17 @@ public class PathMappingDescription {
         INTERACTS
     }
 
-    public EdgeType type = EdgeType.UNKNOWN;
-
-    public PathMappingDescription() {
-    }
+    private final String type;
 
     public PathMappingDescription(final EdgeType type) {
+        this.type = type.name();
+    }
+
+    public PathMappingDescription(final String type) {
         this.type = type;
+    }
+
+    public String getType() {
+        return type;
     }
 }
