@@ -2,9 +2,7 @@ package de.unibi.agbi.biodwh2.core.io.graph;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -71,6 +69,11 @@ class GraphMLPropertyFormatterTest {
 
     private void assertPropertyType(final Class<?> type, final String expectedTypeName,
                                     final String expectedListTypeName) {
+        assertPropertyType(new GraphMLPropertyFormatter.Type(type), expectedTypeName, expectedListTypeName);
+    }
+
+    private void assertPropertyType(final GraphMLPropertyFormatter.Type type, final String expectedTypeName,
+                                    final String expectedListTypeName) {
         final GraphMLPropertyFormatter.PropertyType p = GraphMLPropertyFormatter.getPropertyType(type);
         assertEquals(expectedTypeName, p.typeName);
         assertEquals(expectedListTypeName, p.listTypeName);
@@ -92,5 +95,24 @@ class GraphMLPropertyFormatterTest {
         assertPropertyType(long[].class, "string", "long");
         assertPropertyType(Character[].class, "string", "string");
         assertPropertyType(char[].class, "string", "string");
+    }
+
+    @Test
+    void typeFromObject() {
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject("Hello world"), "string", null);
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject(true), "boolean", null);
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject(10), "int", null);
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject(10.5f), "float", null);
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject(10.5), "double", null);
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject(10L), "long", null);
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject('x'), "string", null);
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject(new String[]{"a", "bc"}), "string", "string");
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject(new int[]{10, 5}), "string", "int");
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject(new Integer[]{10, 5}), "string", "int");
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject(Arrays.asList("a", "bc")), "string", "string");
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject(Arrays.asList(10, 54)), "string", "int");
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject(Arrays.asList(true, false)), "string", "boolean");
+        final Set<Integer> testSet = new HashSet<>(Arrays.asList(10, 54));
+        assertPropertyType(GraphMLPropertyFormatter.Type.fromObject(testSet), "string", "int");
     }
 }

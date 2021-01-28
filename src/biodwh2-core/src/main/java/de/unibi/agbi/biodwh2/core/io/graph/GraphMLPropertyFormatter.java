@@ -3,16 +3,12 @@ package de.unibi.agbi.biodwh2.core.io.graph;
 import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreId;
 import org.apache.commons.lang3.StringUtils;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 public final class GraphMLPropertyFormatter {
-    public static class PropertyType {
-        public String typeName;
-        public String listTypeName;
-    }
-
     private static final String INVALID_XML_CHARS = new String(
             new char[]{0x01, 0x02, 0x03, 0x04, 0x08, 0x1d, 0x12, 0x14, 0x18});
     private static final String FORMAT = "%s";
@@ -24,20 +20,16 @@ public final class GraphMLPropertyFormatter {
     private GraphMLPropertyFormatter() {
     }
 
-    public static PropertyType getPropertyType(final Class<?> type) {
+    public static PropertyType getPropertyType(final Type type) {
         final PropertyType p = new PropertyType();
         // Allowed types: boolean, int, long, float, double, string
-        if (type.equals(MVStoreId.class)) {
+        if (type.componentType != null) {
+            p.listTypeName = getTypeName(type.componentType);
+            p.typeName = "string";
+        } else if (type.type.equals(MVStoreId.class))
             p.typeName = "long";
-        } else if (type.isArray()) {
-            p.listTypeName = getTypeName(type.getComponentType());
-            p.typeName = "string";
-        } else if (Collection.class.isAssignableFrom(type)) {
-            ParameterizedType superclass = (ParameterizedType) type.getGenericSuperclass();
-            p.listTypeName = "string"; // TODO
-            p.typeName = "string";
-        } else
-            p.typeName = getTypeName(type);
+        else
+            p.typeName = getTypeName(type.type);
         return p;
     }
 
@@ -203,5 +195,71 @@ public final class GraphMLPropertyFormatter {
 
     private static String formatString(Object value) {
         return String.format(Locale.US, FORMAT, value);
+    }
+
+    public static class Type {
+        private final Class<?> type;
+        private Class<?> componentType;
+        private boolean isList;
+
+        public Type(Class<?> type) {
+            this.type = type;
+            if (type.isArray()) {
+                isList = true;
+                this.componentType = type.getComponentType();
+            }
+        }
+
+        public Class<?> getType() {
+            return type;
+        }
+
+        public Class<?> getComponentType() {
+            return componentType;
+        }
+
+        public boolean isList() {
+            return isList;
+        }
+
+        @SuppressWarnings("rawtypes")
+        public static Type fromObject(final Object obj) {
+            if (obj == null)
+                return null;
+            final Type result = new Type(obj.getClass());
+            if (Collection.class.isAssignableFrom(result.type)) {
+                result.isList = true;
+                final Set<Class<?>> componentTypeCandidates = new HashSet<>();
+                final Collection collection = (Collection) obj;
+                for (final Object element : collection) {
+                    if (element != null)
+                        componentTypeCandidates.add(element.getClass());
+                }
+                if (componentTypeCandidates.size() > 0) {
+                    Class<?> commonBaseClass = null;
+                    for (final Class<?> candidate : componentTypeCandidates) {
+                        if (commonBaseClass == null || candidate.isAssignableFrom(commonBaseClass))
+                            commonBaseClass = candidate;
+                        else {
+                            // Find the next common parent class which in the worst case would be Object.class
+                            Class<?> parentClass = candidate;
+                            while ((parentClass = parentClass.getSuperclass()) != null) {
+                                if (parentClass.isAssignableFrom(commonBaseClass)) {
+                                    commonBaseClass = parentClass;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    result.componentType = commonBaseClass;
+                }
+            }
+            return result;
+        }
+    }
+
+    public static class PropertyType {
+        public String typeName;
+        public String listTypeName;
     }
 }
