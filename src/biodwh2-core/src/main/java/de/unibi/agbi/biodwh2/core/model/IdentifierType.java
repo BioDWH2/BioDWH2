@@ -28,7 +28,14 @@ public enum IdentifierType {
     USDA_PLANTS_SYMBOL("USDA_PLANTS_Symbol"),
     ENSEMBL_GENE_ID("ENSEMBL_Gene"),
     INTERNATIONAL_NONPROPRIETARY_NAMES("INN"),
-    DB_SNP("dbSNP");
+    DB_SNP("dbSNP"),
+    PUBMED_ID("PMID"),
+    DOI("DOI"),
+    ISBN_10("ISBN10"),
+    ISBN_13("ISBN13"),
+    FDA_SPL("FDA_SPL"),
+    PROTEIN_DATA_BANK("PDB"),
+    UNIPROT_KB("UniProtKB");
 
     IdentifierType(final String prefix) {
         this.prefix = prefix;

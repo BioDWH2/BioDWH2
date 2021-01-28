@@ -18,11 +18,14 @@ public final class NodeMappingDescription {
         VARIANT,
         HAPLOTYPE,
         PATHWAY,
-        TAXON
+        TAXON,
+        PUBLICATION,
+        DRUG_LABEL,
+        PROTEIN
     }
 
     private final String type;
-    private final Map<IdentifierType, Set<String>> identifier;
+    private final Map<String, Set<String>> identifier;
     private Set<String> identifierCache;
     private final Set<String> names;
 
@@ -55,10 +58,10 @@ public final class NodeMappingDescription {
 
     public void addIdentifier(final IdentifierType type, final Long longValue) {
         if (longValue != null)
-            addIdentifier(type, longValue.toString());
+            addIdentifier(type.prefix, longValue.toString());
     }
 
-    public void addIdentifier(final IdentifierType type, final String value) {
+    public void addIdentifier(final String type, final String value) {
         if (StringUtils.isNotEmpty(value)) {
             if (!identifier.containsKey(type))
                 identifier.put(type, new HashSet<>());
@@ -67,7 +70,22 @@ public final class NodeMappingDescription {
         }
     }
 
+    public void addIdentifier(final IdentifierType type, final String value) {
+        if (StringUtils.isNotEmpty(value))
+            addIdentifier(type.prefix, value);
+    }
+
     public void addIdentifier(final IdentifierType type, final Integer intValue) {
+        if (intValue != null)
+            addIdentifier(type.prefix, intValue.toString());
+    }
+
+    public void addIdentifier(final String type, final Long longValue) {
+        if (longValue != null)
+            addIdentifier(type, longValue.toString());
+    }
+
+    public void addIdentifier(final String type, final Integer intValue) {
         if (intValue != null)
             addIdentifier(type, intValue.toString());
     }
@@ -76,9 +94,9 @@ public final class NodeMappingDescription {
         if (identifierCache != null)
             return identifierCache;
         identifierCache = new HashSet<>();
-        for (final IdentifierType identifierType : identifier.keySet())
+        for (final String identifierType : identifier.keySet())
             for (final String id : identifier.get(identifierType))
-                identifierCache.add(identifierType.prefix + ":" + id);
+                identifierCache.add(identifierType + ":" + id);
         return identifierCache;
     }
 
@@ -91,14 +109,13 @@ public final class NodeMappingDescription {
     }
 
     private boolean matchesAnyIdentifier(final NodeMappingDescription other) {
-        for (final IdentifierType identifierType : identifier.keySet())
+        for (final String identifierType : identifier.keySet())
             if (isIdentifierTypeIntersecting(other, identifierType))
                 return true;
         return false;
     }
 
-    private boolean isIdentifierTypeIntersecting(final NodeMappingDescription other,
-                                                 final IdentifierType identifierType) {
+    private boolean isIdentifierTypeIntersecting(final NodeMappingDescription other, final String identifierType) {
         if (other.identifier.containsKey(identifierType))
             for (final String id : identifier.get(identifierType))
                 if (other.identifier.get(identifierType).contains(id))
