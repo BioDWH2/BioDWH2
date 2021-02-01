@@ -16,9 +16,9 @@ import java.io.*;
 import java.util.Map;
 
 public class DrugBankUpdater extends Updater<DrugBankDataSource> {
-    private static final String FullDatabaseUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-full-database";
-    private static final String DrugStructuresUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-structures";
-    private static final String MetaboliteStructuresUrl = "https://www.drugbank.ca/releases/5-1-6/downloads/all-metabolite-structures";
+    private static final String FULL_DATABASE_URL_SUFFIX = "/downloads/all-full-database";
+    private static final String DRUG_STRUCTURES_URL_SUFFIX = "/downloads/all-structures";
+    private static final String METABOLITE_STRUCTURES_URL_SUFFIX = "/downloads/all-metabolite-structures";
 
     public DrugBankUpdater(DrugBankDataSource dataSource) {
         super(dataSource);
@@ -26,19 +26,23 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
 
     @Override
     public Version getNewestVersion() throws UpdaterException {
-        String source;
+        final JsonNode json = loadReleasesJson();
+        final String version = getFirstReleaseVersion(json);
+        return parseVersion(version);
+    }
+
+    private JsonNode loadReleasesJson() throws UpdaterException {
+        final String source;
         try {
             source = HTTPClient.getWebsiteSource("https://www.drugbank.ca/releases.json");
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
-        JsonNode json = parseJsonSource(source);
-        String version = getFirstReleaseVersion(json);
-        return parseVersion(version);
+        return parseJsonSource(source);
     }
 
     private JsonNode parseJsonSource(String source) throws UpdaterMalformedVersionException {
-        ObjectMapper mapper = new ObjectMapper();
+        final ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.readTree(source);
         } catch (IOException e) {
@@ -47,7 +51,7 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     }
 
     private String getFirstReleaseVersion(JsonNode json) throws UpdaterMalformedVersionException {
-        JsonNode firstRelease = json.get(0);
+        final JsonNode firstRelease = json.get(0);
         if (firstRelease == null)
             throw new UpdaterMalformedVersionException(json.toString());
         return firstRelease.get("version").asText();
@@ -67,13 +71,19 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
         final String username = drugBankProperties.getOrDefault("username", null);
         final String password = drugBankProperties.getOrDefault("password", null);
         if (username != null && username.length() > 0 && password != null && password.length() > 0) {
+            final JsonNode releases = loadReleasesJson();
+            final JsonNode latestRelease = releases.get(0);
+            final String latestReleaseUrl = latestRelease.get("url").asText();
             try {
                 String filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_full_database.xml.zip");
-                HTTPClient.downloadFileAsBrowser(FullDatabaseUrl, filePath, username, password);
+                HTTPClient.downloadFileAsBrowser(latestReleaseUrl + FULL_DATABASE_URL_SUFFIX, filePath, username,
+                                                 password);
                 filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_structures.sdf.zip");
-                HTTPClient.downloadFileAsBrowser(DrugStructuresUrl, filePath, username, password);
+                HTTPClient.downloadFileAsBrowser(latestReleaseUrl + DRUG_STRUCTURES_URL_SUFFIX, filePath, username,
+                                                 password);
                 filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_metabolite-structures.sdf.zip");
-                HTTPClient.downloadFileAsBrowser(MetaboliteStructuresUrl, filePath, username, password);
+                HTTPClient.downloadFileAsBrowser(latestReleaseUrl + METABOLITE_STRUCTURES_URL_SUFFIX, filePath,
+                                                 username, password);
                 return true;
             } catch (IOException e) {
                 throw new UpdaterConnectionException("Failed to download files", e);
