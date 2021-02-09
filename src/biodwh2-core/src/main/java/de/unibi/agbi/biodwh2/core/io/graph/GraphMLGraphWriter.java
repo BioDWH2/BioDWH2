@@ -128,8 +128,11 @@ public final class GraphMLGraphWriter extends GraphWriter {
 
     private Map<String, GraphMLPropertyFormatter.Type> getPropertyKeyTypes(final MVStoreModel obj) {
         final Map<String, GraphMLPropertyFormatter.Type> keyTypeMap = new HashMap<>();
-        for (final String key : obj.keySet())
-            keyTypeMap.put(key, GraphMLPropertyFormatter.Type.fromObject(obj.get(key)));
+        for (final String key : obj.keySet()) {
+            final Object value = obj.get(key);
+            if (value != null)
+                keyTypeMap.put(key, GraphMLPropertyFormatter.Type.fromObject(value));
+        }
         return keyTypeMap;
     }
 

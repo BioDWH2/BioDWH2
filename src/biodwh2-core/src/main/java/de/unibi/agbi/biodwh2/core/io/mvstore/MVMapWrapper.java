@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     private final MVMap<K, V> mvMap;
     private final MVStore mvStore;
+    private MVStore.TxCounter lock;
 
     MVMapWrapper(final MVStore mvStore, final MVMap<K, V> mvMap) {
         this.mvStore = mvStore;
@@ -48,6 +49,21 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
         return mvMap.containsValue(value);
     }
 
+    void lock() {
+        if (lock == null)
+            lock = mvStore.registerVersionUsage();
+    }
+
+    void unlock() {
+        if (lock != null)
+            mvStore.deregisterVersionUsage(lock);
+        lock = null;
+    }
+
+    V unsafeGet(Object key) {
+        return mvMap.get(key);
+    }
+
     @Override
     public V get(Object key) {
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
@@ -68,6 +84,10 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
         } catch (IOException | ClassNotFoundException e) {
             return null;
         }
+    }
+
+    void unsafePut(K key, V value) {
+        mvMap.put(key, value);
     }
 
     @Override
@@ -119,6 +139,10 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
         } finally {
             mvStore.deregisterVersionUsage(txCounter);
         }
+    }
+
+    Set<K> unsafeKeySet() {
+        return mvMap.keySet();
     }
 
     @Override

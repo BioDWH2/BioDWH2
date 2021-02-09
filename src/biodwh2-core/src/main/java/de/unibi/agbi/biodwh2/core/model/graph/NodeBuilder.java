@@ -29,6 +29,10 @@ public final class NodeBuilder {
         return this;
     }
 
+    public int getPropertyCount() {
+        return properties.size();
+    }
+
     public Node build() {
         return graph.addNode(label, properties);
     }
