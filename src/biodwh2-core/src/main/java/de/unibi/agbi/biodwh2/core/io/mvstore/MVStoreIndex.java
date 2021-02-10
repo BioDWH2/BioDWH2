@@ -57,37 +57,38 @@ public final class MVStoreIndex {
     }
 
     private void put(final Comparable<?> indexKey, final long id) {
-        if (indexKey != null)
-            insertToPage(indexKey, id);
+        if (indexKey != null) {
+            map.lock();
+            try {
+                unsafeInsertToPage(indexKey, id);
+            } finally {
+                map.unlock();
+            }
+        }
     }
 
-    private synchronized void insertToPage(final Comparable<?> indexKey, final long id) {
-        map.lock();
-        try {
-            ConcurrentDoublyLinkedList<Long> pages = map.unsafeGet(indexKey);
-            boolean pagesChanged = pages == null;
-            if (pagesChanged)
-                pages = new ConcurrentDoublyLinkedList<>();
-            final Long matchedPage = findMatchingPage(pages, id);
-            if (matchedPage == null) {
-                createNewPage(pages, id);
-                pagesChanged = true;
-            } else {
-                final IndexPageMetadata metadata = pagesMetadataMap.get(matchedPage);
-                final ConcurrentDoublyLinkedList<Long> page = pagesMap.unsafeGet(matchedPage);
-                if (!page.contains(id)) {
-                    page.add(id);
-                    metadata.slotsUsed++;
-                    if (metadata.maxId < id)
-                        metadata.maxId = id;
-                    pagesMap.unsafePut(matchedPage, page);
-                }
+    private synchronized void unsafeInsertToPage(final Comparable<?> indexKey, final long id) {
+        ConcurrentDoublyLinkedList<Long> pages = map.unsafeGet(indexKey);
+        boolean pagesChanged = pages == null;
+        if (pagesChanged)
+            pages = new ConcurrentDoublyLinkedList<>();
+        final Long matchedPage = findMatchingPage(pages, id);
+        if (matchedPage == null) {
+            createNewPage(pages, id);
+            pagesChanged = true;
+        } else {
+            final IndexPageMetadata metadata = pagesMetadataMap.get(matchedPage);
+            final ConcurrentDoublyLinkedList<Long> page = pagesMap.unsafeGet(matchedPage);
+            if (!page.contains(id)) {
+                page.add(id);
+                metadata.slotsUsed++;
+                if (metadata.maxId < id)
+                    metadata.maxId = id;
+                pagesMap.unsafePut(matchedPage, page);
             }
-            if (pagesChanged)
-                map.unsafePut(indexKey, pages);
-        } finally {
-            map.unlock();
         }
+        if (pagesChanged)
+            map.unsafePut(indexKey, pages);
     }
 
     private Long findMatchingPage(final ConcurrentDoublyLinkedList<Long> pages, final long id) {
@@ -113,9 +114,14 @@ public final class MVStoreIndex {
     }
 
     private void put(final Comparable<?>[] indexKeys, final long id) {
-        for (final Comparable<?> indexKey : indexKeys)
-            if (indexKey != null)
-                insertToPage(indexKey, id);
+        map.lock();
+        try {
+            for (final Comparable<?> indexKey : indexKeys)
+                if (indexKey != null)
+                    unsafeInsertToPage(indexKey, id);
+        } finally {
+            map.unlock();
+        }
     }
 
     public Set<Long> find(final Comparable<?> indexKey) {
@@ -149,12 +155,18 @@ public final class MVStoreIndex {
     }
 
     private void remove(final Comparable<?> indexKey, final long id) {
-        if (indexKey != null)
-            removeFromPage(indexKey, id);
+        if (indexKey != null) {
+            map.lock();
+            try {
+                unsafeRemoveFromPage(indexKey, id);
+            } finally {
+                map.unlock();
+            }
+        }
     }
 
-    private synchronized void removeFromPage(final Comparable<?> indexKey, final long id) {
-        final ConcurrentDoublyLinkedList<Long> pages = map.get(indexKey);
+    private synchronized void unsafeRemoveFromPage(final Comparable<?> indexKey, final long id) {
+        final ConcurrentDoublyLinkedList<Long> pages = map.unsafeGet(indexKey);
         if (pages == null)
             return;
         Long pageIndexToRemove = null;
@@ -162,7 +174,7 @@ public final class MVStoreIndex {
             final IndexPageMetadata metadata = pagesMetadataMap.get(pageIndex);
             if (metadata.minId == null || metadata.minId > id || metadata.maxId < id)
                 continue;
-            final ConcurrentDoublyLinkedList<Long> page = pagesMap.get(pageIndex);
+            final ConcurrentDoublyLinkedList<Long> page = pagesMap.unsafeGet(pageIndex);
             page.remove(id);
             metadata.slotsUsed--;
             if (metadata.slotsUsed == 0) {
@@ -174,22 +186,27 @@ public final class MVStoreIndex {
                     metadata.minId = Math.min(value, metadata.minId);
                     metadata.maxId = Math.max(value, metadata.maxId);
                 }
-                pagesMap.put(pageIndex, page);
+                pagesMap.unsafePut(pageIndex, page);
             }
             break;
         }
         if (pageIndexToRemove != null) {
-            pagesMap.remove(pageIndexToRemove);
+            pagesMap.unsafeRemove(pageIndexToRemove);
             pages.remove(pageIndexToRemove);
             pagesMetadataMap.remove(pageIndexToRemove);
-            map.put(indexKey, pages);
+            map.unsafePut(indexKey, pages);
         }
     }
 
     private void remove(final Comparable<?>[] indexKeys, final long id) {
-        for (final Comparable<?> indexKey : indexKeys)
-            if (indexKey != null)
-                removeFromPage(indexKey, id);
+        map.lock();
+        try {
+            for (final Comparable<?> indexKey : indexKeys)
+                if (indexKey != null)
+                    unsafeRemoveFromPage(indexKey, id);
+        } finally {
+            map.unlock();
+        }
     }
 
     private void sortAllPages() {

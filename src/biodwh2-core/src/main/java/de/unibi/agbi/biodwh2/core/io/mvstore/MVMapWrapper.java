@@ -101,6 +101,10 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
         }
     }
 
+    void unsafeRemove(Object key) {
+        mvMap.remove(key);
+    }
+
     @Override
     public V remove(Object key) {
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
