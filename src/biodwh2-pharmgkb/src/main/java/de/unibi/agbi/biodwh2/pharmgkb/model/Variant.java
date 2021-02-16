@@ -3,10 +3,10 @@ package de.unibi.agbi.biodwh2.pharmgkb.model;
 import com.univocity.parsers.annotations.Parsed;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
 @SuppressWarnings("unused")
-@NodeLabel("Variant")
+@NodeLabels("Variant")
 public class Variant {
     @Parsed(field = "Variant ID")
     @GraphProperty("id")
@@ -39,5 +39,6 @@ public class Variant {
     @GraphProperty("label_annotation_count")
     public Integer labelAnnotationCount;
     @Parsed(field = "Synonyms")
+    @GraphArrayProperty(value = "synonyms", arrayDelimiter = ", ")
     public String synonyms;
 }

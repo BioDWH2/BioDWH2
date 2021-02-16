@@ -6,10 +6,7 @@ import de.unibi.agbi.biodwh2.core.etl.GraphMapper;
 import de.unibi.agbi.biodwh2.core.etl.GraphMerger;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
-import de.unibi.agbi.biodwh2.core.model.Configuration;
-import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
-import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
+import de.unibi.agbi.biodwh2.core.model.*;
 import de.unibi.agbi.biodwh2.core.text.TableFormatter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -84,10 +81,14 @@ public final class Workspace {
     }
 
     private DataSource[] getUsedDataSources() {
+        if (configuration.getDataSourceIds().length == 0)
+            throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
+                                         "have been added to the workspace config.json either directly or via " +
+                                         "command line.");
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Using data sources " + StringUtils.join(configuration.dataSourceIds, ", "));
-        DataSource[] result = new DataSourceLoader().getDataSources(configuration.dataSourceIds);
-        if (result.length != configuration.dataSourceIds.length)
+            LOGGER.info("Using data sources " + StringUtils.join(configuration.getDataSourceIds(), ", "));
+        DataSource[] result = new DataSourceLoader().getDataSources(configuration.getDataSourceIds());
+        if (result.length != configuration.getNumberOfDataSources())
             throw new WorkspaceException("Failed to load all data sources. Please ensure the configured data source " +
                                          "IDs are valid and all data source modules are available in the classpath.");
         return result;
@@ -201,25 +202,25 @@ public final class Workspace {
             return true;
         final DataSourceMetadata metadata = dataSource.getMetadata();
         return metadata.exportSuccessful == null || !metadata.exportSuccessful || fileDoesNotExist(
-                dataSource.getIntermediateGraphFilePath(this)) || fileDoesNotExist(
-                dataSource.getGraphDatabaseFilePath(this));
+                dataSource.getFilePath(this, DataSourceFileType.INTERMEDIATE_GRAPHML)) || fileDoesNotExist(
+                dataSource.getFilePath(this, DataSourceFileType.PERSISTENT_GRAPH));
     }
 
     private boolean isDataSourceExportForced(final DataSource dataSource) {
         final String id = dataSource.getId();
-        return configuration.dataSourceProperties.containsKey(id) && "true".equalsIgnoreCase(
-                configuration.dataSourceProperties.get(id).getOrDefault("forceExport", ""));
+        return configuration.hasPropertiesForDataSource(id) && "true".equalsIgnoreCase(
+                configuration.getDataSourceProperties(id).getOrDefault("forceExport", ""));
     }
 
-    private boolean fileDoesNotExist(final String filePath) {
-        return Files.notExists(Paths.get(filePath));
+    private boolean fileDoesNotExist(final Path filePath) {
+        return Files.notExists(filePath);
     }
 
     private void mergeDataSources() {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Merging of data sources started");
         try {
-            new GraphMerger().merge(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GRAPH_ML));
+            new GraphMerger().merge(this, dataSources);
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Merging of data sources finished");
         } catch (MergerException e) {
@@ -228,22 +229,29 @@ public final class Workspace {
         }
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private String getMergedOutputFilePath(final GraphFileFormat format) {
-        return Paths.get(getSourcesDirectory(), "merged." + format.extension).toString();
+    public final Path getFilePath(final WorkspaceFileType type) {
+        return Paths.get(getSourcesDirectory(), type.getName());
     }
 
     private void mapDataSources() {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Mapping of data sources started");
-        new GraphMapper().map(this, dataSources, getMergedOutputFilePath(GraphFileFormat.GRAPH_ML),
-                              getMappedOutputFilePath(GraphFileFormat.GRAPH_ML));
+        new GraphMapper().map(this, dataSources);
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Mapping of data sources finished");
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private String getMappedOutputFilePath(final GraphFileFormat format) {
-        return Paths.get(getSourcesDirectory(), "mapped." + format.extension).toString();
+    public void addDataSource(final String dataSourceId) {
+        configuration.addDataSource(dataSourceId);
+    }
+
+    public void removeDataSource(final String dataSourceId) {
+        configuration.removeDataSource(dataSourceId);
+    }
+
+    public void saveConfiguration() throws IOException {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final Path path = getConfigurationFilePath();
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), configuration);
     }
 }

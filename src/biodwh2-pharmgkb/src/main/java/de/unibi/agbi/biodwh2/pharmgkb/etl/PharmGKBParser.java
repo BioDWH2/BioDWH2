@@ -24,7 +24,8 @@ public class PharmGKBParser extends Parser<PharmGKBDataSource> {
     @Override
     public boolean parse(final Workspace workspace) throws ParserException {
         for (String filePath : dataSource.listSourceFiles(workspace))
-            tryParseFile(workspace, dataSource, filePath);
+            if (filePath.toLowerCase().endsWith(".zip"))
+                tryParseFile(workspace, dataSource, filePath);
         return true;
     }
 

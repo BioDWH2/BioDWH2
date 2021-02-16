@@ -9,26 +9,30 @@ public class HGNCMappingDescriber extends MappingDescriber {
     private static final String HGNC_ID_KEY = "hgnc_id";
     private static final String OMIM_ID_KEY = "omim_id";
 
-    public HGNCMappingDescriber(DataSource dataSource) {
+    public HGNCMappingDescriber(final DataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    public NodeMappingDescription describe(final Graph graph, final Node node) {
-        if (node.getLabel().endsWith("Gene"))
+    public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
+        if ("Gene".equals(localMappingLabel))
             return describeGene(node);
         return null;
     }
 
-    private NodeMappingDescription describeGene(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription();
-        description.type = NodeMappingDescription.NodeType.GENE;
+    private NodeMappingDescription[] describeGene(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        description.addName(node.getProperty("name"));
+        description.addNames(node.<String[]>getProperty("alias_names"));
         description.addIdentifier(IdentifierType.HGNC_ID, getHGNCIdFromNode(node));
-        description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.getProperty("symbol"));
-        if (node.hasProperty(OMIM_ID_KEY))
-            description.addIdentifier(IdentifierType.OMIM, node.getProperty(OMIM_ID_KEY));
+        final String[] prevSymbols = node.getProperty("prev_symbols");
+        if (prevSymbols != null)
+            for (final String symbol : prevSymbols)
+                description.addIdentifier(IdentifierType.HGNC_SYMBOL, symbol);
+        description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("symbol"));
+        description.addIdentifier(IdentifierType.OMIM, node.<String>getProperty(OMIM_ID_KEY));
         // TODO: more ids
-        return description;
+        return new NodeMappingDescription[]{description};
     }
 
     private String getHGNCIdFromNode(final Node node) {
@@ -41,7 +45,7 @@ public class HGNCMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public PathMappingDescription describe(Graph graph, Node[] nodes, Edge[] edges) {
+    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
         return null;
     }
 

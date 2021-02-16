@@ -28,6 +28,7 @@ public final class Mock1GraphExporter extends GraphExporter<Mock1DataSource> {
         node = createNode(graph, "Drug");
         node.setProperty("drugbank_id", "DB01183");
         graph.update(node);
+        graph.addEdge(node, node, "INTERACTS");
         graph.addEdge(node, tlr4Node, "TARGETS");
         node = createNode(graph, "Dummy1");
         node.setProperty("id", "A");

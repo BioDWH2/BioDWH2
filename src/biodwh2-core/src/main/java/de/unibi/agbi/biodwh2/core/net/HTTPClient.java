@@ -66,6 +66,7 @@ public final class HTTPClient {
                                                 final String password) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) new URL(url).openConnection();
         urlConnection.setRequestProperty("Authorization", getBasicAuthForCredentials(username, password));
+        urlConnection.setRequestProperty("User-Agent", USER_AGENT);
         urlConnection.setInstanceFollowRedirects(false);
         urlConnection.connect();
         urlConnection = redirectURLConnectionIfNecessary(urlConnection);

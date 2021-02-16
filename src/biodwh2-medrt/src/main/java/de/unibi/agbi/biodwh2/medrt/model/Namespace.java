@@ -1,10 +1,11 @@
 package de.unibi.agbi.biodwh2.medrt.model;
 
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@NodeLabel("Namespace")
-public class Namespace {
+@SuppressWarnings("unused")
+@NodeLabels("Namespace")
+public final class Namespace {
     @GraphProperty("name")
     public String name;
     @GraphProperty("code")

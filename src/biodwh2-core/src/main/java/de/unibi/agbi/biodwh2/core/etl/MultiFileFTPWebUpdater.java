@@ -40,7 +40,7 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
         final String separator = System.getProperty("file.separator");
         final String prefix = parentPath == null ? "" : parentPath.toString().replace(separator, "/");
         if (!prefixSourceMap.containsKey(prefix))
-            prefixSourceMap.put(prefix, HTTPClient.getWebsiteSource(getFTPIndexUrl() + filePath));
+            prefixSourceMap.put(prefix, HTTPClient.getWebsiteSource(getFTPIndexUrl() + prefix));
         final String source = prefixSourceMap.get(prefix);
         return getVersionForFileName(source, filePath);
     }

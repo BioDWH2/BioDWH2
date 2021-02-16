@@ -1,6 +1,6 @@
 package de.unibi.agbi.biodwh2.core.exceptions;
 
-public class ExporterException extends Exception {
+public class ExporterException extends RuntimeException {
     private static final long serialVersionUID = -5116753457000851091L;
 
     public ExporterException() {

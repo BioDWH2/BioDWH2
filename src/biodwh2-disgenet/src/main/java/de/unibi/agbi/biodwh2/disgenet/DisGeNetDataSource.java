@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.disgenet;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.disgenet.etl.DisGeNetGraphExporter;
 import de.unibi.agbi.biodwh2.disgenet.etl.DisGeNetMappingDescriber;
@@ -11,6 +12,11 @@ public class DisGeNetDataSource extends DataSource {
     @Override
     public String getId() {
         return "DisGeNET";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
     }
 
     @Override

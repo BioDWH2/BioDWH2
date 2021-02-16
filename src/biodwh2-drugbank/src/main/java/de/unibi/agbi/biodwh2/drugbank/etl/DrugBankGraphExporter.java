@@ -5,769 +5,849 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.drugbank.DrugBankDataSource;
 import de.unibi.agbi.biodwh2.drugbank.model.*;
-import de.unibi.agbi.biodwh2.drugbank.model.DrugStructure;
 import de.unibi.agbi.biodwh2.drugbank.model.MetaboliteStructure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 
 public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
-    private class DrugInteractionTriple {
-        String drugBankIdSource;
+    private static class DrugInteractionTriple {
+        Long drugNodeId;
         String drugBankIdTarget;
         String description;
     }
 
-    private class PathwayDrugTriple {
-        String smpdIdSource;
-        String drugBankIdTarget;
-        String description;
-    }
-
-    private class MetaboliteTriple {
-        Long reactionsId;
-        String rightElementId;
-        String leftElementId;
-    }
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrugBankGraphExporter.class);
+    private static final String DRUGBANK_ID_KEY = "drugbank_id";
+    private static final String SMPDB_ID_KEY = "smpdb_id";
+    private static final String ID_KEY = "id";
+    private static final String NAME_KEY = "name";
+    private static final String DESCRIPTION_KEY = "description";
+    private static final String SEQUENCE_KEY = "sequence";
+    private static final String ABSORPTION_KEY = "absorption";
+    private static final String ACTIONS_KEY = "actions";
+    private static final String AHFS_CODES_KEY = "ahfs_codes";
+    private static final String ALTERNATIVE_PARENTS_KEY = "alternative_parents";
+    private static final String AMINOACID_SEQUENCE_KEY = "aminoacid_sequence";
+    private static final String AMINOACID_SEQUENCE_FORMAT_KEY = "aminoacid_sequence_format";
+    private static final String APPROVED_KEY = "approved";
+    private static final String ATC_CODES_KEY = "atc_codes";
+    private static final String AVERAGE_MASS_KEY = "average_mass";
+    private static final String CAS_NUMBER_KEY = "cas_number";
+    private static final String CATEGORY_KEY = "category";
+    private static final String CELLULAR_LOCATION_KEY = "cellular_location";
+    private static final String CHROMOSOME_LOCATION_KEY = "chromosome_location";
+    private static final String CLASS_KEY = "class";
+    private static final String CLEARANCE_KEY = "clearance";
+    private static final String COST_KEY = "cost";
+    private static final String COUNTRY_KEY = "country";
+    private static final String CURRENCY_KEY = "currency";
+    private static final String DIRECT_PARENT_KEY = "direct_parent";
+    private static final String DOSAGE_FORM_KEY = "dosage_form";
+    private static final String DPD_ID_KEY = "dpd_id";
+    private static final String EMA_MA_NUMBER_KEY = "ema_ma_number";
+    private static final String EMA_PRODUCT_CODE_KEY = "ema_product_code";
+    private static final String ENDED_MARKETING_ON_KEY = "ended_marketing_on";
+    private static final String FDA_APPLICATION_NUMBER_KEY = "fda_application_number";
+    private static final String FDA_LABELS_KEY = "fda_labels";
+    private static final String FORMAT_KEY = "format";
+    private static final String GENE_NAME_KEY = "gene_name";
+    private static final String GENE_SEQUENCE_KEY = "gene_sequence";
+    private static final String GENE_SEQUENCE_FORMAT_KEY = "gene_sequence_format";
+    private static final String GENERAL_FUNCTION_KEY = "general_function";
+    private static final String GENERIC_KEY = "generic";
+    private static final String GROUP_KEY = "group";
+    private static final String HALF_LIFE_KEY = "half_life";
+    private static final String INCHI_KEY_KEY = "inchi_key";
+    private static final String INDICATION_KEY = "indication";
+    private static final String INDUCTION_STRENGTH_KEY = "induction_strength";
+    private static final String INHIBITION_STRENGTH_KEY = "inhibition_strength";
+    private static final String KIND_KEY = "kind";
+    private static final String KINGDOM_KEY = "kingdom";
+    private static final String KNOWN_ACTION_KEY = "known_action";
+    private static final String LABELLER_KEY = "labeller";
+    private static final String LOCUS_KEY = "locus";
+    private static final String MECHANISM_OF_ACTION_KEY = "mechanism_of_action";
+    private static final String METABOLISM_KEY = "metabolism";
+    private static final String MOLECULAR_WEIGHT_KEY = "molecular_weight";
+    private static final String MONOISOTOPIC_MASS_KEY = "monoisotopic_mass";
+    private static final String MSDS_KEY = "msds";
+    private static final String NDC_ID_KEY = "ndc_id";
+    private static final String NDC_PRODUCT_CODE_KEY = "ndc_product_code";
+    private static final String OVER_THE_COUNTER_KEY = "over_the_counter";
+    private static final String PDB_ENTRIES_KEY = "pdb_entries";
+    private static final String PHARMACODYNAMICS_KEY = "pharmacodynamics";
+    private static final String POSITION_KEY = "position";
+    private static final String PROTEIN_BINDING_KEY = "protein_binding";
+    private static final String RESOURCE_KEY = "resource";
+    private static final String ROUTE_KEY = "route";
+    private static final String ROUTE_OF_ELIMINATION_KEY = "route_of_elimination";
+    private static final String SIGNAL_REGIONS_KEY = "signal_regions";
+    private static final String SOURCE_KEY = "source";
+    private static final String SPECIFIC_FUNCTION_KEY = "specific_function";
+    private static final String STARTED_MARKETING_ON_KEY = "started_marketing_on";
+    private static final String STATE_KEY = "state";
+    private static final String STRENGTH_KEY = "strength";
+    private static final String SUBCLASS_KEY = "subclass";
+    private static final String SUBSTITUENTS_KEY = "substituents";
+    private static final String SUPERCLASS_KEY = "superclass";
+    private static final String SYNONYMS_KEY = "synonyms";
+    private static final String SYNTHESIS_REFERENCE_KEY = "synthesis_reference";
+    private static final String THEORETICAL_PI_KEY = "theoretical_pi";
+    private static final String TOXICITY_KEY = "toxicity";
+    private static final String TRANSMEMBRANE_REGIONS_KEY = "transmembrane_regions";
+    private static final String UNII_KEY = "unii";
+    private static final String UNIT_KEY = "unit";
+    private static final String URL_KEY = "url";
+    private static final String VALUE_KEY = "value";
+    private static final String VOLUME_OF_DISTRIBUTION_KEY = "volume_of_distribution";
+    private static final String INTERACTS_WITH_DRUG_LABEL = "INTERACTS_WITH_DRUG";
+    private static final String IS_IN_PATHWAY_LABEL = "IS_IN_PATHWAY";
+    private static final String IS_POLYPEPTIDE_LABEL = "IS_POLYPEPTIDE";
+    private static final String HAS_ENZYME_LABEL = "HAS_ENZYME";
+    private static final String ENZYME_IN_LABEL = "ENZYME_IN";
+    private static final String AFFECTS_LABEL = "AFFECTS";
+    private static final String CLASSIFIED_AS_LABEL = "CLASSIFIED_AS";
+    private static final String COSTS_LABEL = "COSTS";
+    private static final String HAS_ARTICLE_LABEL = "HAS_ARTICLE";
+    private static final String HAS_ATTACHMENT_LABEL = "HAS_ATTACHMENT";
+    private static final String HAS_BRAND_LABEL = "HAS_BRAND";
+    private static final String HAS_CATEGORY_LABEL = "HAS_CATEGORY";
+    private static final String HAS_DOSAGE_LABEL = "HAS_DOSAGE";
+    private static final String HAS_EXTERNAL_IDENTIFIER_LABEL = "HAS_EXTERNAL_IDENTIFIER";
+    private static final String HAS_EXTERNAL_LINK_LABEL = "HAS_EXTERNAL_LINK";
+    private static final String HAS_FOOD_INTERACTION_LABEL = "HAS_FOOD_INTERACTION";
+    private static final String HAS_GO_CLASSIFIER_LABEL = "HAS_GO_CLASSIFIER";
+    private static final String HAS_LINK_LABEL = "HAS_LINK";
+    private static final String HAS_MANUFACTURER_LABEL = "HAS_MANUFACTURER";
+    private static final String HAS_ORGANISM_LABEL = "HAS_ORGANISM";
+    private static final String HAS_PACKAGER_LABEL = "HAS_PACKAGER";
+    private static final String IS_PRODUCT_LABEL = "IS_PRODUCT";
+    private static final String HAS_PATENT_LABEL = "HAS_PATENT";
+    private static final String HAS_PFAM_LABEL = "HAS_PFAM";
+    private static final String HAS_PHARMACOLOGY_LABEL = "HAS_PHARMACOLOGY";
+    private static final String HAS_PROPERTY_LABEL = "HAS_PROPERTY";
+    private static final String HAS_SALT_LABEL = "HAS_SALT";
+    private static final String HAS_SEQUENCE_LABEL = "HAS_SEQUENCE";
+    private static final String HAS_SNP_ADVERSE_DRUG_REACTION_LABEL = "HAS_SNP_ADVERSE_DRUG_REACTION";
+    private static final String HAS_SNP_EFFECT_LABEL = "HAS_SNP_EFFECT";
+    private static final String HAS_SYNONYM_LABEL = "HAS_SYNONYM";
+    private static final String HAS_TARGET_LABEL = "HAS_TARGET";
+    private static final String HAS_TEXTBOOK_LABEL = "HAS_TEXTBOOK";
+    private static final String IS_IN_MIXTURE_LABEL = "IS_IN_MIXTURE";
+    private static final String SUBSTRATE_IN_LABEL = "SUBSTRATE_IN";
+    private static final String HAS_PRODUCT_LABEL = "HAS_PRODUCT";
+    private static final String TARGETS_LABEL = "TARGETS";
+    private static final String ORGANISM_LABEL = "Organism";
+    private static final String PATHWAY_LABEL = "Pathway";
+    private static final String POLYPEPTIDE_LABEL = "Polypeptide";
+    private static final String ENZYME_LABEL = "Enzyme";
+    private static final String REACTION_LABEL = "Reaction";
+    private static final String SALT_LABEL = "Salt";
+    private static final String CALCULATED_PROPERTY_LABEL = "CalculatedProperty";
+    private static final String CARRIER_LABEL = "Carrier";
+    private static final String CLASSIFICATION_LABEL = "Classification";
+    private static final String DRUG_LABEL = "Drug";
+    private static final String EXPERIMENTAL_PROPERTY_LABEL = "ExperimentalProperty";
+    private static final String EXTERNAL_IDENTIFIER_LABEL = "ExternalIdentifier";
+    private static final String EXTERNAL_LINK_LABEL = "ExternalLink";
+    private static final String FOOD_INTERACTION_LABEL = "FoodInteraction";
+    private static final String GO_CLASSIFIER_LABEL = "GOClassifier";
+    private static final String MANUFACTURER_LABEL = "Manufacturer";
+    private static final String MESH_TERM_LABEL = "MeshTerm";
+    private static final String PACKAGER_LABEL = "Packager";
+    private static final String PFAM_LABEL = "Pfam";
+    private static final String PHARMACOLOGY_LABEL = "Pharmacology";
+    private static final String PRICE_LABEL = "Price";
+    private static final String PRODUCT_LABEL = "Product";
+    private static final String SEQUENCE_LABEL = "Sequence";
+    private static final String TARGET_LABEL = "Target";
+    private static final String TARGET_METADATA_LABEL = "TargetMetadata";
+    private static final String TRANSPORTER_LABEL = "Transporter";
 
     public DrugBankGraphExporter(final DrugBankDataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    protected boolean exportGraph(final Workspace workspace, final Graph g) {
-        g.setNodeIndexPropertyKeys("id");
-        exportMetaboliteStructures(g, dataSource.metaboliteStructures);
-        Hashtable<String, Node> drug_lookUp = new Hashtable<>();
-        Hashtable<String, Long> metabolite_lookUp = new Hashtable<>();
-        Hashtable<String, Node> pathway_lookUp = new Hashtable<>();
-        Hashtable<String, Node> organism_lookUp = new Hashtable<>();
-        Hashtable<Object, Node> enzyme_lookUp = new Hashtable<>();
-        Hashtable<Object, Node> carriers_lookUp = new Hashtable<>();
-        Hashtable<Object, Node> transporters_lookUp = new Hashtable<>();
-        Hashtable<Object, Node> referenceList_lookUp = new Hashtable<>();
-        Hashtable<String, Node> polypeptide_lookUp = new Hashtable<>();
-        ArrayList<DrugInteractionTriple> drugInteractionCache = new ArrayList<>();
-        ArrayList<PathwayDrugTriple> pathwayDrugCache = new ArrayList<>();
-        ArrayList<MetaboliteTriple> metaboliteCache = new ArrayList<>();
-        ArrayList<Drug> drugs = ((DrugBankDataSource) dataSource).drugBankData.drugs;
-        ArrayList<MetaboliteStructure> metaboliteStructures = (ArrayList<MetaboliteStructure>) dataSource.metaboliteStructures;
-        int metaboliteCounter = 1;
-        int totalMetabolites = metaboliteStructures.size();
-        for (int metIndex = metaboliteStructures.size() - 1; metIndex >= 0; metIndex--) {
-            if (metaboliteCounter % 250 == 0) {
-                System.out.println("Exporting metabolite " + metaboliteCounter + " of " + totalMetabolites);
-                System.out.println("METindex: " + metIndex);
-            }
-            metaboliteCounter++;
-            MetaboliteStructure metabolite = metaboliteStructures.get(metIndex);
-            Node metaboliteNode = g.addNode("Metabolite", "name", metabolite.name, "inchi_id", metabolite.inchiId,
-                                            "inchi_key", metabolite.inchiKey);
-            setPropertyIfNotNull(metaboliteNode, "drugbank_id", metabolite.drugbankId.value);
-            setPropertyIfNotNull(metaboliteNode, "database_id", metabolite.databaseId);
-            setPropertyIfNotNull(metaboliteNode, "database_name", metabolite.databaseName);
-            setPropertyIfNotNull(metaboliteNode, "exact_mass", metabolite.exactMass);
-            setPropertyIfNotNull(metaboliteNode, "formula", metabolite.formula);
-            setPropertyIfNotNull(metaboliteNode, "iupac", metabolite.iupac);
-            setPropertyIfNotNull(metaboliteNode, "molecular_weight", metabolite.molecularWeight);
-            setPropertyIfNotNull(metaboliteNode, "smiles", metabolite.smiles);
-            setPropertyIfNotNull(metaboliteNode, "traditional_iupac", metabolite.traditionalIupac);
-            setPropertyIfNotNull(metaboliteNode, "unii", metabolite.unii);
-            setPropertyIfNotNull(metaboliteNode, "rule_of_five", metabolite.ruleOfFive);
-            setPropertyIfNotNull(metaboliteNode, "ghose_filter", metabolite.ghoseFilter);
-            setPropertyIfNotNull(metaboliteNode, "veber_rule", metabolite.veberRule);
-            setPropertyIfNotNull(metaboliteNode, "mddr_like_rule", metabolite.mddrLikeRule);
-            g.update(metaboliteNode);
-            metabolite_lookUp.put(metabolite.drugbankId.value, metaboliteNode.getId());
-        }
-        int total = drugs.size();
+    protected boolean exportGraph(final Workspace workspace, final Graph graph) {
+        graph.setNodeIndexPropertyKeys(ID_KEY, DRUGBANK_ID_KEY, SMPDB_ID_KEY, NAME_KEY);
+        final Map<String, Long> drugLookUp = new HashMap<>();
+        final Map<String, Long> referenceLookUp = new HashMap<>();
+        final Map<String, Long> meshTermLookUp = new HashMap<>();
+        final Map<String, Long> foodInteractionLookUp = new HashMap<>();
+        final Map<String, Long> calculatedPropertyLookUp = new HashMap<>();
+        final Map<String, Long> experimentalPropertyLookUp = new HashMap<>();
+        final Map<String, Long> externalIdentifierLookUp = new HashMap<>();
+        final Map<Integer, Long> mixtureLookUp = new HashMap<>();
+        final List<DrugInteractionTriple> drugInteractionCache = new LinkedList<>();
+        final Map<Long, Set<String>> pathwayEnzymeCache = new HashMap<>();
+        final Map<Long, Set<String>> pathwayDrugCache = new HashMap<>();
+        final List<Reaction> reactionCache = new LinkedList<>();
+        createMetaboliteStructures(graph, dataSource.metaboliteStructures);
         int counter = 1;
-        for (int drugIndex = drugs.size() - 1; drugIndex >= 0; drugIndex--) {
-            if (counter % 250 == 0) {
-                System.out.println("Exporting drug " + counter + " of " + total);
-                System.out.println("drugindex: " + drugIndex);
-            }
+        final int totalDrugs = dataSource.drugBankData.drugs.size();
+        for (int drugIndex = dataSource.drugBankData.drugs.size() - 1; drugIndex >= 0; drugIndex--) {
+            final Drug drug = dataSource.drugBankData.drugs.get(drugIndex);
+            dataSource.drugBankData.drugs.remove(drugIndex);
+            if (counter % 250 == 0 && LOGGER.isInfoEnabled())
+                LOGGER.info("Exporting drug " + counter + " of " + totalDrugs);
             counter++;
-            if (counter > 4000) {
-                break;
-            }
-            Drug drug = drugs.get(drugIndex);
-            Node drugNode = g.addNode("Drug", "name", drug.name, "description", drug.description, "group",
-                                      drug.groups.toString());
-            drug_lookUp.put(drug.drugbankIds.get(0).value, drugNode);
-            for (int i = 0; i < drug.drugbankIds.size(); i++) {
-                if (drug.drugbankIds.get(i).primary) {
-                    setPropertyIfNotNull(drugNode, "drugbank_id", drug.drugbankIds.get(i).value);
-                }
-            }
-            //Chemical Property
-            Node chemicalPropertyNode = g.addNode("Chemical_Property", "cas_number", drug.casNumber, "unii", drug.unii,
-                                                  "average_mass", drug.averageMass);
-            setPropertyIfNotNull(chemicalPropertyNode, "monoisotopic_mass", drug.monoisotopicMass);
-            if (drug.state != null) {
-                setPropertyIfNotNull(chemicalPropertyNode, "state", drug.state.toString());
-            }
-            setPropertyIfNotNull(chemicalPropertyNode, "synthesis_reference", drug.synthesisReference);
-            g.update(chemicalPropertyNode);
-            g.addEdge(drugNode, chemicalPropertyNode, "HAS_CHEMICAL_PROPERTY");
-            //Pharmacology
-            Node pharmacologyNode = g.addNode("Pharmacology", "mechanism_of_action", drug.mechanismOfAction, "toxicity",
-                                              drug.toxicity, "metabolism", drug.metabolism);
-            setPropertyIfNotNull(pharmacologyNode, "absorption", drug.absorption);
-            setPropertyIfNotNull(pharmacologyNode, "indication", drug.indication);
-            setPropertyIfNotNull(pharmacologyNode, "pharmacodynamics", drug.pharmacodynamics);
-            setPropertyIfNotNull(pharmacologyNode, "half_life", drug.halfLife);
-            setPropertyIfNotNull(pharmacologyNode, "protein_binding", drug.proteinBinding);
-            setPropertyIfNotNull(pharmacologyNode, "route_of_elimination", drug.routeOfElimination);
-            setPropertyIfNotNull(pharmacologyNode, "volume_of_distribution", drug.volumeOfDistribution);
-            setPropertyIfNotNull(pharmacologyNode, "clearance", drug.clearance);
-            g.update(pharmacologyNode);
-            g.addEdge(drugNode, pharmacologyNode, "HAS_PHARMACOLOGY");
-            if (drug.atcCodes != null) {
-                ArrayList<String> atcCodes = new ArrayList<>();
-                for (int j = 0; j < drug.atcCodes.size(); j++) {
-                    atcCodes.add(drug.atcCodes.get(j).code);
-                }
-                setPropertyIfNotNull(drugNode, "atc_code", atcCodes.toArray(new String[atcCodes.size()]));
-            }
-            setPropertyIfNotNull(drugNode, "ahfs_code", drug.ahfsCodes);
-            setPropertyIfNotNull(drugNode, "pdb_entries", drug.pdbEntries);
-            setPropertyIfNotNull(drugNode, "fda_label", drug.fdaLabel);
-            setPropertyIfNotNull(drugNode, "msds", drug.msds);
-            if (drug.externalIdentifiers != null) {
-                for (int j = 0; j < drug.externalIdentifiers.size(); j++) {
-                    Node externalIdentifierNode = g.addNode("External_Identifier", "resource",
-                                                            drug.externalIdentifiers.get(j).resource.value,
-                                                            "identifier", drug.externalIdentifiers.get(j).identifier);
-                    g.addEdge(drugNode, externalIdentifierNode, "HAS_EXTERNAL_IDENTIFIER");
-                }
-            }
-            g.update(drugNode);
-            //ReferenceList -> Article, Attachement, Link, Textbook
-            if (drug.generalReferences != null) {
-                createReferenceListNode(g, referenceList_lookUp, drugNode, drug.generalReferences);
-            }
-            //Classification
-            if (drug.classification != null) {
-                Node classificationNode = g.addNode("Classification", "description", drug.classification.description,
-                                                    "direct_parent", drug.classification.directParent, "kingdom",
-                                                    drug.classification.kingdom);
-                setPropertyIfNotNull(classificationNode, "superclass", drug.classification.superclass);
-                setPropertyIfNotNull(classificationNode, "class", drug.classification.class_);
-                setPropertyIfNotNull(classificationNode, "subclass", drug.classification.subclass);
-                if (drug.classification.alternativeParents != null) {
-                    String alternativeParents = String.join("; ", drug.classification.alternativeParents);
-                    setPropertyIfNotNull(classificationNode, "alternative_parents", alternativeParents);
-                }
-                if (drug.classification.substituents != null) {
-                    String substituents = String.join("; ", drug.classification.substituents);
-                    setPropertyIfNotNull(classificationNode, "substituents", substituents);
-                }
-                g.update(classificationNode);
-                g.addEdge(drugNode, classificationNode, "CLASSIFIED_AS");
-            }
-            //External Links
-            if (drug.externalLinks != null) {
-                for (int i = 0; i < drug.externalLinks.size(); i++) {
-                    Node externalLinkNode = g.addNode("External_Link", "external_links", drug.externalLinks.get(i).url,
-                                                      "external_links_resource",
-                                                      drug.externalLinks.get(i).resource.toString());
-                    g.addEdge(drugNode, externalLinkNode, "HAS_EXTERNAL_LINKS");
-                }
-            }
-            //Salts
-            if (drug.salts != null) {
-                for (int i = 0; i < drug.salts.size(); i++) {
-                    Node saltNode = g.addNode("Salt", "drugbank_id", drug.salts.get(i).drugbankId.value, "name",
-                                              drug.salts.get(i).name, "unii", drug.salts.get(i).unii);
-                    setPropertyIfNotNull(saltNode, "cas_number", drug.salts.get(i).casNumber);
-                    setPropertyIfNotNull(saltNode, "inchikey", drug.salts.get(i).inchikey);
-                    setPropertyIfNotNull(saltNode, "average_mass", drug.salts.get(i).averageMass);
-                    setPropertyIfNotNull(saltNode, "monoisotopic_mass", drug.salts.get(i).monoisotopicMass);
-                    g.update(saltNode);
-                    g.addEdge(drugNode, saltNode, "HAS_SALT");
-                }
-            }
-            //Synonyms
-            if (drug.synonyms != null) {
-                for (int i = 0; i < drug.synonyms.size(); i++) {
-                    Node synonymNode = g.addNode("Synonym", "synonym", drug.synonyms.get(i).value, "language",
-                                                 drug.synonyms.get(i).language, "coder", drug.synonyms.get(i).coder);
-                    g.addEdge(drugNode, synonymNode, "HAS_SYNONYM");
-                }
-            }
-            //International Brands
-            if (drug.internationalBrands != null) {
-                for (int i = 0; i < drug.internationalBrands.size(); i++) {
-                    Node internationalBrandsNode = g.addNode("International_Brand", "name",
-                                                             drug.internationalBrands.get(i).name, "company",
-                                                             drug.internationalBrands.get(i).company);
-                    g.addEdge(drugNode, internationalBrandsNode, "HAS_BRAND");
-                }
-            }
-            //Mixtures
-            if (drug.mixtures != null) {
-                for (int i = 0; i < drug.mixtures.size(); i++) {
-                    Node mixtureNode = g.addNode("Mixture", "name", drug.mixtures.get(i).name, "ingredients",
-                                                 drug.mixtures.get(i).ingredients);
-                    g.addEdge(drugNode, mixtureNode, "IS_IN_MIXTURE");
-                }
-            }
-            //Pharmaeconomics -> Manufacturer, Packager, Product, Prices
-            Node pharmacoeconomicsNode = g.addNode("Pharmacoeconomics");
-            g.addEdge(drugNode, pharmacoeconomicsNode, "HAS_PHARMACOECONOMICS");
-            //Product
-            if (drug.products != null) {
-                for (int i = 0; i < drug.products.size(); i++) {
-                    Node productNode = g.addNode("Product", "name", drug.products.get(i).name, "labeller",
-                                                 drug.products.get(i).labeller, "ndc_id", drug.products.get(i).ndcId);
-                    setPropertyIfNotNull(productNode, "ndc_product_code", drug.products.get(i).ndcProductCode);
-                    setPropertyIfNotNull(productNode, "dpd_id", drug.products.get(i).dpdId);
-                    setPropertyIfNotNull(productNode, "ema_product_code", drug.products.get(i).emaProductCode);
-                    setPropertyIfNotNull(productNode, "ema_ma_number", drug.products.get(i).emaMaNumber);
-                    setPropertyIfNotNull(productNode, "started_marketing_on", drug.products.get(i).startedMarketingOn);
-                    setPropertyIfNotNull(productNode, "ended_marketing_on", drug.products.get(i).endedMarketingOn);
-                    setPropertyIfNotNull(productNode, "dosage_form", drug.products.get(i).dosageForm);
-                    setPropertyIfNotNull(productNode, "strength", drug.products.get(i).strength);
-                    setPropertyIfNotNull(productNode, "route", drug.products.get(i).route);
-                    setPropertyIfNotNull(productNode, "fda_application_number",
-                                         drug.products.get(i).fdaApplicationNumber);
-                    setPropertyIfNotNull(productNode, "generic", drug.products.get(i).generic);
-                    setPropertyIfNotNull(productNode, "over_the_counter", drug.products.get(i).overTheCounter);
-                    setPropertyIfNotNull(productNode, "approved", drug.products.get(i).approved);
-                    setPropertyIfNotNull(productNode, "country", drug.products.get(i).country.value);
-                    setPropertyIfNotNull(productNode, "source", drug.products.get(i).source.value);
-                    g.update(productNode);
-                    g.addEdge(pharmacoeconomicsNode, productNode, "IS_PRODUCT");
-                }
-            }
-            //Packagers
-            if (drug.packagers != null) {
-                for (int i = 0; i < drug.packagers.size(); i++) {
-                    Node packagersNode = g.addNode("Packager", "name", drug.packagers.get(i).name, "url",
-                                                   drug.packagers.get(i).url);
-                    g.addEdge(pharmacoeconomicsNode, packagersNode, "HAS_PACKAGER");
-                }
-            }
-            //Manufacturers
-            if (drug.manufacturers != null) {
-                for (int i = 0; i < drug.manufacturers.size(); i++) {
-                    Node manufacturersNode = g.addNode("Manufacturer", "name", drug.manufacturers.get(i).value, "url",
-                                                       drug.manufacturers.get(i).url);
-                    g.addEdge(pharmacoeconomicsNode, manufacturersNode, "HAS_MANUFACTURER");
-                }
-            }
-            //Prices
-            if (drug.prices != null) {
-                for (int i = 0; i < drug.prices.size(); i++) {
-                    Node pricesNode = g.addNode("Price", "description", drug.prices.get(i).description, "cost",
-                                                drug.prices.get(i).cost.value, "currency",
-                                                drug.prices.get(i).cost.currency);
-                    setPropertyIfNotNull(pricesNode, "unit", drug.prices.get(i).unit);
-                    g.update(pricesNode);
-                    g.addEdge(pharmacoeconomicsNode, pricesNode, "COSTS");
-                }
-            }
-            //Dosages
-            if (drug.dosages != null) {
-                for (int i = 0; i < drug.dosages.size(); i++) {
-                    Node dosageNode = g.addNode("Dosage", "form", drug.dosages.get(i).form, "route",
-                                                drug.dosages.get(i).route, "strength", drug.dosages.get(i).strength);
-                    g.addEdge(pharmacoeconomicsNode, dosageNode, "HAS_DOSAGE");
-                }
-            }
-            //Patents
-            if (drug.patents != null) {
-                for (int i = 0; i < drug.patents.size(); i++) {
-                    Node patentNode = g.addNode("Patent", "number", drug.patents.get(i).number, "country",
-                                                drug.patents.get(i).country, "approved", drug.patents.get(i).approved);
-                    setPropertyIfNotNull(patentNode, "expires", drug.patents.get(i).expires);
-                    setPropertyIfNotNull(patentNode, "pediatric_extension", drug.patents.get(i).pediatricExtension);
-                    g.update(patentNode);
-                    g.addEdge(pharmacoeconomicsNode, patentNode, "IS_PATENTED");
-                }
-            }
-            //Categories
-            if (drug.categories != null) {
-                for (int i = 0; i < drug.categories.size(); i++) {
-                    Node categoryNode = g.addNode("Category", "category", drug.categories.get(i).category, "mesh_id",
-                                                  drug.categories.get(i).meshId);
-                    g.addEdge(drugNode, categoryNode, "CATEGORIZED_IN");
-                }
-            }
-            //calculated Properties
-            if (drug.calculatedProperties != null) {
-                for (int i = 0; i < drug.calculatedProperties.size(); i++) {
-                    Node calculatedPropertyNode = g.addNode("Calculated_Property", "value",
-                                                            drug.calculatedProperties.get(i).value, "kind",
-                                                            drug.calculatedProperties.get(i).kind.toString(), "source",
-                                                            drug.calculatedProperties.get(i).source.toString());
-                    g.addEdge(drugNode, calculatedPropertyNode, "HAS_CALCULATED_PROPERTY");
-                }
-            }
-            //experimental Properties
-            if (drug.experimentalProperties != null) {
-                for (int i = 0; i < drug.experimentalProperties.size(); i++) {
-                    Node experimentalPropertyNode = g.addNode("Experimental_Property", "value",
-                                                              drug.experimentalProperties.get(i).value, "kind",
-                                                              drug.experimentalProperties.get(i).kind.toString(),
-                                                              "source", drug.experimentalProperties.get(i).source);
-                    g.addEdge(drugNode, experimentalPropertyNode, "HAS_EXPERIMENTAL_PROPERTY");
-                }
-            }
-            //Drug Interactions
-            if (drug.drugInteractions != null) {
-                for (int i = 0; i < drug.drugInteractions.size(); i++) {
-                    DrugInteractionTriple triple = new DrugInteractionTriple();
-                    triple.drugBankIdSource = drug.drugbankIds.get(0).value;
-                    triple.drugBankIdTarget = drug.drugInteractions.get(i).drugbankId.value;
-                    triple.description = drug.drugInteractions.get(i).description;
-                    drugInteractionCache.add(triple);
-                }
-            }
-            //affected Organisms
-            if (drug.affectedOrganisms != null) {
-                String organismNames = String.join("; ", drug.affectedOrganisms);
-                Node affectedOrganismNode = g.addNode("Affected_Organism", "names", organismNames);
-                g.addEdge(drugNode, affectedOrganismNode, "AFFECTS_ORG");
-            }
-            //Pathways->Pathway-Enzymes
-            if (drug.pathways != null) {
-                for (int i = 0; i < drug.pathways.size(); i++) {
-                    PathwayDrugTriple triple = new PathwayDrugTriple();
-                    triple.smpdIdSource = drug.pathways.get(i).smpdbId;
-                    triple.drugBankIdTarget = drugs.get(i).drugbankIds.get(0).value;
-                    triple.description = drug.pathways.get(i).name;
-                    pathwayDrugCache.add(triple);
-
-                    if (pathway_lookUp.containsKey(drug.pathways.get(i).smpdbId)) {
-                        Pathway drugPathway = drug.pathways.get(i);
-                        g.addEdge(drugNode, pathway_lookUp.get(drugPathway.smpdbId), "IS_IN_PATHWAY");
-
-                    } else {
-                        Node pathwaysNode = g.addNode("Pathway", "name", drug.pathways.get(i).name, "smpdbId",
-                                                      drug.pathways.get(i).smpdbId, "category",
-                                                      drug.pathways.get(i).category);
-                        pathway_lookUp.put(drug.pathways.get(i).smpdbId, pathwaysNode);
-                        g.addEdge(drugNode, pathwaysNode, "IS_IN_PATHWAY");
-                        if (drug.pathways.get(i).enzymes != null) {
-                            String enzymes = String.join("; ", drug.pathways.get(i).enzymes);
-                            setPropertyIfNotNull(pathwaysNode, "enzymes", enzymes);
-                        }
-                    }
-                }
-            }
-            //Food Interactions
-            if (drug.foodInteractions != null) {
-                for (int i = 0; i < drug.foodInteractions.size(); i++) {
-                    String foodInteractions = String.join("; ", drug.foodInteractions.get(i));
-                    Node foodInteractionsNode = g.addNode("Food_Interaction", "food_interaction", foodInteractions);
-                    g.addEdge(drugNode, foodInteractionsNode, "HAS_FOOD_INTERACTION");
-                }
-            }
-            //Sequences
-            if (drug.sequences != null) {
-                for (int i = 0; i < drug.sequences.size(); i++) {
-                    Node sequencesNode = g.addNode("Sequence", "value", drug.sequences.get(i).value, "format",
-                                                   drug.sequences.get(i).format);
-                    g.addEdge(drugNode, sequencesNode, "HAS_SEQUENCE");
-                }
-            }
-            //Targets->Polypeptide->Synonyms, ExternalIdentifiers, Pfams, GO-Classifiers, Organism
-            if (drug.targets != null) {
-                for (int i = 0; i < drug.targets.size(); i++) {
-                    Target drugtarget = drug.targets.get(i);
-                    Node targetNode = g.addNode("Target", "position", drugtarget.position, "id", drugtarget.id, "name",
-                                                drugtarget.name);
-                    setPropertyIfNotNull(targetNode, "organism", drugtarget.organism);
-                    setPropertyIfNotNull(targetNode, "known_action", drugtarget.knownAction.value);
-                    if (drugtarget.actions != null) {
-                        String actions = String.join("; ", drugtarget.actions);
-                        setPropertyIfNotNull(targetNode, "actions", actions);
-                    }
-
-                    createReferenceListNode(g, referenceList_lookUp, targetNode, drugtarget.references);
-                    if (drugtarget.polypeptide != null) {
-                        if (polypeptide_lookUp.containsKey(drugtarget.polypeptide.id)) {
-                            g.addEdge(drugNode, polypeptide_lookUp.get(drugtarget.polypeptide.id), "IS_POLYPEPTIDE");
-                        } else {
-                            createPolypeptideNode(g, organism_lookUp, polypeptide_lookUp, targetNode,
-                                                  drugtarget.polypeptide);
-                        }
-                    }
-                    g.update(targetNode);
-                    g.addEdge(drugNode, targetNode, "TARGETS");
-                }
-            }
-            //Interactant -> Carrier, Enzyme, Target, Transporter
-            //Enzyme
-            if (drug.enzymes != null) {
-                for (int i = 0; i < drug.enzymes.size(); i++) {
-                    Enzyme drugEnzyme = drug.enzymes.get(i);
-                    if (enzyme_lookUp.containsKey(drugEnzyme.id)) {
-                        g.addEdge(drugNode, enzyme_lookUp.get(drugEnzyme.id), "IS_ENZYME");
-                    } else {
-                        Node enzymeNode = g.addNode("Enzyme", "id", drugEnzyme.id, "name", drugEnzyme.name, "organism",
-                                                    drugEnzyme.organism);
-                        setPropertyIfNotNull(enzymeNode, "position", drugEnzyme.position);
-                        setPropertyIfNotNull(enzymeNode, "inhibition_strength", drugEnzyme.inhibitionStrength);
-                        setPropertyIfNotNull(enzymeNode, "induction_strength", drugEnzyme.inductionStrength);
-                        if (drugEnzyme.actions != null) {
-                            String actions = String.join("; ", drugEnzyme.actions);
-                            setPropertyIfNotNull(enzymeNode, "actions", actions);
-                        }
-                        createReferenceListNode(g, referenceList_lookUp, enzymeNode, drugEnzyme.references);
-                        if (drugEnzyme.polypeptide != null) {
-                            if (polypeptide_lookUp.containsKey(drugEnzyme.polypeptide.id)) {
-                                g.addEdge(drugNode, polypeptide_lookUp.get(drugEnzyme.polypeptide.id),
-                                          "IS_POLYPEPTIDE");
-                            } else {
-                                createPolypeptideNode(g, organism_lookUp, polypeptide_lookUp, enzymeNode,
-                                                      drugEnzyme.polypeptide);
-                            }
-                        }
-                        g.update(enzymeNode);
-                        g.addEdge(drugNode, enzymeNode, "TARGETS");
-                    }
-                }
-            }
-            //Carrier
-            if (drug.carriers != null) {
-                for (int i = 0; i < drug.carriers.size(); i++) {
-                    Carrier drugCarrier = drug.carriers.get(i);
-                    if (carriers_lookUp.containsKey(drugCarrier.id)) {
-                        g.addEdge(drugNode, carriers_lookUp.get(drugCarrier.id), "IS_CARRIER");
-                    } else {
-                        Node carriersNode = g.addNode("Carrier", "id", drugCarrier.id, "name", drugCarrier.name,
-                                                      "position", drugCarrier.position);
-                        setPropertyIfNotNull(carriersNode, "organism", drugCarrier.organism);
-                        if (drugCarrier.actions != null) {
-                            String actions = String.join("; ", drugCarrier.actions);
-                            setPropertyIfNotNull(carriersNode, "actions", actions);
-                        }
-                        createReferenceListNode(g, referenceList_lookUp, carriersNode, drugCarrier.references);
-                        if (drugCarrier.polypeptide != null) {
-                            if (polypeptide_lookUp.containsKey(drugCarrier.polypeptide.id)) {
-                                g.addEdge(drugNode, polypeptide_lookUp.get(drugCarrier.polypeptide.id),
-                                          "IS_POLYPEPTIDE");
-                            } else {
-                                createPolypeptideNode(g, organism_lookUp, polypeptide_lookUp, carriersNode,
-                                                      drugCarrier.polypeptide);
-                            }
-                        }
-                        g.update(carriersNode);
-                        g.addEdge(drugNode, carriersNode, "TARGETS");
-                    }
-                }
-            }
-            //Transporter
-            if (drug.transporters != null) {
-                for (int i = 0; i < drug.transporters.size(); i++) {
-                    Transporter drugTransporter = drug.transporters.get(i);
-                    if (transporters_lookUp.containsKey(drugTransporter.id)) {
-                        g.addEdge(drugNode, transporters_lookUp.get(drugTransporter.id), "IS_TRANSPORTER");
-                    } else {
-                        Node transportersNode = g.addNode("Transporter", "id", drugTransporter.id, "name",
-                                                          drugTransporter.name, "organism", drugTransporter.organism);
-                        setPropertyIfNotNull(transportersNode, "position", drugTransporter.position);
-                        if (drugTransporter.actions != null) {
-                            String actions = String.join("; ", drugTransporter.actions);
-                            setPropertyIfNotNull(transportersNode, "actions", actions);
-                        }
-                        createReferenceListNode(g, referenceList_lookUp, transportersNode, drugTransporter.references);
-                        if (drugTransporter.polypeptide != null) {
-                            if (polypeptide_lookUp.containsKey(drugTransporter.polypeptide.id)) {
-                                g.addEdge(drugNode, polypeptide_lookUp.get(drugTransporter.polypeptide.id),
-                                          "IS_POLYPEPTIDE");
-                            } else {
-                                createPolypeptideNode(g, organism_lookUp, polypeptide_lookUp, transportersNode,
-                                                      drugTransporter.polypeptide);
-                            }
-                        }
-                        g.update(transportersNode);
-                        g.addEdge(drugNode, transportersNode, "TARGETS");
-                    }
-                }
-            }
-            //Reactions: Drug -> Reaction -> Reaction-Enzyme -> Metabolite
-            if (drug.reactions != null) {
-                for (int i = 0; i < drug.reactions.size(); i++) {
-                    Node reactionsNode = g.addNode("Reaction");
-                    setPropertyIfNotNull(reactionsNode, "sequence", drug.reactions.get(i).sequence);
-                    MetaboliteTriple triple = new MetaboliteTriple();
-                    triple.reactionsId = reactionsNode.getId();
-                    triple.rightElementId = drug.reactions.get(i).rightElement.drugbankId;
-                    triple.leftElementId = drug.reactions.get(i).leftElement.drugbankId;
-                    metaboliteCache.add(triple);
-
-                    if (drug.reactions.get(i).enzymes != null) {
-                        for (int j = 0; j < drug.reactions.get(i).enzymes.size(); j++) {
-                            Node reactionEnzymeNode = g.addNode("Reaction_Enzyme");
-                            setPropertyIfNotNull(reactionEnzymeNode, "drugbank_id", drug.reactions.get(i).enzymes
-                                    .get(j).drugbankId);
-                            setPropertyIfNotNull(reactionEnzymeNode, "name", drug.reactions.get(i).enzymes.get(j).name);
-                            setPropertyIfNotNull(reactionEnzymeNode, "uniprot_id", drug.reactions.get(i).enzymes
-                                    .get(j).uniprotId);
-                            g.update(reactionEnzymeNode);
-                            g.addEdge(reactionEnzymeNode, reactionsNode, "IS_INFERRED_TO");
-                        }
-                    }
-                    g.update(reactionsNode);
-                }
-            }
-            //SNP-Effects
-            if (drug.snpEffects != null) {
-                for (int i = 0; i < drug.snpEffects.size(); i++) {
-                    Node snpEffectsNode = g.addNode("SNP_Effect", "protein_name", drug.snpEffects.get(i).proteinName,
-                                                    "gene_symbol", drug.snpEffects.get(i).geneSymbol, "uniprot_id",
-                                                    drug.snpEffects.get(i).uniprotId);
-                    setPropertyIfNotNull(snpEffectsNode, "rs_id", drug.snpEffects.get(i).rsId);
-                    setPropertyIfNotNull(snpEffectsNode, "allele", drug.snpEffects.get(i).allele);
-                    setPropertyIfNotNull(snpEffectsNode, "defining_change", drug.snpEffects.get(i).definingChange);
-                    setPropertyIfNotNull(snpEffectsNode, "description", drug.snpEffects.get(i).description);
-                    setPropertyIfNotNull(snpEffectsNode, "pubmed_id", drug.snpEffects.get(i).pubmedId);
-                    g.update(snpEffectsNode);
-                    g.addEdge(drugNode, snpEffectsNode, "HAS_SNP_EFFECT");
-                }
-            }
-            //SNP-Adverse-Drug-Reactions
-            if (drug.snpAdverseDrugReactions != null) {
-                for (int i = 0; i < drug.snpAdverseDrugReactions.size(); i++) {
-                    Node snpAdverseDrugReactionsNode = g.addNode("SNP_Adverse_Drug_Reaction", "protein_name",
-                                                                 drug.snpAdverseDrugReactions.get(i).proteinName,
-                                                                 "gene_symbol",
-                                                                 drug.snpAdverseDrugReactions.get(i).geneSymbol,
-                                                                 "uniprot_id",
-                                                                 drug.snpAdverseDrugReactions.get(i).uniprotId);
-                    setPropertyIfNotNull(snpAdverseDrugReactionsNode, "rs_Id", drug.snpAdverseDrugReactions.get(i).rsId);
-                    setPropertyIfNotNull(snpAdverseDrugReactionsNode, "allele",
-                                         drug.snpAdverseDrugReactions.get(i).allele);
-                    setPropertyIfNotNull(snpAdverseDrugReactionsNode, "adverse_reaction",
-                                         drug.snpAdverseDrugReactions.get(i).adverseReaction);
-                    setPropertyIfNotNull(snpAdverseDrugReactionsNode, "description",
-                                         drug.snpAdverseDrugReactions.get(i).description);
-                    setPropertyIfNotNull(snpAdverseDrugReactionsNode, "pubmed_id",
-                                         drug.snpAdverseDrugReactions.get(i).pubmedId);
-                    g.update(snpAdverseDrugReactionsNode);
-                    g.addEdge(drugNode, snpAdverseDrugReactionsNode, "HAS_SNP_ADVERSE_DRUG_REACTION");
-                }
-            }
-
-            drugs.remove(drugIndex);
+            final Node drugNode = createDrugNode(graph, drug, drugLookUp);
+            addDrugSalts(graph, drug, drugNode);
+            addDrugExternalIdentifiers(graph, drug, drugNode, externalIdentifierLookUp);
+            addDrugExternalLinks(graph, drug, drugNode);
+            createReferenceListNode(graph, referenceLookUp, drugNode, drug.generalReferences);
+            addDrugSynonyms(graph, drug, drugNode);
+            addDrugBrands(graph, drug, drugNode);
+            addDrugMixtures(graph, drug, drugNode, mixtureLookUp);
+            addDrugSnpEffects(graph, drug, drugNode);
+            addDrugSnpAdverseDrugReactions(graph, drug, drugNode);
+            addDrugFoodInteractions(graph, drug, drugNode, foodInteractionLookUp);
+            addDrugSequences(graph, drug, drugNode);
+            addDrugExperimentalProperties(graph, drug, drugNode, experimentalPropertyLookUp);
+            addDrugCalculatedProperties(graph, drug, drugNode, calculatedPropertyLookUp);
+            addDrugAffectedOrganisms(graph, drug, drugNode);
+            addDrugCategories(graph, drug, drugNode, meshTermLookUp);
+            addDrugInteractants(graph, drug, drugNode, referenceLookUp, externalIdentifierLookUp);
+            addDrugClassification(graph, drug, drugNode);
+            addPharmacology(graph, drug, drugNode);
+            addPharmacoeconomics(graph, drug, drugNode);
+            addOrCacheDrugInteractions(graph, drug, drugNode, drugLookUp, drugInteractionCache);
+            addOrCacheDrugPathways(graph, drug, drugNode, drugLookUp, pathwayEnzymeCache, pathwayDrugCache);
+            if (drug.reactions != null)
+                reactionCache.addAll(drug.reactions);
         }
-        for (DrugInteractionTriple triple : drugInteractionCache) {
-            if (drug_lookUp.containsKey(triple.drugBankIdTarget)) {
-                Node source = drug_lookUp.get(triple.drugBankIdSource);
-                Node target = drug_lookUp.get(triple.drugBankIdTarget);
-                Edge drugInteractionEdge = g.addEdge(source, target, "INTERACTS_WITH_DRUG");
-                drugInteractionEdge.setProperty("description", triple.description);
-                g.update(drugInteractionEdge);
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Export remaining " + drugInteractionCache.size() + " drug interactions...");
+        for (final DrugInteractionTriple triple : drugInteractionCache) {
+            if (drugLookUp.containsKey(triple.drugBankIdTarget)) {
+                final Long target = drugLookUp.get(triple.drugBankIdTarget);
+                graph.addEdge(triple.drugNodeId, target, INTERACTS_WITH_DRUG_LABEL, DESCRIPTION_KEY,
+                              triple.description);
             } else {
-                //Log-Message if key missing!
-                //System.out.println("DrugInteraction-Key is missing! ID: " + triple.drugBankIdTarget);
-            }
-
-        }
-
-        for (PathwayDrugTriple triple : pathwayDrugCache) {
-            if (pathway_lookUp.containsKey(triple.drugBankIdTarget)) {
-                Node source = pathway_lookUp.get(triple.smpdIdSource);
-                Node target = drug_lookUp.get(triple.drugBankIdTarget);
-                Edge pathwayDrugEdge = g.addEdge(source, target, "IS_PATHWAYDRUG");
-                pathwayDrugEdge.setProperty("name", triple.description);
-                g.update(pathwayDrugEdge);
-            } else {
-                //Log-Message if key missing!
-                //System.out.println("Pathway-Key is missing! ID: " + triple.drugBankIdTarget);
+                LOGGER.warn("Missing drug with id '" + triple.drugBankIdTarget + "' for interaction will be ignored");
             }
         }
-
-        for (MetaboliteTriple triple : metaboliteCache){
-            if (metabolite_lookUp.containsKey(triple.leftElementId)) {
-                Long source = metabolite_lookUp.get(triple.leftElementId);
-                g.addEdge(source, triple.reactionsId, "SUBSTRATE_IN");
-            } else if (drug_lookUp.containsKey(triple.leftElementId)) {
-                Node source = drug_lookUp.get(triple.leftElementId);
-                g.addEdge(source, triple.reactionsId, "SUBSTRATE_IN");
-            } else{
-                if (triple.leftElementId.startsWith("DBMET")) {
-                Node metaboliteNode = g.addNode("Metabolite", "drugbank_id", triple.leftElementId);
-                metabolite_lookUp.put(triple.leftElementId, metaboliteNode.getId());
-                }
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Export remaining " + pathwayEnzymeCache.size() + " pathway relationships...");
+        for (final Long pathwayNodeId : pathwayEnzymeCache.keySet()) {
+            for (final String enzymeId : pathwayEnzymeCache.get(pathwayNodeId)) {
+                Node polypeptideNode = graph.findNode(POLYPEPTIDE_LABEL, ID_KEY, enzymeId);
+                if (polypeptideNode == null)
+                    polypeptideNode = graph.addNode(POLYPEPTIDE_LABEL, ID_KEY, enzymeId);
+                graph.addEdge(pathwayNodeId, polypeptideNode, HAS_ENZYME_LABEL);
             }
-
-            if (drug_lookUp.containsKey(triple.rightElementId)) {
-                Node target = drug_lookUp.get(triple.rightElementId);
-                g.addEdge(triple.reactionsId, target, "METABOLIZED_TO");
-            } else if (metabolite_lookUp.containsKey(triple.rightElementId)) {
-                Long target = metabolite_lookUp.get(triple.rightElementId);
-                g.addEdge(triple.reactionsId, target, "METABOLIZED_TO");
-            } else {
-                if (triple.rightElementId.startsWith("DBMET")) {
-                    Node metaboliteNode = g.addNode("Metabolite", "drugbank_id", triple.rightElementId);
-                    metabolite_lookUp.put(triple.rightElementId, metaboliteNode.getId());
-
+        }
+        for (final Long pathwayNodeId : pathwayDrugCache.keySet()) {
+            for (final String drugbankId : pathwayDrugCache.get(pathwayNodeId)) {
+                if (drugLookUp.containsKey(drugbankId))
+                    graph.addEdge(drugLookUp.get(drugbankId), pathwayNodeId, IS_IN_PATHWAY_LABEL);
+                else {
+                    LOGGER.warn("Drug id '" + drugbankId + "' not found for pathway '" + pathwayNodeId + "'");
                 }
             }
         }
-
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Export " + reactionCache.size() + " reactions...");
+        for (final Reaction reaction : reactionCache) {
+            final Node reactionsNode;
+            if (reaction.sequence != null)
+                reactionsNode = graph.addNode(REACTION_LABEL, SEQUENCE_KEY, reaction.sequence);
+            else
+                reactionsNode = graph.addNode(REACTION_LABEL);
+            Node leftNode = graph.findNode(DRUGBANK_ID_KEY, reaction.leftElement.drugbankId);
+            Node rightNode = graph.findNode(DRUGBANK_ID_KEY, reaction.rightElement.drugbankId);
+            if (leftNode == null) {
+                if (reaction.leftElement.drugbankId.startsWith("DBMET"))
+                    leftNode = graph.addNode("Metabolite", DRUGBANK_ID_KEY, reaction.leftElement.drugbankId, NAME_KEY,
+                                             reaction.leftElement.name);
+            }
+            if (rightNode == null) {
+                if (reaction.rightElement.drugbankId.startsWith("DBMET"))
+                    rightNode = graph.addNode("Metabolite", DRUGBANK_ID_KEY, reaction.rightElement.drugbankId, NAME_KEY,
+                                              reaction.rightElement.name);
+            }
+            if (leftNode != null)
+                graph.addEdge(leftNode, reactionsNode, SUBSTRATE_IN_LABEL);
+            else
+                LOGGER.warn("Missing left reaction element with id " + reaction.rightElement.drugbankId);
+            if (rightNode != null)
+                graph.addEdge(reactionsNode, rightNode, HAS_PRODUCT_LABEL);
+            else
+                LOGGER.warn("Missing right reaction element with id " + reaction.rightElement.drugbankId);
+            if (reaction.enzymes != null) {
+                for (final ReactionEnzyme enzyme : reaction.enzymes) {
+                    Node enzymeNode = graph.findNode(ENZYME_LABEL, ID_KEY, enzyme.drugbankId);
+                    if (enzymeNode == null)
+                        enzymeNode = graph.addNode(ENZYME_LABEL, ID_KEY, enzyme.drugbankId, NAME_KEY, enzyme.name);
+                    Node polypeptideNode = graph.findNode(POLYPEPTIDE_LABEL, ID_KEY, enzyme.uniprotId);
+                    if (polypeptideNode == null)
+                        polypeptideNode = graph.addNode(POLYPEPTIDE_LABEL, ID_KEY, enzyme.uniprotId);
+                    final Edge edge = graph.findEdge(IS_POLYPEPTIDE_LABEL, Edge.FROM_ID_FIELD, enzymeNode.getId(),
+                                                     Edge.TO_ID_FIELD, polypeptideNode.getId());
+                    if (edge == null)
+                        graph.addEdge(enzymeNode, polypeptideNode, IS_POLYPEPTIDE_LABEL);
+                    graph.addEdge(enzymeNode, reactionsNode, ENZYME_IN_LABEL);
+                }
+            }
+        }
         return true;
     }
 
-    //Polypeptide
-    private void createPolypeptideNode(Graph g, Hashtable<String, Node> organism_lookUp,
-                                       Hashtable<String, Node> polypeptide_lookUp, Node parentNode,
-                                       Polypeptide polypeptide) {
-        if (polypeptide != null) {
-            Node polypeptideNode = g.addNode("Polypeptide", "id", polypeptide.id, "name", polypeptide.name, "source",
-                                             polypeptide.source);
-            polypeptide_lookUp.put(polypeptide.id, polypeptideNode);
-            setPropertyIfNotNull(polypeptideNode, "general_function", polypeptide.generalFunction);
-            setPropertyIfNotNull(polypeptideNode, "specific_function", polypeptide.specificFunction);
-            setPropertyIfNotNull(polypeptideNode, "gene_name", polypeptide.geneName);
-            setPropertyIfNotNull(polypeptideNode, "locus", polypeptide.locus);
-            setPropertyIfNotNull(polypeptideNode, "cellular_location", polypeptide.cellularLocation);
-            setPropertyIfNotNull(polypeptideNode, "transmembrane_regions", polypeptide.transmembraneRegions);
-            setPropertyIfNotNull(polypeptideNode, "signal_regions", polypeptide.signalRegions);
-            setPropertyIfNotNull(polypeptideNode, "theoretical_pi", polypeptide.theoreticalPi);
-            setPropertyIfNotNull(polypeptideNode, "molecular_weight", polypeptide.molecularWeight);
-            setPropertyIfNotNull(polypeptideNode, "chromosome_location", polypeptide.chromosomeLocation);
-            setPropertyIfNotNull(polypeptideNode, "aminoacid_sequence", polypeptide.aminoAcidSequence.value);
-            setPropertyIfNotNull(polypeptideNode, "aminoacid_sequence_format", polypeptide.aminoAcidSequence.format);
-            setPropertyIfNotNull(polypeptideNode, "gene_sequence", polypeptide.geneSequence.value);
-            setPropertyIfNotNull(polypeptideNode, "gene_sequence_format", polypeptide.geneSequence.format);
-            if (polypeptide.synonyms != null) {
-                String synonyms = String.join("; ", polypeptide.synonyms);
-                setPropertyIfNotNull(polypeptideNode, "synonyms", synonyms);
-            }
-            g.update(polypeptideNode);
-            g.addEdge(parentNode, polypeptideNode, "IS_POLYPEPTIDE");
-            if (polypeptide.externalIdentifiers != null) {
-                for (int j = 0; j < polypeptide.externalIdentifiers.size(); j++) {
-                    Node polypeptideExternalIdentifierNode = g.addNode("Polypeptide_External_Identifier", "resource",
-                                                                       polypeptide.externalIdentifiers
-                                                                               .get(j).resource.value, "identifier",
-                                                                       polypeptide.externalIdentifiers
-                                                                               .get(j).identifier);
-                    g.addEdge(polypeptideNode, polypeptideExternalIdentifierNode,
-                              "HAS_POLYPEPTIDE_EXTERNAL_IDENTIFIER");
-                }
-            }
-            if (polypeptide.pfams != null) {
-                for (int j = 0; j < polypeptide.pfams.size(); j++) {
-                    Node pfamsNode = g.addNode("Pfam", "identifier", polypeptide.pfams.get(j).identifier, "name",
-                                               polypeptide.pfams.get(j).name);
-                    g.addEdge(polypeptideNode, pfamsNode, "HAS_PFAM");
-                }
-            }
-            if (polypeptide.goClassifiers != null) {
-                for (int j = 0; j < polypeptide.goClassifiers.size(); j++) {
-                    Node goClassifiersNode = g.addNode("GO Classifier", "category",
-                                                       polypeptide.goClassifiers.get(j).category, "description",
-                                                       polypeptide.goClassifiers.get(j).description);
-                    g.addEdge(polypeptideNode, goClassifiersNode, "HAS_GO_CLASSIFIER");
-                }
-            }
-            if (polypeptide.organism != null) {
-                Organism polypeptidesOrganism = polypeptide.organism;
-                if (organism_lookUp.containsKey(polypeptidesOrganism.ncbiTaxonomyId)) {
-                    g.addEdge(polypeptideNode, organism_lookUp.get(polypeptidesOrganism.ncbiTaxonomyId),
-                              "HAS_ORGANISM");
-                } else {
-                    Node organismNode = g.addNode("Organism", "ncbi_taxonomy_id", polypeptide.organism.ncbiTaxonomyId,
-                                                  "value", polypeptide.organism.value);
-                    g.addEdge(polypeptideNode, organismNode, "HAS_ORGANISM");
-                    organism_lookUp.put(polypeptidesOrganism.ncbiTaxonomyId, organismNode);
-                }
-            }
-        }
-    }
-
-    //References
-    private void createReferenceListNode(Graph g, Hashtable<Object, Node> referenceList_lookUp, Node parent,
-                                         ReferenceList references) {
-        Node referenceListNode = null;
-        if ((references.textbooks != null && references.textbooks.size() > 0) ||
-            (references.articles != null && references.articles.size() > 0) ||
-            (references.attachments != null && references.attachments.size() > 0) ||
-            (references.links != null && references.links.size() > 0)) {
-            referenceListNode = g.addNode("Reference");
-            g.addEdge(parent, referenceListNode, "HAS_REFERENCE");
-        }
-        if (references.textbooks != null) {
-            for (int j = 0; j < references.textbooks.size(); j++) {
-                Textbook rf = references.textbooks.get(j);
-                referenceListNode.setProperty("textbook", references.textbooks.get(j).refId);
-                if (referenceList_lookUp.containsKey(rf.refId)) {
-                    g.addEdge(referenceListNode, referenceList_lookUp.get(rf.refId), "HAS_TEXTBOOK");
-                } else {
-                    Node textbookNode = g.addNode("Textbook", "citation", rf.citation, "isbn", rf.isbn, "ref_id",
-                                                  rf.refId);
-                    g.addEdge(referenceListNode, textbookNode, "HAS_TEXTBOOK");
-                }
-            }
-        }
-        if (references.articles != null) {
-            for (int j = 0; j < references.articles.size(); j++) {
-                Article a = references.articles.get(j);
-                referenceListNode.setProperty("article", a.refId);
-                if (referenceList_lookUp.containsKey(a.refId)) {
-                    g.addEdge(referenceListNode, referenceList_lookUp.get(a.refId), "HAS_ARTICLE");
-                } else {
-                    Node articleNode = g.addNode("Article", "citation", a.citation, "pubmed_id", a.pubmedId, "ref_id",
-                                                 a.refId);
-                    g.addEdge(referenceListNode, articleNode, "HAS_ARTICLE");
-                }
-            }
-        }
-        if (references.links != null) {
-            for (int j = 0; j < references.links.size(); j++) {
-                Link l = references.links.get(j);
-                if (referenceList_lookUp.containsKey(l.refId)) {
-                    g.addEdge(referenceListNode, referenceList_lookUp.get(l.refId), "HAS_LINK");
-                } else {
-                    Node linksNode = g.addNode("Link", "title", l.title, "url", l.url, "ref_id", l.refId);
-                    g.addEdge(referenceListNode, linksNode, "HAS_LINK");
-                }
-            }
-        }
-        if (references.attachments != null) {
-            for (int j = 0; j < references.attachments.size(); j++) {
-                Attachment at = references.attachments.get(j);
-                if (referenceList_lookUp.containsKey(at.refId)) {
-                    g.addEdge(referenceListNode, referenceList_lookUp.get(at.refId), "HAS_ATTACHMENT");
-                } else {
-                    Node attachmentNode = g.addNode("Attachment", "title", at.title, "url", at.url, "ref_id", at.refId);
-                    g.addEdge(referenceListNode, attachmentNode, "HAS_ATTACHEMENT");
-                }
-            }
-        }
-    }
-
-    public void setPropertyIfNotNull(Node node, String propertyKey, Object value) {
-        if (value != null) {
-            node.setProperty(propertyKey, value);
-        }
-    }
-
-    private void exportDrugStructures(final Graph graph, final List<DrugStructure> drugStructures) {
-        for (DrugStructure drug : drugStructures)
-            exportDrugStructure(graph, drug);
-    }
-
-    private void exportDrugStructure(final Graph graph, final DrugStructure drug) {
-        createNodeFromModel(graph, drug);
-    }
-
-    private void exportMetaboliteStructures(final Graph graph, final List<MetaboliteStructure> metabolites) {
+    private void createMetaboliteStructures(final Graph graph, final List<MetaboliteStructure> metabolites) {
         for (MetaboliteStructure metabolite : metabolites)
-            exportMetaboliteStructure(graph, metabolite);
+            createNodeFromModel(graph, metabolite);
     }
 
-    private void exportMetaboliteStructure(final Graph graph, final MetaboliteStructure metabolite) {
+    private Node createDrugNode(final Graph graph, final Drug drug, final Map<String, Long> drugLookUp) {
+        final NodeBuilder drugBuilder = graph.buildNode().withLabel(DRUG_LABEL);
+        drugBuilder.withProperty(DRUGBANK_ID_KEY, getPrimaryOrFirstDrugBankId(drug).value);
+        drugBuilder.withProperty(NAME_KEY, drug.name);
+        drugBuilder.withProperty(DESCRIPTION_KEY, drug.description);
+        drugBuilder.withProperty(GROUP_KEY, drug.groups.stream().map(Group::toValue).toArray(String[]::new));
+        drugBuilder.withPropertyIfNotNull(AHFS_CODES_KEY, drug.ahfsCodes);
+        drugBuilder.withPropertyIfNotNull(PDB_ENTRIES_KEY, drug.pdbEntries);
+        drugBuilder.withPropertyIfNotNull(FDA_LABELS_KEY, drug.fdaLabel);
+        drugBuilder.withPropertyIfNotNull(MSDS_KEY, drug.msds);
+        if (drug.atcCodes != null) {
+            final String[] atcCodes = new String[drug.atcCodes.size()];
+            for (int i = 0; i < atcCodes.length; i++)
+                atcCodes[i] = drug.atcCodes.get(i).code;
+            drugBuilder.withProperty(ATC_CODES_KEY, atcCodes);
+        }
+        drugBuilder.withPropertyIfNotNull(CAS_NUMBER_KEY, drug.casNumber);
+        drugBuilder.withPropertyIfNotNull(UNII_KEY, drug.unii);
+        drugBuilder.withPropertyIfNotNull(AVERAGE_MASS_KEY, drug.averageMass);
+        drugBuilder.withPropertyIfNotNull(MONOISOTOPIC_MASS_KEY, drug.monoisotopicMass);
+        if (drug.state != null)
+            drugBuilder.withPropertyIfNotNull(STATE_KEY, drug.state.value);
+        drugBuilder.withPropertyIfNotNull(SYNTHESIS_REFERENCE_KEY, drug.synthesisReference);
+        final Node drugNode = drugBuilder.build();
+        for (final DrugbankDrugSaltId id : drug.drugbankIds)
+            drugLookUp.put(id.value, drugNode.getId());
+        return drugNode;
+    }
 
+    private DrugbankDrugSaltId getPrimaryOrFirstDrugBankId(final Drug drug) {
+        for (final DrugbankDrugSaltId id : drug.drugbankIds)
+            if (id.primary)
+                return id;
+        return drug.drugbankIds.size() > 0 ? drug.drugbankIds.get(0) : null;
+    }
+
+    private void addDrugSalts(final Graph graph, final Drug drug, final Node drugNode) {
+        if (drug.salts != null)
+            for (final Salt salt : drug.salts)
+                addDrugSalt(graph, salt, drugNode);
+    }
+
+    private void addDrugSalt(final Graph graph, final Salt salt, final Node drugNode) {
+        final NodeBuilder builder = graph.buildNode().withLabel(SALT_LABEL);
+        builder.withProperty(DRUGBANK_ID_KEY, salt.drugbankId.value);
+        builder.withPropertyIfNotNull(NAME_KEY, salt.name);
+        builder.withPropertyIfNotNull(UNII_KEY, salt.unii);
+        builder.withPropertyIfNotNull(CAS_NUMBER_KEY, salt.casNumber);
+        builder.withPropertyIfNotNull(INCHI_KEY_KEY, salt.inchikey);
+        builder.withPropertyIfNotNull(AVERAGE_MASS_KEY, salt.averageMass);
+        builder.withPropertyIfNotNull(MONOISOTOPIC_MASS_KEY, salt.monoisotopicMass);
+        final Node saltNode = builder.build();
+        graph.addEdge(drugNode, saltNode, HAS_SALT_LABEL);
+    }
+
+    private void addDrugExternalIdentifiers(final Graph graph, final Drug drug, final Node drugNode,
+                                            final Map<String, Long> externalIdentifierLookUp) {
+        if (drug.externalIdentifiers != null)
+            for (final ExternalIdentifier identifier : drug.externalIdentifiers) {
+                final Long nodeId = getOrCreateExternalIdentifierNode(graph, identifier.resource.value,
+                                                                      identifier.identifier, externalIdentifierLookUp);
+                graph.addEdge(drugNode, nodeId, HAS_EXTERNAL_IDENTIFIER_LABEL);
+            }
+    }
+
+    private Long getOrCreateExternalIdentifierNode(final Graph graph, final String resource, final String identifier,
+                                                   final Map<String, Long> externalIdentifierLookUp) {
+        final String key = resource + ":" + identifier;
+        Long nodeId = externalIdentifierLookUp.get(key);
+        if (nodeId == null) {
+            nodeId = graph.addNode(EXTERNAL_IDENTIFIER_LABEL, RESOURCE_KEY, resource, ID_KEY, identifier).getId();
+            externalIdentifierLookUp.put(key, nodeId);
+        }
+        return nodeId;
+    }
+
+    private void addDrugExternalLinks(final Graph graph, final Drug drug, final Node drugNode) {
+        if (drug.externalLinks != null)
+            for (final ExternalLink link : drug.externalLinks) {
+                final Node node = graph.addNode(EXTERNAL_LINK_LABEL, URL_KEY, link.url, RESOURCE_KEY,
+                                                link.resource.value);
+                graph.addEdge(drugNode, node, HAS_EXTERNAL_LINK_LABEL);
+            }
+    }
+
+    private void addDrugSynonyms(final Graph graph, final Drug drug, final Node drugNode) {
+        if (drug.synonyms != null)
+            for (final Synonym synonym : drug.synonyms) {
+                final Node node = createNodeFromModel(graph, synonym);
+                graph.addEdge(drugNode, node, HAS_SYNONYM_LABEL);
+            }
+    }
+
+    private void addDrugBrands(final Graph graph, final Drug drug, final Node drugNode) {
+        if (drug.internationalBrands != null)
+            for (final InternationalBrand brand : drug.internationalBrands) {
+                final Node node = createNodeFromModel(graph, brand);
+                graph.addEdge(drugNode, node, HAS_BRAND_LABEL);
+            }
+    }
+
+    private void addDrugMixtures(final Graph graph, final Drug drug, final Node drugNode,
+                                 final Map<Integer, Long> mixtureLookUp) {
+        if (drug.mixtures != null)
+            for (final Mixture mixture : drug.mixtures) {
+                final int hash = mixture.hashCode();
+                Long nodeId = mixtureLookUp.get(hash);
+                if (nodeId == null) {
+                    nodeId = createNodeFromModel(graph, mixture).getId();
+                    mixtureLookUp.put(hash, nodeId);
+                }
+                graph.addEdge(drugNode, nodeId, IS_IN_MIXTURE_LABEL);
+            }
+    }
+
+    private void addDrugSnpEffects(final Graph graph, final Drug drug, final Node drugNode) {
+        if (drug.snpEffects != null)
+            for (final SnpEffect snpEffect : drug.snpEffects) {
+                final Node node = createNodeFromModel(graph, snpEffect);
+                graph.addEdge(drugNode, node, HAS_SNP_EFFECT_LABEL);
+            }
+    }
+
+    private void addDrugSnpAdverseDrugReactions(final Graph graph, final Drug drug, final Node drugNode) {
+        if (drug.snpAdverseDrugReactions != null)
+            for (final SnpAdverseDrugReaction snpAdverseDrugReaction : drug.snpAdverseDrugReactions) {
+                final Node node = createNodeFromModel(graph, snpAdverseDrugReaction);
+                graph.addEdge(drugNode, node, HAS_SNP_ADVERSE_DRUG_REACTION_LABEL);
+            }
+    }
+
+    private void addDrugFoodInteractions(final Graph graph, final Drug drug, final Node drugNode,
+                                         final Map<String, Long> foodInteractionLookUp) {
+        if (drug.foodInteractions != null)
+            for (final String interaction : drug.foodInteractions) {
+                if (!foodInteractionLookUp.containsKey(interaction)) {
+                    final Node node = graph.addNode(FOOD_INTERACTION_LABEL, DESCRIPTION_KEY, interaction);
+                    foodInteractionLookUp.put(interaction, node.getId());
+                }
+                graph.addEdge(drugNode, foodInteractionLookUp.get(interaction), HAS_FOOD_INTERACTION_LABEL);
+            }
+    }
+
+    private void addDrugSequences(final Graph graph, final Drug drug, final Node drugNode) {
+        if (drug.sequences != null)
+            for (final Sequence sequence : drug.sequences) {
+                final Node node = graph.addNode(SEQUENCE_LABEL, VALUE_KEY, sequence.value, FORMAT_KEY, sequence.format);
+                graph.addEdge(drugNode, node, HAS_SEQUENCE_LABEL);
+            }
+    }
+
+    private void addDrugExperimentalProperties(final Graph graph, final Drug drug, final Node drugNode,
+                                               final Map<String, Long> experimentalPropertyLookUp) {
+        if (drug.experimentalProperties != null)
+            for (final ExperimentalProperty property : drug.experimentalProperties) {
+                final String key = property.kind + ";" + property.value;
+                if (!experimentalPropertyLookUp.containsKey(key)) {
+                    final Node node = graph.addNode(EXPERIMENTAL_PROPERTY_LABEL, VALUE_KEY, property.value, KIND_KEY,
+                                                    property.kind.value);
+                    experimentalPropertyLookUp.put(key, node.getId());
+                }
+                if (property.source != null)
+                    graph.addEdge(drugNode, experimentalPropertyLookUp.get(key), HAS_PROPERTY_LABEL, SOURCE_KEY,
+                                  property.source);
+                else
+                    graph.addEdge(drugNode, experimentalPropertyLookUp.get(key), HAS_PROPERTY_LABEL);
+            }
+    }
+
+    private void addDrugCalculatedProperties(final Graph graph, final Drug drug, final Node drugNode,
+                                             final Map<String, Long> calculatedPropertyLookUp) {
+        if (drug.calculatedProperties != null)
+            for (final CalculatedProperty property : drug.calculatedProperties) {
+                final String key = property.kind + ";" + property.value;
+                if (!calculatedPropertyLookUp.containsKey(key)) {
+                    final Node node = graph.addNode(CALCULATED_PROPERTY_LABEL, VALUE_KEY, property.value, KIND_KEY,
+                                                    property.kind.value);
+                    calculatedPropertyLookUp.put(key, node.getId());
+                }
+                if (property.source != null)
+                    graph.addEdge(drugNode, calculatedPropertyLookUp.get(key), HAS_PROPERTY_LABEL, SOURCE_KEY,
+                                  property.source.value);
+                else
+                    graph.addEdge(drugNode, calculatedPropertyLookUp.get(key), HAS_PROPERTY_LABEL);
+            }
+    }
+
+    private void addDrugAffectedOrganisms(final Graph graph, final Drug drug, final Node drugNode) {
+        if (drug.affectedOrganisms != null)
+            for (final String organism : drug.affectedOrganisms) {
+                final Long affectedOrganismNodeId = updateOrCreateOrganism(graph, organism, null);
+                graph.addEdge(drugNode, affectedOrganismNodeId, AFFECTS_LABEL);
+            }
+    }
+
+    private Long updateOrCreateOrganism(final Graph graph, final String name, final String ncbiTaxonomyId) {
+        Node foundNode = null;
+        if (ncbiTaxonomyId != null)
+            foundNode = graph.findNode(ORGANISM_LABEL, ID_KEY, ncbiTaxonomyId);
+        if (foundNode == null && name != null)
+            foundNode = graph.findNode(ORGANISM_LABEL, NAME_KEY, name);
+        if (foundNode == null) {
+            if (name != null && ncbiTaxonomyId != null)
+                foundNode = graph.addNode(ORGANISM_LABEL, ID_KEY, ncbiTaxonomyId, NAME_KEY, name);
+            else if (name != null)
+                foundNode = graph.addNode(ORGANISM_LABEL, NAME_KEY, name);
+            else
+                foundNode = graph.addNode(ORGANISM_LABEL, ID_KEY, ncbiTaxonomyId);
+        } else {
+            boolean changed = false;
+            if (foundNode.getProperty(ID_KEY) == null && ncbiTaxonomyId != null) {
+                foundNode.setProperty(ID_KEY, ncbiTaxonomyId);
+                changed = true;
+            }
+            if (foundNode.getProperty(NAME_KEY) == null && name != null) {
+                foundNode.setProperty(NAME_KEY, name);
+                changed = true;
+            }
+            if (changed)
+                graph.update(foundNode);
+        }
+        return foundNode.getId();
+    }
+
+    private void addDrugCategories(final Graph graph, final Drug drug, final Node drugNode,
+                                   final Map<String, Long> meshTermLookUp) {
+        if (drug.categories != null)
+            for (final Category category : drug.categories) {
+                if (!meshTermLookUp.containsKey(category.meshId)) {
+                    final Node node = graph.addNode(MESH_TERM_LABEL, ID_KEY, category.meshId, NAME_KEY,
+                                                    category.category);
+                    meshTermLookUp.put(category.meshId, node.getId());
+                }
+                graph.addEdge(drugNode, meshTermLookUp.get(category.meshId), HAS_CATEGORY_LABEL);
+            }
+    }
+
+    private void addDrugInteractants(final Graph graph, final Drug drug, final Node drugNode,
+                                     final Map<String, Long> referenceLookUp,
+                                     final Map<String, Long> externalIdentifierLookUp) {
+        if (drug.targets != null)
+            for (final Target target : drug.targets) {
+                final Node node = getOrCreateInteractantNode(graph, target, TARGET_LABEL, externalIdentifierLookUp);
+                connectInteractant(graph, drugNode, target, node, referenceLookUp);
+            }
+        if (drug.enzymes != null)
+            for (final Enzyme enzyme : drug.enzymes) {
+                final Node node = getOrCreateInteractantNode(graph, enzyme, ENZYME_LABEL, externalIdentifierLookUp);
+                connectInteractant(graph, drugNode, enzyme, node, referenceLookUp);
+            }
+        if (drug.carriers != null)
+            for (final Carrier carrier : drug.carriers) {
+                final Node node = getOrCreateInteractantNode(graph, carrier, CARRIER_LABEL, externalIdentifierLookUp);
+                connectInteractant(graph, drugNode, carrier, node, referenceLookUp);
+            }
+        if (drug.transporters != null)
+            for (final Transporter transporter : drug.transporters) {
+                final Node node = getOrCreateInteractantNode(graph, transporter, TRANSPORTER_LABEL,
+                                                             externalIdentifierLookUp);
+                connectInteractant(graph, drugNode, transporter, node, referenceLookUp);
+            }
+    }
+
+    private Node getOrCreateInteractantNode(final Graph graph, final Interactant interactant, final String label,
+                                            final Map<String, Long> externalIdentifierLookUp) {
+        Node node = graph.findNode(label, ID_KEY, interactant.id);
+        if (node == null) {
+            node = graph.addNode(label, ID_KEY, interactant.id, NAME_KEY, interactant.name);
+            if (interactant.polypeptide != null) {
+                Node polypeptideNode = graph.findNode(POLYPEPTIDE_LABEL, ID_KEY, interactant.polypeptide.id);
+                if (polypeptideNode == null)
+                    polypeptideNode = createPolypeptideNode(graph, interactant.polypeptide, externalIdentifierLookUp);
+                graph.addEdge(node, polypeptideNode, IS_POLYPEPTIDE_LABEL);
+            }
+            if (interactant.organism != null) {
+                final Long organismNodeId = updateOrCreateOrganism(graph, interactant.organism, null);
+                graph.addEdge(node, organismNodeId, HAS_ORGANISM_LABEL);
+            }
+        }
+        return node;
+    }
+
+    private Node createPolypeptideNode(final Graph graph, final Polypeptide polypeptide,
+                                       final Map<String, Long> externalIdentifierLookUp) {
+        final NodeBuilder builder = graph.buildNode().withLabel(POLYPEPTIDE_LABEL);
+        builder.withPropertyIfNotNull(ID_KEY, polypeptide.id);
+        builder.withPropertyIfNotNull(NAME_KEY, polypeptide.name);
+        builder.withPropertyIfNotNull(SOURCE_KEY, polypeptide.source);
+        builder.withPropertyIfNotNull(GENERAL_FUNCTION_KEY, polypeptide.generalFunction);
+        builder.withPropertyIfNotNull(SPECIFIC_FUNCTION_KEY, polypeptide.specificFunction);
+        builder.withPropertyIfNotNull(GENE_NAME_KEY, polypeptide.geneName);
+        builder.withPropertyIfNotNull(LOCUS_KEY, polypeptide.locus);
+        builder.withPropertyIfNotNull(CELLULAR_LOCATION_KEY, polypeptide.cellularLocation);
+        builder.withPropertyIfNotNull(TRANSMEMBRANE_REGIONS_KEY, polypeptide.transmembraneRegions);
+        builder.withPropertyIfNotNull(SIGNAL_REGIONS_KEY, polypeptide.signalRegions);
+        builder.withPropertyIfNotNull(THEORETICAL_PI_KEY, polypeptide.theoreticalPi);
+        builder.withPropertyIfNotNull(MOLECULAR_WEIGHT_KEY, polypeptide.molecularWeight);
+        builder.withPropertyIfNotNull(CHROMOSOME_LOCATION_KEY, polypeptide.chromosomeLocation);
+        builder.withPropertyIfNotNull(AMINOACID_SEQUENCE_KEY, polypeptide.aminoAcidSequence.value);
+        builder.withPropertyIfNotNull(AMINOACID_SEQUENCE_FORMAT_KEY, polypeptide.aminoAcidSequence.format);
+        builder.withPropertyIfNotNull(GENE_SEQUENCE_KEY, polypeptide.geneSequence.value);
+        builder.withPropertyIfNotNull(GENE_SEQUENCE_FORMAT_KEY, polypeptide.geneSequence.format);
+        builder.withPropertyIfNotNull(SYNONYMS_KEY, polypeptide.synonyms);
+        final Node polypeptideNode = builder.build();
+        if (polypeptide.externalIdentifiers != null) {
+            for (final PolypeptideExternalIdentifier identifier : polypeptide.externalIdentifiers) {
+                final Long nodeId = getOrCreateExternalIdentifierNode(graph, identifier.resource.value,
+                                                                      identifier.identifier, externalIdentifierLookUp);
+                graph.addEdge(polypeptideNode, nodeId, HAS_EXTERNAL_IDENTIFIER_LABEL);
+            }
+        }
+        if (polypeptide.pfams != null) {
+            for (final Pfam pfam : polypeptide.pfams) {
+                Node pfamNode = graph.findNode(PFAM_LABEL, ID_KEY, pfam.identifier);
+                if (pfamNode == null)
+                    pfamNode = graph.addNode(PFAM_LABEL, ID_KEY, pfam.identifier, NAME_KEY, pfam.name);
+                graph.addEdge(polypeptideNode, pfamNode, HAS_PFAM_LABEL);
+            }
+        }
+        if (polypeptide.goClassifiers != null) {
+            for (final GoClassifier classifier : polypeptide.goClassifiers) {
+                final Node node = graph.addNode(GO_CLASSIFIER_LABEL, CATEGORY_KEY, classifier.category, DESCRIPTION_KEY,
+                                                classifier.description);
+                graph.addEdge(polypeptideNode, node, HAS_GO_CLASSIFIER_LABEL);
+            }
+        }
+        if (polypeptide.organism != null) {
+            final Long organismNodeId = updateOrCreateOrganism(graph, polypeptide.organism.value,
+                                                               polypeptide.organism.ncbiTaxonomyId);
+            graph.addEdge(polypeptideNode, organismNodeId, HAS_ORGANISM_LABEL);
+        }
+        return polypeptideNode;
+    }
+
+    private void connectInteractant(final Graph graph, final Node drugNode, final Interactant interactant,
+                                    final Node interactantNode, final Map<String, Long> referenceLookUp) {
+        final NodeBuilder builder = graph.buildNode().withLabel(TARGET_METADATA_LABEL);
+        builder.withPropertyIfNotNull(KNOWN_ACTION_KEY, interactant.knownAction.value);
+        builder.withPropertyIfNotNull(ACTIONS_KEY, interactant.actions);
+        builder.withPropertyIfNotNull(POSITION_KEY, interactant.position);
+        if (interactant instanceof Enzyme) {
+            builder.withPropertyIfNotNull(INHIBITION_STRENGTH_KEY, ((Enzyme) interactant).inhibitionStrength);
+            builder.withPropertyIfNotNull(INDUCTION_STRENGTH_KEY, ((Enzyme) interactant).inductionStrength);
+        }
+        final Node metadataNode = builder.build();
+        createReferenceListNode(graph, referenceLookUp, metadataNode, interactant.references);
+        graph.addEdge(drugNode, metadataNode, TARGETS_LABEL);
+        graph.addEdge(metadataNode, interactantNode, HAS_TARGET_LABEL);
+    }
+
+    private void addDrugClassification(final Graph graph, final Drug drug, final Node drugNode) {
+        if (drug.classification == null)
+            return;
+        final NodeBuilder builder = graph.buildNode().withLabel(CLASSIFICATION_LABEL);
+        builder.withPropertyIfNotNull(DESCRIPTION_KEY, drug.classification.description);
+        builder.withPropertyIfNotNull(DIRECT_PARENT_KEY, drug.classification.directParent);
+        builder.withPropertyIfNotNull(KINGDOM_KEY, drug.classification.kingdom);
+        builder.withPropertyIfNotNull(SUPERCLASS_KEY, drug.classification.superclass);
+        builder.withPropertyIfNotNull(CLASS_KEY, drug.classification.class_);
+        builder.withPropertyIfNotNull(SUBCLASS_KEY, drug.classification.subclass);
+        builder.withPropertyIfNotNull(ALTERNATIVE_PARENTS_KEY, drug.classification.alternativeParents);
+        builder.withPropertyIfNotNull(SUBSTITUENTS_KEY, drug.classification.substituents);
+        if (builder.getPropertyCount() > 0)
+            graph.addEdge(drugNode, builder.build(), CLASSIFIED_AS_LABEL);
+    }
+
+    private void addPharmacology(final Graph graph, final Drug drug, final Node drugNode) {
+        final NodeBuilder builder = graph.buildNode().withLabel(PHARMACOLOGY_LABEL);
+        builder.withPropertyIfNotNull(MECHANISM_OF_ACTION_KEY, drug.mechanismOfAction);
+        builder.withPropertyIfNotNull(TOXICITY_KEY, drug.toxicity);
+        builder.withPropertyIfNotNull(METABOLISM_KEY, drug.metabolism);
+        builder.withPropertyIfNotNull(ABSORPTION_KEY, drug.absorption);
+        builder.withPropertyIfNotNull(INDICATION_KEY, drug.indication);
+        builder.withPropertyIfNotNull(PHARMACODYNAMICS_KEY, drug.pharmacodynamics);
+        builder.withPropertyIfNotNull(HALF_LIFE_KEY, drug.halfLife);
+        builder.withPropertyIfNotNull(PROTEIN_BINDING_KEY, drug.proteinBinding);
+        builder.withPropertyIfNotNull(ROUTE_OF_ELIMINATION_KEY, drug.routeOfElimination);
+        builder.withPropertyIfNotNull(VOLUME_OF_DISTRIBUTION_KEY, drug.volumeOfDistribution);
+        builder.withPropertyIfNotNull(CLEARANCE_KEY, drug.clearance);
+        if (builder.getPropertyCount() > 0)
+            graph.addEdge(drugNode, builder.build(), HAS_PHARMACOLOGY_LABEL);
+    }
+
+    private void createReferenceListNode(final Graph g, final Map<String, Long> referenceLookUp, final Node parent,
+                                         final ReferenceList references) {
+        if (references == null)
+            return;
+        if (isListNullOrEmpty(references.textbooks) && isListNullOrEmpty(references.articles) && isListNullOrEmpty(
+                references.attachments) && isListNullOrEmpty(references.links))
+            return;
+        if (isListNotEmpty(references.textbooks)) {
+            for (final Textbook reference : references.textbooks) {
+                if (!referenceLookUp.containsKey(reference.refId)) {
+                    final Node node = createNodeFromModel(g, reference);
+                    referenceLookUp.put(reference.refId, node.getId());
+                }
+                g.addEdge(parent, referenceLookUp.get(reference.refId), HAS_TEXTBOOK_LABEL);
+            }
+        }
+        if (isListNotEmpty(references.articles)) {
+            for (final Article reference : references.articles) {
+                if (!referenceLookUp.containsKey(reference.refId)) {
+                    final Node node = createNodeFromModel(g, reference);
+                    referenceLookUp.put(reference.refId, node.getId());
+                }
+                g.addEdge(parent, referenceLookUp.get(reference.refId), HAS_ARTICLE_LABEL);
+            }
+        }
+        if (isListNotEmpty(references.links)) {
+            for (final Link reference : references.links) {
+                if (!referenceLookUp.containsKey(reference.refId)) {
+                    final Node node = createNodeFromModel(g, reference);
+                    referenceLookUp.put(reference.refId, node.getId());
+                }
+                g.addEdge(parent, referenceLookUp.get(reference.refId), HAS_LINK_LABEL);
+            }
+        }
+        if (isListNotEmpty(references.attachments)) {
+            for (final Attachment reference : references.attachments) {
+                if (!referenceLookUp.containsKey(reference.refId)) {
+                    final Node node = createNodeFromModel(g, reference);
+                    referenceLookUp.put(reference.refId, node.getId());
+                }
+                g.addEdge(parent, referenceLookUp.get(reference.refId), HAS_ATTACHMENT_LABEL);
+            }
+        }
+    }
+
+    private boolean isListNullOrEmpty(final List<?> list) {
+        return list == null || list.size() == 0;
+    }
+
+    private boolean isListNotEmpty(final List<?> list) {
+        return list != null && list.size() > 0;
+    }
+
+    private void addPharmacoeconomics(final Graph graph, final Drug drug, final Node drugNode) {
+        if (drug.products != null) {
+            for (final Product product : drug.products) {
+                final NodeBuilder productBuilder = graph.buildNode().withLabel(PRODUCT_LABEL);
+                productBuilder.withPropertyIfNotNull(NAME_KEY, product.name);
+                productBuilder.withPropertyIfNotNull(LABELLER_KEY, product.labeller);
+                productBuilder.withPropertyIfNotNull(NDC_ID_KEY, product.ndcId);
+                productBuilder.withPropertyIfNotNull(NDC_PRODUCT_CODE_KEY, product.ndcProductCode);
+                productBuilder.withPropertyIfNotNull(DPD_ID_KEY, product.dpdId);
+                productBuilder.withPropertyIfNotNull(EMA_PRODUCT_CODE_KEY, product.emaProductCode);
+                productBuilder.withPropertyIfNotNull(EMA_MA_NUMBER_KEY, product.emaMaNumber);
+                productBuilder.withPropertyIfNotNull(STARTED_MARKETING_ON_KEY, product.startedMarketingOn);
+                productBuilder.withPropertyIfNotNull(ENDED_MARKETING_ON_KEY, product.endedMarketingOn);
+                productBuilder.withPropertyIfNotNull(DOSAGE_FORM_KEY, product.dosageForm);
+                productBuilder.withPropertyIfNotNull(STRENGTH_KEY, product.strength);
+                productBuilder.withPropertyIfNotNull(ROUTE_KEY, product.route);
+                productBuilder.withPropertyIfNotNull(FDA_APPLICATION_NUMBER_KEY, product.fdaApplicationNumber);
+                productBuilder.withPropertyIfNotNull(GENERIC_KEY, product.generic);
+                productBuilder.withPropertyIfNotNull(OVER_THE_COUNTER_KEY, product.overTheCounter);
+                productBuilder.withPropertyIfNotNull(APPROVED_KEY, product.approved);
+                productBuilder.withPropertyIfNotNull(COUNTRY_KEY, product.country.value);
+                productBuilder.withPropertyIfNotNull(SOURCE_KEY, product.source.value);
+                graph.addEdge(drugNode, productBuilder.build(), IS_PRODUCT_LABEL);
+            }
+        }
+        if (drug.packagers != null)
+            for (final Packager packager : drug.packagers) {
+                Node node = graph.findNode(PACKAGER_LABEL, NAME_KEY, packager.name);
+                if (node == null)
+                    node = graph.addNode(PACKAGER_LABEL, NAME_KEY, packager.name, URL_KEY, packager.url);
+                graph.addEdge(drugNode, node, HAS_PACKAGER_LABEL);
+            }
+        if (drug.manufacturers != null)
+            for (final Manufacturer manufacturer : drug.manufacturers) {
+                Node node = graph.findNode(MANUFACTURER_LABEL, NAME_KEY, manufacturer.value);
+                if (node == null)
+                    node = graph.addNode(MANUFACTURER_LABEL, NAME_KEY, manufacturer.value, URL_KEY, manufacturer.url);
+                graph.addEdge(drugNode, node, HAS_MANUFACTURER_LABEL);
+            }
+        if (drug.prices != null)
+            for (final Price price : drug.prices) {
+                final Node node;
+                if (price.unit != null)
+                    node = graph.addNode(PRICE_LABEL, DESCRIPTION_KEY, price.description, COST_KEY, price.cost.value,
+                                         CURRENCY_KEY, price.cost.currency, UNIT_KEY, price.unit);
+                else
+                    node = graph.addNode(PRICE_LABEL, DESCRIPTION_KEY, price.description, COST_KEY, price.cost.value,
+                                         CURRENCY_KEY, price.cost.currency);
+                graph.addEdge(drugNode, node, COSTS_LABEL);
+            }
+        if (drug.dosages != null)
+            for (final Dosage dosage : drug.dosages) {
+                final Node node = createNodeFromModel(graph, dosage);
+                graph.addEdge(drugNode, node, HAS_DOSAGE_LABEL);
+            }
+        if (drug.patents != null)
+            for (final Patent patent : drug.patents) {
+                final Node node = createNodeFromModel(graph, patent);
+                graph.addEdge(drugNode, node, HAS_PATENT_LABEL);
+            }
+    }
+
+    private void addOrCacheDrugInteractions(final Graph graph, final Drug drug, final Node drugNode,
+                                            final Map<String, Long> drugLookUp,
+                                            final List<DrugInteractionTriple> drugInteractionCache) {
+        if (drug.drugInteractions == null)
+            return;
+        for (final DrugInteraction interaction : drug.drugInteractions) {
+            if (drugLookUp.containsKey(interaction.drugbankId.value)) {
+                final Long target = drugLookUp.get(interaction.drugbankId.value);
+                graph.addEdge(drugNode, target, INTERACTS_WITH_DRUG_LABEL, DESCRIPTION_KEY, interaction.description);
+            } else {
+                final DrugInteractionTriple triple = new DrugInteractionTriple();
+                triple.drugNodeId = drugNode.getId();
+                triple.drugBankIdTarget = interaction.drugbankId.value;
+                triple.description = interaction.description;
+                drugInteractionCache.add(triple);
+            }
+        }
+    }
+
+    private void addOrCacheDrugPathways(final Graph graph, final Drug drug, final Node drugNode,
+                                        final Map<String, Long> drugLookUp,
+                                        final Map<Long, Set<String>> pathwayEnzymeCache,
+                                        final Map<Long, Set<String>> pathwayDrugCache) {
+        if (drug.pathways == null)
+            return;
+        for (final Pathway pathway : drug.pathways) {
+            Node pathwayNode = graph.findNode(PATHWAY_LABEL, SMPDB_ID_KEY, pathway.smpdbId);
+            if (pathwayNode == null) {
+                pathwayNode = graph.addNode(PATHWAY_LABEL, NAME_KEY, pathway.name, SMPDB_ID_KEY, pathway.smpdbId,
+                                            CATEGORY_KEY, pathway.category);
+            }
+            graph.addEdge(drugNode, pathwayNode, IS_IN_PATHWAY_LABEL);
+            if (pathway.enzymes != null) {
+                if (!pathwayEnzymeCache.containsKey(pathwayNode.getId()))
+                    pathwayEnzymeCache.put(pathwayNode.getId(), new HashSet<>());
+                pathwayEnzymeCache.get(pathwayNode.getId()).addAll(pathway.enzymes);
+            }
+            for (final PathwayDrug pathwayDrug : pathway.drugs) {
+                if (drugLookUp.containsKey(pathwayDrug.drugbankId.value)) {
+                    graph.addEdge(drugLookUp.get(pathwayDrug.drugbankId.value), pathwayNode, IS_IN_PATHWAY_LABEL);
+                } else {
+                    if (!pathwayDrugCache.containsKey(pathwayNode.getId()))
+                        pathwayDrugCache.put(pathwayNode.getId(), new HashSet<>());
+                    pathwayDrugCache.get(pathwayNode.getId()).add(pathwayDrug.drugbankId.value);
+                }
+            }
+        }
     }
 }

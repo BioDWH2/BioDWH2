@@ -11,6 +11,16 @@ public final class TableFormatter {
     private static final String VERTICAL_SPLIT_CHARACTER = "|";
     private static final String HORIZONTAL_SPLIT_CHARACTER = "-";
 
+    private final boolean centerText;
+
+    public TableFormatter() {
+        this(true);
+    }
+
+    public TableFormatter(final boolean centerText) {
+        this.centerText = centerText;
+    }
+
     public String format(final List<String> headers, final List<List<String>> rows) {
         final StringBuilder builder = new StringBuilder();
         final Map<Integer, Integer> columnMaxWidthMapping = getMaximumTableWidth(headers, rows);
@@ -65,11 +75,11 @@ public final class TableFormatter {
         final int cellPaddingSize = getOptimumCellPadding(cellIndex, cell.length(), columnMaxWidthMapping);
         if (cellIndex == 0)
             builder.append(VERTICAL_SPLIT_CHARACTER);
-        fillSpace(builder, cellPaddingSize);
+        fillSpace(builder, centerText ? cellPaddingSize : 1);
         builder.append(cell);
         if (cell.length() % 2 != 0)
             builder.append(' ');
-        fillSpace(builder, cellPaddingSize);
+        fillSpace(builder, centerText ? cellPaddingSize : cellPaddingSize * 2 - 1);
         builder.append(VERTICAL_SPLIT_CHARACTER);
     }
 

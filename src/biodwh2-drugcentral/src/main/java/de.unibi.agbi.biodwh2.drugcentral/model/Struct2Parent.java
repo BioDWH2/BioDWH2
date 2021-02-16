@@ -8,5 +8,5 @@ public final class Struct2Parent {
     @JsonProperty("struct_id")
     public Integer structId;
     @JsonProperty("parent_id")
-    public String parentId;
+    public Integer parentId;
 }

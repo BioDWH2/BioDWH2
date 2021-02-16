@@ -5,18 +5,18 @@
 | DGIdb        | The Drug Gene Interaction Database                               | [Link](http://dgidb.org)                     | Work in progress |
 | DisGeNET     | DisGeNET                                                         | [Link](https://www.disgenet.org)             | Work in progress |
 | DrugBank     | DrugBank                                                         | [Link](http://drugbank.ca)                   | Work in progress |
-| DrugCentral  | DrugCentral                                                      | [Link](http://drugcentral.org)               | Done             |
+| DrugCentral  | DrugCentral                                                      | [Link](http://drugcentral.org)               | Work in progress |
 | GeneOntology | Gene Ontology                                                    | [Link](http://geneontology.org)              | Work in progress |
 | HGNC         | HUGO Gene Nomenclature Committee                                 | [Link](https://www.genenames.org)            | Done             |
 | HPO          | Human Phenotype Ontology                                         | [Link](https://hpo.jax.org)                  | Work in progress |
 | KEGG         | Kyoto Encyclopedia of Genes and Genomes                          | [Link](https://www.kegg.jp)                  | Work in progress |
 | MED-RT       | Medication Reference Terminology (MED-RT™)                       | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/) | Work in progress |
 | Mondo        | Mondo Disease Ontology                                           | [Link](https://mondo.monarchinitiative.org)  | Work in progress |
-| NCBI         |                                                                  |                                              | Work in progress |
-| NDF-RT       | National Drug File – Reference Terminology (NDF-RT™)             | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/) | Work in progress |
-| PharmGKB     | PharmGKB                                                         | [Link](https://www.pharmgkb.org)             | Work in progress |
+| NDF-RT       | National Drug File – Reference Terminology (NDF-RT™)             | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/) | Done             |
+| PharmGKB     | PharmGKB                                                         | [Link](https://www.pharmgkb.org)             | Done             |
 | SIDER        | SIDER: Side Effect Resource                                      | [Link](http://sideeffects.embl.de)           | Work in progress |
 | UNII         | FDA Substance Registration System - Unique Ingredient Identifier | [Link](https://fdasis.nlm.nih.gov/srs/)      | Done             |
+| USDA-PLANTS  | USDA PLANTS Database                                             | [Link](http://plants.usda.gov/)              | Done             |
 |              |                                                                  |                                              |                  |
 
 ## Licenses and references
@@ -29,7 +29,9 @@
 
 ### DisGeNET
 
-> 
+> https://www.disgenet.org/legal
+
+> The DisGeNET database is made available under the Attribution-NonCommercial-ShareAlike 4.0 International License whose text can be found here. If DisGeNET is incorporated into other works, we ask that DisGeNET is properly cited (see the citation guidelines ), and that the version number of DisGeNET is clearly displayed.
 
 ### DrugBank
 
@@ -45,13 +47,17 @@
 
 ### GeneOntology
 
-> Gene Ontology Consortium data and data products are licensed under the [Creative Commons Attribution 4.0 Unported License](https://creativecommons.org/licenses/by/4.0/legalcode).
+> Gene Ontology Consortium data and data products are licensed under the [Creative Commons Attribution 4.0 Unported License](https://creativecommons.org/licenses/by/4.0/legalcode)
 
-> For citation information see http://geneontology.org/docs/go-citation-policy/.
+> For citation information see http://geneontology.org/docs/go-citation-policy/
 
 ### HGNC
 
-> 
+> https://www.genenames.org/about/
+
+> **Data release policy**: No restrictions are imposed on access to, or use of, the data provided by the HGNC, which are provided to enhance knowledge and encourage progress in the scientific community. The HGNC provide these data in good faith, but make no warranty, express or implied, nor assume any legal liability or responsibility for any purpose for which they are used.
+
+> **Guidelines on use of data in publications (copyright and licensing)**: It is a condition of our funding from NIH and the Wellcome Trust that the nomenclature and information we provide is freely available to all. Anyone may use the HGNC data, but we request that they reference the "HUGO Gene Nomenclature Committee at the European Bioinformatics Institute" and the website where possible.
 
 ### HPO
 
@@ -63,15 +69,21 @@
 
 ### MED-RT
 
-> 
+> https://evs.nci.nih.gov/ftp1/MED-RT/medrt_about.html
+
+> MED-RT has no copyright acknowledgement required. However, users must adhere to the UMLS license.
 
 ### Mondo
 
-> 
+> https://mondo.monarchinitiative.org
+
+> Mondo Disease Ontology is licensed under the Creative Commons Attribution 3.0 Unported (CC BY 3.0)
 
 ### NDF-RT
 
-> 
+> https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/NDFRT/index.html
+
+> NDF-RT is made available via the UMLS. Users of all UMLS ontologies must abide by the terms of the UMLS license, available at https://uts.nlm.nih.gov/license.html
 
 ### PharmGKB
 
@@ -89,4 +101,10 @@
 
 ### UNII
 
-> 
+> https://fdasis.nlm.nih.gov/srs/
+
+> Except as otherwise noted, data is provided as Public Doman.
+
+### USDA-PLANTS
+
+> Plant information, including the distribution maps, lists, and text, is not copyrighted and is free for any use. Please cite the PLANTS Database as: USDA, NRCS. 2020. The PLANTS Database (http://plants.usda.gov, 23 November 2020). National Plant Data Team, Greensboro, NC 27401-4901 USA.

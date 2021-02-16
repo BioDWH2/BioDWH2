@@ -3,11 +3,11 @@ package de.unibi.agbi.biodwh2.itis.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({"tsn", "vernacular_name", "language", "approved_ind", "update_date", "vern_id"})
-@NodeLabel("Vernacular")
+@NodeLabels("Vernacular")
 public class Vernacular {
     @JsonProperty("tsn")
     public int tsn;

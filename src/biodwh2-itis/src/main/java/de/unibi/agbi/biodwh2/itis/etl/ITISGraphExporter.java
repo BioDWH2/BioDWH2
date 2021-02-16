@@ -16,15 +16,15 @@ import java.util.Set;
 
 public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ITISGraphExporter.class);
-    private static final String GEOGRAPHIC_DIVISION_LABEL = "GeographicDivision";
-    private static final String JURISDICTION_LABEL = "Jurisdiction";
-    private static final String EXPERT_LABEL = "Expert";
-    private static final String KINGDOM_LABEL = "Kingdom";
-    private static final String RANK_LABEL = "Rank";
-    private static final String TAXON_LABEL = "Taxon";
-    private static final String COMMENT_LABEL = "Comment";
-    private static final String PUBLICATION_LABEL = "Publication";
-    private static final String SOURCE_LABEL = "Source";
+    static final String GEOGRAPHIC_DIVISION_LABEL = "GeographicDivision";
+    static final String JURISDICTION_LABEL = "Jurisdiction";
+    static final String EXPERT_LABEL = "Expert";
+    static final String KINGDOM_LABEL = "Kingdom";
+    static final String RANK_LABEL = "Rank";
+    static final String TAXON_LABEL = "Taxon";
+    static final String COMMENT_LABEL = "Comment";
+    static final String PUBLICATION_LABEL = "Publication";
+    static final String SOURCE_LABEL = "Source";
 
     public ITISGraphExporter(final ITISDataSource dataSource) {
         super(dataSource);
@@ -32,17 +32,17 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
-        graph.setNodeIndexPropertyKeys("id");
+        graph.setNodeIndexPropertyKeys(ID_KEY);
         LOGGER.info("Exporting comments...");
-        createCommentNodes(graph);
+        createNodesFromModels(graph, dataSource.comments);
         LOGGER.info("Exporting experts...");
-        createExpertNodes(graph);
+        createNodesFromModels(graph, dataSource.experts);
         LOGGER.info("Exporting sources...");
-        createSourceNodes(graph);
+        createNodesFromModels(graph, dataSource.otherSources);
         LOGGER.info("Exporting publications...");
-        createPublicationNodes(graph);
+        createNodesFromModels(graph, dataSource.publications);
         LOGGER.info("Exporting kingdoms...");
-        createKingdomNodes(graph);
+        createNodesFromModels(graph, dataSource.kingdoms);
         LOGGER.info("Exporting taxon authors...");
         createTaxonAuthorNodes(graph);
         LOGGER.info("Exporting ranks...");
@@ -69,45 +69,19 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
         return true;
     }
 
-    private void createCommentNodes(final Graph graph) {
-        for (final Comment comment : dataSource.comments)
-            createNodeFromModel(graph, comment);
-    }
-
-    private void createExpertNodes(final Graph graph) {
-        for (final Expert expert : dataSource.experts)
-            graph.buildNode().withLabel(EXPERT_LABEL).withProperty("id", expert.id).withProperty("name", expert.name)
-                 .withProperty("comment", expert.comment).build();
-    }
-
-    private void createSourceNodes(final Graph graph) {
-        for (final OtherSource source : dataSource.otherSources)
-            createNodeFromModel(graph, source);
-    }
-
-    private void createPublicationNodes(final Graph graph) {
-        for (final Publication publication : dataSource.publications)
-            createNodeFromModel(graph, publication);
-    }
-
-    private void createKingdomNodes(final Graph graph) {
-        for (final Kingdom kingdom : dataSource.kingdoms)
-            createNodeFromModel(graph, kingdom);
-    }
-
     private void createTaxonAuthorNodes(final Graph graph) {
         for (final TaxonAuthorLkp author : dataSource.taxonAuthorsLkps) {
             Node node = createNodeFromModel(graph, author);
-            graph.addEdge(node, graph.findNode(KINGDOM_LABEL, "id", author.kingdomId), "ASSOCIATED_WITH");
+            graph.addEdge(node, graph.findNode(KINGDOM_LABEL, ID_KEY, author.kingdomId), "ASSOCIATED_WITH");
         }
     }
 
     private void createTaxonUnitTypeNodes(final Graph graph) {
         final Map<Integer, Long> rankNodeIdLookup = new HashMap<>();
         for (final TaxonUnitType rank : dataSource.taxonUnitTypes) {
-            final Node node = graph.addNode(RANK_LABEL, "id", rank.id, "name", rank.name);
+            final Node node = graph.addNode(RANK_LABEL, ID_KEY, rank.id, "name", rank.name);
             rankNodeIdLookup.put(rank.id, node.getId());
-            graph.addEdge(graph.findNode(KINGDOM_LABEL, "id", rank.kingdomId), node, "HAS_RANK");
+            graph.addEdge(graph.findNode(KINGDOM_LABEL, ID_KEY, rank.kingdomId), node, "HAS_RANK");
         }
         for (final TaxonUnitType rank : dataSource.taxonUnitTypes) {
             final long nodeId = rankNodeIdLookup.get(rank.id);
@@ -119,13 +93,17 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
     private Map<Integer, Long> createTaxonomicUnitNodes(final Graph graph) {
         final Map<Integer, Long> taxonTsnNodeIdMap = new HashMap<>();
         for (final TaxonomicUnit taxon : dataSource.taxonomicUnits) {
-            Node node = createNodeFromModel(graph, taxon);
             final String longName = dataSource.longNames.get(taxon.tsn);
-            if (longName != null)
-                node.setProperty("long_name", longName);
             final String nodcId = dataSource.nodcIds.get(taxon.tsn);
-            if (nodcId != null)
-                node.setProperty("nodc_id", nodcId);
+            Node node;
+            if (longName != null && nodcId != null)
+                node = graph.addNodeFromModel(taxon, "long_name", longName, "nodc_id", nodcId);
+            else if (longName != null)
+                node = graph.addNodeFromModel(taxon, "long_name", longName);
+            else if (nodcId != null)
+                node = graph.addNodeFromModel(taxon, "nodc_id", nodcId);
+            else
+                node = graph.addNodeFromModel(taxon);
             taxonTsnNodeIdMap.put(taxon.tsn, node.getId());
         }
         return taxonTsnNodeIdMap;
@@ -137,14 +115,14 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
 
     private void createHierarchyEdges(final Graph graph, final Map<Integer, Long> taxonTsnNodeIdMap) {
         for (final Hierarchy hierarchy : dataSource.hierarchies)
-            if (hierarchy.parentTsn > 0)
+            if (hierarchy.parentTsn != null && hierarchy.parentTsn > 0)
                 graph.addEdge(taxonTsnNodeIdMap.get(hierarchy.parentTsn), taxonTsnNodeIdMap.get(hierarchy.tsn),
                               "HAS_CHILD");
     }
 
     private void createTaxonomicUnitCommentEdges(final Graph graph, final Map<Integer, Long> taxonTsnNodeIdMap) {
         for (final TaxonomicUnitCommentLink link : dataSource.taxonomicUnitCommentLinks)
-            graph.addEdge(taxonTsnNodeIdMap.get(link.tsn), graph.findNode(COMMENT_LABEL, "id", link.commentId),
+            graph.addEdge(taxonTsnNodeIdMap.get(link.tsn), graph.findNode(COMMENT_LABEL, ID_KEY, link.commentId),
                           "HAS_COMMENT");
     }
 
@@ -159,7 +137,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
             uniqueDivisions.add(division.value);
         final Map<String, Long> divisionNodeIdMap = new HashMap<>();
         for (final String division : uniqueDivisions) {
-            final Node node = graph.addNode(GEOGRAPHIC_DIVISION_LABEL, "id", division);
+            final Node node = graph.addNode(GEOGRAPHIC_DIVISION_LABEL, ID_KEY, division);
             divisionNodeIdMap.put(division, node.getId());
         }
         for (final GeographicDivision division : dataSource.geographicDivisions)
@@ -173,7 +151,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
             uniqueJurisdictions.add(jurisdiction.value);
         final Map<String, Long> jurisdictionNodeIdMap = new HashMap<>();
         for (final String jurisdiction : uniqueJurisdictions) {
-            final Node node = graph.addNode(JURISDICTION_LABEL, "id", jurisdiction);
+            final Node node = graph.addNode(JURISDICTION_LABEL, ID_KEY, jurisdiction);
             jurisdictionNodeIdMap.put(jurisdiction, node.getId());
         }
         for (final Jurisdiction jurisdiction : dataSource.jurisdictions)
@@ -192,18 +170,26 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
     }
 
     private void createVernacularReferenceEdges(final Graph graph, final Map<Integer, Long> vernacularIdNodeIdMap) {
+        final Set<Integer> warnedVernacularIds = new HashSet<>();
         for (final VernacularReferenceLink link : dataSource.vernacularReferenceLinks) {
             Node referenceNode;
             if ("PUB".equals(link.docIdPrefix))
-                referenceNode = graph.findNode(PUBLICATION_LABEL, "id", link.documentationId);
+                referenceNode = graph.findNode(PUBLICATION_LABEL, ID_KEY, link.documentationId);
             else if ("SRC".equals(link.docIdPrefix))
-                referenceNode = graph.findNode(SOURCE_LABEL, "id", link.documentationId);
+                referenceNode = graph.findNode(SOURCE_LABEL, ID_KEY, link.documentationId);
+            else if ("EXP".equals(link.docIdPrefix))
+                referenceNode = graph.findNode(EXPERT_LABEL, ID_KEY, link.documentationId);
             else {
                 LOGGER.warn("Unknown vernacular reference prefix '" + link.docIdPrefix + "'");
                 continue;
             }
-            graph.addEdge(vernacularIdNodeIdMap.get(link.vernacularId), referenceNode, "HAS_REFERENCE", "tsn",
-                          link.tsn);
+            final Long vernacularNodeId = vernacularIdNodeIdMap.get(link.vernacularId);
+            if (vernacularNodeId != null)
+                graph.addEdge(vernacularNodeId, referenceNode, "HAS_REFERENCE", "tsn", link.tsn);
+            else if (!warnedVernacularIds.contains(link.vernacularId)) {
+                LOGGER.warn("Unknown reference to vernacular id '" + link.vernacularId + "'");
+                warnedVernacularIds.add(link.vernacularId);
+            }
         }
     }
 }

@@ -12,18 +12,15 @@ public abstract class MappingDescriber {
         this.dataSource = dataSource;
     }
 
-    public abstract NodeMappingDescription describe(final Graph graph, final Node node);
+    public abstract NodeMappingDescription[] describe(final Graph graph, final Node node,
+                                                      final String localMappingLabel);
 
     public abstract PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges);
 
-    final String[] getPrefixedNodeMappingLabels() {
-        return Arrays.stream(getNodeMappingLabels()).map(this::prefixLabel).toArray(String[]::new);
-    }
-
     protected abstract String[] getNodeMappingLabels();
 
-    private String prefixLabel(final String label) {
-        return dataSource.getId() + GraphExporter.LABEL_PREFIX_SEPARATOR + label;
+    final String prefixLabel(final String label) {
+        return dataSource.getId() + Graph.LABEL_PREFIX_SEPARATOR + label;
     }
 
     final String[][] getPrefixedEdgeMappingPaths() {

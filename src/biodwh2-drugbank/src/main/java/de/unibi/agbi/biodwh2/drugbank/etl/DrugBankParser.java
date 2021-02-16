@@ -154,16 +154,13 @@ public class DrugBankParser extends Parser<DrugBankDataSource> {
         metabolite.exactMass = entry.properties.get("EXACT_MASS");
         metabolite.iupac = entry.properties.get("JCHEM_IUPAC");
         metabolite.traditionalIupac = entry.properties.get("JCHEM_TRADITIONAL_IUPAC");
-        metabolite.drugbankId = new DrugbankMetaboliteId();
-        metabolite.drugbankId.value = entry.properties.get("DRUGBANK_ID");
-        metabolite.drugbankId.primary = true;
+        metabolite.drugbankId = entry.properties.get("DRUGBANK_ID");
         metabolite.name = entry.properties.get("NAME");
         metabolite.unii = entry.properties.get("UNII");
         metabolite.ruleOfFive = entry.properties.get("JCHEM_RULE_OF_FIVE");
         metabolite.ghoseFilter = entry.properties.get("JCHEM_GHOSE_FILTER");
         metabolite.veberRule = entry.properties.get("JCHEM_VEBER_RULE");
         metabolite.mddrLikeRule = entry.properties.get("JCHEM_MDDR_LIKE_RULE");
-
         return metabolite;
     }
 }

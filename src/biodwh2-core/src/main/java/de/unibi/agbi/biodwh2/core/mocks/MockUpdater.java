@@ -1,12 +1,12 @@
-package de.unibi.agbi.biodwh2.core.mocks.mock1.etl;
+package de.unibi.agbi.biodwh2.core.mocks;
 
+import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.mocks.mock1.Mock1DataSource;
 import de.unibi.agbi.biodwh2.core.model.Version;
 
-public final class Mock1Updater extends Updater<Mock1DataSource> {
-    public Mock1Updater(final Mock1DataSource dataSource) {
+public class MockUpdater<T extends DataSource> extends Updater<T> {
+    public MockUpdater(final T dataSource) {
         super(dataSource);
     }
 

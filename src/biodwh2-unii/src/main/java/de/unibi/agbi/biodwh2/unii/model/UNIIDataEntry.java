@@ -3,13 +3,13 @@ package de.unibi.agbi.biodwh2.unii.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
 @JsonPropertyOrder({
         "UNII", "PT", "RN", "EC", "NCIT", "RXCUI", "PUBCHEM", "ITIS", "NCBI", "PLANTS", "GRIN", "MPNS", "INN_ID", "MF",
         "INCHIKEY", "SMILES", "INGREDIENT_TYPE"
 })
-@NodeLabel("UNII")
+@NodeLabels("UNII")
 public class UNIIDataEntry {
     @JsonProperty("UNII")
     @GraphProperty("id")
@@ -43,27 +43,24 @@ public class UNIIDataEntry {
     public String rxCui;
     @JsonProperty("PUBCHEM")
     @GraphProperty("pubchem_cid")
-    public String pubchem;
+    public Long pubchem;
     /*
      * Integrated Taxonomic Information System Taxonomic Serial Number (ITIS TSN)
      * https://www.itis.gov/
      */
     @JsonProperty("ITIS")
-    @GraphProperty("itis_taxonomy_id")
-    public String itis;
+    public Long itis;
     /*
      * NCBI taxonomy organism ID
      * https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Root
      */
     @JsonProperty("NCBI")
-    @GraphProperty("ncbi_taxonomy_organism_id")
-    public String ncbi;
+    public Long ncbi;
     /*
      * USDA PLANTS organism ID
      * https://plants.usda.gov/java/
      */
     @JsonProperty("PLANTS")
-    @GraphProperty("usda_plants_organism_id")
     public String plants;
     /*
      * USDA Agricultural Research Service Germplasm Resources Information Network (GRIN) nomen ID

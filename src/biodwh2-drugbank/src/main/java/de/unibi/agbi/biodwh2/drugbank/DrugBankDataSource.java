@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.drugbank;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.drugbank.etl.*;
 import de.unibi.agbi.biodwh2.drugbank.model.DrugStructure;
@@ -17,6 +18,11 @@ public class DrugBankDataSource extends DataSource {
     @Override
     public String getId() {
         return "DrugBank";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
     }
 
     @Override

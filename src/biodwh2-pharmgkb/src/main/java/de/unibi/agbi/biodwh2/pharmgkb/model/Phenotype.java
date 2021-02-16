@@ -1,10 +1,12 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
 import com.univocity.parsers.annotations.Parsed;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.pharmgkb.etl.PharmGKBGraphExporter;
 
-@NodeLabel("Phenotype")
+@NodeLabels("Phenotype")
 public class Phenotype {
     @Parsed(field = "PharmGKB Accession Id")
     @GraphProperty("id")
@@ -13,9 +15,12 @@ public class Phenotype {
     @GraphProperty("name")
     public String name;
     @Parsed(field = "Alternate Names")
+    @GraphArrayProperty(value = "alternate_names", arrayDelimiter = ",", quotedArrayElements = true)
     public String alternateNames;
     @Parsed(field = "Cross-references")
-    public String crossReference;
+    @GraphArrayProperty(value = "cross_references", arrayDelimiter = ",", quotedArrayElements = true)
+    public String crossReferences;
     @Parsed(field = "External Vocabulary")
+    @GraphArrayProperty(value = "external_vocabulary", arrayDelimiter = ",", quotedArrayElements = true)
     public String externalVocabulary;
 }

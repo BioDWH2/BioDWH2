@@ -3,15 +3,14 @@ package de.unibi.agbi.biodwh2.pharmgkb.model;
 import com.univocity.parsers.annotations.Parsed;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
-@NodeLabel("ClinicalAnnotationMetadata")
+@NodeLabels("ClinicalAnnotationMetadata")
 public class ClinicalAnnotationMetadata {
     @Parsed(field = "Clinical Annotation ID")
     @GraphProperty("id")
     public String clinicalAnnotationId;
     @Parsed(field = "Location")
-    @GraphProperty("location")
     public String location;
     @Parsed(field = "Gene")
     public String gene;
@@ -24,7 +23,6 @@ public class ClinicalAnnotationMetadata {
     @Parsed(field = "Genotype-Phenotype IDs")
     public String genotypePhenotypesId;
     @Parsed(field = "Annotation Text")
-    @GraphProperty("annotation_text")
     public String annotationText;
     @Parsed(field = "Variant Annotations IDs")
     public String variantAnnotationsId;
@@ -46,5 +44,7 @@ public class ClinicalAnnotationMetadata {
     @Parsed(field = "Chromosome")
     @GraphProperty("chromosome")
     public String chromosome;
+    @Parsed(field = "Latest History Date (YYYY-MM-DD)")
+    public String latestHistoryDate;
 
 }

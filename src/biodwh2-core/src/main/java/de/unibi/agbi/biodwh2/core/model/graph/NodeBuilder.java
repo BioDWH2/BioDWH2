@@ -23,6 +23,16 @@ public final class NodeBuilder {
         return this;
     }
 
+    public <T> NodeBuilder withPropertyIfNotNull(final String key, final T value) {
+        if (value != null)
+            properties.put(key, value);
+        return this;
+    }
+
+    public int getPropertyCount() {
+        return properties.size();
+    }
+
     public Node build() {
         return graph.addNode(label, properties);
     }

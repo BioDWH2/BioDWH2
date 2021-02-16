@@ -1,6 +1,6 @@
 package de.unibi.agbi.biodwh2.ndfrt.model;
 
-public class Role {
+public final class Role {
     public String name;
     public String code;
     public String id;

@@ -3,10 +3,10 @@ package de.unibi.agbi.biodwh2.itis.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
 @JsonPropertyOrder({"kingdom_id", "kingdom_name", "update_date"})
-@NodeLabel("Kingdom")
+@NodeLabels("Kingdom")
 public class Kingdom {
     @JsonProperty("kingdom_id")
     @GraphProperty("id")

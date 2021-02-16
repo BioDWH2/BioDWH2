@@ -8,7 +8,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 
 import java.util.List;
 
-public class Concept {
+public final class Concept {
     public static class DefiningConcept {
         @JacksonXmlText
         public String value;
@@ -29,12 +29,13 @@ public class Concept {
         public List<DefiningRole> roles;
     }
 
-    private static class NameValuePair {
+    public static class NameValuePair {
         public String name;
         public String value;
     }
 
     public static class DefiningRole extends NameValuePair {
+        @SuppressWarnings("unused")
         public boolean some;
     }
 
@@ -51,6 +52,7 @@ public class Concept {
     public String id;
     public String namespace;
     public String kind;
+    @SuppressWarnings("unused")
     @JsonSetter(nulls = Nulls.AS_EMPTY)
     private String primitive;
     @JacksonXmlElementWrapper(localName = "definingConcepts")
@@ -63,8 +65,4 @@ public class Concept {
     @JacksonXmlElementWrapper(localName = "associations")
     @JacksonXmlProperty(localName = "association")
     public List<Association> associations;
-
-    public boolean getPrimitive() {
-        return primitive != null;
-    }
 }

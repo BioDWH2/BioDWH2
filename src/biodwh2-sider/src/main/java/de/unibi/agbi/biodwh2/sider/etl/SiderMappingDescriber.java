@@ -7,31 +7,30 @@ import de.unibi.agbi.biodwh2.core.model.graph.*;
 import org.apache.commons.lang3.StringUtils;
 
 public class SiderMappingDescriber extends MappingDescriber {
-    public SiderMappingDescriber(DataSource dataSource) {
+    public SiderMappingDescriber(final DataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    public NodeMappingDescription describe(Graph graph, Node node) {
-        switch (node.getLabel()) {
+    public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
+        switch (localMappingLabel) {
             case "Drug": {
-                NodeMappingDescription description = new NodeMappingDescription();
-                description.type = NodeMappingDescription.NodeType.DRUG;
+                NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
                 String id = StringUtils.stripStart(node.getProperty("id"), "CID");
                 description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, "" + Long.parseLong(id));
-                return description;
+                return new NodeMappingDescription[]{description};
             }
             case "Disease": {
-                NodeMappingDescription description = new NodeMappingDescription();
-                description.type = NodeMappingDescription.NodeType.DISEASE;
-                description.addIdentifier(IdentifierType.UMLS_CUI, node.getProperty("id"));
-                return description;
+                NodeMappingDescription description = new NodeMappingDescription(
+                        NodeMappingDescription.NodeType.DISEASE);
+                description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
+                return new NodeMappingDescription[]{description};
             }
             case "SideEffect": {
-                NodeMappingDescription description = new NodeMappingDescription();
-                description.type = NodeMappingDescription.NodeType.SIDE_EFFECT;
-                description.addIdentifier(IdentifierType.UMLS_CUI, node.getProperty("id"));
-                return description;
+                NodeMappingDescription description = new NodeMappingDescription(
+                        NodeMappingDescription.NodeType.SIDE_EFFECT);
+                description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
+                return new NodeMappingDescription[]{description};
             }
         }
         return null;
@@ -43,7 +42,7 @@ public class SiderMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public PathMappingDescription describe(Graph graph, Node[] nodes, Edge[] edges) {
+    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
         return null;
     }
 

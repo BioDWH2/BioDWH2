@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.kegg;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.kegg.etl.KeggGraphExporter;
 import de.unibi.agbi.biodwh2.kegg.etl.KeggMappingDescriber;
@@ -20,6 +21,11 @@ public class KeggDataSource extends DataSource {
     @Override
     public String getId() {
         return "KEGG";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
     }
 
     @Override

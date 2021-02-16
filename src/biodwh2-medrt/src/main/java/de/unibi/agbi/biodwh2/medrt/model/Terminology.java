@@ -5,17 +5,20 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
 import java.util.List;
 
-public class Terminology {
+public final class Terminology {
     public Namespace namespace;
     @JsonProperty("referencedNamespace")
     @JacksonXmlElementWrapper(useWrapping = false)
     public List<Namespace> referencedNamespaces;
+    @SuppressWarnings("SpellCheckingInspection")
     @JsonProperty("proptype")
     @JacksonXmlElementWrapper(useWrapping = false)
     public List<PropertyType> propertyTypes;
+    @SuppressWarnings("SpellCheckingInspection")
     @JsonProperty("assntype")
     @JacksonXmlElementWrapper(useWrapping = false)
     public List<AssociationType> associationTypes;
+    @SuppressWarnings("SpellCheckingInspection")
     @JsonProperty("qualtype")
     @JacksonXmlElementWrapper(useWrapping = false)
     public List<QualitativeType> qualitativeTypes;

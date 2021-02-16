@@ -2,16 +2,19 @@ package de.unibi.agbi.biodwh2.core.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.graphics.MetaGraphImage;
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
+import de.unibi.agbi.biodwh2.core.model.WorkspaceFileType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
-import org.apache.commons.lang3.StringUtils;
+import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
+import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
@@ -19,24 +22,24 @@ public final class GraphMapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMapper.class);
     private static final String MAPPED_TO_EDGE_LABEL = "MAPPED_TO";
     private static final String IDS_NODE_PROPERTY = "ids";
+    private static final String NAMES_NODE_PROPERTY = "names";
     private static final String MAPPED_NODE_PROPERTY = "__mapped";
 
-    public void map(final Workspace workspace, final DataSource[] dataSources, final String inputGraphFilePath,
-                    final String outputGraphFilePath) {
-        copyGraph(inputGraphFilePath, outputGraphFilePath);
-        final Graph graph = new Graph(outputGraphFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION),
-                                      true);
-        mapGraph(graph, dataSources);
-        saveGraph(graph, outputGraphFilePath);
-        graph.dispose();
+    public void map(final Workspace workspace, final DataSource[] dataSources) {
+        copyGraph(workspace);
+        final Path graphFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_PERSISTENT_GRAPH);
+        try (final Graph graph = new Graph(graphFilePath, true)) {
+            mapGraph(graph, dataSources);
+            saveGraph(graph, workspace);
+            generateMetaGraphStatistics(graph, workspace);
+        }
     }
 
-    private void copyGraph(final String inputGraphFilePath, final String outputGraphFilePath) {
-        final Path originalPath = Paths.get(
-                inputGraphFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION));
-        final Path copied = Paths.get(outputGraphFilePath.replace(GraphFileFormat.GRAPH_ML.extension, Graph.EXTENSION));
+    private void copyGraph(final Workspace workspace) {
         try {
-            Files.copy(originalPath, copied, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(workspace.getFilePath(WorkspaceFileType.MERGED_PERSISTENT_GRAPH),
+                       workspace.getFilePath(WorkspaceFileType.MAPPED_PERSISTENT_GRAPH),
+                       StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("Failed to copy merged graph to mapped graph file", e);
@@ -45,7 +48,11 @@ public final class GraphMapper {
 
     private void mapGraph(final Graph graph, final DataSource[] dataSources) {
         final Map<String, MappingDescriber> map = getDataSourceDescriberMap(dataSources);
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Mapping nodes");
         mapNodes(graph, map);
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Mapping paths");
         mapPaths(graph, map);
     }
 
@@ -59,12 +66,17 @@ public final class GraphMapper {
     private void mapNodes(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
         final Map<String, Set<Long>> idNodeIdMap = new HashMap<>();
         for (final MappingDescriber describer : dataSourceDescriberMap.values()) {
-            final String[] mappingLabels = describer.getPrefixedNodeMappingLabels();
-            for (final String mappingLabel : mappingLabels) {
-                for (final Node node : graph.getNodes(mappingLabel)) {
-                    final NodeMappingDescription mappingDescription = describer.describe(graph, node);
-                    if (mappingDescription != null)
-                        mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId());
+            final String[] localMappingLabels = describer.getNodeMappingLabels();
+            for (final String localMappingLabel : localMappingLabels) {
+                final String prefixedMappingLabel = describer.prefixLabel(localMappingLabel);
+                if (LOGGER.isInfoEnabled())
+                    LOGGER.info("Mapping nodes with label '" + prefixedMappingLabel + "'");
+                for (final Node node : graph.getNodes(prefixedMappingLabel)) {
+                    final NodeMappingDescription[] mappingDescriptions = describer.describe(graph, node,
+                                                                                            localMappingLabel);
+                    if (mappingDescriptions != null)
+                        for (final NodeMappingDescription mappingDescription : mappingDescriptions)
+                            mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId());
                 }
             }
         }
@@ -74,8 +86,8 @@ public final class GraphMapper {
                                     final Map<String, Set<Long>> idNodeIdMap, final long mappedNodeId) {
         final Set<Long> matchedNodeIds = matchNodesFromIds(idNodeIdMap, description);
         final Node mergedNode = mergeOrCreateMappingNode(graph, description, matchedNodeIds, idNodeIdMap);
-        graph.addEdge(mappedNodeId, mergedNode.getId(), MAPPED_TO_EDGE_LABEL);
-        for (final String id : (String[]) mergedNode.getProperty(IDS_NODE_PROPERTY)) {
+        graph.addEdge(mappedNodeId, mergedNode, MAPPED_TO_EDGE_LABEL);
+        for (final String id : mergedNode.<Set<String>>getProperty(IDS_NODE_PROPERTY)) {
             if (!idNodeIdMap.containsKey(id))
                 idNodeIdMap.put(id, new HashSet<>());
             idNodeIdMap.get(id).add(mergedNode.getId());
@@ -94,13 +106,19 @@ public final class GraphMapper {
     private Node mergeOrCreateMappingNode(final Graph graph, final NodeMappingDescription description,
                                           final Set<Long> matchedNodeIds, final Map<String, Set<Long>> idNodeIdMap) {
         final Set<String> ids = new HashSet<>(description.getIdentifiers());
+        final Set<String> names = description.getNames();
+        final int idsCount = ids.size();
+        final int namesCount = names.size();
         Node mergedNode = null;
         for (final Long nodeId : matchedNodeIds) {
             final Node matchedNode = graph.getNode(nodeId);
             if (!hasMatchedNodeSameLabel(description, matchedNode))
                 continue;
-            final String[] nodeIds = matchedNode.getProperty(IDS_NODE_PROPERTY);
-            Collections.addAll(ids, nodeIds);
+            final Set<String> nodeIds = matchedNode.getProperty(IDS_NODE_PROPERTY);
+            ids.addAll(nodeIds);
+            final Set<String> nodeNames = matchedNode.getProperty(NAMES_NODE_PROPERTY);
+            if (nodeNames != null)
+                names.addAll(nodeNames);
             if (mergedNode == null)
                 mergedNode = matchedNode;
             else {
@@ -110,17 +128,20 @@ public final class GraphMapper {
             }
         }
         if (mergedNode == null) {
-            mergedNode = graph.addNode(description.type.toString(), MAPPED_NODE_PROPERTY, true, IDS_NODE_PROPERTY,
-                                       ids.toArray(new String[0]));
+            mergedNode = graph.addNode(description.getType(), MAPPED_NODE_PROPERTY, true, IDS_NODE_PROPERTY, ids,
+                                       NAMES_NODE_PROPERTY, names);
         } else {
-            mergedNode.setProperty(IDS_NODE_PROPERTY, ids.toArray(new String[0]));
-            graph.update(mergedNode);
+            if (idsCount != ids.size() || namesCount != names.size()) {
+                mergedNode.setProperty(IDS_NODE_PROPERTY, ids);
+                mergedNode.setProperty(NAMES_NODE_PROPERTY, names);
+                graph.update(mergedNode);
+            }
         }
         return mergedNode;
     }
 
     private boolean hasMatchedNodeSameLabel(final NodeMappingDescription description, final Node node) {
-        return description.type.toString().equals(node.getLabel());
+        return description.getType().equals(node.getLabels()[0]);
     }
 
     private void mapPaths(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
@@ -140,7 +161,7 @@ public final class GraphMapper {
 
     private static void logPath(final String[] path) {
         if (LOGGER.isInfoEnabled()) {
-            StringBuilder builder = new StringBuilder("Mapping Edge path ");
+            StringBuilder builder = new StringBuilder("Mapping edge paths ");
             for (int i = 0; i < path.length; i++) {
                 if (i > 0)
                     builder.append("-");
@@ -159,7 +180,7 @@ public final class GraphMapper {
         for (final Edge edge : graph.findEdges(path[edgeIndex], Edge.FROM_ID_FIELD, currentPathIds[edgeIndex - 1])) {
             currentPathIds[edgeIndex] = edge.getId();
             final Node nextNode = graph.getNode(edge.getToId());
-            if (nextNode.getLabel().equals(path[edgeIndex + 1])) {
+            if (nextNode.getLabels()[0].equals(path[edgeIndex + 1])) {
                 final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
                 nextPathIds[edgeIndex + 1] = nextNode.getId();
                 buildPathRecursively(graph, describer, path, edgeIndex + 2, nextPathIds);
@@ -168,7 +189,7 @@ public final class GraphMapper {
         for (final Edge edge : graph.findEdges(path[edgeIndex], Edge.TO_ID_FIELD, currentPathIds[edgeIndex - 1])) {
             currentPathIds[edgeIndex] = edge.getId();
             final Node nextNode = graph.getNode(edge.getFromId());
-            if (nextNode.getLabel().equals(path[edgeIndex + 1])) {
+            if (nextNode.getLabels()[0].equals(path[edgeIndex + 1])) {
                 final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
                 nextPathIds[edgeIndex + 1] = nextNode.getId();
                 buildPathRecursively(graph, describer, path, edgeIndex + 2, nextPathIds);
@@ -177,8 +198,6 @@ public final class GraphMapper {
     }
 
     private void mapPathInstance(final Graph graph, final MappingDescriber describer, final long[] pathIds) {
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Path instance IDs " + StringUtils.join(pathIds, ';'));
         final Node[] nodes = new Node[pathIds.length / 2 + 1];
         for (int i = 0; i < nodes.length; i++)
             nodes[i] = graph.getNode(pathIds[i * 2]);
@@ -192,14 +211,32 @@ public final class GraphMapper {
                                                                                 MAPPED_TO_EDGE_LABEL);
             if (mappedFromNodeIds.length > 0 && mappedToNodeIds.length > 0) {
                 final Edge mappedEdge = graph.addEdge(mappedFromNodeIds[0], mappedToNodeIds[0],
-                                                      mappingDescription.type.name());
+                                                      mappingDescription.getType());
                 mappedEdge.setProperty("source", describer.getDataSourceId());
             }
         }
     }
 
-    private void saveGraph(final Graph graph, final String outputGraphFilePath) {
+    private void saveGraph(final Graph graph, final Workspace workspace) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Save mapped graph to GraphML");
         final GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
-        graphMLWriter.write(outputGraphFilePath, graph);
+        graphMLWriter.write(workspace.getFilePath(WorkspaceFileType.MAPPED_GRAPHML), graph);
+    }
+
+    private void generateMetaGraphStatistics(final Graph graph, final Workspace workspace) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Generating mapped meta graph");
+        final MetaGraph metaGraph = new MetaGraph(graph);
+        final Path metaGraphImageFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_META_GRAPH_IMAGE);
+        final String statistics = new MetaGraphStatisticsWriter(metaGraph).write();
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(statistics);
+            LOGGER.info("Exporting mapped meta graph image to " + metaGraphImageFilePath);
+        }
+        final MetaGraphImage image = new MetaGraphImage(metaGraph, 2048, 2048);
+        image.drawAndSaveImage(metaGraphImageFilePath);
+        FileUtils.writeTextToUTF8File(workspace.getFilePath(WorkspaceFileType.MAPPED_META_GRAPH_STATISTICS),
+                                      statistics);
     }
 }

@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.hpo;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.hpo.etl.HPOGraphExporter;
 import de.unibi.agbi.biodwh2.hpo.etl.HPOMappingDescriber;
@@ -11,6 +12,11 @@ public class HPODataSource extends DataSource {
     @Override
     public String getId() {
         return "HPO";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
     }
 
     @Override

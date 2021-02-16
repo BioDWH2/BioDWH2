@@ -1,7 +1,10 @@
 package de.unibi.agbi.biodwh2.core.mocks.mock2;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.mocks.MockParser;
+import de.unibi.agbi.biodwh2.core.mocks.MockUpdater;
 import de.unibi.agbi.biodwh2.core.mocks.mock2.etl.*;
 
 public class Mock2DataSource extends DataSource {
@@ -11,13 +14,18 @@ public class Mock2DataSource extends DataSource {
     }
 
     @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
+    }
+
+    @Override
     public Updater<Mock2DataSource> getUpdater() {
-        return new Mock2Updater(this);
+        return new MockUpdater<>(this);
     }
 
     @Override
     public Parser<Mock2DataSource> getParser() {
-        return new Mock2Parser(this);
+        return new MockParser<>(this);
     }
 
     @Override
