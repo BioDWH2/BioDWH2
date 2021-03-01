@@ -143,12 +143,25 @@ public final class Factory {
     }
 
     public <T> List<Class<T>> getImplementations(final Class<T> type) {
-        final String typeName = type.getName();
-        if (interfaceToImplementationsMap.containsKey(typeName))
-            return mapImplementationsToType(interfaceToImplementationsMap.get(typeName));
-        if (baseClassToImplementationsMap.containsKey(typeName))
-            return mapImplementationsToType(baseClassToImplementationsMap.get(typeName));
-        return Collections.emptyList();
+        final List<Class<T>> result = new ArrayList<>();
+        collectImplementationsRecursive(result, type);
+        return result;
+    }
+
+    private <T> void collectImplementationsRecursive(final List<Class<T>> list, final Class<T> currentBaseType) {
+        final String typeName = currentBaseType.getName();
+        if (interfaceToImplementationsMap.containsKey(typeName)) {
+            list.addAll(mapImplementationsToType(interfaceToImplementationsMap.get(typeName)));
+            for (final Class<?> type : interfaceToImplementationsMap.get(typeName))
+                //noinspection unchecked
+                collectImplementationsRecursive(list, (Class<T>) type);
+        }
+        if (baseClassToImplementationsMap.containsKey(typeName)) {
+            list.addAll(mapImplementationsToType(baseClassToImplementationsMap.get(typeName)));
+            for (final Class<?> type : baseClassToImplementationsMap.get(typeName))
+                //noinspection unchecked
+                collectImplementationsRecursive(list, (Class<T>) type);
+        }
     }
 
     private static <T> List<Class<T>> mapImplementationsToType(final List<Class<?>> classes) {

@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +25,8 @@ public final class DataSourceLoader {
     }
 
     private DataSource tryInstantiateDataSource(final Class<DataSource> dataSourceClass) {
+        if (Modifier.isAbstract(dataSourceClass.getModifiers()))
+            return null;
         try {
             return dataSourceClass.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
