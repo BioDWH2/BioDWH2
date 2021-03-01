@@ -25,7 +25,7 @@ public class MondoGraphExporter extends GraphExporter<MondoDataSource> {
             OboReader reader = new OboReader(dataSource.resolveSourceFilePath(workspace, "mondo.obo"),
                                              StandardCharsets.UTF_8.name());
             for (OboEntry entry : reader)
-                if (entry.getName().equals("Term"))
+                if (entry.getType().equals("Term"))
                     exportEntry(graph, entry);
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export mondo.obo", e);

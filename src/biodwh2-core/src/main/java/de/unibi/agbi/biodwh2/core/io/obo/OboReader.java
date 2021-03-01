@@ -15,11 +15,11 @@ import java.util.regex.Pattern;
 public final class OboReader implements Iterable<OboEntry> {
     private static final Pattern QUOTED_STRING_PATTERN = Pattern.compile("\"(\\.|[^\"])*\"");
 
-    private BufferedReader reader;
-    private final OboEntry header;
+    private final BufferedReader reader;
+    private final OboHeader header;
     OboEntry lastEntry;
     boolean hasNextEntry;
-    private String nextName;
+    private String nextType;
 
     @SuppressWarnings("unused")
     public OboReader(final String filePath, final String charsetName) throws IOException {
@@ -29,27 +29,41 @@ public final class OboReader implements Iterable<OboEntry> {
     public OboReader(final InputStream stream, final String charsetName) throws IOException {
         final InputStream baseStream = new BufferedInputStream(stream);
         reader = new BufferedReader(new InputStreamReader(baseStream, charsetName));
-        header = readNextEntry();
+        header = (OboHeader) readNextEntry();
     }
 
     OboEntry readNextEntry() {
-        final OboEntry entry = new OboEntry(nextName);
-        nextName = null;
+        final OboEntry entry = instantiateEntryFromType();
+        nextType = null;
         hasNextEntry = false;
-        String line = readLineSafe();
-        while (line != null) {
+        String line;
+        while ((line = readLineSafe()) != null) {
             if (StringUtils.isNotBlank(line) && line.charAt(0) != '!') {
                 if (line.charAt(0) == '[') {
-                    nextName = StringUtils.strip(line, "[]");
+                    nextType = StringUtils.strip(line, "[]");
                     hasNextEntry = true;
                     break;
                 }
                 final String[] parts = StringUtils.split(line, ":", 2);
                 entry.addKeyValuePair(parts[0].trim(), removeComments(parts[1]).trim());
             }
-            line = readLineSafe();
         }
         return entry;
+    }
+
+    private OboEntry instantiateEntryFromType() {
+        if (nextType == null)
+            return new OboHeader();
+        switch (nextType) {
+            case "Term":
+                return new OboTerm();
+            case "Typedef":
+                return new OboTypedef();
+            case "Instance":
+                return new OboInstance();
+            default:
+                return new OboEntry(nextType);
+        }
     }
 
     private String readLineSafe() {
@@ -73,7 +87,7 @@ public final class OboReader implements Iterable<OboEntry> {
         return commentIndex == -1 ? value : value.substring(0, commentIndex);
     }
 
-    public OboEntry getHeader() {
+    public OboHeader getHeader() {
         return header;
     }
 

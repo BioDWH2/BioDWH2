@@ -5,12 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class OboEntry {
-    private final String name;
+public class OboEntry {
+    private final String type;
     private final Map<String, List<String>> keyValuePairs;
 
-    public OboEntry(final String name) {
-        this.name = name;
+    OboEntry(final String type) {
+        this.type = type;
         keyValuePairs = new HashMap<>();
     }
 
@@ -20,8 +20,8 @@ public final class OboEntry {
         keyValuePairs.get(key).add(value);
     }
 
-    public String getName() {
-        return name;
+    public String getType() {
+        return type;
     }
 
     public boolean containsKey(final String key) {
@@ -33,6 +33,12 @@ public final class OboEntry {
     }
 
     public String getFirst(final String key) {
-        return keyValuePairs.containsKey(key) ? keyValuePairs.get(key).get(0) : null;
+        final List<String> values = keyValuePairs.get(key);
+        return values == null || values.size() == 0 ? null : values.get(0);
+    }
+
+    protected Boolean getBooleanValue(final String key) {
+        String value = getFirst(key);
+        return value == null ? null : "true".equalsIgnoreCase(value);
     }
 }
