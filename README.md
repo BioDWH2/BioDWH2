@@ -24,5 +24,6 @@ For detailed information on how to use BioDWH2 please see the separate [document
 If you either want to help in the development of BioDWH2 directly, or write a new data source module please consult the [development documentation](doc/development.md).
 
 ## Citing BioDWH2
+If you make use of BioDWH2 or it's companion tools as part or your research cite the BioDWH2 manuscript in any resulting publications.
 
-Coming soon
+> Friedrichs, M. (2021). BioDWH2: an automated graph-based data warehouse and mapping tool. Journal of Integrative Bioinformatics. https://doi.org/10.1515/jib-2020-0033
