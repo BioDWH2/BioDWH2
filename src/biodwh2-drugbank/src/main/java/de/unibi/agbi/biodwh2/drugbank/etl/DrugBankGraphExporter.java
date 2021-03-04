@@ -218,7 +218,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
             addPharmacology(graph, drug, drugNode);
             addPharmacoeconomics(graph, drug, drugNode);
             addOrCacheDrugInteractions(graph, drug, drugNode, drugLookUp, drugInteractionCache);
-            addOrCacheDrugPathways(graph, drug, drugNode, drugLookUp, pathwayEnzymeCache, pathwayDrugCache);
+            addOrCacheDrugPathways(graph, drug, drugNode, pathwayEnzymeCache, pathwayDrugCache);
             if (drug.reactions != null)
                 reactionCache.addAll(drug.reactions);
         }
@@ -822,7 +822,6 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     }
 
     private void addOrCacheDrugPathways(final Graph graph, final Drug drug, final Node drugNode,
-                                        final Map<String, Long> drugLookUp,
                                         final Map<Long, Set<String>> pathwayEnzymeCache,
                                         final Map<Long, Set<String>> pathwayDrugCache) {
         if (drug.pathways == null)
@@ -833,21 +832,16 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
                 pathwayNode = graph.addNode(PATHWAY_LABEL, NAME_KEY, pathway.name, SMPDB_ID_KEY, pathway.smpdbId,
                                             CATEGORY_KEY, pathway.category);
             }
-            graph.addEdge(drugNode, pathwayNode, IS_IN_PATHWAY_LABEL);
+            if (!pathwayDrugCache.containsKey(pathwayNode.getId()))
+                pathwayDrugCache.put(pathwayNode.getId(), new HashSet<>());
+            pathwayDrugCache.get(pathwayNode.getId()).add(drugNode.getProperty(DRUGBANK_ID_KEY));
             if (pathway.enzymes != null) {
                 if (!pathwayEnzymeCache.containsKey(pathwayNode.getId()))
                     pathwayEnzymeCache.put(pathwayNode.getId(), new HashSet<>());
                 pathwayEnzymeCache.get(pathwayNode.getId()).addAll(pathway.enzymes);
             }
-            for (final PathwayDrug pathwayDrug : pathway.drugs) {
-                if (drugLookUp.containsKey(pathwayDrug.drugbankId.value)) {
-                    graph.addEdge(drugLookUp.get(pathwayDrug.drugbankId.value), pathwayNode, IS_IN_PATHWAY_LABEL);
-                } else {
-                    if (!pathwayDrugCache.containsKey(pathwayNode.getId()))
-                        pathwayDrugCache.put(pathwayNode.getId(), new HashSet<>());
-                    pathwayDrugCache.get(pathwayNode.getId()).add(pathwayDrug.drugbankId.value);
-                }
-            }
+            for (final PathwayDrug pathwayDrug : pathway.drugs)
+                pathwayDrugCache.get(pathwayNode.getId()).add(pathwayDrug.drugbankId.value);
         }
     }
 }
