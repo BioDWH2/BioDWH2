@@ -11,7 +11,7 @@ public final class Synonym {
     @GraphProperty("language")
     public String language;
     @JacksonXmlProperty(isAttribute = true)
-    @GraphProperty("coder")
+    @GraphProperty(value = "coder", ignoreEmpty = true)
     public String coder;
     @JacksonXmlText
     @GraphProperty("name")
