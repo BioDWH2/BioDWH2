@@ -9,4 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface GraphProperty {
     String value() default "";
+
+    boolean ignoreEmpty() default false;
 }

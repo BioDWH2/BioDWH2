@@ -11,10 +11,12 @@ class ClassMapping {
     static class ClassMappingField {
         final Field field;
         final String propertyName;
+        final boolean ignoreEmpty;
 
-        ClassMappingField(final Field field, final String propertyName) {
+        ClassMappingField(final Field field, final String propertyName, final boolean ignoreEmpty) {
             this.field = field;
             this.propertyName = propertyName;
+            this.ignoreEmpty = ignoreEmpty;
         }
     }
 
@@ -25,7 +27,7 @@ class ClassMapping {
 
         ClassMappingArrayField(final Field field, final String propertyName, final String arrayDelimiter,
                                final boolean quotedArrayElements) {
-            super(field, propertyName);
+            super(field, propertyName, false);
             this.arrayDelimiter = arrayDelimiter;
             quotedArrayDelimiter = "\"" + arrayDelimiter + "\"";
             this.quotedArrayElements = quotedArrayElements;
@@ -36,7 +38,7 @@ class ClassMapping {
         final String truthValue;
 
         ClassMappingBooleanField(final Field field, final String propertyName, final String truthValue) {
-            super(field, propertyName);
+            super(field, propertyName, false);
             this.truthValue = truthValue;
         }
     }
@@ -64,7 +66,7 @@ class ClassMapping {
     private ClassMappingField loadClassMappingField(final Field field) {
         field.setAccessible(true);
         final GraphProperty annotation = field.getAnnotation(GraphProperty.class);
-        return new ClassMappingField(field, annotation.value());
+        return new ClassMappingField(field, annotation.value(), annotation.ignoreEmpty());
     }
 
     private ClassMappingArrayField[] loadClassMappingArrayFields(final Class<?> type) {
@@ -109,8 +111,14 @@ class ClassMapping {
     private void setNodePropertiesFromFields(final Node node, final Object obj) throws IllegalAccessException {
         for (final ClassMapping.ClassMappingField field : fields) {
             final Object value = field.field.get(obj);
-            if (value != null)
-                node.setProperty(field.propertyName, value);
+            if (value != null) {
+                if (value instanceof String) {
+                    final String stringValue = (String) value;
+                    if (!field.ignoreEmpty || stringValue.length() > 0)
+                        node.setProperty(field.propertyName, stringValue);
+                } else
+                    node.setProperty(field.propertyName, value);
+            }
         }
     }
 
