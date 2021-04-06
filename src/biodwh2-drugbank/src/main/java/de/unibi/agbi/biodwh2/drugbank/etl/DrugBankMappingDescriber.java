@@ -10,7 +10,8 @@ import java.util.regex.Pattern;
 
 public class DrugBankMappingDescriber extends MappingDescriber {
     // https://www.crossref.org/blog/dois-and-matching-regular-expressions/
-    private static final Pattern DOI_PATTERN = Pattern.compile("doi: (10\\.\\d{4,9}/[-._;()/:A-Z0-9]+)\\.");
+    private static final Pattern DOI_PATTERN = Pattern.compile("doi: (10\\.\\d{4,9}/[-._;()/:A-Z0-9]+)\\.",
+                                                               Pattern.CASE_INSENSITIVE);
 
     public DrugBankMappingDescriber(DataSource dataSource) {
         super(dataSource);
