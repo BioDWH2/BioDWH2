@@ -59,6 +59,11 @@ public class GraphMerger {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Generating merged meta graph");
         final MetaGraph metaGraph = new MetaGraph(graph);
+        if (metaGraph.getNodeLabelCount() == 0 && metaGraph.getEdgeLabelCount() == 0) {
+            if (LOGGER.isWarnEnabled())
+                LOGGER.warn("Skipping meta graph image generation of empty meta graph");
+            return;
+        }
         final Path metaGraphImageFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_META_GRAPH_IMAGE);
         final String statistics = new MetaGraphStatisticsWriter(metaGraph).write();
         if (LOGGER.isInfoEnabled()) {

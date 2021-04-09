@@ -49,6 +49,11 @@ public abstract class GraphExporter<D extends DataSource> {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Generating '" + dataSource.getId() + "' data source meta graph");
         final MetaGraph metaGraph = new MetaGraph(g);
+        if (metaGraph.getNodeLabelCount() == 0 && metaGraph.getEdgeLabelCount() == 0) {
+            if (LOGGER.isWarnEnabled())
+                LOGGER.warn("Skipping meta graph image generation of empty meta graph");
+            return;
+        }
         final Path metaGraphImageFilePath = dataSource.getFilePath(workspace, DataSourceFileType.META_GRAPH_IMAGE);
         final String statistics = new MetaGraphStatisticsWriter(metaGraph).write();
         if (LOGGER.isInfoEnabled()) {
