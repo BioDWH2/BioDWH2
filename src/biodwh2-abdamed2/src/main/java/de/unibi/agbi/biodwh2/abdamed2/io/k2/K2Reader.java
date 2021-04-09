@@ -95,10 +95,18 @@ public final class K2Reader implements Iterable<K2Entry> {
                 break;
             } else if (seekLine.length() > 0) {
                 final String identifier = seekLine.substring(0, 2);
-                if (entry.getType() != EntryType.K && entry.getType() != EntryType.F && entry.getType() != EntryType.E)
-                    entryFields.add(fields.get(identifier));
-                final String value = seekLine.substring(2).trim();
-                lines.add(value.length() > 0 ? value : null);
+                K2FEntry field = null;
+                if (entry.getType() != EntryType.K && entry.getType() != EntryType.F &&
+                    entry.getType() != EntryType.E) {
+                    field = fields.get(identifier);
+                    entryFields.add(field);
+                }
+                String value = seekLine.substring(2).trim();
+                value = value.length() > 0 ? value : null;
+                if (field != null && value != null &&
+                    (field.getDataType() == DataType.AN1 || field.getDataType() == DataType.AN3))
+                    value = Protypes.convertToUnicode(value);
+                lines.add(value);
             }
         }
         entry.parse(lines.toArray(new String[0]), entryFields);
