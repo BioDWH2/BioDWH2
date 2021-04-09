@@ -35,6 +35,7 @@
         <module>biodwh2-ncbi</module>
         <module>biodwh2-itis</module>
         <module>biodwh2-usdaplants</module>
+        <module>biodwh2-abdamed2</module>
     </modules>
 
     <packaging>pom</packaging>
