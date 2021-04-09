@@ -24,23 +24,28 @@ public final class Graph implements AutoCloseable {
     private final Set<String> userDefinedNodeIndexPropertyKeys = new HashSet<>();
 
     public Graph(final String databaseFilePath) {
-        this(Paths.get(databaseFilePath), false);
+        this(Paths.get(databaseFilePath), false, false);
     }
 
     public Graph(final Path databaseFilePath) {
-        this(databaseFilePath, false);
+        this(databaseFilePath, false, false);
     }
 
     public Graph(final Path databaseFilePath, final boolean reopen) {
+        this(databaseFilePath, reopen, false);
+    }
+
+    public Graph(final Path databaseFilePath, final boolean reopen, final boolean readOnly) {
         if (!reopen)
             deleteOldDatabaseFile(databaseFilePath);
         edgeRepositories = new HashMap<>();
-        database = openDatabase(databaseFilePath);
+        database = openDatabase(databaseFilePath, readOnly);
         nodes = database.getCollection("nodes");
         for (final String repositoryKey : database.getCollectionNames())
             if (repositoryKey.charAt(0) == EDGE_REPOSITORY_PREFIX)
                 edgeRepositories.put(repositoryKey.substring(1), database.getCollection(repositoryKey));
-        createInternalIndicesIfNotExist();
+        if (!readOnly)
+            createInternalIndicesIfNotExist();
     }
 
     private void deleteOldDatabaseFile(final Path filePath) {
@@ -51,8 +56,8 @@ public final class Graph implements AutoCloseable {
         }
     }
 
-    private static MVStoreDB openDatabase(final Path filePath) {
-        return new MVStoreDB(filePath.toString());
+    private static MVStoreDB openDatabase(final Path filePath, final boolean readOnly) {
+        return new MVStoreDB(filePath.toString(), readOnly);
     }
 
     private void createInternalIndicesIfNotExist() {

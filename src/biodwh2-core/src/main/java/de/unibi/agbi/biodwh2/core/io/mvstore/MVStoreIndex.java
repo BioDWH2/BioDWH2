@@ -21,11 +21,21 @@ public final class MVStoreIndex {
     private long nextPageIndex;
 
     public MVStoreIndex(final MVStoreDB db, final String name, final String key, final boolean arrayIndex) {
-        this(db, name, key, arrayIndex, DEFAULT_PAGE_SIZE);
+        this(db, name, key, arrayIndex, DEFAULT_PAGE_SIZE, false);
+    }
+
+    public MVStoreIndex(final MVStoreDB db, final String name, final String key, final boolean arrayIndex,
+                        final boolean readOnly) {
+        this(db, name, key, arrayIndex, DEFAULT_PAGE_SIZE, readOnly);
     }
 
     MVStoreIndex(final MVStoreDB db, final String name, final String key, final boolean arrayIndex,
                  final int pageSize) {
+        this(db, name, key, arrayIndex, pageSize, false);
+    }
+
+    MVStoreIndex(final MVStoreDB db, final String name, final String key, final boolean arrayIndex, final int pageSize,
+                 final boolean readOnly) {
         this.name = name;
         this.key = key;
         this.arrayIndex = arrayIndex;
@@ -42,7 +52,8 @@ public final class MVStoreIndex {
         if (LOGGER.isDebugEnabled())
             LOGGER.debug("Open MVStore index " + name + "[isArray=" + arrayIndex + ", pageSize=" + pageSize +
                          "], loaded pages=" + pagesMap.size());
-        sortAllPages();
+        if (!readOnly)
+            sortAllPages();
     }
 
     public String getName() {

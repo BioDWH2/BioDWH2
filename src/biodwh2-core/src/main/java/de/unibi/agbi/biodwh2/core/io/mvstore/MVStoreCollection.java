@@ -6,6 +6,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     private static final String INDEX_KEYS = "index_keys";
     private static final String INDEX_ARRAY_FLAGS = "index_array_flags";
 
+    private final boolean readOnly;
     private final MVStoreDB db;
     private final String name;
     private final MVMapWrapper<Long, T> map;
@@ -14,6 +15,11 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     private boolean isDirty;
 
     MVStoreCollection(final MVStoreDB db, final String name) {
+        this(db, name, false);
+    }
+
+    MVStoreCollection(final MVStoreDB db, final String name, final boolean readOnly) {
+        this.readOnly = readOnly;
         this.db = db;
         this.name = name;
         map = db.openMap(name);
@@ -26,12 +32,13 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     private void initIndices() {
         final String[] indexKeys = (String[]) metaMap.get(INDEX_KEYS);
         final boolean[] indexArrayFlags = (boolean[]) metaMap.get(INDEX_ARRAY_FLAGS);
-        if (indexKeys == null) {
-            metaMap.put(INDEX_KEYS, new String[0]);
-            metaMap.put(INDEX_ARRAY_FLAGS, new boolean[0]);
-        } else
+        if (indexKeys != null) {
             for (int i = 0; i < indexKeys.length; i++)
                 getIndex(indexKeys[i], indexArrayFlags[i], true);
+        } else if (!readOnly) {
+            metaMap.put(INDEX_KEYS, new String[0]);
+            metaMap.put(INDEX_ARRAY_FLAGS, new boolean[0]);
+        }
     }
 
     public MVStoreIndex getIndex(final String key) {
@@ -45,9 +52,9 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     private MVStoreIndex getIndex(final String key, final boolean arrayIndex, final boolean reopen) {
         MVStoreIndex index = indices.get(key);
         if (index == null) {
-            index = new MVStoreIndex(db, name + "$" + key, key, arrayIndex);
+            index = new MVStoreIndex(db, name + "$" + key, key, arrayIndex, readOnly);
             indices.put(key, index);
-            if (!reopen) {
+            if (!reopen && !readOnly) {
                 addIndexMetadata(index);
                 populateNewIndexIfDirty(index);
             }
