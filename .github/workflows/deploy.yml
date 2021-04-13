@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
-          java-version: 1.8
+          java-version: 8
           java-package: jdk+fx
       - name: Build with Maven
         run: mvn package -DskipTests --file src/pom.xml
