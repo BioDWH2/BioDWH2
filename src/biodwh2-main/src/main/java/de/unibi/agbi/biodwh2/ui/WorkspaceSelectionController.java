@@ -45,7 +45,8 @@ public final class WorkspaceSelectionController implements Initializable {
     private ImageView githubButton;
     @FXML
     private ImageView logo;
-    private Consumer<Boolean> toggleDarkModeListener;
+    private Consumer<Boolean> toggleDarkModeCallback;
+    private Consumer<RecentWorkspace> openWorkspaceCallback;
 
     public WorkspaceSelectionController() {
         preferences = Preferences.userRoot().node(this.getClass().getName());
@@ -71,7 +72,8 @@ public final class WorkspaceSelectionController implements Initializable {
     }
 
     private void onWorkspaceOpen(final RecentWorkspace workspace) {
-        // TODO
+        if (openWorkspaceCallback != null)
+            openWorkspaceCallback.accept(workspace);
     }
 
     private void onWorkspaceRemoveFromLibrary(final RecentWorkspace workspace) {
@@ -129,15 +131,19 @@ public final class WorkspaceSelectionController implements Initializable {
             logo.setImage(new Image(imageStream));
     }
 
-    public void setToggleDarkModeListener(final Consumer<Boolean> toggleDarkModeListener) {
-        this.toggleDarkModeListener = toggleDarkModeListener;
+    public void setToggleDarkModeCallback(final Consumer<Boolean> toggleDarkModeCallback) {
+        this.toggleDarkModeCallback = toggleDarkModeCallback;
+    }
+
+    public void setOpenWorkspaceCallback(final Consumer<RecentWorkspace> openWorkspaceCallback) {
+        this.openWorkspaceCallback = openWorkspaceCallback;
     }
 
     @FXML
     private void onToggleDarkMode(final ActionEvent event) {
         event.consume();
-        if (toggleDarkModeListener != null)
-            toggleDarkModeListener.accept(darkModeButton.isSelected());
+        if (toggleDarkModeCallback != null)
+            toggleDarkModeCallback.accept(darkModeButton.isSelected());
         updateDarkMode();
     }
 
@@ -153,12 +159,14 @@ public final class WorkspaceSelectionController implements Initializable {
         event.consume();
         final Path folder = chooseFolder();
         if (folder != null) {
+            // TODO: create
             final RecentWorkspace workspace = new RecentWorkspace(folder.toString());
             if (!recentWorkspaces.contains(workspace)) {
                 recentWorkspaces.add(0, workspace);
                 saveRecentWorkspaces();
             }
-            // TODO: create and open
+            if (openWorkspaceCallback != null && workspace.isValid())
+                openWorkspaceCallback.accept(workspace);
         }
     }
 
@@ -172,7 +180,8 @@ public final class WorkspaceSelectionController implements Initializable {
                 recentWorkspaces.add(0, workspace);
                 saveRecentWorkspaces();
             }
-            // TODO: open
+            if (openWorkspaceCallback != null && workspace.isValid())
+                openWorkspaceCallback.accept(workspace);
         }
     }
 }

@@ -41,6 +41,10 @@ public final class RecentWorkspace {
         return valid;
     }
 
+    public boolean isValidForced() {
+        return checkIsValid(path);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)

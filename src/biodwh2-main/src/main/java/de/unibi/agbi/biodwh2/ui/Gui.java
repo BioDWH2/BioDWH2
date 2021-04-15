@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.ui;
 
+import de.unibi.agbi.biodwh2.ui.model.RecentWorkspace;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -17,6 +18,7 @@ public final class Gui extends Application {
     private final ClassLoader loader = getClass().getClassLoader();
     private boolean isDarkModeEnabled;
     private Scene scene;
+    private AnchorPane root;
 
     public Gui() {
         preferences = Preferences.userRoot().node(this.getClass().getName());
@@ -25,7 +27,7 @@ public final class Gui extends Application {
 
     @Override
     public void start(final Stage primaryStage) throws Exception {
-        final AnchorPane root = FXMLLoader.load(loader.getResource("Main.fxml"));
+        root = FXMLLoader.load(loader.getResource("Main.fxml"));
         primaryStage.setTitle("BioDWH2 UI");
         primaryStage.getIcons().add(new Image(loader.getResourceAsStream("icon.png")));
         primaryStage.setResizable(false);
@@ -37,7 +39,7 @@ public final class Gui extends Application {
     }
 
     private void showWorkspaceSelection(final AnchorPane root) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(loader.getResource("WorkspaceSelection.fxml"));
+        final FXMLLoader fxmlLoader = new FXMLLoader(loader.getResource("WorkspaceSelection.fxml"));
         final AnchorPane workspaceSelectionRoot = fxmlLoader.load();
         root.getChildren().clear();
         AnchorPane.setTopAnchor(workspaceSelectionRoot, 0.0);
@@ -46,7 +48,8 @@ public final class Gui extends Application {
         AnchorPane.setRightAnchor(workspaceSelectionRoot, 0.0);
         final WorkspaceSelectionController controller = fxmlLoader.getController();
         controller.setDarkModeEnabled(isDarkModeEnabled);
-        controller.setToggleDarkModeListener(this::setDarkModeEnabled);
+        controller.setToggleDarkModeCallback(this::setDarkModeEnabled);
+        controller.setOpenWorkspaceCallback(this::tryOpenWorkspace);
         root.getChildren().add(workspaceSelectionRoot);
     }
 
@@ -60,5 +63,26 @@ public final class Gui extends Application {
             scene.getStylesheets().remove("dark-theme.css");
             scene.getStylesheets().add("light-theme.css");
         }
+    }
+
+    private void tryOpenWorkspace(final RecentWorkspace workspace) {
+        if (!workspace.isValidForced())
+            return;
+        try {
+            openWorkspace(workspace);
+        } catch (IOException e) {
+            Dialogs.showExceptionDialog(e);
+        }
+    }
+
+    private void openWorkspace(final RecentWorkspace workspace) throws IOException {
+        final FXMLLoader fxmlLoader = new FXMLLoader(loader.getResource("Workspace.fxml"));
+        final AnchorPane workspaceRoot = fxmlLoader.load();
+        root.getChildren().clear();
+        AnchorPane.setTopAnchor(workspaceRoot, 0.0);
+        AnchorPane.setLeftAnchor(workspaceRoot, 0.0);
+        AnchorPane.setBottomAnchor(workspaceRoot, 0.0);
+        AnchorPane.setRightAnchor(workspaceRoot, 0.0);
+        root.getChildren().add(workspaceRoot);
     }
 }

@@ -3,16 +3,14 @@ package de.unibi.agbi.biodwh2.ui;
 import de.unibi.agbi.biodwh2.ui.model.RecentWorkspace;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 
 import java.io.IOException;
 import java.util.function.Consumer;
 
-public class RecentWorkspaceViewCell extends ListCell<RecentWorkspace> {
+public final class RecentWorkspaceViewCell extends ListCell<RecentWorkspace> {
     @FXML
     private Label pathLabel;
     @FXML
@@ -45,10 +43,16 @@ public class RecentWorkspaceViewCell extends ListCell<RecentWorkspace> {
                 }
             }
             pathLabel.setText(workspace.getPath());
+            pathLabel.setTooltip(new Tooltip(workspace.getPath()));
             validLabel.setText(workspace.isValid() ? "" : "invalid");
             final ContextMenu contextMenu = createContextMenu(workspace);
             gridPane.setOnContextMenuRequested(
                     event -> contextMenu.show(gridPane, event.getScreenX(), event.getScreenY()));
+            gridPane.setOnMouseClicked(mouseEvent -> {
+                if (mouseEvent.getButton().equals(MouseButton.PRIMARY) && mouseEvent.getClickCount() == 2 &&
+                    openCallback != null)
+                    openCallback.accept(workspace);
+            });
             setText(null);
             setGraphic(gridPane);
         }
@@ -61,6 +65,7 @@ public class RecentWorkspaceViewCell extends ListCell<RecentWorkspace> {
             if (openCallback != null)
                 openCallback.accept(workspace);
         });
+        openItem.setDisable(!workspace.isValid());
         contextMenu.getItems().add(openItem);
         final MenuItem removeFromLibraryItem = new MenuItem("Remove from library");
         removeFromLibraryItem.setOnAction(event -> {

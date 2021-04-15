@@ -14,7 +14,7 @@
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
     </rowConstraints>
     <children>
-        <Label fx:id="pathLabel" text="Path" />
-        <Label fx:id="validLabel" styleClass="error" text="Valid" textFill="RED" GridPane.rowIndex="1" />
+        <Label fx:id="pathLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" text="Path" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS" />
+        <Label fx:id="validLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" styleClass="error" text="Valid" textFill="RED" GridPane.rowIndex="1" />
     </children>
 </GridPane>
