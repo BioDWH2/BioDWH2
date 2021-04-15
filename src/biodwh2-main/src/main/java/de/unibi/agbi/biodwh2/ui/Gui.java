@@ -53,9 +53,12 @@ public final class Gui extends Application {
     private void setDarkModeEnabled(final boolean darkModeEnabled) {
         isDarkModeEnabled = darkModeEnabled;
         preferences.putBoolean(IS_DARK_MODE_ENABLED_KEY, isDarkModeEnabled);
-        if (isDarkModeEnabled)
+        if (isDarkModeEnabled) {
+            scene.getStylesheets().remove("light-theme.css");
             scene.getStylesheets().add("dark-theme.css");
-        else
+        } else {
             scene.getStylesheets().remove("dark-theme.css");
+            scene.getStylesheets().add("light-theme.css");
+        }
     }
 }

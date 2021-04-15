@@ -11,17 +11,31 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
+import org.apache.commons.lang3.StringUtils;
 
-import java.awt.*;
+import java.awt.Desktop;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
+import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
 public final class WorkspaceSelectionController implements Initializable {
     private final ClassLoader loader = getClass().getClassLoader();
+    private static final String RECENT_WORKSPACES_KEY = "recent_workspaces";
+
+    private final Preferences preferences;
     @FXML
     private ListView<RecentWorkspace> recentWorkspaceListView;
     private final ObservableList<RecentWorkspace> recentWorkspaces;
@@ -34,16 +48,73 @@ public final class WorkspaceSelectionController implements Initializable {
     private Consumer<Boolean> toggleDarkModeListener;
 
     public WorkspaceSelectionController() {
+        preferences = Preferences.userRoot().node(this.getClass().getName());
         recentWorkspaces = FXCollections.observableArrayList();
-        recentWorkspaces.addAll(new RecentWorkspace("C:\\foo\\bar1", true), new RecentWorkspace("C:\\foo\\bar2", true),
-                                new RecentWorkspace("C:\\foo\\bar3", false), new RecentWorkspace("C:\\foo\\bar4", true),
-                                new RecentWorkspace("C:\\foo\\bar5", true));
+        final String recent = preferences.get(RECENT_WORKSPACES_KEY, "");
+        for (final String path : StringUtils.split(recent, ';'))
+            recentWorkspaces.add(new RecentWorkspace(path));
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         recentWorkspaceListView.setItems(recentWorkspaces);
-        recentWorkspaceListView.setCellFactory(studentListView -> new RecentWorkspaceViewCell());
+        recentWorkspaceListView.setCellFactory(this::createWorkspaceViewCell);
+    }
+
+    private RecentWorkspaceViewCell createWorkspaceViewCell(final ListView<RecentWorkspace> listView) {
+        final RecentWorkspaceViewCell cell = new RecentWorkspaceViewCell();
+        cell.setOpenCallback(this::onWorkspaceOpen);
+        cell.setRemoveFromLibraryCallback(this::onWorkspaceRemoveFromLibrary);
+        cell.setRemoveFromFilesystemCallback(this::onWorkspaceRemoveFromFilesystem);
+        cell.setRelocateCallback(this::onWorkspaceRelocate);
+        return cell;
+    }
+
+    private void onWorkspaceOpen(final RecentWorkspace workspace) {
+        // TODO
+    }
+
+    private void onWorkspaceRemoveFromLibrary(final RecentWorkspace workspace) {
+        recentWorkspaces.remove(workspace);
+        saveRecentWorkspaces();
+    }
+
+    private void saveRecentWorkspaces() {
+        preferences.put(RECENT_WORKSPACES_KEY,
+                        recentWorkspaces.stream().map(RecentWorkspace::getPath).collect(Collectors.joining(";")));
+    }
+
+    private void onWorkspaceRemoveFromFilesystem(final RecentWorkspace workspace) {
+        if (Dialogs.showYesNoDialog("Remove",
+                                    "This action will remove the workspace from the library and filesystem which is irreversible!",
+                                    "Are you sure to remove the workspace from the filesystem?")) {
+            recentWorkspaces.remove(workspace);
+            saveRecentWorkspaces();
+            try {
+                final Path path = Paths.get(workspace.getPath());
+                //noinspection ResultOfMethodCallIgnored
+                Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+            } catch (IOException e) {
+                Dialogs.showExceptionDialog(e);
+            }
+        }
+    }
+
+    private void onWorkspaceRelocate(final RecentWorkspace workspace) {
+        final Path folder = chooseFolder();
+        if (folder != null) {
+            final int index = recentWorkspaces.indexOf(workspace);
+            recentWorkspaces.remove(index);
+            recentWorkspaces.add(index, new RecentWorkspace(folder.toString()));
+            saveRecentWorkspaces();
+        }
+    }
+
+    private Path chooseFolder() {
+        final DirectoryChooser directoryChooser = new DirectoryChooser();
+        final Stage stage = (Stage) darkModeButton.getScene().getWindow();
+        final File selectedDirectory = directoryChooser.showDialog(stage);
+        return selectedDirectory != null ? selectedDirectory.toPath() : null;
     }
 
     public void setDarkModeEnabled(final boolean isDarkModeEnabled) {
@@ -53,7 +124,9 @@ public final class WorkspaceSelectionController implements Initializable {
 
     private void updateDarkMode() {
         final String logoFileName = darkModeButton.isSelected() ? "BioDWH2-logo-dark.png" : "BioDWH2-logo.png";
-        logo.setImage(new Image(loader.getResourceAsStream(logoFileName)));
+        final InputStream imageStream = loader.getResourceAsStream(logoFileName);
+        if (imageStream != null)
+            logo.setImage(new Image(imageStream));
     }
 
     public void setToggleDarkModeListener(final Consumer<Boolean> toggleDarkModeListener) {
@@ -78,10 +151,28 @@ public final class WorkspaceSelectionController implements Initializable {
     @FXML
     private void onClickNew(final ActionEvent event) {
         event.consume();
+        final Path folder = chooseFolder();
+        if (folder != null) {
+            final RecentWorkspace workspace = new RecentWorkspace(folder.toString());
+            if (!recentWorkspaces.contains(workspace)) {
+                recentWorkspaces.add(0, workspace);
+                saveRecentWorkspaces();
+            }
+            // TODO: create and open
+        }
     }
 
     @FXML
     private void onClickAdd(final ActionEvent event) {
         event.consume();
+        final Path folder = chooseFolder();
+        if (folder != null) {
+            final RecentWorkspace workspace = new RecentWorkspace(folder.toString());
+            if (!recentWorkspaces.contains(workspace)) {
+                recentWorkspaces.add(0, workspace);
+                saveRecentWorkspaces();
+            }
+            // TODO: open
+        }
     }
 }

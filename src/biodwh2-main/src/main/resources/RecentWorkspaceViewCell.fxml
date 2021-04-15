@@ -15,6 +15,6 @@
     </rowConstraints>
     <children>
         <Label fx:id="pathLabel" text="Path" />
-        <Label fx:id="validLabel" text="Valid" GridPane.rowIndex="1" />
+        <Label fx:id="validLabel" styleClass="error" text="Valid" textFill="RED" GridPane.rowIndex="1" />
     </children>
 </GridPane>
