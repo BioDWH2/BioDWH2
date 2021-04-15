@@ -9,7 +9,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 public class ClinicalAnnotationMetadata {
     @Parsed(field = "Clinical Annotation ID")
     @GraphProperty("id")
-    public String clinicalAnnotationId;
+    public Integer clinicalAnnotationId;
     @Parsed(field = "Location")
     public String location;
     @Parsed(field = "Gene")

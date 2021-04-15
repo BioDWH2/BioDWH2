@@ -8,7 +8,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 public class StudyParameters {
     @Parsed(field = "Study Parameters ID")
     @GraphProperty("id")
-    public String studyParametersId;
+    public Integer studyParametersId;
     @Parsed(field = "Study Type")
     @GraphProperty("study_type")
     public String studyType;

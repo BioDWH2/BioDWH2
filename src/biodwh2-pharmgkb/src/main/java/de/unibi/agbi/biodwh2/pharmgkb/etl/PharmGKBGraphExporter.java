@@ -423,7 +423,9 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             }
             if (annotation.studyParameters != null) {
                 for (final String studyParametersId : parseQuotedStringArray(annotation.studyParameters)) {
-                    final Node studyParametersNode = graph.findNode("StudyParameters", ID_PROPERTY, studyParametersId);
+                    final Integer studyParametersIdInteger = Integer.parseInt(studyParametersId);
+                    final Node studyParametersNode = graph.findNode("StudyParameters", ID_PROPERTY,
+                                                                    studyParametersIdInteger);
                     graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
                 }
             }
@@ -469,7 +471,9 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             }
             if (annotation.studyParameters != null) {
                 for (final String studyParametersId : parseQuotedStringArray(annotation.studyParameters)) {
-                    final Node studyParametersNode = graph.findNode("StudyParameters", ID_PROPERTY, studyParametersId);
+                    final Integer studyParametersIdInteger = Integer.parseInt(studyParametersId);
+                    final Node studyParametersNode = graph.findNode("StudyParameters", ID_PROPERTY,
+                                                                    studyParametersIdInteger);
                     graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
                 }
             }
@@ -500,7 +504,9 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             }
             if (annotation.studyParameters != null) {
                 for (final String studyParametersId : parseQuotedStringArray(annotation.studyParameters)) {
-                    final Node studyParametersNode = graph.findNode("StudyParameters", ID_PROPERTY, studyParametersId);
+                    final Integer studyParametersIdInteger = Integer.parseInt(studyParametersId);
+                    final Node studyParametersNode = graph.findNode("StudyParameters", ID_PROPERTY,
+                                                                    studyParametersIdInteger);
                     graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
                 }
             }
@@ -559,7 +565,9 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             }
             if (metadata.genotypePhenotypesId != null) {
                 for (final String genotypePhenotypeId : StringUtils.split(metadata.genotypePhenotypesId, ";")) {
-                    final Node annotationNode = graph.findNode("ClinicalAnnotation", ID_PROPERTY, genotypePhenotypeId);
+                    final Integer genotypePhenotypeIdInteger = Integer.parseInt(genotypePhenotypeId);
+                    final Node annotationNode = graph.findNode("ClinicalAnnotation", ID_PROPERTY,
+                                                               genotypePhenotypeIdInteger);
                     if (annotationNode != null)
                         graph.addEdge(node, annotationNode, ASSOCIATED_WITH_LABEL);
                     else if (LOGGER.isWarnEnabled())

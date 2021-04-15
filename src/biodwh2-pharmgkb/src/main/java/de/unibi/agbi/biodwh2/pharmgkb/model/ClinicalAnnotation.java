@@ -8,7 +8,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 public class ClinicalAnnotation {
     @Parsed(field = "Genotype-Phenotype ID")
     @GraphProperty("id")
-    public String genotypePhenotypeId;
+    public Integer genotypePhenotypeId;
     @Parsed(field = "Genotype")
     @GraphProperty("genotype")
     public String genotype;
