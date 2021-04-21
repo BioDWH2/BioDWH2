@@ -15,9 +15,25 @@
         <finalName>BioDWH2-v${project.version}</finalName>
         <plugins>
             <plugin>
+                <groupId>com.github.jinnovations</groupId>
+                <artifactId>attribution-maven-plugin</artifactId>
+                <version>0.9.8</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-attribution-file</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputFile>${project.build.directory}/attribution.xml</outputFile>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.4</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -33,6 +49,11 @@
                                         <BioDWH2-version>${project.version}</BioDWH2-version>
                                         <BioDWH2-build-date>${maven.build.timestamp}</BioDWH2-build-date>
                                     </manifestEntries>
+                                </transformer>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                                    <resource>META-INF/attribution.xml</resource>
+                                    <file>${project.build.directory}/attribution.xml</file>
                                 </transformer>
                             </transformers>
                             <filters>
