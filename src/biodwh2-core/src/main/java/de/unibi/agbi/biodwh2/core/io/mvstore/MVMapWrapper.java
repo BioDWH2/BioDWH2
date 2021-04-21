@@ -66,11 +66,11 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
 
     @Override
     public V get(Object key) {
-        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        lock();
         try {
             return clone(mvMap.get(key));
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            unlock();
         }
     }
 
@@ -92,12 +92,12 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
 
     @Override
     public V put(K key, V value) {
-        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        lock();
         try {
             mvMap.put(key, value);
             return value;
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            unlock();
         }
     }
 
@@ -107,41 +107,41 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
 
     @Override
     public V remove(Object key) {
-        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        lock();
         try {
             return mvMap.remove(key);
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            unlock();
         }
     }
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        lock();
         try {
             mvMap.putAll(m);
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            unlock();
         }
     }
 
     @Override
     public void clear() {
-        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        lock();
         try {
             mvMap.clear();
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            unlock();
         }
     }
 
     @Override
     public Set<K> keySet() {
-        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        lock();
         try {
             return new HashSet<>(mvMap.keySet());
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            unlock();
         }
     }
 
@@ -151,64 +151,64 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
 
     @Override
     public Collection<V> values() {
-        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        lock();
         try {
             return mvMap.values().stream().map(this::clone).collect(Collectors.toList());
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            unlock();
         }
     }
 
     @Override
     public Set<Entry<K, V>> entrySet() {
-        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        lock();
         try {
             return mvMap.entrySet().stream().map(
                     e -> new AbstractMap.SimpleImmutableEntry<>(e.getKey(), clone(e.getValue()))).collect(
                     Collectors.toSet());
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            unlock();
         }
     }
 
     @Override
     public V putIfAbsent(K key, V value) {
-        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        lock();
         try {
             return mvMap.putIfAbsent(key, value);
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            unlock();
         }
     }
 
     @Override
     public boolean remove(Object key, Object value) {
-        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        lock();
         try {
             return mvMap.remove(key, value);
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            unlock();
         }
     }
 
     @Override
     public boolean replace(K key, V oldValue, V newValue) {
-        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        lock();
         try {
             // TODO: cloned object?
             return mvMap.replace(key, oldValue, newValue);
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            unlock();
         }
     }
 
     @Override
     public V replace(K key, V value) {
-        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        lock();
         try {
             return mvMap.replace(key, value);
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            unlock();
         }
     }
 }
