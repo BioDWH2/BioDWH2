@@ -18,6 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * https://www.itis.gov/pdf/ITIS_ConceptualModelEntityDefinition.pdf
+ */
 public class ITISParser extends Parser<ITISDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ITISParser.class);
 

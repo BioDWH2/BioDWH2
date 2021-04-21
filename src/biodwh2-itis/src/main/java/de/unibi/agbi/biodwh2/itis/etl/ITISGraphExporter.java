@@ -2,10 +2,12 @@ package de.unibi.agbi.biodwh2.itis.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
+import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.itis.ITISDataSource;
 import de.unibi.agbi.biodwh2.itis.model.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,7 +112,30 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
     }
 
     private void createReferenceEdges(final Graph graph, final Map<Integer, Long> taxonTsnNodeIdMap) {
-        // TODO
+        for (final ReferenceLink link : dataSource.referenceLinks) {
+            final Node referenceNode = findReferenceNode(graph, link.docIdPrefix, link.documentationId);
+            if (referenceNode == null)
+                continue;
+            final EdgeBuilder builder = graph.buildEdge().fromNode(taxonTsnNodeIdMap.get(link.tsn)).toNode(
+                    referenceNode).withLabel("HAS_REFERENCE");
+            if (StringUtils.isNotEmpty(link.originalDescInd))
+                builder.withProperty("original_desc_ind", link.originalDescInd);
+            if (StringUtils.isNotEmpty(link.initItisDescInd))
+                builder.withProperty("init_itis_desc_ind", link.initItisDescInd);
+            builder.withPropertyIfNotNull("change_track_id", link.changeTrackId);
+            builder.build();
+        }
+    }
+
+    private Node findReferenceNode(final Graph graph, final String docIdPrefix, final int documentationId) {
+        if ("PUB".equals(docIdPrefix))
+            return graph.findNode(PUBLICATION_LABEL, ID_KEY, documentationId);
+        if ("SRC".equals(docIdPrefix))
+            return graph.findNode(SOURCE_LABEL, ID_KEY, documentationId);
+        if ("EXP".equals(docIdPrefix))
+            return graph.findNode(EXPERT_LABEL, ID_KEY, documentationId);
+        LOGGER.warn("Unknown reference prefix '" + docIdPrefix + "'");
+        return null;
     }
 
     private void createHierarchyEdges(final Graph graph, final Map<Integer, Long> taxonTsnNodeIdMap) {
@@ -172,17 +197,9 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
     private void createVernacularReferenceEdges(final Graph graph, final Map<Integer, Long> vernacularIdNodeIdMap) {
         final Set<Integer> warnedVernacularIds = new HashSet<>();
         for (final VernacularReferenceLink link : dataSource.vernacularReferenceLinks) {
-            Node referenceNode;
-            if ("PUB".equals(link.docIdPrefix))
-                referenceNode = graph.findNode(PUBLICATION_LABEL, ID_KEY, link.documentationId);
-            else if ("SRC".equals(link.docIdPrefix))
-                referenceNode = graph.findNode(SOURCE_LABEL, ID_KEY, link.documentationId);
-            else if ("EXP".equals(link.docIdPrefix))
-                referenceNode = graph.findNode(EXPERT_LABEL, ID_KEY, link.documentationId);
-            else {
-                LOGGER.warn("Unknown vernacular reference prefix '" + link.docIdPrefix + "'");
+            final Node referenceNode = findReferenceNode(graph, link.docIdPrefix, link.documentationId);
+            if (referenceNode == null)
                 continue;
-            }
             final Long vernacularNodeId = vernacularIdNodeIdMap.get(link.vernacularId);
             if (vernacularNodeId != null)
                 graph.addEdge(vernacularNodeId, referenceNode, "HAS_REFERENCE", "tsn", link.tsn);

@@ -45,6 +45,12 @@ public final class EdgeBuilder {
         return this;
     }
 
+    public <T> EdgeBuilder withPropertyIfNotNull(final String key, final T value) {
+        if (value != null)
+            properties.put(key, value);
+        return this;
+    }
+
     public Edge build() {
         return graph.addEdge(fromId, toId, label, properties);
     }
