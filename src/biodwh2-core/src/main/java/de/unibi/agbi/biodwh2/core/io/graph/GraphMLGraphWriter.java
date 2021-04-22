@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core.io.graph;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.IndentingXMLStreamWriter;
 import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreModel;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
@@ -77,15 +78,10 @@ public final class GraphMLGraphWriter extends GraphWriter {
         return true;
     }
 
-    private void removeOldExport(final Workspace workspace, final DataSource dataSource) {
+    public void removeOldExport(final Workspace workspace, final DataSource dataSource) {
         final Path path = dataSource.getFilePath(workspace, DataSourceFileType.INTERMEDIATE_GRAPHML);
-        if (Files.exists(path))
-            try {
-                Files.delete(path);
-            } catch (IOException e) {
-                if (LOGGER.isWarnEnabled())
-                    LOGGER.warn("Failed to remove old export", e);
-            }
+        if (!FileUtils.safeDelete(path) && LOGGER.isWarnEnabled())
+            LOGGER.warn("Failed to remove old GraphML export for data source '" + dataSource.getId() + "'");
     }
 
     private void generateProperties(final Graph graph) {

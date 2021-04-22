@@ -152,4 +152,18 @@ public final class FileUtils {
             return false;
         }
     }
+
+    public static boolean safeDelete(final String filePath) {
+        return safeDelete(Paths.get(filePath));
+    }
+
+    public static boolean safeDelete(final Path filePath) {
+        if (Files.exists(filePath))
+            try {
+                Files.delete(filePath);
+            } catch (IOException ignored) {
+                return false;
+            }
+        return true;
+    }
 }

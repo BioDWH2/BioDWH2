@@ -24,7 +24,7 @@ public class GraphMerger {
         try (final Graph mergedGraph = new Graph(workspace.getFilePath(WorkspaceFileType.MERGED_PERSISTENT_GRAPH))) {
             for (final DataSource dataSource : dataSources)
                 mergeDataSource(workspace, dataSource, mergedGraph);
-            saveMergedGraph(workspace.getFilePath(WorkspaceFileType.MERGED_GRAPHML), mergedGraph);
+            saveMergedGraph(workspace, mergedGraph);
             generateMetaGraphStatistics(mergedGraph, workspace);
         } catch (final Exception ex) {
             throw new MergerException(ex);
@@ -48,14 +48,29 @@ public class GraphMerger {
         }
     }
 
-    private void saveMergedGraph(final Path outputFilePath, final Graph mergedGraph) {
+    private void saveMergedGraph(final Workspace workspace, final Graph mergedGraph) {
+        final Path outputGraphFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_GRAPHML);
+        if (workspace.getConfiguration().getSkipGraphMLExport()) {
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Skipping merged graph GraphML export as per configuration");
+            FileUtils.safeDelete(outputGraphFilePath);
+            return;
+        }
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Save merged graph to GraphML");
-        final GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
-        graphMLWriter.write(outputFilePath, mergedGraph);
+        new GraphMLGraphWriter().write(outputGraphFilePath, mergedGraph);
     }
 
     private void generateMetaGraphStatistics(final Graph graph, final Workspace workspace) {
+        final Path metaGraphImageFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_META_GRAPH_IMAGE);
+        final Path metaGraphStatsFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_META_GRAPH_STATISTICS);
+        if (workspace.getConfiguration().getSkipMetaGraphGeneration()) {
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Skipping merged graph meta graph generation as per configuration");
+            FileUtils.safeDelete(metaGraphImageFilePath);
+            FileUtils.safeDelete(metaGraphStatsFilePath);
+            return;
+        }
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Generating merged meta graph");
         final MetaGraph metaGraph = new MetaGraph(graph);
@@ -64,7 +79,6 @@ public class GraphMerger {
                 LOGGER.warn("Skipping meta graph image generation of empty meta graph");
             return;
         }
-        final Path metaGraphImageFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_META_GRAPH_IMAGE);
         final String statistics = new MetaGraphStatisticsWriter(metaGraph).write();
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(statistics);
@@ -72,7 +86,6 @@ public class GraphMerger {
         }
         final MetaGraphImage image = new MetaGraphImage(metaGraph, 2048, 2048);
         image.drawAndSaveImage(metaGraphImageFilePath);
-        FileUtils.writeTextToUTF8File(workspace.getFilePath(WorkspaceFileType.MERGED_META_GRAPH_STATISTICS),
-                                      statistics);
+        FileUtils.writeTextToUTF8File(metaGraphStatsFilePath, statistics);
     }
 }

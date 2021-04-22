@@ -218,13 +218,28 @@ public final class GraphMapper {
     }
 
     private void saveGraph(final Graph graph, final Workspace workspace) {
+        final Path outputGraphFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_GRAPHML);
+        if (workspace.getConfiguration().getSkipGraphMLExport()) {
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Skipping mapped graph GraphML export as per configuration");
+            FileUtils.safeDelete(outputGraphFilePath);
+            return;
+        }
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Save mapped graph to GraphML");
-        final GraphMLGraphWriter graphMLWriter = new GraphMLGraphWriter();
-        graphMLWriter.write(workspace.getFilePath(WorkspaceFileType.MAPPED_GRAPHML), graph);
+        new GraphMLGraphWriter().write(outputGraphFilePath, graph);
     }
 
     private void generateMetaGraphStatistics(final Graph graph, final Workspace workspace) {
+        final Path metaGraphImageFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_META_GRAPH_IMAGE);
+        final Path metaGraphStatsFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_META_GRAPH_STATISTICS);
+        if (workspace.getConfiguration().getSkipMetaGraphGeneration()) {
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Skipping mapped graph meta graph generation as per configuration");
+            FileUtils.safeDelete(metaGraphImageFilePath);
+            FileUtils.safeDelete(metaGraphStatsFilePath);
+            return;
+        }
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Generating mapped meta graph");
         final MetaGraph metaGraph = new MetaGraph(graph);
@@ -233,7 +248,6 @@ public final class GraphMapper {
                 LOGGER.warn("Skipping meta graph image generation of empty meta graph");
             return;
         }
-        final Path metaGraphImageFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_META_GRAPH_IMAGE);
         final String statistics = new MetaGraphStatisticsWriter(metaGraph).write();
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(statistics);
@@ -241,7 +255,6 @@ public final class GraphMapper {
         }
         final MetaGraphImage image = new MetaGraphImage(metaGraph, 2048, 2048);
         image.drawAndSaveImage(metaGraphImageFilePath);
-        FileUtils.writeTextToUTF8File(workspace.getFilePath(WorkspaceFileType.MAPPED_META_GRAPH_STATISTICS),
-                                      statistics);
+        FileUtils.writeTextToUTF8File(metaGraphStatsFilePath, statistics);
     }
 }

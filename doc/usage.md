@@ -31,15 +31,23 @@ The basic file structure is visualized below:
 |   |   |   +-- drugbank_all_full_database.xml.zip
 |   |   |   +-- drugbank_all_metabolite-structures.sdf.zip
 |   |   +-- intermediate.graphml
+|   |   +-- meta-graph.png
+|   |   +-- meta-graph-statistics.txt
 |   |   +-- metadata.json
 |   +-- HGNC
 |   |   +-- source
 |   |   |   +-- hgnc_complete_set.txt
 |   |   +-- intermediate.graphml
+|   |   +-- meta-graph.png
+|   |   +-- meta-graph-statistics.txt
 |   |   +-- metadata.json
 |   ...
 |   +-- merged.graphml
+|   +-- merged-meta-graph.png
+|   +-- merged-meta-graph-statistics.txt
 |   +-- mapped.graphml
+|   +-- mapped-meta-graph.png
+|   +-- mapped-meta-graph-statistics.txt
 ```
 
 ## Requirements
@@ -122,3 +130,30 @@ After creating and processing the workspace, the resulting graph can be analyzed
 |                 | --skip-update         | -                                | Skip update, only parse and export          |
 | -v              | --verbose             | -                                | Enable additional logging output            |
 |                 |                       |                                  |                                             |
+
+## Complete configuration file schema
+```
+{
+  "version" : int,
+  "creationDateTime" : string,
+  "dataSourceIds" : [string, string, ...],
+  "skipGraphMLExport": boolean,
+  "skipMetaGraphGeneration": boolean,
+  "dataSourceProperties": {
+    "DrugBank": {
+      "forceExport": boolean,
+      "username": string,
+      "password": string
+    },
+    "DrugCentral": {
+      "forceExport": boolean,
+      "skipDrugLabelFullTexts": boolean,
+      "skipLINCSSignatures": boolean,
+      "skipFAERSReports": boolean
+    },
+    "...": {
+      "forceExport": boolean
+    }
+  }
+}
+```

@@ -22,6 +22,10 @@ public final class Configuration {
     private final List<String> dataSourceIds;
     @JsonProperty("dataSourceProperties")
     private final Map<String, Map<String, String>> dataSourceProperties;
+    @JsonProperty("skipGraphMLExport")
+    private Boolean skipGraphMLExport;
+    @JsonProperty("skipMetaGraphGeneration")
+    private Boolean skipMetaGraphGeneration;
 
     public Configuration() {
         version = Workspace.VERSION;
@@ -60,5 +64,13 @@ public final class Configuration {
     public Map<String, String> getDataSourceProperties(final String dataSourceId) {
         Map<String, String> properties = dataSourceProperties.get(dataSourceId);
         return properties == null ? new HashMap<>() : properties;
+    }
+
+    public boolean getSkipGraphMLExport() {
+        return Boolean.TRUE.equals(skipGraphMLExport);
+    }
+
+    public boolean getSkipMetaGraphGeneration() {
+        return Boolean.TRUE.equals(skipMetaGraphGeneration);
     }
 }
