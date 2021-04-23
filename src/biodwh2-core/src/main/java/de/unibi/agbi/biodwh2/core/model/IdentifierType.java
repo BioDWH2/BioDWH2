@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core.model;
 
 public enum IdentifierType {
     CAS("CAS"),
+    CHEMBL("ChEMBL"),
     CHEMSPIDER("ChemSpider"),
     DB_SNP("dbSNP"),
     DOI("DOI"),

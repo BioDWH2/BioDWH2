@@ -54,6 +54,7 @@ public class HGNCDataSource extends DataSource {
 
     @Override
     protected void unloadData() {
-        genes.clear();
+        if (genes != null)
+            genes.clear();
     }
 }

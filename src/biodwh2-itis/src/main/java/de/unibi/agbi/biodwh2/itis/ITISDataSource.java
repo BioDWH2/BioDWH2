@@ -39,6 +39,17 @@ public class ITISDataSource extends DataSource {
     }
 
     @Override
+    public String getFullName() {
+        return "Integrated Taxonomic Information System";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Authoritative taxonomic information on plants, animals, fungi, and microbes of North America and " +
+               "the world.";
+    }
+
+    @Override
     public DevelopmentState getDevelopmentState() {
         return DevelopmentState.InDevelopment;
     }

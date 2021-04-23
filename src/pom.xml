@@ -36,6 +36,7 @@
         <module>biodwh2-itis</module>
         <module>biodwh2-usdaplants</module>
         <module>biodwh2-abdamed2</module>
+        <module>biodwh2-cancerdrugsdb</module>
     </modules>
 
     <packaging>pom</packaging>
