@@ -1,25 +1,36 @@
 # Data sources
 
-| ID           | Name                                                             | Website                                      | State            |
-| ------------ | ---------------------------------------------------------------- | -------------------------------------------- | ---------------- |
-| DGIdb        | The Drug Gene Interaction Database                               | [Link](http://dgidb.org)                     | Work in progress |
-| DisGeNET     | DisGeNET                                                         | [Link](https://www.disgenet.org)             | Work in progress |
-| DrugBank     | DrugBank                                                         | [Link](http://drugbank.ca)                   | Work in progress |
-| DrugCentral  | DrugCentral                                                      | [Link](http://drugcentral.org)               | Work in progress |
-| GeneOntology | Gene Ontology                                                    | [Link](http://geneontology.org)              | Work in progress |
-| HGNC         | HUGO Gene Nomenclature Committee                                 | [Link](https://www.genenames.org)            | Done             |
-| HPO          | Human Phenotype Ontology                                         | [Link](https://hpo.jax.org)                  | Work in progress |
-| KEGG         | Kyoto Encyclopedia of Genes and Genomes                          | [Link](https://www.kegg.jp)                  | Work in progress |
-| MED-RT       | Medication Reference Terminology (MED-RT™)                       | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/) | Work in progress |
-| Mondo        | Mondo Disease Ontology                                           | [Link](https://mondo.monarchinitiative.org)  | Work in progress |
-| NDF-RT       | National Drug File – Reference Terminology (NDF-RT™)             | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/) | Done             |
-| PharmGKB     | PharmGKB                                                         | [Link](https://www.pharmgkb.org)             | Done             |
-| SIDER        | SIDER: Side Effect Resource                                      | [Link](http://sideeffects.embl.de)           | Work in progress |
-| UNII         | FDA Substance Registration System - Unique Ingredient Identifier | [Link](https://fdasis.nlm.nih.gov/srs/)      | Done             |
-| USDA-PLANTS  | USDA PLANTS Database                                             | [Link](http://plants.usda.gov/)              | Done             |
-|              |                                                                  |                                              |                  |
+| ID            | Name                                                              | Website                                                  | State            |
+| ------------- | ----------------------------------------------------------------- | -------------------------------------------------------- | ---------------- |
+| ABDAMED2      | ABDATA ABDAMED Drug Database                                      | [Link](https://abdata.de/datenangebot/abdamed/)          | Work in progress |
+| CancerDrugsDB | A curated listing of licensed cancer drugs by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/cancerdrugs-db) | Work in progress |
+| DGIdb         | The Drug Gene Interaction Database                                | [Link](http://dgidb.org)                                 | Work in progress |
+| DisGeNET      | DisGeNET                                                          | [Link](https://www.disgenet.org)                         | Work in progress |
+| DrugBank      | DrugBank                                                          | [Link](http://drugbank.ca)                               | Work in progress |
+| DrugCentral   | DrugCentral                                                       | [Link](http://drugcentral.org)                           | Work in progress |
+| GeneOntology  | Gene Ontology                                                     | [Link](http://geneontology.org)                          | Work in progress |
+| HGNC          | HUGO Gene Nomenclature Committee                                  | [Link](https://www.genenames.org)                        | Done             |
+| HPO           | Human Phenotype Ontology                                          | [Link](https://hpo.jax.org)                              | Work in progress |
+| ITIS          | Integrated Taxonomic Information System                           | [Link](https://www.itis.gov)                             | Work in progress |
+| KEGG          | Kyoto Encyclopedia of Genes and Genomes                           | [Link](https://www.kegg.jp)                              | Work in progress |
+| MED-RT        | Medication Reference Terminology (MED-RT™)                        | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/)             | Work in progress |
+| Mondo         | Mondo Disease Ontology                                            | [Link](https://mondo.monarchinitiative.org)              | Work in progress |
+| NDF-RT        | National Drug File – Reference Terminology (NDF-RT™)              | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/)             | Done             |
+| PharmGKB      | PharmGKB                                                          | [Link](https://www.pharmgkb.org)                         | Done             |
+| SIDER         | SIDER: Side Effect Resource                                       | [Link](http://sideeffects.embl.de)                       | Work in progress |
+| UNII          | FDA Substance Registration System - Unique Ingredient Identifier  | [Link](https://fdasis.nlm.nih.gov/srs/)                  | Done             |
+| USDA-PLANTS   | USDA PLANTS Database                                              | [Link](http://plants.usda.gov)                           | Done             |
+|               |                                                                   |                                                          |                  |
 
 ## Licenses and references
+
+### ABDAMED2
+
+> ABDAMED is a licensed database and not freely available. Only license holders in posession of the database are able to use this integration module!
+
+### CancerDrugsDB
+
+> Pan Pantziarka, Rica Capistrano I, Arno De Potter, Liese Vandeborne, Gauthier Bouche (2021). An Open Access Database of Licensed Cancer Drugs Frontiers in Pharmacology, 11 March 2021 DOI: 10.3389/fphar.2021.627574
 
 ### DGIdb
 
@@ -62,6 +73,20 @@
 ### HPO
 
 > https://hpo.jax.org/app/license
+
+### ITIS
+
+> Information presented on the ITIS website is considered public information and may be distributed or copied. Use of the appropriate citation is requested.
+
+> To direct readers to the entire ITIS website, it is sufficient to give the address of the site in text:
+
+> Retrieved [month, day, year], from the Integrated Taxonomic Information System (ITIS), www.itis.gov. https://doi.org/10.5066/F7KH0KBK
+
+> To cite data obtained from ITIS, the following citation format is offered as a suggestion:
+
+> Retrieved [month, day, year], from the Integrated Taxonomic Information System (ITIS) on-line database, www.itis.gov. https://doi.org/10.5066/F7KH0KBK
+
+> Citations can be formatted to the style needed for your publication as long as there is sufficient information included to return the reader to the referenced information.
 
 ### KEGG
 
