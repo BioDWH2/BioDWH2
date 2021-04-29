@@ -6,7 +6,7 @@
     <parent>
         <artifactId>biodwh2</artifactId>
         <groupId>de.unibi.agbi.biodwh2</groupId>
-        <version>0.2.1</version> <!-- BioDWH2 version -->
+        <version>0.3.0</version> <!-- BioDWH2 version -->
     </parent>
 
     <artifactId>biodwh2-core</artifactId>
