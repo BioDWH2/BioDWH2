@@ -3,7 +3,7 @@
 | ID            | Name                                                              | Website                                                  | State            |
 | ------------- | ----------------------------------------------------------------- | -------------------------------------------------------- | ---------------- |
 | ABDAMED2      | ABDATA ABDAMED Drug Database                                      | [Link](https://abdata.de/datenangebot/abdamed/)          | Work in progress |
-| CancerDrugsDB | A curated listing of licensed cancer drugs by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/cancerdrugs-db) | Work in progress |
+| CancerDrugsDB | A curated listing of licensed cancer drugs by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/cancerdrugs-db) | Done             |
 | DGIdb         | The Drug Gene Interaction Database                                | [Link](http://dgidb.org)                                 | Work in progress |
 | DisGeNET      | DisGeNET                                                          | [Link](https://www.disgenet.org)                         | Work in progress |
 | DrugBank      | DrugBank                                                          | [Link](http://drugbank.ca)                               | Work in progress |
