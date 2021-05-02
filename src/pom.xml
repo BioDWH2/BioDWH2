@@ -37,6 +37,7 @@
         <module>biodwh2-usdaplants</module>
         <module>biodwh2-abdamed2</module>
         <module>biodwh2-cancerdrugsdb</module>
+        <module>biodwh2-gene2phenotype</module>
     </modules>
 
     <packaging>pom</packaging>
