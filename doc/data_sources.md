@@ -19,7 +19,7 @@
 | PharmGKB      | PharmGKB                                                          | [Link](https://www.pharmgkb.org)                         | Done             |
 | SIDER         | SIDER: Side Effect Resource                                       | [Link](http://sideeffects.embl.de)                       | Work in progress |
 | UNII          | FDA Substance Registration System - Unique Ingredient Identifier  | [Link](https://fdasis.nlm.nih.gov/srs/)                  | Done             |
-| USDA-PLANTS   | USDA PLANTS Database                                              | [Link](http://plants.usda.gov)                           | Done             |
+| USDA-PLANTS   | USDA PLANTS Database                                              | [Link](https://plants.sc.egov.usda.gov)                  | Done             |
 |               |                                                                   |                                                          |                  |
 
 ## Licenses and references
