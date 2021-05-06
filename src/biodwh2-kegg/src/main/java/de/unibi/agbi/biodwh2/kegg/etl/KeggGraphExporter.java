@@ -27,6 +27,11 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         graph.setNodeIndexPropertyKeys("id", "pmid", "doi", "name");
         for (Drug drug : dataSource.drugs) {
@@ -44,7 +49,7 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
             }
             graph.update(drugNode);
             for (Sequence sequence : drug.sequences) {
-                Node sequenceNode = createNodeFromModel(graph, sequence);
+                Node sequenceNode = graph.addNodeFromModel(sequence);
                 graph.addEdge(drugNode, sequenceNode, "HAS_SEQUENCE");
             }
             for (NameIdsPair source : drug.sources) {
@@ -135,7 +140,7 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
         for (Drug drug : dataSource.drugs) {
             Node drugNode = graph.findNode("Drug", "id", drug.id);
             for (List<NameIdsPair> mixture : drug.mixtures) {
-                Node mixtureNode = createNode(graph, "MixtureComponents");
+                Node mixtureNode = graph.addNode("MixtureComponents");
                 graph.addEdge(drugNode, mixtureNode, "HAS_MIXTURE_COMPONENTS");
                 for (NameIdsPair component : mixture) {
                     Node compoundNode = getOrCreateNodeForNameIdsPair(graph, component);
@@ -168,7 +173,7 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
     }
 
     private Node createNodeForKeggEntry(final Graph graph, final KeggEntry entry) {
-        Node node = createNode(graph, entry.tags.get(0));
+        Node node = graph.addNode(entry.tags.get(0));
         node.setProperty("id", entry.id);
         node.setProperty("tags", entry.tags.toArray(new String[0]));
         if (entry.names.size() > 0)
@@ -194,7 +199,7 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
             } else if (pmidAvailable && referenceLookup.containsKey(reference.pmid)) {
                 referenceNode = referenceLookup.get(reference.pmid);
             } else {
-                referenceNode = createNodeFromModel(graph, reference);
+                referenceNode = graph.addNodeFromModel(reference);
                 if (pmidAvailable)
                     referenceLookup.put(reference.pmid, referenceNode);
                 if (doiAvailable)
@@ -226,7 +231,7 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
         if (node == null && pair.name != null)
             node = graph.findNode(null, "name", pair.name);
         if (node == null) {
-            node = createNode(graph, nodeLabel != null ? nodeLabel : "UNKNOWN");
+            node = graph.addNode(nodeLabel != null ? nodeLabel : "UNKNOWN");
             node.setProperty("id", id);
             node.setProperty("name", pair.name);
             if (pair.ids.size() > 1)

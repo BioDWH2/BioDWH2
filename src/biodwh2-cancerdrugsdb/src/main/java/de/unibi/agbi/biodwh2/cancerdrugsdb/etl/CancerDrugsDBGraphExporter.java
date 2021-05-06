@@ -23,6 +23,11 @@ public class CancerDrugsDBGraphExporter extends GraphExporter<CancerDrugsDBDataS
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.setNodeIndexPropertyKeys("symbol", "name");
         for (final Entry entry : dataSource.entries)

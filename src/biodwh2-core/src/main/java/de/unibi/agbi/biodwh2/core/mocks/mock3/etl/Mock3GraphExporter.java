@@ -12,6 +12,11 @@ public class Mock3GraphExporter extends GraphExporter<Mock3DataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         graph.setNodeIndexPropertyKeys("id");
         for (long i = 0; i < 10000; i++) {

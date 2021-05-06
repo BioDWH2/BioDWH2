@@ -38,6 +38,11 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph g) {
         g.setNodeIndexPropertyKeys("id", "code");
         kindRefLabelMap = buildKindRefLabelMap();
@@ -140,7 +145,7 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
     }
 
     private void addTerminologyNamespace(final Graph g, final Node terminologyNode, final Namespace namespace) {
-        final Node node = createNodeFromModel(g, namespace);
+        final Node node = g.addNodeFromModel(namespace);
         g.addEdge(terminologyNode, node, IN_NAMESPACE_EDGE_LABEL);
     }
 

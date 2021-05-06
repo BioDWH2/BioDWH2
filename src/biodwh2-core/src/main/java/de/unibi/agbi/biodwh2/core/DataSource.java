@@ -8,7 +8,6 @@ import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.model.WorkspaceFileType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,11 +159,13 @@ public abstract class DataSource {
 
     private void exportGraph(final Workspace workspace) {
         try {
-            metadata.exportSuccessful = getGraphExporter().export(workspace);
+            final GraphExporter<? extends DataSource> graphExporter = getGraphExporter();
+            metadata.exportSuccessful = graphExporter.export(workspace);
             if (!metadata.exportSuccessful) {
                 if (LOGGER.isErrorEnabled())
                     LOGGER.error("Failed to export data source '" + getId() + "'");
             } else {
+                metadata.exportVersion = graphExporter.getExportVersion();
                 if (LOGGER.isInfoEnabled())
                     LOGGER.info("Successfully exported data source '" + getId() + "'");
             }

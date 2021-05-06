@@ -36,6 +36,11 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.setNodeIndexPropertyKeys("id");
         geneIdNodeIdMap = new HashMap<>();
@@ -62,7 +67,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             if (!geneInfo.taxonomyId.equals("9606"))
                 continue;
             long geneId = Long.parseLong(geneInfo.geneId);
-            Node geneNode = createNode(graph, "Gene");
+            Node geneNode = graph.addNode("Gene");
             geneNode.setProperty("id", geneId);
             setPropertyIfNotDash(geneNode, "symbol", geneInfo.symbol);
             setPropertyIfNotDash(geneNode, "chromosome", geneInfo.chromosome);
@@ -98,7 +103,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             long geneId = Long.parseLong(go.geneId);
             Node goTermNode = graph.findNode("GoTerm", "id", go.goId);
             if (goTermNode == null) {
-                goTermNode = createNode(graph, "GoTerm");
+                goTermNode = graph.addNode("GoTerm");
                 goTermNode.setProperty("id", go.goId);
                 goTermNode.setProperty("category", go.category);
                 goTermNode.setProperty("term", go.goTerm);
@@ -165,7 +170,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
     }
 
     private Node createAccessionNode(final Graph graph, final GeneAccession accession) {
-        Node accessionNode = createNode(graph, "Accession");
+        Node accessionNode = graph.addNode("Accession");
         setPropertyIfNotDash(accessionNode, "status", accession.status);
         setLongPropertyIfNotDash(accessionNode, "rna_nucleotide_gi", accession.rnaNucleotideGi);
         setPropertyIfNotDash(accessionNode, "rna_nucleotide_accession.version",
@@ -215,7 +220,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
     }
 
     private void createPubChemCompoundNode(final Graph graph, final SdfEntry entry) {
-        Node node = createNode(graph, "Compound");
+        Node node = graph.addNode("Compound");
         node.setProperty("id", Long.parseLong(entry.properties.get("PUBCHEM_COMPOUND_CID")));
         node.setProperty("IUPAC_openeye_name", entry.properties.get("PUBCHEM_IUPAC_OPENEYE_NAME"));
         node.setProperty("IUPAC_cas_name", entry.properties.get("PUBCHEM_IUPAC_CAS_NAME"));

@@ -41,6 +41,11 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.setNodeIndexPropertyKeys(UMLS_ID_KEY, MEDDRA_ID_KEY, FLAT_ID_KEY, STEREO_ID_KEY);
         if (LOGGER.isInfoEnabled())
@@ -66,7 +71,7 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
     private Map<String, Long> addAllDrugNames(final Workspace workspace, final Graph graph) throws ExporterException {
         final Map<String, Long> drugIdNodeIdMap = new HashMap<>();
         for (final DrugName drug : parseTsvFile(workspace, SiderUpdater.DRUG_NAMES_FILE_NAME, DrugName.class)) {
-            final Node node = createNodeFromModel(graph, drug);
+            final Node node = graph.addNodeFromModel(drug);
             drugIdNodeIdMap.put(drug.id, node.getId());
         }
         return drugIdNodeIdMap;

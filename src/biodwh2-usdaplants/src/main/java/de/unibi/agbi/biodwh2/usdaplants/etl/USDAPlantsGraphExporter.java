@@ -13,10 +13,15 @@ public class USDAPlantsGraphExporter extends GraphExporter<USDAPlantsDataSource>
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.setNodeIndexPropertyKeys("symbol");
         for (final Plant plant : dataSource.plants)
-            createNodeFromModel(graph, plant);
+            graph.addNodeFromModel(plant);
         return true;
     }
 }

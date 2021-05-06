@@ -184,7 +184,7 @@ public final class Workspace {
                 LOGGER.info("Running updater");
             updateState = version == null ? dataSource.updateAutomatic(this) : dataSource.updateManually(this, version);
         }
-        if (isExportNeeded(updateState, dataSource)) {
+        if (isDataSourceExportNeeded(updateState, dataSource)) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Running parser");
             dataSource.parse(this);
@@ -197,13 +197,12 @@ public final class Workspace {
             LOGGER.info("Processing of data source '" + dataSource.getId() + "' finished");
     }
 
-    private boolean isExportNeeded(final Updater.UpdateState updateState, final DataSource dataSource) {
+    private boolean isDataSourceExportNeeded(final Updater.UpdateState updateState, final DataSource dataSource) {
         if (updateState == Updater.UpdateState.UPDATED || isDataSourceExportForced(dataSource))
             return true;
         final DataSourceMetadata metadata = dataSource.getMetadata();
-        return metadata.exportSuccessful == null || !metadata.exportSuccessful || fileDoesNotExist(
-                dataSource.getFilePath(this, DataSourceFileType.INTERMEDIATE_GRAPHML)) || fileDoesNotExist(
-                dataSource.getFilePath(this, DataSourceFileType.PERSISTENT_GRAPH));
+        return metadata.exportSuccessful == null || !metadata.exportSuccessful || areDataSourceExportsMissing(
+                dataSource) || isDataSourceExportOutdated(dataSource, metadata);
     }
 
     private boolean isDataSourceExportForced(final DataSource dataSource) {
@@ -212,8 +211,19 @@ public final class Workspace {
                 configuration.getDataSourceProperties(id).getOrDefault("forceExport", ""));
     }
 
+    private boolean areDataSourceExportsMissing(final DataSource dataSource) {
+        return fileDoesNotExist(dataSource.getFilePath(this, DataSourceFileType.PERSISTENT_GRAPH)) ||
+               (!configuration.getSkipGraphMLExport() && fileDoesNotExist(
+                       dataSource.getFilePath(this, DataSourceFileType.INTERMEDIATE_GRAPHML)));
+    }
+
     private boolean fileDoesNotExist(final Path filePath) {
         return Files.notExists(filePath);
+    }
+
+    private boolean isDataSourceExportOutdated(final DataSource dataSource, final DataSourceMetadata metadata) {
+        return metadata.exportVersion == null ||
+               metadata.exportVersion < dataSource.getGraphExporter().getExportVersion();
     }
 
     private void mergeDataSources() {

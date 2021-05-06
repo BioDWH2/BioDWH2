@@ -12,10 +12,15 @@ public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         graph.setNodeIndexPropertyKeys("hgnc_id", "symbol");
         for (final Gene gene : dataSource.genes)
-            createNodeFromModel(graph, gene);
+            graph.addNodeFromModel(gene);
         return true;
     }
 }

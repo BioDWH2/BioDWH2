@@ -24,4 +24,12 @@ public class K2IEntry extends K2Entry {
     public Set<Map.Entry<String, String>> getEntries() {
         return properties.entrySet();
     }
+
+    public boolean containsKey(final String key) {
+        return properties.containsKey(key);
+    }
+
+    public String get(final String key) {
+        return properties.get(key);
+    }
 }

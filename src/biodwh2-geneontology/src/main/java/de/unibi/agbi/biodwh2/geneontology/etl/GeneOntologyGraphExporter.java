@@ -19,6 +19,11 @@ public class GeneOntologyGraphExporter extends GraphExporter<GeneOntologyDataSou
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.setNodeIndexPropertyKeys("id");
         try {

@@ -34,6 +34,11 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph g) {
         g.setNodeIndexPropertyKeys("code", "namespace");
         addTerminology(g);
@@ -43,7 +48,7 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     private void addTerminology(final Graph g) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export terminology...");
-        final Node node = createNode(g, "Terminology");
+        final Node node = g.addNode("Terminology");
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export namespaces...");
         addTerminologyNamespace(g, node, dataSource.terminology.namespace);
@@ -65,20 +70,20 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     }
 
     private void addTerminologyNamespace(final Graph g, final Node terminologyNode, final Namespace namespace) {
-        final Node node = createNodeFromModel(g, namespace);
+        final Node node = g.addNodeFromModel(namespace);
         g.addEdge(terminologyNode, node, "IN_NAMESPACE");
     }
 
     private void addReferencedNamespaces(final Graph g, final Node terminologyNode) {
         for (final Namespace namespace : dataSource.terminology.referencedNamespaces) {
-            final Node node = createNodeFromModel(g, namespace);
+            final Node node = g.addNodeFromModel(namespace);
             g.addEdge(terminologyNode, node, "REFERENCES_NAMESPACE");
         }
     }
 
     private void addPropertyDefinitions(final Graph g) {
         for (final PropertyType propertyType : dataSource.terminology.propertyTypes) {
-            final Node node = createNodeFromModel(g, propertyType);
+            final Node node = g.addNodeFromModel(propertyType);
             g.addEdge(node, g.findNode("Namespace", "name", propertyType.namespace), "IN_NAMESPACE");
         }
     }
@@ -98,14 +103,14 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
 
     private void addQualitativeDefinitions(final Graph g) {
         for (final QualitativeType qualitativeType : dataSource.terminology.qualitativeTypes) {
-            final Node node = createNodeFromModel(g, qualitativeType);
+            final Node node = g.addNodeFromModel(qualitativeType);
             g.addEdge(node, g.findNode("Namespace", "name", qualitativeType.namespace), "IN_NAMESPACE");
         }
     }
 
     private void addTerms(final Graph g) {
         for (final Term term : dataSource.terminology.terms)
-            createNodeFromModel(g, term);
+            g.addNodeFromModel(term);
     }
 
     private void addConcepts(final Graph g) {

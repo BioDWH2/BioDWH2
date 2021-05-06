@@ -26,6 +26,11 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         itisIdNodeIdMap = new HashMap<>();
         ncbiTaxonomyIdNodeIdMap = new HashMap<>();
@@ -47,7 +52,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
         if (dataEntry == null)
             uniiNode = graph.addNode(UNII_LABEL, "id", entries.get(0).unii);
         else
-            uniiNode = createNodeFromModel(graph, dataEntry);
+            uniiNode = graph.addNodeFromModel(dataEntry);
         uniiNode.setProperty("name", entries.get(0).displayName);
         uniiNode.setProperty("official_names", getNameArrayOfTypeFromEntries(entries, "of"));
         uniiNode.setProperty("systematic_names", getNameArrayOfTypeFromEntries(entries, "sys"));

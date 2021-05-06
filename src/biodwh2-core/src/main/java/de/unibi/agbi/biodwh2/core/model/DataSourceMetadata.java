@@ -14,7 +14,7 @@ public final class DataSourceMetadata {
     public Boolean updateSuccessful;
     public Boolean parseSuccessful;
     public Boolean exportSuccessful;
-    public Boolean mergeSuccessful;
+    public Long exportVersion;
 
     public DataSourceMetadata() {
         sourceFileNames = new ArrayList<>();

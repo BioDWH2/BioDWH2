@@ -25,6 +25,8 @@ public abstract class GraphExporter<D extends DataSource> {
         this.dataSource = dataSource;
     }
 
+    public abstract long getExportVersion();
+
     public final boolean export(final Workspace workspace) throws ExporterException {
         final Graph g = new Graph(dataSource.getFilePath(workspace, DataSourceFileType.PERSISTENT_GRAPH));
         boolean exportSuccessful;
@@ -87,13 +89,5 @@ public abstract class GraphExporter<D extends DataSource> {
     protected final <T> void createNodesFromModels(final Graph g, final Iterable<T> models) {
         for (T obj : models)
             g.addNodeFromModel(obj);
-    }
-
-    protected final <T> Node createNodeFromModel(final Graph g, final T obj) {
-        return g.addNodeFromModel(obj);
-    }
-
-    protected final Node createNode(final Graph g, final String label) {
-        return g.addNode(label);
     }
 }

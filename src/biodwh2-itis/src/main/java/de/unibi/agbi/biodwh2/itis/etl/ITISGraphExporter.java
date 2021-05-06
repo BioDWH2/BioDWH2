@@ -33,6 +33,11 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         graph.setNodeIndexPropertyKeys(ID_KEY);
         LOGGER.info("Exporting comments...");
@@ -73,7 +78,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
 
     private void createTaxonAuthorNodes(final Graph graph) {
         for (final TaxonAuthorLkp author : dataSource.taxonAuthorsLkps) {
-            Node node = createNodeFromModel(graph, author);
+            Node node = graph.addNodeFromModel(author);
             graph.addEdge(node, graph.findNode(KINGDOM_LABEL, ID_KEY, author.kingdomId), "ASSOCIATED_WITH");
         }
     }
@@ -187,7 +192,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
     private Map<Integer, Long> createVernacularNodes(final Graph graph, final Map<Integer, Long> taxonTsnNodeIdMap) {
         final Map<Integer, Long> vernacularIdNodeIdMap = new HashMap<>();
         for (final Vernacular vernacular : dataSource.vernaculars) {
-            final Node node = createNodeFromModel(graph, vernacular);
+            final Node node = graph.addNodeFromModel(vernacular);
             vernacularIdNodeIdMap.put(vernacular.vernacularId, node.getId());
             graph.addEdge(taxonTsnNodeIdMap.get(vernacular.tsn), node, "HAS_VERNACULAR");
         }

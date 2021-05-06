@@ -42,7 +42,6 @@ public class GraphMerger {
                 LOGGER.info("Adding " + databaseToMerge.getNumberOfNodes() + " nodes and " +
                             databaseToMerge.getNumberOfEdges() + " edges");
             mergedGraph.mergeDatabase(dataSource.getId(), databaseToMerge);
-            dataSource.getMetadata().mergeSuccessful = true;
         } catch (GraphCacheException e) {
             throw new MergerException("Failed to merge data source " + dataSource.getId(), e);
         }

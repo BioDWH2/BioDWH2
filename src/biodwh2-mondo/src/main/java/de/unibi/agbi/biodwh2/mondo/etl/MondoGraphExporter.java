@@ -19,6 +19,11 @@ public class MondoGraphExporter extends GraphExporter<MondoDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.setNodeIndexPropertyKeys("id");
         try {
@@ -36,7 +41,7 @@ public class MondoGraphExporter extends GraphExporter<MondoDataSource> {
     private void exportEntry(final Graph graph, final OboEntry entry) {
         if (entry.containsKey("is_obsolete") && "true".equalsIgnoreCase(entry.getFirst("is_obsolete")))
             return;
-        Node node = createNode(graph, "Term");
+        Node node = graph.addNode("Term");
         node.setProperty("id", entry.getFirst("id"));
         node.setProperty("name", entry.getFirst("name"));
         // TODO: more properties and relationships

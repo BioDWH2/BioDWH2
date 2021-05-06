@@ -12,6 +12,11 @@ public class HPOGraphExporter extends GraphExporter<HPODataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         return true;
     }

@@ -12,9 +12,14 @@ public final class Mock1GraphExporter extends GraphExporter<Mock1DataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         graph.setNodeIndexPropertyKeys("hgnc_id");
-        Node tlr4Node = createNode(graph, "Gene");
+        Node tlr4Node = graph.addNode("Gene");
         tlr4Node.setProperty("hgnc_id", "TLR4");
         tlr4Node.setProperty("array_test", new String[]{"value1", "value2", "value3"});
         tlr4Node.setProperty("string_test", "value1");
@@ -22,19 +27,19 @@ public final class Mock1GraphExporter extends GraphExporter<Mock1DataSource> {
         tlr4Node.setProperty("bool_test", true);
         tlr4Node.setProperty("test_type_mismatch", 10);
         graph.update(tlr4Node);
-        Node node = createNode(graph, "Gene");
+        Node node = graph.addNode("Gene");
         node.setProperty("hgnc_id", "IL10");
         graph.update(node);
-        node = createNode(graph, "Drug");
+        node = graph.addNode("Drug");
         node.setProperty("drugbank_id", "DB01183");
         graph.update(node);
         graph.addEdge(node, node, "INTERACTS");
         graph.addEdge(node, tlr4Node, "TARGETS");
-        node = createNode(graph, "Dummy1");
+        node = graph.addNode("Dummy1");
         node.setProperty("id", "A");
         node.setProperty("id2", "B");
         graph.update(node);
-        node = createNode(graph, "Dummy1");
+        node = graph.addNode("Dummy1");
         node.setProperty("id", "C");
         graph.update(node);
         return true;

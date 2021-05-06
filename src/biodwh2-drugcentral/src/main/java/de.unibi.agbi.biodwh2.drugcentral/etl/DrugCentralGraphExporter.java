@@ -24,6 +24,11 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph g) throws ExporterException {
         final Map<String, String> properties = dataSource.getProperties(workspace);
         final boolean skipLINCSSignatures = "true".equalsIgnoreCase(properties.get("skipLINCSSignatures"));
@@ -41,12 +46,12 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         createNodesFromTsvFile(workspace, g, Reference.class, "reference.tsv");
         final Map<Integer, Long> structureIdNodeIdMap = addStructuresWithType(workspace, g);
         for (final Approval approval : parseTsvFile(workspace, Approval.class, "approval.tsv")) {
-            final Node approvalNode = createNodeFromModel(g, approval);
+            final Node approvalNode = g.addNodeFromModel(approval);
             g.addEdge(structureIdNodeIdMap.get(approval.structId), approvalNode, "HAS_APPROVAL");
         }
         addAtcCodeHierarchy(workspace, g, structureIdNodeIdMap);
         for (final Identifier identifier : parseTsvFile(workspace, Identifier.class, "identifier.tsv")) {
-            final Node identifierNode = createNodeFromModel(g, identifier);
+            final Node identifierNode = g.addNodeFromModel(identifier);
             g.addEdge(structureIdNodeIdMap.get(identifier.structId), identifierNode, "HAS_IDENTIFIER");
         }
         addStructureProperties(workspace, g, structureIdNodeIdMap);
@@ -69,7 +74,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     private <T> void createNodesFromTsvFile(final Workspace workspace, final Graph g, final Class<T> dataType,
                                             final String fileName) throws ExporterException {
         for (final T entry : parseTsvFile(workspace, dataType, fileName))
-            createNodeFromModel(g, entry);
+            g.addNodeFromModel(entry);
     }
 
     private <T> Iterable<T> parseTsvFile(final Workspace workspace, final Class<T> typeVariableClass,
@@ -154,7 +159,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
             g.addEdge(structureIdNodeIdMap.get(struct2Atc.structId), atcCodeNodeIdMap.get(struct2Atc.atcCode),
                       "HAS_ATC");
         for (final AtcDdd atcDdd : parseTsvFile(workspace, AtcDdd.class, "atc_ddd.tsv")) {
-            final Node atcDddNode = createNodeFromModel(g, atcDdd);
+            final Node atcDddNode = g.addNodeFromModel(atcDdd);
             g.addEdge(atcCodeNodeIdMap.get(atcDdd.atcCode), atcDddNode, "HAS_DDD");
             g.addEdge(structureIdNodeIdMap.get(atcDdd.structId), atcDddNode, "HAS_DDD");
         }
@@ -371,7 +376,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     private void addFAERSEntries(final Workspace workspace, final Graph g,
                                  final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
         for (final Faers faers : parseTsvFile(workspace, Faers.class, "faers.tsv")) {
-            final Node faersNode = createNodeFromModel(g, faers);
+            final Node faersNode = g.addNodeFromModel(faers);
             g.addEdge(faersNode, structureIdNodeIdMap.get(faers.structId), "HAS_STRUCTURE");
         }
         for (final Faers faers : parseTsvFile(workspace, Faers.class, "faers_female.tsv")) {

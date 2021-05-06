@@ -175,6 +175,11 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         graph.setNodeIndexPropertyKeys(ID_KEY, DRUGBANK_ID_KEY, SMPDB_ID_KEY, NAME_KEY);
         final Map<String, Long> drugLookUp = new HashMap<>();
@@ -303,7 +308,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
 
     private void createMetaboliteStructures(final Graph graph, final List<MetaboliteStructure> metabolites) {
         for (MetaboliteStructure metabolite : metabolites)
-            createNodeFromModel(graph, metabolite);
+            graph.addNodeFromModel(metabolite);
     }
 
     private Node createDrugNode(final Graph graph, final Drug drug, final Map<String, Long> drugLookUp) {
@@ -394,7 +399,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private void addDrugSynonyms(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.synonyms != null)
             for (final Synonym synonym : drug.synonyms) {
-                final Node node = createNodeFromModel(graph, synonym);
+                final Node node = graph.addNodeFromModel(synonym);
                 graph.addEdge(drugNode, node, HAS_SYNONYM_LABEL);
             }
     }
@@ -402,7 +407,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private void addDrugBrands(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.internationalBrands != null)
             for (final InternationalBrand brand : drug.internationalBrands) {
-                final Node node = createNodeFromModel(graph, brand);
+                final Node node = graph.addNodeFromModel(brand);
                 graph.addEdge(drugNode, node, HAS_BRAND_LABEL);
             }
     }
@@ -414,7 +419,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
                 final int hash = mixture.hashCode();
                 Long nodeId = mixtureLookUp.get(hash);
                 if (nodeId == null) {
-                    nodeId = createNodeFromModel(graph, mixture).getId();
+                    nodeId = graph.addNodeFromModel(mixture).getId();
                     mixtureLookUp.put(hash, nodeId);
                 }
                 graph.addEdge(drugNode, nodeId, IS_IN_MIXTURE_LABEL);
@@ -424,7 +429,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private void addDrugSnpEffects(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.snpEffects != null)
             for (final SnpEffect snpEffect : drug.snpEffects) {
-                final Node node = createNodeFromModel(graph, snpEffect);
+                final Node node = graph.addNodeFromModel(snpEffect);
                 graph.addEdge(drugNode, node, HAS_SNP_EFFECT_LABEL);
             }
     }
@@ -432,7 +437,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private void addDrugSnpAdverseDrugReactions(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.snpAdverseDrugReactions != null)
             for (final SnpAdverseDrugReaction snpAdverseDrugReaction : drug.snpAdverseDrugReactions) {
-                final Node node = createNodeFromModel(graph, snpAdverseDrugReaction);
+                final Node node = graph.addNodeFromModel(snpAdverseDrugReaction);
                 graph.addEdge(drugNode, node, HAS_SNP_ADVERSE_DRUG_REACTION_LABEL);
             }
     }
@@ -689,7 +694,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
             graph.addEdge(drugNode, builder.build(), HAS_PHARMACOLOGY_LABEL);
     }
 
-    private void createReferenceListNode(final Graph g, final Map<String, Long> referenceLookUp, final Node parent,
+    private void createReferenceListNode(final Graph graph, final Map<String, Long> referenceLookUp, final Node parent,
                                          final ReferenceList references) {
         if (references == null)
             return;
@@ -699,37 +704,37 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         if (isListNotEmpty(references.textbooks)) {
             for (final Textbook reference : references.textbooks) {
                 if (!referenceLookUp.containsKey(reference.refId)) {
-                    final Node node = createNodeFromModel(g, reference);
+                    final Node node = graph.addNodeFromModel(reference);
                     referenceLookUp.put(reference.refId, node.getId());
                 }
-                g.addEdge(parent, referenceLookUp.get(reference.refId), HAS_TEXTBOOK_LABEL);
+                graph.addEdge(parent, referenceLookUp.get(reference.refId), HAS_TEXTBOOK_LABEL);
             }
         }
         if (isListNotEmpty(references.articles)) {
             for (final Article reference : references.articles) {
                 if (!referenceLookUp.containsKey(reference.refId)) {
-                    final Node node = createNodeFromModel(g, reference);
+                    final Node node = graph.addNodeFromModel(reference);
                     referenceLookUp.put(reference.refId, node.getId());
                 }
-                g.addEdge(parent, referenceLookUp.get(reference.refId), HAS_ARTICLE_LABEL);
+                graph.addEdge(parent, referenceLookUp.get(reference.refId), HAS_ARTICLE_LABEL);
             }
         }
         if (isListNotEmpty(references.links)) {
             for (final Link reference : references.links) {
                 if (!referenceLookUp.containsKey(reference.refId)) {
-                    final Node node = createNodeFromModel(g, reference);
+                    final Node node = graph.addNodeFromModel(reference);
                     referenceLookUp.put(reference.refId, node.getId());
                 }
-                g.addEdge(parent, referenceLookUp.get(reference.refId), HAS_LINK_LABEL);
+                graph.addEdge(parent, referenceLookUp.get(reference.refId), HAS_LINK_LABEL);
             }
         }
         if (isListNotEmpty(references.attachments)) {
             for (final Attachment reference : references.attachments) {
                 if (!referenceLookUp.containsKey(reference.refId)) {
-                    final Node node = createNodeFromModel(g, reference);
+                    final Node node = graph.addNodeFromModel(reference);
                     referenceLookUp.put(reference.refId, node.getId());
                 }
-                g.addEdge(parent, referenceLookUp.get(reference.refId), HAS_ATTACHMENT_LABEL);
+                graph.addEdge(parent, referenceLookUp.get(reference.refId), HAS_ATTACHMENT_LABEL);
             }
         }
     }
@@ -802,7 +807,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
             }
         if (drug.patents != null)
             for (final Patent patent : drug.patents) {
-                final Node node = createNodeFromModel(graph, patent);
+                final Node node = graph.addNodeFromModel(patent);
                 graph.addEdge(drugNode, node, HAS_PATENT_LABEL);
             }
     }
