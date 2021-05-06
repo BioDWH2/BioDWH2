@@ -6,22 +6,34 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 
 public final class NodeMappingDescription {
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "SpellCheckingInspection"})
     public enum NodeType {
-        DUMMY,
-        UNKNOWN,
-        GENE,
-        DRUG,
+        ADVERSE_EVENT,
+        ANATOMY,
         COMPOUND,
+        DIPLOTYPE,
         DISEASE,
-        SIDE_EFFECT,
-        VARIANT,
-        HAPLOTYPE,
-        PATHWAY,
-        TAXON,
-        PUBLICATION,
+        DRUG,
         DRUG_LABEL,
-        PROTEIN
+        DUMMY,
+        GENE,
+        GENE_VARIANT,
+        GENOTYPE,
+        HAPLOTYPE,
+        METABOLITE,
+        PATHWAY,
+        PHENOTYPE,
+        PHYTOCHEMICAL,
+        PRODRUG,
+        PROTEIN,
+        PUBLICATION,
+        RNA,
+        //SIDE_EFFECT, //-------
+        SYMPTOM,
+        TARGET,
+        TAXON,
+        UNKNOWN,
+        VARIANT
     }
 
     private final String type;

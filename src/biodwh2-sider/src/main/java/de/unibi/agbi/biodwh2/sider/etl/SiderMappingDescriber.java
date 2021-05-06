@@ -28,7 +28,7 @@ public class SiderMappingDescriber extends MappingDescriber {
             }
             case "SideEffect": {
                 NodeMappingDescription description = new NodeMappingDescription(
-                        NodeMappingDescription.NodeType.SIDE_EFFECT);
+                        NodeMappingDescription.NodeType.ADVERSE_EVENT);
                 description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
                 return new NodeMappingDescription[]{description};
             }

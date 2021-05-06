@@ -20,7 +20,7 @@ public class DrugBankMappingDescriber extends MappingDescriber {
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
         if ("Drug".equalsIgnoreCase(localMappingLabel))
-            return new NodeMappingDescription[]{describeDrug(node), describeCompound(node)[0]};
+            return describeDrug(node);
         if ("Pathway".equalsIgnoreCase(localMappingLabel))
             return describePathway(node);
         if ("Salt".equalsIgnoreCase(localMappingLabel))
@@ -34,11 +34,19 @@ public class DrugBankMappingDescriber extends MappingDescriber {
         return null;
     }
 
-    private NodeMappingDescription describeDrug(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
-        description.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
-        description.addName(node.getProperty("name"));
-        return description;
+    private NodeMappingDescription[] describeDrug(final Node node) {
+        final NodeMappingDescription drugDescription = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
+        drugDescription.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
+        drugDescription.addIdentifier(IdentifierType.CAS, node.<String>getProperty("cas_number"));
+        drugDescription.addIdentifier(IdentifierType.UNII, node.<String>getProperty("unii"));
+        drugDescription.addName(node.getProperty("name"));
+        final NodeMappingDescription compoundDescription = new NodeMappingDescription(
+                NodeMappingDescription.NodeType.COMPOUND);
+        compoundDescription.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
+        compoundDescription.addIdentifier(IdentifierType.CAS, node.<String>getProperty("cas_number"));
+        compoundDescription.addIdentifier(IdentifierType.UNII, node.<String>getProperty("unii"));
+        compoundDescription.addName(node.getProperty("name"));
+        return new NodeMappingDescription[]{drugDescription, compoundDescription};
     }
 
     private NodeMappingDescription[] describePathway(final Node node) {
@@ -117,11 +125,15 @@ public class DrugBankMappingDescriber extends MappingDescriber {
 
     @Override
     public PathMappingDescription describe(Graph graph, Node[] nodes, Edge[] edges) {
+        if (edges.length > 0 && edges[0].getLabel().endsWith("INTERACTS_WITH_DRUG"))
+            return new PathMappingDescription(PathMappingDescription.EdgeType.INTERACTS);
         return null;
     }
 
     @Override
     protected String[][] getEdgeMappingPaths() {
-        return new String[0][];
+        return new String[][]{
+                //{"Drug", "INTERACTS_WITH_DRUG", "Drug"}
+        };
     }
 }
