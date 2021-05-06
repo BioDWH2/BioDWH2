@@ -209,11 +209,10 @@ public final class GraphMapper {
             final Long[] mappedFromNodeIds = graph.getAdjacentNodeIdsForEdgeLabel(pathIds[0], MAPPED_TO_EDGE_LABEL);
             final Long[] mappedToNodeIds = graph.getAdjacentNodeIdsForEdgeLabel(pathIds[pathIds.length - 1],
                                                                                 MAPPED_TO_EDGE_LABEL);
-            if (mappedFromNodeIds.length > 0 && mappedToNodeIds.length > 0) {
-                final Edge mappedEdge = graph.addEdge(mappedFromNodeIds[0], mappedToNodeIds[0],
-                                                      mappingDescription.getType());
-                mappedEdge.setProperty("source", describer.getDataSourceId());
-            }
+            for (final Long fromNodeId : mappedFromNodeIds)
+                for (final Long toNodeId : mappedToNodeIds)
+                    graph.addEdge(fromNodeId, toNodeId, mappingDescription.getType(), "source",
+                                  describer.getDataSourceId());
         }
     }
 

@@ -18,9 +18,12 @@ public final class Mock1MappingDescriber extends MappingDescriber {
             return new NodeMappingDescription[]{description};
         }
         if ("Drug".equals(localMappingLabel)) {
-            NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
-            description.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
-            return new NodeMappingDescription[]{description};
+            NodeMappingDescription drugDescription = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
+            drugDescription.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
+            NodeMappingDescription compoundDescription = new NodeMappingDescription(
+                    NodeMappingDescription.NodeType.COMPOUND);
+            compoundDescription.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
+            return new NodeMappingDescription[]{drugDescription, compoundDescription};
         }
         if ("Dummy1".equals(localMappingLabel)) {
             NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DUMMY);
