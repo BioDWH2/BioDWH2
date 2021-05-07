@@ -81,10 +81,6 @@ public final class Workspace {
     }
 
     private DataSource[] getUsedDataSources() {
-        if (configuration.getDataSourceIds().length == 0)
-            throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
-                                         "have been added to the workspace config.json either directly or via " +
-                                         "command line.");
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Using data sources " + StringUtils.join(configuration.getDataSourceIds(), ", "));
         DataSource[] result = new DataSourceLoader().getDataSources(configuration.getDataSourceIds());
@@ -158,6 +154,10 @@ public final class Workspace {
     }
 
     public void processDataSources(final String dataSourceId, final String version, final boolean skipUpdate) {
+        if (configuration.getDataSourceIds().length == 0)
+            throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
+                                         "have been added to the workspace config.json either directly or via " +
+                                         "command line.");
         if (prepareDataSources()) {
             for (final DataSource dataSource : dataSources)
                 if (dataSourceId == null || dataSource.getId().equals(dataSourceId))
