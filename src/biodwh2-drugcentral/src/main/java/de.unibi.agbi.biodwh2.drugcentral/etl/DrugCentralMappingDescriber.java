@@ -173,6 +173,12 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
 
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
+        if (edges.length == 1) {
+            if (edges[0].getLabel().endsWith("INDICATION"))
+                return new PathMappingDescription(PathMappingDescription.EdgeType.INDICATES);
+            if (edges[0].getLabel().endsWith("CONTRAINDICATION"))
+                return new PathMappingDescription(PathMappingDescription.EdgeType.CONTRAINDICATES);
+        }
         if (edges.length == 3 && edges[1].getLabel().endsWith("INTERACTS"))
             return new PathMappingDescription(PathMappingDescription.EdgeType.INTERACTS);
         return null;
