@@ -177,8 +177,12 @@ public final class GraphMapper {
             mapPathInstance(graph, describer, currentPathIds);
             return;
         }
-        for (final Edge edge : graph.findEdges(path[edgeIndex], Edge.FROM_ID_FIELD, currentPathIds[edgeIndex - 1])) {
+        final Long fromNodeId = currentPathIds[edgeIndex - 1];
+        for (final Edge edge : graph.findEdges(path[edgeIndex], Edge.FROM_ID_FIELD, fromNodeId)) {
             currentPathIds[edgeIndex] = edge.getId();
+            // Prevent paths from going backwards
+            if (edge.getToId().equals(fromNodeId))
+                continue;
             final Node nextNode = graph.getNode(edge.getToId());
             if (nextNode.getLabels()[0].equals(path[edgeIndex + 1])) {
                 final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
@@ -186,8 +190,11 @@ public final class GraphMapper {
                 buildPathRecursively(graph, describer, path, edgeIndex + 2, nextPathIds);
             }
         }
-        for (final Edge edge : graph.findEdges(path[edgeIndex], Edge.TO_ID_FIELD, currentPathIds[edgeIndex - 1])) {
+        for (final Edge edge : graph.findEdges(path[edgeIndex], Edge.TO_ID_FIELD, fromNodeId)) {
             currentPathIds[edgeIndex] = edge.getId();
+            // Prevent paths from going backwards
+            if (edge.getFromId().equals(fromNodeId))
+                continue;
             final Node nextNode = graph.getNode(edge.getFromId());
             if (nextNode.getLabels()[0].equals(path[edgeIndex + 1])) {
                 final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
