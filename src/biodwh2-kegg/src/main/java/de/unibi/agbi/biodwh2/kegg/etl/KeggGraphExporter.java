@@ -34,8 +34,8 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         graph.setNodeIndexPropertyKeys("id", "pmid", "doi", "name");
-        for (Drug drug : dataSource.drugs) {
-            Node drugNode = createNodeForKeggEntry(graph, drug);
+        for (final Drug drug : dataSource.drugs) {
+            final Node drugNode = createNodeForKeggEntry(graph, drug);
             drugNode.setProperty("formula", drug.formula);
             drugNode.setProperty("exact_mass", drug.exactMass);
             drugNode.setProperty("molecular_weight", drug.molecularWeight);
@@ -190,10 +190,10 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
     }
 
     private void addAllReferencesForNode(final Graph graph, final KeggEntry entry, final Node node) {
-        for (Reference reference : entry.references) {
-            Node referenceNode;
-            boolean doiAvailable = reference.doi != null && reference.doi.length() > 0;
-            boolean pmidAvailable = reference.pmid != null && reference.pmid.length() > 0;
+        for (final Reference reference : entry.references) {
+            final Node referenceNode;
+            final boolean doiAvailable = reference.doi != null && reference.doi.length() > 0;
+            final boolean pmidAvailable = reference.pmid != null && reference.pmid.length() > 0;
             if (doiAvailable && referenceLookup.containsKey(reference.doi)) {
                 referenceNode = referenceLookup.get(reference.doi);
             } else if (pmidAvailable && referenceLookup.containsKey(reference.pmid)) {
@@ -205,9 +205,10 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
                 if (doiAvailable)
                     referenceLookup.put(reference.doi, referenceNode);
             }
-            Edge edge = graph.addEdge(node, referenceNode, "HAS_REFERENCE");
-            edge.setProperty("remarks", reference.remarks);
-            graph.update(edge);
+            if (reference.remarks != null)
+                graph.addEdge(node, referenceNode, "HAS_REFERENCE", "remarks", reference.remarks);
+            else
+                graph.addEdge(node, referenceNode, "HAS_REFERENCE");
         }
     }
 
