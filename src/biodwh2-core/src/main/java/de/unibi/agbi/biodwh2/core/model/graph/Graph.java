@@ -134,6 +134,14 @@ public final class Graph implements AutoCloseable {
         return n;
     }
 
+    Node addNode(final String[] labels, final Map<String, Object> properties) {
+        final Node n = Node.newNode(labels);
+        for (Map.Entry<String, Object> entry : properties.entrySet())
+            n.setProperty(entry.getKey(), entry.getValue());
+        nodes.put(n);
+        return n;
+    }
+
     public NodeBuilder buildNode() {
         return Node.newNodeBuilder(this);
     }
@@ -625,8 +633,10 @@ public final class Graph implements AutoCloseable {
 
     public void mergeDatabase(final String dataSourceId, final Graph databaseToMerge) {
         final String dataSourcePrefix = dataSourceId + LABEL_PREFIX_SEPARATOR;
-        for (final MVStoreIndex index : databaseToMerge.nodes.getIndices())
+        for (final MVStoreIndex index : databaseToMerge.nodes.getIndices()) {
             nodes.getIndex(index.getKey(), index.isArrayIndex());
+            userDefinedNodeIndexPropertyKeys.add(index.getKey());
+        }
         final Map<Long, Long> mapping = new HashMap<>();
         for (final Node n : databaseToMerge.nodes) {
             final Long oldId = n.getId();

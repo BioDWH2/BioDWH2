@@ -5,8 +5,6 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
 
 @NodeLabels("Reference")
 public class Reference {
-    public int lookAheadPosition = 0;
-
     @GraphProperty("pmid")
     public String pmid;
     public String remarks;

@@ -19,4 +19,5 @@ public class Drug extends KeggHierarchicalEntry {
     public final List<NameIdsPair> sources = new ArrayList<>();
     public final List<List<NameIdsPair>> mixtures = new ArrayList<>();
     public Bracket bracket;
+    public String nameAbbreviation;
 }

@@ -29,6 +29,11 @@ public class KeggParser extends Parser<KeggDataSource> {
         }
     }
 
+    private static class ParsedReference {
+        Reference reference;
+        int lookAheadPosition;
+    }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(KeggParser.class);
     private static final Pattern REFERENCE_PATTERN = Pattern.compile(
             "PMID:([0-9]+)(([ \n\r]+\\(\\(?[a-zA-Z0-9/\n\r. ,_\\-]+\\)?\\))*)");
@@ -95,8 +100,8 @@ public class KeggParser extends Parser<KeggDataSource> {
                     entry.tags.addAll(Arrays.asList(parts).subList(1, parts.length));
                     break;
                 case "REFERENCE":
-                    final Reference reference = parseReference(chunk, i, line);
-                    entry.references.add(reference);
+                    final ParsedReference reference = parseReference(chunk, i, line);
+                    entry.references.add(reference.reference);
                     i = reference.lookAheadPosition;
                     break;
                 case "DBLINKS":
@@ -164,6 +169,13 @@ public class KeggParser extends Parser<KeggDataSource> {
             case "NAME":
                 for (String name : StringUtils.split(line.value, '\n'))
                     entry.names.add(StringUtils.stripEnd(name, ";"));
+                for (int j = i + 1; j < chunk.length; j++) {
+                    if (chunk[j].keyword.equals("  ABBR")) {
+                        entry.nameAbbreviation = chunk[j].value.trim();
+                        i++;
+                    } else
+                        break;
+                }
                 break;
             case "FORMULA":
                 if (lineNotEmpty)
@@ -265,7 +277,7 @@ public class KeggParser extends Parser<KeggDataSource> {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
-                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, '\n')));
                 break;
             case "GENE":
                 String[] geneRestParts = StringUtils.splitByWholeSeparator(line.value, "  ", 2);
@@ -276,7 +288,8 @@ public class KeggParser extends Parser<KeggDataSource> {
                     entry.organism = line.value;
                 break;
             case "NETWORK":
-                NetworkLink network = new NetworkLink();
+                // TODO: validate
+                final NetworkLink network = new NetworkLink();
                 entry.networks.add(network);
                 if (lineNotEmpty)
                     network.network = parseIdNamePair(line.value);
@@ -288,15 +301,20 @@ public class KeggParser extends Parser<KeggDataSource> {
                         break;
                 break;
             case "VARIATION":
-                NameIdsPair variation = new NameIdsPair();
-                String[] lines = StringUtils.split(line.value, "\n");
+                final NameIdsPair variation = new NameIdsPair();
+                final String[] lines = StringUtils.split(line.value, '\n');
                 variation.name = lines[0];
                 for (int j = 1; j < lines.length; j++) {
-                    String[] idParts = StringUtils.split(lines[j], " ");
+                    final String[] idParts = StringUtils.split(lines[j], ' ');
                     for (int k = 1; k < idParts.length; k++)
                         variation.ids.add(idParts[0] + idParts[k]);
                 }
                 entry.variations.add(variation);
+                break;
+            case "DRUG_TARGET":
+                // TODO: drug targets
+                // DRUG_TARGET Gilteritinib (DG01948): D10800<JP/US>
+                //             Midostaurin: D05029<US>
                 break;
             default:
                 logUnknownKeyword("Variant", line.keyword);
@@ -309,13 +327,17 @@ public class KeggParser extends Parser<KeggDataSource> {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
-                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
-                for (int j = i + 1; j < chunk.length; j++)
+                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, '\n')));
+                for (int j = i + 1; j < chunk.length; j++) {
                     if (chunk[j].keyword.equals("  STEM")) {
                         entry.nameStems.addAll(Arrays.asList(StringUtils.splitByWholeSeparator(chunk[j].value, ", ")));
                         i++;
+                    } else if (chunk[j].keyword.equals("  ABBR")) {
+                        entry.nameAbbreviation = chunk[j].value.trim();
+                        i++;
                     } else
                         break;
+                }
                 break;
             case "CLASS":
                 if (lineNotEmpty)
@@ -336,7 +358,7 @@ public class KeggParser extends Parser<KeggDataSource> {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
-                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, '\n')));
                 for (int j = i + 1; j < chunk.length; j++)
                     if (chunk[j].keyword.equals("  SUPERGRP")) {
                         entry.superGroups.add(chunk[j].value);
@@ -387,7 +409,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                 break;
             case "CATEGORY":
                 if (lineNotEmpty)
-                    for (String category : StringUtils.split(line.value, ";"))
+                    for (String category : StringUtils.split(line.value, ';'))
                         entry.categories.add(category.trim());
                 break;
             case "GENE":
@@ -405,7 +427,7 @@ public class KeggParser extends Parser<KeggDataSource> {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
-                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, '\n')));
                 break;
             case "TYPE":
                 entry.type = line.value;
@@ -458,7 +480,8 @@ public class KeggParser extends Parser<KeggDataSource> {
         return i;
     }
 
-    private static Reference parseReference(final ChunkLine[] chunk, final int i, final ChunkLine line) {
+    private static ParsedReference parseReference(final ChunkLine[] chunk, final int i, final ChunkLine line) {
+        final ParsedReference parsedReference = new ParsedReference();
         final Reference reference = new Reference();
         if (line.value.trim().length() > 0) {
             final Matcher matcher = REFERENCE_PATTERN.matcher(line.value);
@@ -475,7 +498,7 @@ public class KeggParser extends Parser<KeggDataSource> {
             final ChunkLine nextLine = chunk[j];
             if (!nextLine.keyword.startsWith("  "))
                 break;
-            reference.lookAheadPosition = j;
+            parsedReference.lookAheadPosition = j;
             switch (nextLine.keyword) {
                 case "  AUTHORS":
                     reference.authors = nextLine.value;
@@ -489,7 +512,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                     if (parts.length > 1) {
                         for (int k = 1; k < parts.length; k++) {
                             if (parts[k].startsWith("DOI:"))
-                                reference.doi = parts[k].substring(4);
+                                reference.doi = parts[k].substring(4).trim();
                             else
                                 LOGGER.warn("Unknown journal line in: " + nextLine.value);
                         }
@@ -497,7 +520,8 @@ public class KeggParser extends Parser<KeggDataSource> {
                     break;
             }
         }
-        return reference;
+        parsedReference.reference = reference;
+        return parsedReference;
     }
 
     private static List<Interaction> parseInteractions(final ChunkLine line) {

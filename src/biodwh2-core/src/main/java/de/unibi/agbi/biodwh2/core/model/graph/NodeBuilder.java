@@ -6,7 +6,7 @@ import java.util.Map;
 public final class NodeBuilder {
     private final Graph graph;
     private final Map<String, Object> properties;
-    private String label;
+    private String[] labels;
 
     NodeBuilder(final Graph graph) {
         this.graph = graph;
@@ -14,7 +14,11 @@ public final class NodeBuilder {
     }
 
     public NodeBuilder withLabel(final String label) {
-        this.label = label;
+        return withLabels(label);
+    }
+
+    public NodeBuilder withLabels(final String... labels) {
+        this.labels = labels;
         return this;
     }
 
@@ -34,6 +38,6 @@ public final class NodeBuilder {
     }
 
     public Node build() {
-        return graph.addNode(label, properties);
+        return graph.addNode(labels, properties);
     }
 }
