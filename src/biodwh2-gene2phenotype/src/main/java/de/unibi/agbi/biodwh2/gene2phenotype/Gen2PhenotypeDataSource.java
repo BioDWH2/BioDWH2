@@ -8,8 +8,6 @@ import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.gene2phenotype.etl.Gen2PhenotypeUpdater;
 
-import java.util.List;
-
 public class Gen2PhenotypeDataSource  extends DataSource {
 
     @Override
