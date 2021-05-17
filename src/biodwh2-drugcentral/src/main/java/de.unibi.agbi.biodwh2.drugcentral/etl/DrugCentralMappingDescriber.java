@@ -185,10 +185,14 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    protected String[][] getEdgeMappingPaths() {
-        return new String[][]{
-                {"Structure", "INDICATION", "OMOPConcept"}, {"Structure", "CONTRAINDICATION", "OMOPConcept"},
-                {"Structure", "BELONGS_TO", "DrugClass", "INTERACTS", "DrugClass", "BELONGS_TO", "Structure"}
+    protected PathMapping[] getEdgePathMappings() {
+        return new PathMapping[]{
+                new PathMapping().add("Structure", "INDICATION", "OMOPConcept", PathMapping.EdgeDirection.FORWARD),
+                new PathMapping().add("Structure", "CONTRAINDICATION", "OMOPConcept",
+                                      PathMapping.EdgeDirection.FORWARD),
+                new PathMapping().add("Structure", "BELONGS_TO", "DrugClass", PathMapping.EdgeDirection.FORWARD)
+                                 .add("DrugClass", "INTERACTS", "DrugClass", PathMapping.EdgeDirection.FORWARD)
+                                 .add("DrugClass", "BELONGS_TO", "Structure", PathMapping.EdgeDirection.BACKWARD)
         };
     }
 }

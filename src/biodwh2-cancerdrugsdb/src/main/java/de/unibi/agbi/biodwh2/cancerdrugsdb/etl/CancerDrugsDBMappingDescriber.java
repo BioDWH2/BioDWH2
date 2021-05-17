@@ -66,11 +66,6 @@ public class CancerDrugsDBMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    protected String[][] getEdgeMappingPaths() {
-        return new String[0][];
-    }
-
-    @Override
     protected PathMapping[] getEdgePathMappings() {
         return new PathMapping[]{
                 new PathMapping().add("Drug", "INDICATES", "Disease", PathMapping.EdgeDirection.FORWARD),

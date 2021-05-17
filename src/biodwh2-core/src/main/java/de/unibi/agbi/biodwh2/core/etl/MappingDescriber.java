@@ -21,11 +21,7 @@ public abstract class MappingDescriber {
         return dataSource.getId() + Graph.LABEL_PREFIX_SEPARATOR + label;
     }
 
-    protected abstract String[][] getEdgeMappingPaths();
-
-    protected PathMapping[] getEdgePathMappings() {
-        return new PathMapping[0];
-    }
+    protected abstract PathMapping[] getEdgePathMappings();
 
     final String getDataSourceId() {
         return dataSource.getId();

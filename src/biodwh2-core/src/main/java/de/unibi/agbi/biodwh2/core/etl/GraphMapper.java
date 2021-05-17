@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public final class GraphMapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMapper.class);
@@ -148,20 +149,14 @@ public final class GraphMapper {
         for (final Map.Entry<String, MappingDescriber> entry : dataSourceDescriberMap.entrySet()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Mapping edge paths for data source '" + entry.getKey() + "'");
-            for (final PathMapping path : collectPathMappingsForDescriber(entry.getValue()))
+            for (final PathMapping path : getNonEmptyPathMappingsForDescriber(entry.getValue()))
                 mapPath(graph, entry.getValue(), path);
         }
     }
 
-    private List<PathMapping> collectPathMappingsForDescriber(final MappingDescriber describer) {
-        final List<PathMapping> mappings = new ArrayList<>();
-        for (final PathMapping mapping : describer.getEdgePathMappings())
-            if (mapping.getSegmentCount() > 0)
-                mappings.add(mapping);
-        for (final String[] path : describer.getEdgeMappingPaths())
-            if (path.length == 3)
-                mappings.add(new PathMapping().add(path[0], path[1], path[2]));
-        return mappings;
+    private List<PathMapping> getNonEmptyPathMappingsForDescriber(final MappingDescriber describer) {
+        return Arrays.stream(describer.getEdgePathMappings()).filter(m -> m.getSegmentCount() > 0).collect(
+                Collectors.toList());
     }
 
     private void mapPath(final Graph graph, final MappingDescriber describer, final PathMapping path) {

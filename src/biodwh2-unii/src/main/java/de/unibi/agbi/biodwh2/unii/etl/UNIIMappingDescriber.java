@@ -58,7 +58,7 @@ public class UNIIMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    protected String[][] getEdgeMappingPaths() {
-        return new String[0][];
+    protected PathMapping[] getEdgePathMappings() {
+        return new PathMapping[0];
     }
 }
