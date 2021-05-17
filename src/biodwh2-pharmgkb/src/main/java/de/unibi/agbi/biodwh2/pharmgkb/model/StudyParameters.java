@@ -9,6 +9,8 @@ public class StudyParameters {
     @Parsed(field = "Study Parameters ID")
     @GraphProperty("id")
     public Integer studyParametersId;
+    @Parsed(field = "Variant Annotation ID")
+    public Integer variantAnnotationId;
     @Parsed(field = "Study Type")
     @GraphProperty("study_type")
     public String studyType;

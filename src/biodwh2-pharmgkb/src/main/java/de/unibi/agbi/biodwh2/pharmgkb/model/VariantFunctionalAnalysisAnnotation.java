@@ -8,15 +8,15 @@ import de.unibi.agbi.biodwh2.pharmgkb.etl.PharmGKBGraphExporter;
 
 @NodeLabels({"VariantAnnotation", "VariantFunctionalAnalysisAnnotation"})
 public class VariantFunctionalAnalysisAnnotation {
-    @Parsed(field = "Annotation ID")
+    @Parsed(field = "Variant Annotation ID")
     @GraphProperty("id")
     public Integer annotationId;
-    @Parsed(field = "Variant")
-    public String variant;
+    @Parsed(field = "Variant/Haplotypes")
+    public String variantHaplotypes;
     @Parsed(field = "Gene")
     public String gene;
-    @Parsed(field = "Chemical")
-    public String chemical;
+    @Parsed(field = "Drug(s)")
+    public String drugs;
     @Parsed(field = "PMID")
     @GraphProperty("pmid")
     public String pmid;
@@ -32,12 +32,10 @@ public class VariantFunctionalAnalysisAnnotation {
     @Parsed(field = "Sentence")
     @GraphProperty("sentence")
     public String sentence;
-    @Parsed(field = "StudyParameters")
-    public String studyParameters;
     @Parsed(field = "Alleles")
     @GraphProperty("alleles")
     public String alleles;
-    @Parsed(field = "Chromosome")
-    @GraphProperty("chromosome")
-    public String chromosome;
+    @Parsed(field = "Specialty Population")
+    @GraphProperty("specialty_population")
+    public String specialtyPopulation;
 }

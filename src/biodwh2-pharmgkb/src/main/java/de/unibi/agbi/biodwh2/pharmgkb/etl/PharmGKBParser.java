@@ -23,9 +23,8 @@ public class PharmGKBParser extends Parser<PharmGKBDataSource> {
 
     @Override
     public boolean parse(final Workspace workspace) throws ParserException {
-        for (String filePath : dataSource.listSourceFiles(workspace))
-            if (filePath.toLowerCase().endsWith(".zip"))
-                tryParseFile(workspace, dataSource, filePath);
+        for (String filePath : PharmGKBUpdater.FILE_NAMES)
+            tryParseFile(workspace, dataSource, filePath);
         return true;
     }
 
@@ -50,18 +49,20 @@ public class PharmGKBParser extends Parser<PharmGKBDataSource> {
                 dataSource.pathways.put(zipEntry.getName().split("\\.")[0], tmpList);
             } else if (zipEntryName.equals("chemicals.tsv"))
                 dataSource.chemicals = parseTSV(stream, Chemical.class);
-            else if (zipEntryName.equals("drugs.tsv"))
-                dataSource.drugs = parseTSV(stream, Drug.class);
             else if (zipEntryName.equals("genes.tsv"))
                 dataSource.genes = parseTSV(stream, Gene.class);
             else if (zipEntryName.equals("phenotypes.tsv"))
                 dataSource.phenotyps = parseTSV(stream, Phenotype.class);
             else if (zipEntryName.equals("variants.tsv"))
                 dataSource.variants = parseTSV(stream, Variant.class);
-            else if (zipEntryName.equals("clinical_ann.tsv"))
+            else if (zipEntryName.equals("clinical_annotations.tsv"))
                 dataSource.clinicalAnnotations = parseTSV(stream, ClinicalAnnotation.class);
-            else if (zipEntryName.equals("clinical_ann_metadata.tsv"))
-                dataSource.clinicalAnnotationMetadata = parseTSV(stream, ClinicalAnnotationMetadata.class);
+            else if (zipEntryName.equals("clinical_ann_alleles.tsv"))
+                dataSource.clinicalAnnotationAlleles = parseTSV(stream, ClinicalAnnotationAllele.class);
+            else if (zipEntryName.equals("clinical_ann_evidence.tsv"))
+                dataSource.clinicalAnnotationEvidences = parseTSV(stream, ClinicalAnnotationEvidence.class);
+            else if (zipEntryName.equals("clinical_ann_history.tsv"))
+                dataSource.clinicalAnnotationHistories = parseTSV(stream, ClinicalAnnotationHistory.class);
             else if (zipEntryName.equals("study_parameters.tsv"))
                 dataSource.studyParameters = parseTSV(stream, StudyParameters.class);
             else if (zipEntryName.equals("var_drug_ann.tsv"))
