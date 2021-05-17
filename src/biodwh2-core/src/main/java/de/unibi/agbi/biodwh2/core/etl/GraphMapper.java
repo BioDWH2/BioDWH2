@@ -145,56 +145,78 @@ public final class GraphMapper {
     }
 
     private void mapPaths(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
-        for (final MappingDescriber describer : dataSourceDescriberMap.values())
-            for (final String[] path : describer.getPrefixedEdgeMappingPaths())
-                mapPath(graph, describer, path);
+        for (final Map.Entry<String, MappingDescriber> entry : dataSourceDescriberMap.entrySet()) {
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Mapping edge paths for data source '" + entry.getKey() + "'");
+            for (final PathMapping path : collectPathMappingsForDescriber(entry.getValue()))
+                mapPath(graph, entry.getValue(), path);
+        }
     }
 
-    private void mapPath(final Graph graph, final MappingDescriber describer, final String[] path) {
-        logPath(path);
-        for (Node node : graph.getNodes(path[0])) {
-            final long[] currentPathIds = new long[path.length];
+    private List<PathMapping> collectPathMappingsForDescriber(final MappingDescriber describer) {
+        final List<PathMapping> mappings = new ArrayList<>();
+        for (final PathMapping mapping : describer.getEdgePathMappings())
+            if (mapping.getSegmentCount() > 0)
+                mappings.add(mapping);
+        for (final String[] path : describer.getEdgeMappingPaths())
+            if (path.length == 3)
+                mappings.add(new PathMapping().add(path[0], path[1], path[2]));
+        return mappings;
+    }
+
+    private void mapPath(final Graph graph, final MappingDescriber describer, final PathMapping path) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Mapping edge paths " + path);
+        final PathMapping.Segment segment = path.get(0);
+        for (final Node node : graph.getNodes(describer.prefixLabel(segment.fromNodeLabel))) {
+            final long[] currentPathIds = new long[path.getSegmentCount() * 2 + 1];
             currentPathIds[0] = node.getId();
-            buildPathRecursively(graph, describer, path, 1, currentPathIds);
+            buildPathRecursively(graph, describer, path, 0, currentPathIds);
         }
     }
 
-    private static void logPath(final String[] path) {
-        if (LOGGER.isInfoEnabled()) {
-            StringBuilder builder = new StringBuilder("Mapping edge paths ");
-            for (int i = 0; i < path.length; i++) {
-                if (i > 0)
-                    builder.append("-");
-                builder.append(i % 2 == 0 ? "(:" : "[:").append(path[i]).append(i % 2 == 0 ? ")" : "]");
-            }
-            LOGGER.info(builder.toString());
-        }
-    }
-
-    private void buildPathRecursively(final Graph graph, final MappingDescriber describer, final String[] path,
-                                      final int edgeIndex, final long[] currentPathIds) {
-        if (edgeIndex >= path.length) {
+    private void buildPathRecursively(final Graph graph, final MappingDescriber describer, final PathMapping path,
+                                      final int segmentIndex, final long[] currentPathIds) {
+        if (segmentIndex >= path.getSegmentCount()) {
             mapPathInstance(graph, describer, currentPathIds);
             return;
         }
-        for (final Edge edge : graph.findEdges(path[edgeIndex], Edge.FROM_ID_FIELD, currentPathIds[edgeIndex - 1])) {
-            currentPathIds[edgeIndex] = edge.getId();
-            final Node nextNode = graph.getNode(edge.getToId());
-            if (nextNode.getLabels()[0].equals(path[edgeIndex + 1])) {
-                final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
-                nextPathIds[edgeIndex + 1] = nextNode.getId();
-                buildPathRecursively(graph, describer, path, edgeIndex + 2, nextPathIds);
+        final PathMapping.Segment segment = path.get(segmentIndex);
+        final String edgeLabel = describer.prefixLabel(segment.edgeLabel);
+        final String toNodeLabel = describer.prefixLabel(segment.toNodeLabel);
+        final long fromNodeId = currentPathIds[segmentIndex * 2];
+        final int currentEdgePathIndex = segmentIndex * 2 + 1;
+        if (segment.direction == PathMapping.EdgeDirection.BIDIRECTIONAL ||
+            segment.direction == PathMapping.EdgeDirection.FORWARD) {
+            for (final Edge edge : graph.findEdges(edgeLabel, Edge.FROM_ID_FIELD, fromNodeId)) {
+                final Node nextNode = graph.getNode(edge.getToId());
+                if (anyNodeLabelEquals(nextNode, toNodeLabel)) {
+                    final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
+                    nextPathIds[currentEdgePathIndex] = edge.getId();
+                    nextPathIds[currentEdgePathIndex + 1] = nextNode.getId();
+                    buildPathRecursively(graph, describer, path, segmentIndex + 1, nextPathIds);
+                }
             }
         }
-        for (final Edge edge : graph.findEdges(path[edgeIndex], Edge.TO_ID_FIELD, currentPathIds[edgeIndex - 1])) {
-            currentPathIds[edgeIndex] = edge.getId();
-            final Node nextNode = graph.getNode(edge.getFromId());
-            if (nextNode.getLabels()[0].equals(path[edgeIndex + 1])) {
-                final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
-                nextPathIds[edgeIndex + 1] = nextNode.getId();
-                buildPathRecursively(graph, describer, path, edgeIndex + 2, nextPathIds);
+        if (segment.direction == PathMapping.EdgeDirection.BIDIRECTIONAL ||
+            segment.direction == PathMapping.EdgeDirection.BACKWARD) {
+            for (final Edge edge : graph.findEdges(edgeLabel, Edge.TO_ID_FIELD, fromNodeId)) {
+                final Node nextNode = graph.getNode(edge.getFromId());
+                if (anyNodeLabelEquals(nextNode, toNodeLabel)) {
+                    final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
+                    nextPathIds[currentEdgePathIndex] = edge.getId();
+                    nextPathIds[currentEdgePathIndex + 1] = nextNode.getId();
+                    buildPathRecursively(graph, describer, path, segmentIndex + 1, nextPathIds);
+                }
             }
         }
+    }
+
+    private boolean anyNodeLabelEquals(final Node node, final String label) {
+        for (final String nodeLabel : node.getLabels())
+            if (nodeLabel.equals(label))
+                return true;
+        return false;
     }
 
     private void mapPathInstance(final Graph graph, final MappingDescriber describer, final long[] pathIds) {
