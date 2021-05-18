@@ -3,23 +3,23 @@
 | ID            | Name                                                              | Website                                                  | State            |
 | ------------- | ----------------------------------------------------------------- | -------------------------------------------------------- | ---------------- |
 | ABDAMED2      | ABDATA ABDAMED Drug Database                                      | [Link](https://abdata.de/datenangebot/abdamed/)          | Work in progress |
-| CancerDrugsDB | A curated listing of licensed cancer drugs by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/cancerdrugs-db) | Done             |
+| CancerDrugsDB | A curated listing of licensed cancer drugs by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/cancerdrugs-db) | Usable           |
 | DGIdb         | The Drug Gene Interaction Database                                | [Link](http://dgidb.org)                                 | Work in progress |
 | DisGeNET      | DisGeNET                                                          | [Link](https://www.disgenet.org)                         | Work in progress |
 | DrugBank      | DrugBank                                                          | [Link](http://drugbank.ca)                               | Work in progress |
 | DrugCentral   | DrugCentral                                                       | [Link](http://drugcentral.org)                           | Work in progress |
 | GeneOntology  | Gene Ontology                                                     | [Link](http://geneontology.org)                          | Work in progress |
-| HGNC          | HUGO Gene Nomenclature Committee                                  | [Link](https://www.genenames.org)                        | Done             |
+| HGNC          | HUGO Gene Nomenclature Committee                                  | [Link](https://www.genenames.org)                        | Usable           |
 | HPO           | Human Phenotype Ontology                                          | [Link](https://hpo.jax.org)                              | Work in progress |
 | ITIS          | Integrated Taxonomic Information System                           | [Link](https://www.itis.gov)                             | Work in progress |
 | KEGG          | Kyoto Encyclopedia of Genes and Genomes                           | [Link](https://www.kegg.jp)                              | Work in progress |
-| MED-RT        | Medication Reference Terminology (MED-RT™)                        | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/)             | Work in progress |
+| MED-RT        | Medication Reference Terminology (MED-RT™)                        | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/)             | Usable           |
 | Mondo         | Mondo Disease Ontology                                            | [Link](https://mondo.monarchinitiative.org)              | Work in progress |
-| NDF-RT        | National Drug File – Reference Terminology (NDF-RT™)              | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/)             | Done             |
-| PharmGKB      | PharmGKB                                                          | [Link](https://www.pharmgkb.org)                         | Done             |
+| NDF-RT        | National Drug File – Reference Terminology (NDF-RT™)              | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/)             | Usable           |
+| PharmGKB      | PharmGKB                                                          | [Link](https://www.pharmgkb.org)                         | Usable           |
 | SIDER         | SIDER: Side Effect Resource                                       | [Link](http://sideeffects.embl.de)                       | Work in progress |
-| UNII          | FDA Substance Registration System - Unique Ingredient Identifier  | [Link](https://fdasis.nlm.nih.gov/srs/)                  | Done             |
-| USDA-PLANTS   | USDA PLANTS Database                                              | [Link](https://plants.sc.egov.usda.gov)                  | Done             |
+| UNII          | FDA Substance Registration System - Unique Ingredient Identifier  | [Link](https://fdasis.nlm.nih.gov/srs/)                  | Usable           |
+| USDA-PLANTS   | USDA PLANTS Database                                              | [Link](https://plants.sc.egov.usda.gov)                  | Usable           |
 |               |                                                                   |                                                          |                  |
 
 ## Licenses and references

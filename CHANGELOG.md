@@ -1,5 +1,21 @@
 # Changelog
 
+## 📦 Upcoming release
+
+### 📚 Data Sources
+
+ * ```[HGNC]``` Add new mane_select column to gene model
+ * ```[MED-RT]``` Specify more drug and disease nodes from concepts
+ * ```[MED-RT]``` Add Drug, disease, and path mappings
+ * ```[MED-RT]``` Marked MED-RT as usable
+
+### 🔧 Bug fixes and other changes
+
+ * ```[feature]``` CSV and TSV format reader in FileUtils now ignores missing columns
+ * ```[docs]``` Data source modules are now listed as usable instead of done, as always something might change
+
+---
+
 ## 📦 Version [v0.3.3](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.3)
 
 ### 📚 Data Sources

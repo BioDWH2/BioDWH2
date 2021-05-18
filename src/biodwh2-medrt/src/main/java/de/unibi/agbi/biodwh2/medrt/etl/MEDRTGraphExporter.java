@@ -35,7 +35,7 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -154,11 +154,37 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     }
 
     private Node findAssociationNode(final Graph g, final String code, String name, final String namespace) {
-        if ("RxNorm".equals(namespace)) {
-            final Node source = g.findNode("Drug", "code", code);
-            return source == null ? g.addNode("Drug", "code", code, "namespace", namespace, "name", name) : source;
+        Node node = g.findNode("code", code);
+        if (node == null) {
+            if ("RxNorm".equals(namespace)) {
+                node = g.addNode("Drug", "code", code, "namespace", namespace, "name", name);
+            } else {
+                if (isConceptSynonymOfDrug(code))
+                    node = g.addNode("Drug", "code", code, "namespace", namespace, "name", name);
+                else if (isConceptDisease(code))
+                    node = g.addNode("Disease", "code", code, "namespace", namespace, "name", name);
+                else
+                    node = g.addNode("Concept", "code", code, "namespace", namespace, "name", name);
+            }
         }
-        final Node source = g.findNode("code", code);
-        return source == null ? g.addNode("Concept", "code", code, "namespace", namespace, "name", name) : source;
+        return node;
+    }
+
+    private boolean isConceptSynonymOfDrug(final String code) {
+        return dataSource.terminology.associations.stream().anyMatch(
+                a -> "RxNorm".equals(a.fromNamespace) && "synonym of".equalsIgnoreCase(a.name) &&
+                     a.toCode.equals(code));
+    }
+
+    private boolean isConceptDisease(final String code) {
+        return dataSource.terminology.associations.stream().anyMatch(
+                a -> "RxNorm".equals(a.fromNamespace) && isAssociationFromDrugToDisease(a) && a.toCode.equals(code));
+    }
+
+    private boolean isAssociationFromDrugToDisease(final Association association) {
+        if (association.name == null)
+            return false;
+        return "CI_with".equals(association.name) || "may_treat".equals(association.name) || "may_prevent".equals(
+                association.name) || "may_diagnose".equals(association.name) || "induces".equals(association.name);
     }
 }
