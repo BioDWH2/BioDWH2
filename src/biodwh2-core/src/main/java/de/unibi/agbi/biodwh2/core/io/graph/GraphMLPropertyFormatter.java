@@ -10,7 +10,7 @@ import java.util.Set;
 
 public final class GraphMLPropertyFormatter {
     private static final String INVALID_XML_CHARS = new String(
-            new char[]{0x01, 0x02, 0x03, 0x04, 0x08, 0x1d, 0x12, 0x14, 0x18});
+            new char[]{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x1d, 0x12, 0x14, 0x18});
     private static final String FORMAT = "%s";
     private static final String ARRAY_START = "[";
     private static final String ARRAY_END = "]";

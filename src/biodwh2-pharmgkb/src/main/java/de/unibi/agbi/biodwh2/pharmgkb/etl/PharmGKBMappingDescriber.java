@@ -24,6 +24,8 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
             return describeVariant(node);
         if (PharmGKBGraphExporter.PATHWAY_LABEL.equals(localMappingLabel))
             return describePathway(node);
+        if (PharmGKBGraphExporter.LITERATURE_LABEL.equals(localMappingLabel))
+            return describeLiterature(node);
         return null;
     }
 
@@ -154,12 +156,26 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
         return new NodeMappingDescription[]{description};
     }
 
+    private NodeMappingDescription[] describeLiterature(final Node node) {
+        final String id = node.getProperty("id");
+        if (id == null)
+            return null;
+        final NodeMappingDescription description = new NodeMappingDescription(
+                NodeMappingDescription.NodeType.PUBLICATION);
+        if (id.startsWith("PMID:"))
+            description.addIdentifier(IdentifierType.PUBMED_ID, StringUtils.split(id, ":", 2)[1]);
+        else if (id.startsWith("PMC"))
+            description.addIdentifier(IdentifierType.PUBMED_CENTRAL_ID, id);
+        return new NodeMappingDescription[]{description};
+    }
+
     @Override
     protected String[] getNodeMappingLabels() {
         return new String[]{
                 PharmGKBGraphExporter.CHEMICAL_LABEL, PharmGKBGraphExporter.HAPLOTYPE_LABEL,
                 PharmGKBGraphExporter.HAPLOTYPE_SET_LABEL, PharmGKBGraphExporter.GENE_LABEL,
-                PharmGKBGraphExporter.VARIANT_LABEL, PharmGKBGraphExporter.PATHWAY_LABEL
+                PharmGKBGraphExporter.VARIANT_LABEL, PharmGKBGraphExporter.PATHWAY_LABEL,
+                PharmGKBGraphExporter.LITERATURE_LABEL
         };
     }
 

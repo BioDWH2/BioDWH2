@@ -162,6 +162,12 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                                       "HAS_CONTROLLER");
                 }
             }
+            if (pathway.pmids != null) {
+                for (final String pmid : StringUtils.split(pathway.pmids, ',')) {
+                    final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + pmid.trim(), null);
+                    graph.addEdge(stepNode, literatureNode, HAS_OCCURRENCE_LABEL);
+                }
+            }
         }
     }
 
@@ -351,6 +357,10 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                 }
                 graph.addEdge(node, targetNodeId, ASSOCIATED_WITH_LABEL);
             }
+            if (annotation.pmid != null) {
+                final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + annotation.pmid.trim(), null);
+                graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
+            }
         }
     }
 
@@ -455,7 +465,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                 }
             }
             if (annotation.pmid != null) {
-                final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + annotation.pmid, null);
+                final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + annotation.pmid.trim(), null);
                 graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
             }
             addVariantOrHaplotypeAssociations(graph, annotation.variantHaplotypes, node);

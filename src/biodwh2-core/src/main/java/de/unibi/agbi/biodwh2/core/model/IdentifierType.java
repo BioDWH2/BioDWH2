@@ -31,6 +31,7 @@ public enum IdentifierType {
     PUB_CHEM_COMPOUND("PubChem_CID"),
     PUB_CHEM_SUBSTANCE("PubChem_SID"),
     PUBMED_ID("PMID"),
+    PUBMED_CENTRAL_ID("PMCID"),
     RX_NORM_CUI("RxNorm_CUI"),
     SMPDB("SMPDB"),
     SNOMED_CT("SNOMED_CT"),

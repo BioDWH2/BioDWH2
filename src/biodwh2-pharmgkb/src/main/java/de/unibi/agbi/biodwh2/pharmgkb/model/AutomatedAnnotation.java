@@ -40,7 +40,7 @@ public class AutomatedAnnotation {
     @GraphProperty("literature_title")
     public String literatureTitle;
     @Parsed(field = "Publication Year")
-    @GraphArrayProperty("publication_year")
+    @GraphProperty("publication_year")
     public Integer publicationYear;
     @Parsed(field = "Journal")
     @GraphProperty("journal")
