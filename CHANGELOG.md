@@ -8,6 +8,7 @@
  * ```[MED-RT]``` Specify more drug and disease nodes from concepts
  * ```[MED-RT]``` Add Drug, disease, and path mappings
  * ```[MED-RT]``` Marked MED-RT as usable
+ * ```[DisGeNET]``` Implemented DisGeNET updater
 
 ### 🔧 Bug fixes and other changes
 
