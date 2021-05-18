@@ -14,7 +14,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
         "ensembl_gene_id", "vega_id", "ucsc_id", "ena", "refseq_accession", "ccds_id", "uniprot_ids", "pubmed_id",
         "mgd_id", "rgd_id", "lsdb", "cosmic", "omim_id", "mirbase", "homeodb", "snornabase", "bioparadigms_slc",
         "orphanet", "pseudogene.org", "horde_id", "merops", "imgt", "iuphar", "kznf_gene_catalog", "mamit-trnadb", "cd",
-        "lncrnadb", "enzyme_id", "intermediate_filament_db", "rna_central_ids", "lncipedia", "gtrnadb", "agr"
+        "lncrnadb", "enzyme_id", "intermediate_filament_db", "rna_central_ids", "lncipedia", "gtrnadb", "agr",
+        "mane_select"
 })
 @NodeLabels("Gene")
 public final class Gene {
@@ -174,4 +175,7 @@ public final class Gene {
     @JsonProperty("agr")
     @GraphProperty("agr")
     public String agr;
+    @JsonProperty("mane_select")
+    @GraphProperty("mane_select")
+    public String maneSelect;
 }
