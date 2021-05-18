@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 class ClassMapping {
@@ -57,10 +58,17 @@ class ClassMapping {
 
     private ClassMappingField[] loadClassMappingFields(final Class<?> type) {
         final List<ClassMappingField> fieldsList = new ArrayList<>();
-        for (final Field field : type.getDeclaredFields())
+        for (final Field field : getAllFieldsRecursive(new ArrayList<>(), type))
             if (field.isAnnotationPresent(GraphProperty.class))
                 fieldsList.add(loadClassMappingField(field));
         return fieldsList.toArray(new ClassMappingField[0]);
+    }
+
+    private List<Field> getAllFieldsRecursive(final List<Field> fields, final Class<?> type) {
+        fields.addAll(Arrays.asList(type.getDeclaredFields()));
+        if (type.getSuperclass() != null)
+            getAllFieldsRecursive(fields, type.getSuperclass());
+        return fields;
     }
 
     private ClassMappingField loadClassMappingField(final Field field) {
@@ -71,7 +79,7 @@ class ClassMapping {
 
     private ClassMappingArrayField[] loadClassMappingArrayFields(final Class<?> type) {
         final List<ClassMappingArrayField> fieldsList = new ArrayList<>();
-        for (final Field field : type.getDeclaredFields())
+        for (final Field field : getAllFieldsRecursive(new ArrayList<>(), type))
             if (field.isAnnotationPresent(GraphArrayProperty.class))
                 fieldsList.add(loadClassMappingArrayField(field));
         return fieldsList.toArray(new ClassMappingArrayField[0]);
@@ -86,7 +94,7 @@ class ClassMapping {
 
     private ClassMappingBooleanField[] loadClassMappingBooleanFields(final Class<?> type) {
         final List<ClassMappingBooleanField> fieldsList = new ArrayList<>();
-        for (final Field field : type.getDeclaredFields())
+        for (final Field field : getAllFieldsRecursive(new ArrayList<>(), type))
             if (field.isAnnotationPresent(GraphBooleanProperty.class))
                 fieldsList.add(loadClassMappingBooleanField(field));
         return fieldsList.toArray(new ClassMappingBooleanField[0]);
