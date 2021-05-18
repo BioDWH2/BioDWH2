@@ -85,6 +85,7 @@ public final class FileUtils {
         if (typeClass == String[].class)
             csvMapper.enable(CsvParser.Feature.WRAP_AS_ARRAY);
         csvMapper.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+        csvMapper.disable(CsvParser.Feature.FAIL_ON_MISSING_COLUMNS);
         return csvMapper.readerFor(typeClass).with(schema);
     }
 
