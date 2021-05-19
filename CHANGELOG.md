@@ -14,6 +14,7 @@
 
  * ```[feature]``` CSV and TSV format reader in FileUtils now ignores missing columns
  * ```[docs]``` Data source modules are now listed as usable instead of done, as always something might change
+ * ```[docs]``` Updated development docs with new IntelliJ Idea version
 
 ---
 

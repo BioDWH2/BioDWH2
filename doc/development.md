@@ -13,7 +13,7 @@ Alternatively, the plugins can be installed/enabled under ```Settings > Plugins`
 
 While BioDWH2 is a maven project, IntelliJ IDEA uses it's own project format to store additional information. The following shows how to open the project and keep the maven project intact.
 
-First import the project from existing sources, either from the start screen with ```Import Project``` or via the menu ```File -> New -> Project from Existing Sources...```.
+First import the project from existing sources, either from the start screen with ```Open``` or via the menu ```File -> New -> Project from Existing Sources...```.
 
 ![](img/setup_project1.png "")
 
@@ -25,17 +25,13 @@ Select ```Import project from external model``` and as the model ```Maven```.
 
 ![](img/setup_project3.png "")
 
-Finally, the most important part is setting the project format to ```directory based``` and to check ```Import Maven projects automatically```. This ensures the automatic sync of the project, if the maven pom.xml files change later on.
-
-![](img/setup_project4.png "")
-
-Lastly, follow through the rest of the dialogs with Next an Finish.
-
 ## Coding style setup
 
-One of the advantages of IntelliJ IDEA is the automated code formatting. This ensures a higher code quality and less merge conflicts. Included in this repository is a coding style configuration file ([CodingStyle.xml](CodingStyle.xml)) which can be directly imported into IntelliJ IDEA. Developers and contributers of BioDWH2 need to adhere to this coding style. The import is very easy. First, go to ```Settings > Editor > Code Style > Java```. Click on the cog icon and select ```Import Scheme > Intellij IDEA code style XML```.
+One of the advantages of IntelliJ IDEA is the automated code formatting. This ensures a higher code quality and less merge conflicts. Included in this repository is a coding style configuration file ([CodingStyle.xml](CodingStyle.xml)) which can be directly imported into IntelliJ IDEA. Developers and contributers of BioDWH2 need to adhere to this coding style. The import is very easy. First, go to ```File > Settings > Editor > Code Style > Java```. Click on the cog icon and select ```Import Scheme > Intellij IDEA code style XML```.
 
-![](img/setup_codingstyle_import.png "Import of the coding style xml")
+![](img/setup_codingstyle_import1.png "Import of the coding style xml")
+
+![](img/setup_codingstyle_import2.png "Import of the coding style xml")
 
 With the BioDWH2 scheme imported and selected, click the cog icon again, select ```Copy to Project``` and confirm the overwrite.
 
@@ -51,16 +47,59 @@ Second, select ```Maven``` as the module type and click ```Next```.
 
 ![](img/setup_new_module2.png "")
 
-Now enter the artifact id for the new module, all other values are inherited. The artifact id follows the structure ```biodwh2-[a-z]+``` where the suffix is unique and identifying the data source that is processed in this module. Click ```Next```.
+Now enter the artifact id for the new module, all other values are inherited. The artifact id follows the structure ```biodwh2-[a-z]+``` where the suffix is unique and identifying the data source that is processed in this module. Click ```Finish```.
 
 ![](img/setup_new_module3.png "")
 
-The module name by default removes the ```-``` character, please make sure to add it again to match the artifact id. Click ```Finish```.
-
-![](img/setup_new_module4.png "")
-
 Now your new module should be created and added to the module list. Open the ```pom.xml``` of your module and add the dependencies for the ```biodwh2-core``` module and the ```junit``` unit testing library as follows:
 
-![](img/setup_new_module5.png "")
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>biodwh2</artifactId>
+        <groupId>de.unibi.agbi.biodwh2</groupId>
+        <version>0.3.3</version> <!-- BioDWH2 version -->
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>biodwh2-nameofmodule</artifactId>
+    <version>0.1</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-core</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit-version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
+```
 
 Finally, make sure to add the package structure in your modules ```src > main > java``` like ```de.unibi.agbi.biodwh2.yourmodulename``` and follow the package structure like the other parser modules.
+
+BioDWH2 will automatically use your compiled module, if it is provided in the java classpath. For development, it is easier to add your module to the ```biodwh2-main``` module as a dependency. For this, open the ```pom.xml``` of the ```biodwh2-main``` module and add your module in the dependencies node:
+```xml
+<dependencies>
+
+  ...
+
+  <dependency>
+      <groupId>de.unibi.agbi.biodwh2</groupId>
+      <artifactId>biodwh2-nameofmodule</artifactId>
+      <version>0.1</version>
+  </dependency>
+
+  ...
+
+</dependencies>
+```

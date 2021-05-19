@@ -56,7 +56,7 @@ BioDWH2 requires the Java Runtime Environment version 8 to be installed. The JRE
 
 ## Creating a workspace
 
-> :warning: **Please note**: The following commands refer to the BioDWH2 executable as `BioDWH2.jar` for simplicity. The file name of the release downloads is versioned such as `BioDWH2-v0.1.7.jar`.
+> :warning: **Please note**: The following commands refer to the BioDWH2 executable as `BioDWH2.jar` for simplicity. The file name of the release downloads is versioned such as `BioDWH2-v0.3.3.jar`.
 
 The first step is to create a blank workspace in a new location using the `-c` or `--create` command line parameter.
 
@@ -86,6 +86,8 @@ Alternatively open the `config.json` in your workspace with any text editor and 
   "version" : 1,
   "creationDateTime" : "2019-09-26T09:30:36.568",
   "dataSourceIds" : ["HGNC", "MED-RT"],
+  "skipGraphMLExport": false,
+  "skipMetaGraphGeneration": false,
   "dataSourceProperties": {}
 }
 ```
