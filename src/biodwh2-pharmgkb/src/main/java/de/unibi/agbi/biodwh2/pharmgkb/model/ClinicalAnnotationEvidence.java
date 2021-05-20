@@ -4,7 +4,7 @@ import com.univocity.parsers.annotations.Parsed;
 
 public class ClinicalAnnotationEvidence {
     @Parsed(field = "Clinical Annotation ID")
-    public String clinicalAnnotationId;
+    public Integer clinicalAnnotationId;
     @Parsed(field = "Evidence ID")
     public String evidenceId;
     @Parsed(field = "Evidence Type")

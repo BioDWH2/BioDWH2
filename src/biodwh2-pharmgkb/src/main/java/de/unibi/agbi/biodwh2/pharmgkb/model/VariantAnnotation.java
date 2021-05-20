@@ -15,7 +15,6 @@ public abstract class VariantAnnotation {
     @Parsed(field = "Drug(s)")
     public String drugs;
     @Parsed(field = "PMID")
-    @GraphProperty("pmid")
     public String pmid;
     @Parsed(field = "Phenotype Category")
     @GraphArrayProperty(value = "phenotype_categories", arrayDelimiter = ",", quotedArrayElements = true)

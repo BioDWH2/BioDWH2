@@ -13,7 +13,7 @@ public class DrugBankMappingDescriber extends MappingDescriber {
     private static final Pattern DOI_PATTERN = Pattern.compile("doi: (10\\.\\d{4,9}/[-._;()/:A-Z0-9]+)\\.",
                                                                Pattern.CASE_INSENSITIVE);
 
-    public DrugBankMappingDescriber(DataSource dataSource) {
+    public DrugBankMappingDescriber(final DataSource dataSource) {
         super(dataSource);
     }
 

@@ -5,7 +5,9 @@ import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.pharmgkb.etl.*;
 import de.unibi.agbi.biodwh2.pharmgkb.model.*;
+import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.GuidelineAnnotation;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -28,6 +30,7 @@ public class PharmGKBDataSource extends DataSource {
     public List<VariantFunctionalAnalysisAnnotation> variantFunctionalAnalysisAnnotations;
     public List<VariantPhenotypeAnnotation> variantPhenotypeAnnotations;
     public HashMap<String, List<Pathway>> pathways = new HashMap<>();
+    public List<GuidelineAnnotation> guidelineAnnotations = new ArrayList<>();
 
     @Override
     public String getId() {
@@ -89,5 +92,6 @@ public class PharmGKBDataSource extends DataSource {
         variantFunctionalAnalysisAnnotations = null;
         variantPhenotypeAnnotations = null;
         pathways = null;
+        guidelineAnnotations = null;
     }
 }

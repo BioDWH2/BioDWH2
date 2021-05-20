@@ -31,16 +31,12 @@ public class AutomatedAnnotation {
     @GraphProperty("gene_in_text")
     public String geneInText;
     @Parsed(field = "Literature ID")
-    @GraphProperty("literature_id")
     public String literatureId;
     @Parsed(field = "PMID")
-    @GraphProperty("pmid")
     public String pmid;
     @Parsed(field = "Literature Title")
-    @GraphProperty("literature_title")
     public String literatureTitle;
     @Parsed(field = "Publication Year")
-    @GraphProperty("publication_year")
     public Integer publicationYear;
     @Parsed(field = "Journal")
     @GraphProperty("journal")

@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.drugcentral.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.mapping.CitationUtils;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
@@ -52,23 +53,7 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
         final String pages = node.getProperty("pages");
         final String issue = node.getProperty("issue");
         final String doi = node.getProperty("doi");
-        final StringBuilder builder = new StringBuilder();
-        if (authors != null)
-            builder.append(authors);
-        builder.append(". ").append(title).append(" ").append(journal).append(". ").append(year);
-        if (volume != null || issue != null || pages != null) {
-            builder.append(';');
-            if (volume != null)
-                builder.append(volume);
-            if (issue != null)
-                builder.append('(').append(issue).append(')');
-            if (pages != null)
-                builder.append(':').append(pages);
-            builder.append('.');
-        }
-        if (doi != null)
-            builder.append(" doi:").append(doi).append('.');
-        return builder.toString();
+        return CitationUtils.getAMACitation(authors, title, volume, year, journal, pages, issue, doi);
     }
 
     private NodeMappingDescription[] describeParentDrugMolecule(final Graph graph, final Node node) {
@@ -189,10 +174,15 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
         return new PathMapping[]{
                 new PathMapping().add("Structure", "INDICATION", "OMOPConcept", PathMapping.EdgeDirection.FORWARD),
                 new PathMapping().add("Structure", "CONTRAINDICATION", "OMOPConcept",
-                                      PathMapping.EdgeDirection.FORWARD),
-                new PathMapping().add("Structure", "BELONGS_TO", "DrugClass", PathMapping.EdgeDirection.FORWARD)
-                                 .add("DrugClass", "INTERACTS", "DrugClass", PathMapping.EdgeDirection.FORWARD)
-                                 .add("DrugClass", "BELONGS_TO", "Structure", PathMapping.EdgeDirection.BACKWARD)
+                                      PathMapping.EdgeDirection.FORWARD), new PathMapping().add("Structure",
+                                                                                                "BELONGS_TO",
+                                                                                                "DrugClass",
+                                                                                                PathMapping.EdgeDirection.FORWARD)
+                                                                                           .add("DrugClass",
+                                                                                                "INTERACTS",
+                                                                                                "DrugClass",
+                                                                                                PathMapping.EdgeDirection.FORWARD).add(
+                "DrugClass", "BELONGS_TO", "Structure", PathMapping.EdgeDirection.BACKWARD)
         };
     }
 }

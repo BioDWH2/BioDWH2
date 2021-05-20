@@ -157,15 +157,12 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeLiterature(final Node node) {
-        final String id = node.getProperty("id");
-        if (id == null)
-            return null;
         final NodeMappingDescription description = new NodeMappingDescription(
                 NodeMappingDescription.NodeType.PUBLICATION);
-        if (id.startsWith("PMID:"))
-            description.addIdentifier(IdentifierType.PUBMED_ID, StringUtils.split(id, ":", 2)[1]);
-        else if (id.startsWith("PMC"))
-            description.addIdentifier(IdentifierType.PUBMED_CENTRAL_ID, id);
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
+        description.addIdentifier(IdentifierType.PUBMED_ID, node.<Integer>getProperty("pmid"));
+        description.addIdentifier(IdentifierType.PUBMED_CENTRAL_ID, node.<String>getProperty("pmcid"));
+        description.addIdentifier(IdentifierType.DOI, node.<String>getProperty("doi"));
         return new NodeMappingDescription[]{description};
     }
 

@@ -3,10 +3,15 @@ package de.unibi.agbi.biodwh2.pharmgkb.etl;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
+import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.pharmgkb.PharmGKBDataSource;
 import de.unibi.agbi.biodwh2.pharmgkb.model.*;
+import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.Citation;
+import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.CrossReference;
+import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.GuidelineAnnotation;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +33,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     static final String CHEMICAL_LABEL = "Chemical";
     static final String PHENOTYPE_LABEL = "Phenotype";
     static final String LITERATURE_LABEL = "Literature";
+    static final String WEB_PAGE_LABEL = "WebPage";
     private static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
     private static final String HAS_OCCURRENCE_LABEL = "HAS_OCCURRENCE";
     private static final String[] MERGE_HAPLOTYPE_NAME_PREFIXES = new String[]{
@@ -36,6 +42,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
 
     private final Map<String, Long> accessionNodeIdMap = new HashMap<>();
     private final Map<String, Long> literatureIdNodeIdMap = new HashMap<>();
+    private final Map<String, Long> webUrlNodeIdMap = new HashMap<>();
     private final Map<Integer, Long> variantAnnotationIdNodeIdMap = new HashMap<>();
 
     public PharmGKBGraphExporter(final PharmGKBDataSource dataSource) {
@@ -50,6 +57,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.setNodeIndexPropertyKeys(ID_PROPERTY, "symbol", NAME_PROPERTY);
+        addGuidelineAnnotations(graph, dataSource.guidelineAnnotations);
         addGenes(graph, dataSource.genes);
         addChemicals(graph, dataSource.chemicals);
         addPhenotypes(graph, dataSource.phenotyps);
@@ -67,7 +75,98 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         addStudyParameters(graph, dataSource.studyParameters);
         addDrugLabels(graph, dataSource.drugLabels);
         addDrugLabelsByGene(graph, dataSource.drugLabelsByGenes);
+        addClinicalAnnotationEvidences(graph, dataSource.clinicalAnnotationEvidences);
         return true;
+    }
+
+    private void addGuidelineAnnotations(final Graph graph, final List<GuidelineAnnotation> guidelineAnnotations) {
+        LOGGER.info("Add GuidelineAnnotations...");
+        for (final GuidelineAnnotation annotation : guidelineAnnotations) {
+            final Node node = graph.addNodeFromModel(annotation.guideline);
+            accessionNodeIdMap.put(annotation.guideline.id, node.getId());
+            final Map<String, Citation> citations = new HashMap<>();
+            if (annotation.citations != null)
+                for (final Citation citation : annotation.citations)
+                    citations.put(citation.resourceId, citation);
+            if (annotation.guideline.literature != null)
+                for (final Citation citation : annotation.guideline.literature)
+                    citations.put(citation.resourceId, citation);
+            for (final Citation citation : citations.values())
+                connectGuidelineAnnotationWithCitation(graph, node, citation);
+        }
+    }
+
+    private void connectGuidelineAnnotationWithCitation(final Graph graph, final Node node, final Citation citation) {
+        Integer pmid = null;
+        String doi = null;
+        String pmcid = null;
+        for (final CrossReference reference : citation.crossReferences) {
+            if ("DOI".equals(reference.resource))
+                doi = reference.resourceId;
+            else if ("PubMed".equals(reference.resource))
+                pmid = Integer.parseInt(reference.resourceId);
+            else if ("PubMed Central".equals(reference.resource))
+                pmcid = reference.resourceId;
+        }
+        final long literatureNode = addLiteratureIfNotExists(graph, citation.resourceId, citation.title, pmid, pmcid,
+                                                             doi, citation.year);
+        graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
+    }
+
+    private long addLiteratureIfNotExists(final Graph graph, final String id, final String title, final Integer pmid,
+                                          final String pmcid, final String doi, final Integer year) {
+        Node node = null;
+        if (id != null && literatureIdNodeIdMap.containsKey(id))
+            node = graph.getNode(literatureIdNodeIdMap.get(id));
+        if (pmid != null && literatureIdNodeIdMap.containsKey("PMID:" + pmid))
+            node = graph.getNode(literatureIdNodeIdMap.get("PMID:" + pmid));
+        if (pmcid != null && literatureIdNodeIdMap.containsKey(pmcid))
+            node = graph.getNode(literatureIdNodeIdMap.get(pmcid));
+        if (node != null) {
+            boolean changed = false;
+            if (id != null && !node.hasProperty(ID_PROPERTY)) {
+                node.setProperty(ID_PROPERTY, id);
+                changed = true;
+            }
+            if (title != null && !node.hasProperty("title")) {
+                node.setProperty("title", title);
+                changed = true;
+            }
+            if (pmid != null && !node.hasProperty("pmid")) {
+                node.setProperty("pmid", pmid);
+                changed = true;
+            }
+            if (pmcid != null && !node.hasProperty("pmcid")) {
+                node.setProperty("pmcid", pmcid);
+                changed = true;
+            }
+            if (doi != null && !node.hasProperty("doi")) {
+                node.setProperty("doi", doi);
+                changed = true;
+            }
+            if (year != null && !node.hasProperty("year")) {
+                node.setProperty("year", year);
+                changed = true;
+            }
+            if (changed)
+                graph.update(node);
+        } else {
+            final NodeBuilder builder = graph.buildNode().withLabel(LITERATURE_LABEL);
+            builder.withPropertyIfNotNull(ID_PROPERTY, id);
+            builder.withPropertyIfNotNull("title", title);
+            builder.withPropertyIfNotNull("pmid", pmid);
+            builder.withPropertyIfNotNull("pmcid", pmcid);
+            builder.withPropertyIfNotNull("doi", doi);
+            builder.withPropertyIfNotNull("year", year);
+            node = builder.build();
+        }
+        if (id != null)
+            literatureIdNodeIdMap.put(id, node.getId());
+        if (pmid != null)
+            literatureIdNodeIdMap.put("PMID:" + pmid, node.getId());
+        if (pmcid != null)
+            literatureIdNodeIdMap.put(pmcid, node.getId());
+        return node.getId();
     }
 
     private void addGenes(final Graph graph, final List<Gene> genes) {
@@ -163,8 +262,9 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                 }
             }
             if (pathway.pmids != null) {
-                for (final String pmid : StringUtils.split(pathway.pmids, ',')) {
-                    final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + pmid.trim(), null);
+                for (final String pmidText : StringUtils.split(pathway.pmids, ',')) {
+                    final int pmid = Integer.parseInt(pmidText.trim());
+                    final long literatureNode = addLiteratureIfNotExists(graph, null, null, pmid, null, null, null);
                     graph.addEdge(stepNode, literatureNode, HAS_OCCURRENCE_LABEL);
                 }
             }
@@ -182,9 +282,16 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         LOGGER.info("Add Occurrences...");
         for (final Occurrence occurrence : occurrences) {
             final long nodeId;
-            if (LITERATURE_LABEL.equalsIgnoreCase(occurrence.sourceType))
-                nodeId = addLiteratureIfNotExists(graph, occurrence.sourceId, occurrence.sourceName);
-            else if (PATHWAY_LABEL.equalsIgnoreCase(occurrence.sourceType))
+            if (LITERATURE_LABEL.equalsIgnoreCase(occurrence.sourceType)) {
+                if (occurrence.sourceId.startsWith("PMID:")) {
+                    final int pmid = Integer.parseInt(StringUtils.split(occurrence.sourceId, ":", 2)[1]);
+                    nodeId = addLiteratureIfNotExists(graph, null, occurrence.sourceName, pmid, null, null, null);
+                } else if (occurrence.sourceId.startsWith("PMC")) {
+                    nodeId = addLiteratureIfNotExists(graph, null, occurrence.sourceName, null, occurrence.sourceId,
+                                                      null, null);
+                } else
+                    nodeId = addWebPageIfNotExists(graph, occurrence.sourceId, occurrence.sourceName);
+            } else if (PATHWAY_LABEL.equalsIgnoreCase(occurrence.sourceType))
                 nodeId = addPathwayIfNotExists(graph, occurrence.sourceId, occurrence.sourceName);
             else
                 throw new ExporterException("Unknown occurrence source type found '" + occurrence.sourceType + "'");
@@ -210,15 +317,15 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         }
     }
 
-    private long addLiteratureIfNotExists(final Graph graph, final String id, final String name) {
-        if (literatureIdNodeIdMap.containsKey(id))
-            return literatureIdNodeIdMap.get(id);
+    private long addWebPageIfNotExists(final Graph graph, final String url, final String title) {
+        if (webUrlNodeIdMap.containsKey(url))
+            return webUrlNodeIdMap.get(url);
         final Node node;
-        if (name != null)
-            node = graph.addNode(LITERATURE_LABEL, ID_PROPERTY, id, NAME_PROPERTY, name);
+        if (title != null)
+            node = graph.addNode(WEB_PAGE_LABEL, "url", url, NAME_PROPERTY, title);
         else
-            node = graph.addNode(LITERATURE_LABEL, ID_PROPERTY, id);
-        literatureIdNodeIdMap.put(id, node.getId());
+            node = graph.addNode(WEB_PAGE_LABEL, "url", url);
+        webUrlNodeIdMap.put(url, node.getId());
         return node.getId();
     }
 
@@ -357,8 +464,11 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                 }
                 graph.addEdge(node, targetNodeId, ASSOCIATED_WITH_LABEL);
             }
-            if (annotation.pmid != null) {
-                final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + annotation.pmid.trim(), null);
+            if (annotation.literatureId != null) {
+                final Integer pmid = annotation.pmid != null ? Integer.parseInt(annotation.pmid.trim()) : null;
+                final long literatureNode = addLiteratureIfNotExists(graph, annotation.literatureId,
+                                                                     annotation.literatureTitle, pmid, null, null,
+                                                                     annotation.publicationYear);
                 graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
             }
         }
@@ -465,7 +575,8 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                 }
             }
             if (annotation.pmid != null) {
-                final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + annotation.pmid.trim(), null);
+                final int pmid = Integer.parseInt(annotation.pmid.trim());
+                final long literatureNode = addLiteratureIfNotExists(graph, null, null, pmid, null, null, null);
                 graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
             }
             addVariantOrHaplotypeAssociations(graph, annotation.variantHaplotypes, node);
@@ -494,6 +605,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         LOGGER.info("Add DrugLabels...");
         for (final DrugLabel drugLabel : drugLabels) {
             final Node node = graph.addNodeFromModel(drugLabel);
+            accessionNodeIdMap.put(drugLabel.pharmgkbAccessionId, node.getId());
             if (drugLabel.variantsHaplotypes != null) {
                 for (final String variant : StringUtils.splitByWholeSeparator(drugLabel.variantsHaplotypes, "; ")) {
                     final long targetNodeId = variant.contains("rs") ? addVariantIfNotExists(graph, null, variant) :
@@ -517,6 +629,38 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                 final Node labelNode = graph.findNode("DrugLabel", ID_PROPERTY, labelId);
                 final Node geneNode = graph.findNode(GENE_LABEL, ID_PROPERTY, drugLabelsByGene.geneId);
                 graph.addEdge(labelNode, geneNode, ASSOCIATED_WITH_LABEL);
+            }
+        }
+    }
+
+    private void addClinicalAnnotationEvidences(final Graph graph, final List<ClinicalAnnotationEvidence> evidences) {
+        LOGGER.info("Add ClinicalAnnotationEvidence...");
+        for (final ClinicalAnnotationEvidence evidence : evidences) {
+            final Node annotationNode = graph.findNode("ClinicalAnnotation", ID_PROPERTY,
+                                                       evidence.clinicalAnnotationId);
+            if (annotationNode == null) {
+                LOGGER.warn("Failed to find clinical annotation node for id '" + evidence.clinicalAnnotationId + "'");
+                continue;
+            }
+            Long evidenceNodeId = accessionNodeIdMap.get(evidence.evidenceId);
+            if (evidenceNodeId == null) {
+                try {
+                    final int evidenceId = Integer.parseInt(evidence.evidenceId);
+                    evidenceNodeId = variantAnnotationIdNodeIdMap.get(evidenceId);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            if (evidenceNodeId != null) {
+                final EdgeBuilder builder = graph.buildEdge().fromNode(annotationNode).toNode(evidenceNodeId).withLabel(
+                        "HAS_EVIDENCE");
+                builder.withPropertyIfNotNull("evidence_url", evidence.evidenceUrl);
+                builder.withPropertyIfNotNull("pmid", evidence.pmid);
+                builder.withPropertyIfNotNull("summary", evidence.summary);
+                builder.withPropertyIfNotNull("score", evidence.score);
+                builder.build();
+            } else if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("Failed to add clinical annotation evidence for evidence id '" + evidence.evidenceId +
+                            "' and evidence type '" + evidence.evidenceType + "'");
             }
         }
     }
