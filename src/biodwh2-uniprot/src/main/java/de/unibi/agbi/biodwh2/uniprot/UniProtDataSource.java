@@ -6,6 +6,8 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
+import de.unibi.agbi.biodwh2.uniprot.etl.UniProtGraphExporter;
+import de.unibi.agbi.biodwh2.uniprot.etl.UniProtMappingDescriber;
 import de.unibi.agbi.biodwh2.uniprot.etl.UniProtParser;
 import de.unibi.agbi.biodwh2.uniprot.etl.UniProtUpdater;
 
@@ -32,12 +34,12 @@ public class UniProtDataSource extends DataSource {
 
     @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
-        return null;
+        return new UniProtGraphExporter(this);
     }
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return null;
+        return new UniProtMappingDescriber(this);
     }
 
     @Override
