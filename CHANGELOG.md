@@ -11,10 +11,12 @@
  * ```[DisGeNET]``` Implemented DisGeNET updater
  * ```[PharmGKB]``` Add guideline annotations and clinical annotation evidences
  * ```[PharmGKB]``` Split occurrences into literature and webpage
+ * ```[UniProt]``` Implemented updater and parser for UniProt
 
 ### 🔧 Bug fixes and other changes
 
  * ```[feature]``` CSV and TSV format reader in FileUtils now ignores missing columns
+ * ```[fix]``` Fix HTTP FTP pre web source parsing
  * ```[docs]``` Data source modules are now listed as usable instead of done, as always something might change
  * ```[docs]``` Updated development docs with new IntelliJ Idea version
 

@@ -37,6 +37,9 @@ public class GraphMerger {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Merging data source " + dataSource.getId());
         final Path intermediateGraphFilePath = dataSource.getFilePath(workspace, DataSourceFileType.PERSISTENT_GRAPH);
+        if (!intermediateGraphFilePath.toFile().exists())
+            throw new MergerException(
+                    "Failed to merge data source " + dataSource.getId() + " because the exported graph is missing");
         try (Graph databaseToMerge = new Graph(intermediateGraphFilePath, true, true)) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Adding " + databaseToMerge.getNumberOfNodes() + " nodes and " +

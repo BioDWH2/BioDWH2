@@ -140,7 +140,7 @@ public abstract class DataSource {
         return state;
     }
 
-    final void parse(final Workspace workspace) {
+    final boolean parse(final Workspace workspace) {
         try {
             metadata.parseSuccessful = getParser().parse(workspace);
         } catch (ParserException e) {
@@ -149,6 +149,7 @@ public abstract class DataSource {
             metadata.parseSuccessful = false;
         }
         trySaveMetadata(workspace);
+        return metadata.parseSuccessful;
     }
 
     final void export(final Workspace workspace) {

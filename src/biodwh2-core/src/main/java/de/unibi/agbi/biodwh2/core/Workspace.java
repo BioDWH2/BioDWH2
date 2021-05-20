@@ -187,10 +187,11 @@ public final class Workspace {
         if (isDataSourceExportNeeded(updateState, dataSource)) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Running parser");
-            dataSource.parse(this);
-            if (LOGGER.isInfoEnabled())
-                LOGGER.info("Running exporter");
-            dataSource.export(this);
+            if (dataSource.parse(this)) {
+                if (LOGGER.isInfoEnabled())
+                    LOGGER.info("Running exporter");
+                dataSource.export(this);
+            }
         } else if (LOGGER.isInfoEnabled())
             LOGGER.info("Skipping export of data source '" + dataSource.getId() + "' because nothing changed");
         if (LOGGER.isInfoEnabled())
@@ -235,7 +236,7 @@ public final class Workspace {
                 LOGGER.info("Merging of data sources finished");
         } catch (MergerException e) {
             if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to merge GraphML data sources", e);
+                LOGGER.error("Merging of data sources failed", e);
         }
     }
 

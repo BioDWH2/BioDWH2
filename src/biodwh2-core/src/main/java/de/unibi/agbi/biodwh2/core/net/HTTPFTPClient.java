@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.core.net;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -8,7 +7,9 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,16 +21,28 @@ public final class HTTPFTPClient {
         public String size;
     }
 
+    private static final String PRE_TABLE_ENTRY_REGEX = "<a\\s+href=\"[a-zA-Z_.]+\">([a-zA-Z_.]+)</a>\\s+([0-9]{4}-[0-9]{2}-[0-9]{2}\\s+[0-9]{2}:[0-9]{2})\\s+([0-9.]+[KMG]?)";
+
     private final String url;
+    private final Map<String, Entry[]> entryCache;
 
     public HTTPFTPClient(final String url) {
         this.url = url;
+        entryCache = new HashMap<>();
+    }
+
+    public Entry[] listDirectory() throws IOException {
+        return listDirectory(null);
     }
 
     public Entry[] listDirectory(final String path) throws IOException {
-        final String fullDirectoryUrl = url + "/" + path;
+        final String fullDirectoryUrl = path == null ? url : url + "/" + path;
+        if (entryCache.containsKey(fullDirectoryUrl))
+            return entryCache.get(fullDirectoryUrl);
         final String source = HTTPClient.getWebsiteSource(fullDirectoryUrl);
-        return parseWebSource(path, source);
+        final Entry[] entries = parseWebSource(path, source);
+        entryCache.put(fullDirectoryUrl, entries);
+        return entries;
     }
 
     Entry[] parseWebSource(final String path, final String source) {
@@ -60,20 +73,16 @@ public final class HTTPFTPClient {
     }
 
     private Entry[] parseWebSourcePre(final String path, final Element pre) {
-        final Pattern entryPattern = Pattern.compile(
-                "^(.+)\\s([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2})\\s+([0-9.]+[KMG]?)");
+        final Pattern entryPattern = Pattern.compile(PRE_TABLE_ENTRY_REGEX, Pattern.MULTILINE);
         final List<Entry> result = new ArrayList<>();
-        final String[] lines = StringUtils.split(pre.text(), "\n");
-        for (int i = 1; i < lines.length; i++) {
-            final Matcher matcher = entryPattern.matcher(StringUtils.stripEnd(lines[i], "\r"));
-            if (matcher.matches()) {
-                final Entry entry = new Entry();
-                entry.name = matcher.group(1).trim();
-                entry.modificationDate = matcher.group(2);
-                entry.size = matcher.group(3);
-                entry.fullUrl = (url + "/" + path + "/" + entry.name).replace("//", "/");
-                result.add(entry);
-            }
+        final Matcher matcher = entryPattern.matcher(pre.html());
+        while (matcher.find()) {
+            final Entry entry = new Entry();
+            entry.name = matcher.group(1).trim();
+            entry.modificationDate = matcher.group(2);
+            entry.size = matcher.group(3);
+            entry.fullUrl = (url + "/" + path + "/" + entry.name).replace("//", "/");
+            result.add(entry);
         }
         return result.toArray(new Entry[0]);
     }

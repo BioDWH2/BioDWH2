@@ -15,6 +15,6 @@ public class NDFRTUpdater extends MultiFileFTPWebUpdater<NDFRTDataSource> {
 
     @Override
     protected String[] getFilePaths() {
-        return new String[]{"NDFRT_Public_All%202018-02-05.zip"};
+        return new String[]{"NDFRT_Public_All 2018-02-05.zip"};
     }
 }

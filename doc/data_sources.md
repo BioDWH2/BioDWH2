@@ -19,6 +19,7 @@
 | PharmGKB      | PharmGKB                                                          | [Link](https://www.pharmgkb.org)                         | Usable           |
 | SIDER         | SIDER: Side Effect Resource                                       | [Link](http://sideeffects.embl.de)                       | Work in progress |
 | UNII          | FDA Substance Registration System - Unique Ingredient Identifier  | [Link](https://fdasis.nlm.nih.gov/srs/)                  | Usable           |
+| UniProt       | Functional information on proteins, with accurate, consistent and rich annotation. | [Link](https://www.uniprot.org)                          | Work in progress |
 | USDA-PLANTS   | USDA PLANTS Database                                              | [Link](https://plants.sc.egov.usda.gov)                  | Usable           |
 |               |                                                                   |                                                          |                  |
 
@@ -129,6 +130,10 @@
 > https://fdasis.nlm.nih.gov/srs/
 
 > Except as otherwise noted, data is provided as Public Doman.
+
+### UniProt
+
+> We have chosen to apply the [Creative Commons Attribution (CC BY 4.0) License](https://creativecommons.org/licenses/by/4.0/) to all copyrightable parts of our databases. (c) 2002-2021 UniProt Consortium
 
 ### USDA-PLANTS
 
