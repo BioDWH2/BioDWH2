@@ -7,6 +7,8 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.gene2phenotype.Gen2PhenotypeDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,10 +23,10 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 /**
- * The Gen2PhenotypeUpdater checks if an update of the sourcefiles is necessary by parsing the mainpage
- * of the gene2phenotype project (https://www.ebi.ac.uk/gene2phenotype) and extract the dates from the 'Latest updates'
- * section. This Date is used to build die version.
- * If there was an update, all files from the project are downloaded, decompressed and stored in the workspace.
+ * The Gen2PhenotypeUpdater checks if an update of the sourcefiles is necessary by parsing the mainpage of the
+ * gene2phenotype project (https://www.ebi.ac.uk/gene2phenotype) and extract the dates from the 'Latest updates'
+ * section. This Date is used to build die version. If there was an update, all files from the project are downloaded,
+ * decompressed and stored in the workspace.
  */
 public class Gen2PhenotypeUpdater extends Updater<Gen2PhenotypeDataSource> {
     /**
@@ -38,12 +40,12 @@ public class Gen2PhenotypeUpdater extends Updater<Gen2PhenotypeDataSource> {
     private static final String G2P_DOWNLOAD_URL = "https://www.ebi.ac.uk/gene2phenotype/downloads/";
 
     /**
-     * A lst of all files provided by the gene2phenotype project. The '.gz' ending is added later.
-     * CancerG2P.csv, DDG2P.csv, EyeG2P.csv, SkinG2P.csv
+     * A lst of all files provided by the gene2phenotype project. The '.gz' ending is added later. CancerG2P.csv,
+     * DDG2P.csv, EyeG2P.csv, SkinG2P.csv
      */
-    private static final List<String> FILES = Arrays.asList("CancerG2P.csv", "DDG2P.csv",
-                                                            "EyeG2P.csv", "SkinG2P.csv");
+    private static final List<String> FILES = Arrays.asList("CancerG2P.csv", "DDG2P.csv", "EyeG2P.csv", "SkinG2P.csv");
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Gen2PhenotypeUpdater.class);
 
     public Gen2PhenotypeUpdater(Gen2PhenotypeDataSource dataSource) {
         super(dataSource);
@@ -76,20 +78,29 @@ public class Gen2PhenotypeUpdater extends Updater<Gen2PhenotypeDataSource> {
                 }
             }
         }
+        LOGGER.debug("Version {} found.", newest);
         return convertDateTimeToVersion(newest);
     }
 
     @Override
     protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
         boolean succ = true;
-        for (String file : FILES){
-            succ &= downloadFile(workspace, dataSource, file);
+        boolean cur;
+        for (String file : FILES) {
+            cur = downloadFile(workspace, dataSource, file);
+            if (cur) {
+                LOGGER.debug("{} downloaded.", file);
+            } else {
+                LOGGER.debug("Download {} failed.", file);
+            }
+            succ &= cur;
         }
         return false;
     }
 
     /**
      * gets the contend of the gene2phenotype project mainpage.
+     *
      * @return the lines of the page as list of Strings.
      * @throws UpdaterConnectionException if hte page is not reachable.
      */
@@ -112,13 +123,17 @@ public class Gen2PhenotypeUpdater extends Updater<Gen2PhenotypeDataSource> {
 
     /**
      * downloads a given file from the downloadpage in the current workspace.
-     * @param workspace the current workspace given by th DataSource.
+     *
+     * @param workspace  the current workspace given by th DataSource.
      * @param dataSource the current DataSource.
-     * @param fileName the file to download. Will be searched on the downloadpage {@link Gen2PhenotypeUpdater#G2P_DOWNLOAD_URL}
+     * @param fileName   the file to download. Will be searched on the downloadpage {@link
+     *                   Gen2PhenotypeUpdater#G2P_DOWNLOAD_URL}
      * @return true, if the download was successful, false otherwise
-     * @throws UpdaterConnectionException of the download fails either because the side is not reachable or the file dose not exist
+     * @throws UpdaterConnectionException of the download fails either because the side is not reachable or the file
+     *                                    dose not exist
      */
-    private boolean downloadFile(Workspace workspace, DataSource dataSource, String fileName) throws UpdaterConnectionException {
+    private boolean downloadFile(Workspace workspace, DataSource dataSource,
+                                 String fileName) throws UpdaterConnectionException {
         boolean succ;
         String sourceFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
 
