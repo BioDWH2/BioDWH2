@@ -78,7 +78,7 @@ public class Gen2PhenotypeUpdater extends Updater<Gen2PhenotypeDataSource> {
                 }
             }
         }
-        LOGGER.debug("Version {} found.", newest);
+        LOGGER.debug("Version {} found", newest);
         return convertDateTimeToVersion(newest);
     }
 
@@ -89,9 +89,9 @@ public class Gen2PhenotypeUpdater extends Updater<Gen2PhenotypeDataSource> {
         for (String file : FILES) {
             cur = downloadFile(workspace, dataSource, file);
             if (cur) {
-                LOGGER.debug("{} downloaded.", file);
+                LOGGER.debug("{} downloaded", file);
             } else {
-                LOGGER.debug("Download {} failed.", file);
+                LOGGER.debug("Download {} failed", file);
             }
             succ &= cur;
         }
@@ -116,6 +116,7 @@ public class Gen2PhenotypeUpdater extends Updater<Gen2PhenotypeDataSource> {
                 buffer.append((char) ptr);
             }
         } catch (IOException e) {
+            LOGGER.error("Failed to get version from {}", G2P_DOWNLOAD_URL);
             throw new UpdaterConnectionException("Failed to get version from: " + G2P_MAIN_URL, e);
         }
         return buffer.toString().split("\n");
@@ -158,6 +159,7 @@ public class Gen2PhenotypeUpdater extends Updater<Gen2PhenotypeDataSource> {
             File temp = new File(sourceFilePath);
             succ = temp.exists() && temp.isFile() && temp.length() != 0;
         } catch (IOException e) {
+            LOGGER.error("Failed to download {}{}.gz", G2P_DOWNLOAD_URL, fileName);
             throw new UpdaterConnectionException("Failed to download: " + G2P_DOWNLOAD_URL + fileName + ".gz", e);
         }
 

@@ -6,9 +6,15 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
+import de.unibi.agbi.biodwh2.gene2phenotype.etl.Gen2PhenotypeParser;
 import de.unibi.agbi.biodwh2.gene2phenotype.etl.Gen2PhenotypeUpdater;
+import de.unibi.agbi.biodwh2.gene2phenotype.model.GeneDiseasePair;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Gen2PhenotypeDataSource  extends DataSource {
+    public List<GeneDiseasePair> geneDiseasePairs = new ArrayList<>(300);
 
     @Override
     public String getId() {
@@ -27,7 +33,7 @@ public class Gen2PhenotypeDataSource  extends DataSource {
 
     @Override
     protected Parser<? extends DataSource> getParser() {
-        return null;
+        return new Gen2PhenotypeParser(this);
     }
 
     @Override
