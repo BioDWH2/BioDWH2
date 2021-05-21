@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 @SuppressWarnings("WeakerAccess")
 public final class HTTPClient {
     @SuppressWarnings("SpellCheckingInspection")
-    public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11";
+    public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
 
     private HTTPClient() {
     }
@@ -43,8 +43,14 @@ public final class HTTPClient {
     }
 
     public static String getWebsiteSource(final String url) throws IOException {
+        return getWebsiteSource(url, null, null);
+    }
+
+    public static String getWebsiteSource(final String url, final String username,
+                                          final String password) throws IOException {
         final StringBuilder stringBuilder = new StringBuilder();
-        final InputStreamReader inputReader = new InputStreamReader(getUrlInputStream(url), StandardCharsets.UTF_8);
+        final InputStreamReader inputReader = new InputStreamReader(getUrlInputStream(url, username, password),
+                                                                    StandardCharsets.UTF_8);
         final BufferedReader bufferedReader = new BufferedReader(inputReader);
         String inputLine = bufferedReader.readLine();
         while (inputLine != null) {

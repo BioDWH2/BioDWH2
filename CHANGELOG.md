@@ -12,6 +12,7 @@
  * ```[PharmGKB]``` Add guideline annotations and clinical annotation evidences
  * ```[PharmGKB]``` Split occurrences into literature and webpage
  * ```[UniProt]``` Implemented updater and parser for UniProt
+ * ```[DrugBank]``` Replaced loading the whole XML database into ram with streaming
 
 ### 🔧 Bug fixes and other changes
 

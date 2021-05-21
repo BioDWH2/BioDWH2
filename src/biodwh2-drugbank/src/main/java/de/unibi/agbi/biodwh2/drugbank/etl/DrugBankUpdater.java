@@ -34,7 +34,7 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     private JsonNode loadReleasesJson() throws UpdaterException {
         final String source;
         try {
-            source = HTTPClient.getWebsiteSource("https://www.drugbank.ca/releases.json");
+            source = HTTPClient.getWebsiteSource("https://go.drugbank.com/releases.json");
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
