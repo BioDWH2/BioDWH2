@@ -30,8 +30,7 @@ public class DrugBankParser extends Parser<DrugBankDataSource> {
 
     private boolean parseDrugSdfFile(final Workspace workspace,
                                      final DrugBankDataSource dataSource) throws ParserException {
-        final String fileName = "drugbank_all_structures.sdf.zip";
-        final SdfReader reader = getSdfReaderFromZip(workspace, dataSource, fileName);
+        final SdfReader reader = getSdfReaderFromZip(workspace, dataSource, DrugBankUpdater.STRUCTURES_SDF_FILE_NAME);
         if (reader == null)
             return false;
         dataSource.drugStructures = new ArrayList<>();
@@ -99,8 +98,8 @@ public class DrugBankParser extends Parser<DrugBankDataSource> {
 
     private boolean parseMetaboliteSdfFile(final Workspace workspace,
                                            final DrugBankDataSource dataSource) throws ParserException {
-        final String fileName = "drugbank_all_metabolite-structures.sdf.zip";
-        final SdfReader reader = getSdfReaderFromZip(workspace, dataSource, fileName);
+        final SdfReader reader = getSdfReaderFromZip(workspace, dataSource,
+                                                     DrugBankUpdater.METABOLITE_STRUCTURES_SDF_FILE_NAME);
         if (reader == null)
             return false;
         dataSource.metaboliteStructures = new ArrayList<>();

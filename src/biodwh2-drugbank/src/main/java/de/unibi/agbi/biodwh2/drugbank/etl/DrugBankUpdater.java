@@ -20,6 +20,10 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     private static final String DRUG_STRUCTURES_URL_SUFFIX = "/downloads/all-structures";
     private static final String METABOLITE_STRUCTURES_URL_SUFFIX = "/downloads/all-metabolite-structures";
 
+    static final String FULL_DATABASE_FILE_NAME = "drugbank_all_full_database.xml.zip";
+    static final String STRUCTURES_SDF_FILE_NAME = "drugbank_all_structures.sdf.zip";
+    static final String METABOLITE_STRUCTURES_SDF_FILE_NAME = "drugbank_all_metabolite-structures.sdf.zip";
+
     public DrugBankUpdater(DrugBankDataSource dataSource) {
         super(dataSource);
     }
@@ -75,13 +79,13 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
             final JsonNode latestRelease = releases.get(0);
             final String latestReleaseUrl = latestRelease.get("url").asText();
             try {
-                String filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_full_database.xml.zip");
+                String filePath = dataSource.resolveSourceFilePath(workspace, FULL_DATABASE_FILE_NAME);
                 HTTPClient.downloadFileAsBrowser(latestReleaseUrl + FULL_DATABASE_URL_SUFFIX, filePath, username,
                                                  password);
-                filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_structures.sdf.zip");
+                filePath = dataSource.resolveSourceFilePath(workspace, STRUCTURES_SDF_FILE_NAME);
                 HTTPClient.downloadFileAsBrowser(latestReleaseUrl + DRUG_STRUCTURES_URL_SUFFIX, filePath, username,
                                                  password);
-                filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_metabolite-structures.sdf.zip");
+                filePath = dataSource.resolveSourceFilePath(workspace, METABOLITE_STRUCTURES_SDF_FILE_NAME);
                 HTTPClient.downloadFileAsBrowser(latestReleaseUrl + METABOLITE_STRUCTURES_URL_SUFFIX, filePath,
                                                  username, password);
                 return true;

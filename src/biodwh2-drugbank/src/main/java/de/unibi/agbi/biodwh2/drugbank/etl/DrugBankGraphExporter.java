@@ -191,7 +191,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private Map<String, Long> externalIdentifierLookUp;
     private Map<Integer, Long> mixtureLookUp;
     private Map<String, Map<String, Long>> dosageLookUp;
-    private List<DrugInteractionTriple> drugInteractionCache;
+    private Map<String, List<DrugInteractionTriple>> drugInteractionCache;
     private Map<Long, Set<String>> pathwayEnzymeCache;
     private Map<Long, Set<String>> pathwayDrugCache;
     private List<Reaction> reactionCache;
@@ -202,7 +202,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -216,24 +216,13 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         externalIdentifierLookUp = new HashMap<>();
         mixtureLookUp = new HashMap<>();
         dosageLookUp = new HashMap<>();
-        drugInteractionCache = new LinkedList<>();
+        drugInteractionCache = new HashMap<>();
         pathwayEnzymeCache = new HashMap<>();
         pathwayDrugCache = new HashMap<>();
         reactionCache = new LinkedList<>();
         graph.setNodeIndexPropertyKeys(ID_KEY, DRUGBANK_ID_KEY, SMPDB_ID_KEY, NAME_KEY);
         createMetaboliteStructures(graph, dataSource.metaboliteStructures);
         exportDrugs(workspace, graph);
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Export remaining " + drugInteractionCache.size() + " drug interactions...");
-        for (final DrugInteractionTriple triple : drugInteractionCache) {
-            if (drugLookUp.containsKey(triple.drugBankIdTarget)) {
-                final Long target = drugLookUp.get(triple.drugBankIdTarget);
-                graph.addEdge(triple.drugNodeId, target, INTERACTS_WITH_DRUG_LABEL, DESCRIPTION_KEY,
-                              triple.description);
-            } else {
-                LOGGER.warn("Missing drug with id '" + triple.drugBankIdTarget + "' for interaction will be ignored");
-            }
-        }
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export remaining " + pathwayEnzymeCache.size() + " pathway relationships...");
         for (final Long pathwayNodeId : pathwayEnzymeCache.keySet()) {
@@ -306,10 +295,10 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     }
 
     private void exportDrugs(final Workspace workspace, final Graph graph) {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_full_database.xml.zip");
+        final String filePath = dataSource.resolveSourceFilePath(workspace, DrugBankUpdater.FULL_DATABASE_FILE_NAME);
         final File zipFile = new File(filePath);
         if (!zipFile.exists())
-            throw new ExporterException("Failed to find file 'drugbank_all_full_database.xml.zip'");
+            throw new ExporterException("Failed to find file '" + DrugBankUpdater.FULL_DATABASE_FILE_NAME + "'");
         try {
             final ZipInputStream zipInputStream = openZipInputStream(zipFile);
             int counter = 1;
@@ -331,7 +320,8 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
                 }
             }
         } catch (IOException | XMLStreamException e) {
-            throw new ExporterFormatException("Failed to parse the file 'drugbank_all_full_database.xml.zip'", e);
+            throw new ExporterFormatException(
+                    "Failed to parse the file '" + DrugBankUpdater.FULL_DATABASE_FILE_NAME + "'", e);
         }
     }
 
@@ -879,18 +869,31 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     }
 
     private void addOrCacheDrugInteractions(final Graph graph, final Drug drug, final Node drugNode) {
-        if (drug.drugInteractions == null)
-            return;
-        for (final DrugInteraction interaction : drug.drugInteractions) {
-            if (drugLookUp.containsKey(interaction.drugbankId.value)) {
-                final Long target = drugLookUp.get(interaction.drugbankId.value);
-                graph.addEdge(drugNode, target, INTERACTS_WITH_DRUG_LABEL, DESCRIPTION_KEY, interaction.description);
-            } else {
-                final DrugInteractionTriple triple = new DrugInteractionTriple();
-                triple.drugNodeId = drugNode.getId();
-                triple.drugBankIdTarget = interaction.drugbankId.value;
-                triple.description = interaction.description;
-                drugInteractionCache.add(triple);
+        if (drug.drugInteractions != null) {
+            for (final DrugInteraction interaction : drug.drugInteractions) {
+                final String targetId = interaction.drugbankId.value;
+                if (drugLookUp.containsKey(targetId)) {
+                    final Long target = drugLookUp.get(targetId);
+                    graph.addEdge(drugNode, target, INTERACTS_WITH_DRUG_LABEL, DESCRIPTION_KEY,
+                                  interaction.description);
+                } else {
+                    final DrugInteractionTriple triple = new DrugInteractionTriple();
+                    triple.drugNodeId = drugNode.getId();
+                    triple.drugBankIdTarget = targetId;
+                    triple.description = interaction.description;
+                    drugInteractionCache.putIfAbsent(targetId, new LinkedList<>());
+                    drugInteractionCache.get(targetId).add(triple);
+                }
+            }
+        }
+        // Add all previously cached interactions to this drug entry
+        for (final DrugbankDrugSaltId id : drug.drugbankIds) {
+            if (drugInteractionCache.containsKey(id.value)) {
+                for (final DrugInteractionTriple triple : drugInteractionCache.get(id.value)) {
+                    graph.addEdge(triple.drugNodeId, drugNode, INTERACTS_WITH_DRUG_LABEL, DESCRIPTION_KEY,
+                                  triple.description);
+                }
+                drugInteractionCache.remove(id.value);
             }
         }
     }
