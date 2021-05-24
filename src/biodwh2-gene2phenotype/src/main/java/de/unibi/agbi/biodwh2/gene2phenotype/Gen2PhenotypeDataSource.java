@@ -15,7 +15,7 @@ import de.unibi.agbi.biodwh2.gene2phenotype.model.GeneDiseasePair;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Gen2PhenotypeDataSource  extends DataSource {
+public class Gen2PhenotypeDataSource extends DataSource {
     public List<GeneDiseasePair> geneDiseasePairs = new ArrayList<>(300);
 
     @Override
