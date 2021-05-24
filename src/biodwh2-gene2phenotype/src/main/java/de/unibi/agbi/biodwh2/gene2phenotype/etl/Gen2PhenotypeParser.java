@@ -24,6 +24,9 @@ public class Gen2PhenotypeParser extends Parser<Gen2PhenotypeDataSource> {
             "SkinG2P.csv", "EyeG2P.csv", "DDG2P.csv", "CancerG2P.csv"
     };
 
+    /**
+     * Pattern to split CSV with quotes or rather black magic
+     */
     private static final String CSV_PATTERN = ",(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Gen2PhenotypeParser.class);
@@ -41,6 +44,13 @@ public class Gen2PhenotypeParser extends Parser<Gen2PhenotypeDataSource> {
         return true;
     }
 
+    /**
+     * pars a given file line by line as CSV with respect to quotes e.g. a,"b,c",d -> a and b,c and d
+     * using a regex {@link #CSV_PATTERN}. Its stores the data in {@link #dataSource} using {@link GeneDiseasePair}
+     * @param path path to the file to parse
+     * @param dataSource the actuell datasource
+     * @throws ParserException
+     */
     private void parseFile(String path, Gen2PhenotypeDataSource dataSource) throws ParserException {
         List<String> lines;
 
@@ -58,6 +68,7 @@ public class Gen2PhenotypeParser extends Parser<Gen2PhenotypeDataSource> {
 
         int j = 0;
         for (String line : lines.subList(1, lines.size())) {
+            // Regex voodoo
             String[] splitted = line.split(CSV_PATTERN, -1);
             for (int i = 0; i < splitted.length; i++) {
                 splitted[i] = splitted[i].replace("\"", "");
