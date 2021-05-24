@@ -6,6 +6,8 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
+import de.unibi.agbi.biodwh2.gene2phenotype.etl.Gen2PhenotypeGraphExporter;
+import de.unibi.agbi.biodwh2.gene2phenotype.etl.Gen2PhenotypeMappingDescriber;
 import de.unibi.agbi.biodwh2.gene2phenotype.etl.Gen2PhenotypeParser;
 import de.unibi.agbi.biodwh2.gene2phenotype.etl.Gen2PhenotypeUpdater;
 import de.unibi.agbi.biodwh2.gene2phenotype.model.GeneDiseasePair;
@@ -38,16 +40,16 @@ public class Gen2PhenotypeDataSource  extends DataSource {
 
     @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
-        return null;
+        return new Gen2PhenotypeGraphExporter(this);
     }
 
     @Override
     public MappingDescriber getMappingDescriber() {
-        return null;
+        return new Gen2PhenotypeMappingDescriber(this);
     }
 
     @Override
     protected void unloadData() {
-
+        this.geneDiseasePairs = null;
     }
 }
