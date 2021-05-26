@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.sdf;
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 
 public final class SdfReader implements Iterable<SdfEntry> {
@@ -10,13 +11,13 @@ public final class SdfReader implements Iterable<SdfEntry> {
     SdfEntry lastEntry;
 
     @SuppressWarnings("unused")
-    public SdfReader(final String filePath, final String charsetName) throws IOException {
-        this(FileUtils.openInputStream(new File(filePath)), charsetName);
+    public SdfReader(final String filePath, final Charset charset) throws IOException {
+        this(FileUtils.openInputStream(new File(filePath)), charset);
     }
 
-    public SdfReader(final InputStream stream, final String charsetName) throws UnsupportedEncodingException {
+    public SdfReader(final InputStream stream, final Charset charset) {
         final InputStream baseStream = new BufferedInputStream(stream);
-        reader = new BufferedReader(new InputStreamReader(baseStream, charsetName));
+        reader = new BufferedReader(new InputStreamReader(baseStream, charset));
     }
 
     @Override
