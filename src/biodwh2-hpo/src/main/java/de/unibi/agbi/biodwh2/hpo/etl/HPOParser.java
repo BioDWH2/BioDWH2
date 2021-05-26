@@ -11,6 +11,6 @@ public class HPOParser extends Parser<HPODataSource> {
 
     @Override
     public boolean parse(final Workspace workspace) {
-        return false;
+        return true;
     }
 }

@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.obo;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,7 +13,7 @@ class OboReaderTest {
     void testReadingFromFileStream() throws IOException {
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try (InputStream stream = classLoader.getResourceAsStream("test_go.obo")) {
-            final OboReader reader = new OboReader(stream, "UTF-8");
+            final OboReader reader = new OboReader(stream, StandardCharsets.UTF_8);
             assertNotNull(reader.getHeader());
             assertEquals("1.2", reader.getHeader().getFormatVersion());
             assertEquals(16, reader.getHeader().get("subsetdef").length);

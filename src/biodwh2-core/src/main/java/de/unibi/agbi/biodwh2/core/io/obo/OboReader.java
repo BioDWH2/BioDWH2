@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,13 +23,13 @@ public final class OboReader implements Iterable<OboEntry> {
     private String nextType;
 
     @SuppressWarnings("unused")
-    public OboReader(final String filePath, final String charsetName) throws IOException {
-        this(FileUtils.openInputStream(new File(filePath)), charsetName);
+    public OboReader(final String filePath, final Charset charset) throws IOException {
+        this(FileUtils.openInputStream(new File(filePath)), charset);
     }
 
-    public OboReader(final InputStream stream, final String charsetName) throws IOException {
+    public OboReader(final InputStream stream, final Charset charset) {
         final InputStream baseStream = new BufferedInputStream(stream);
-        reader = new BufferedReader(new InputStreamReader(baseStream, charsetName));
+        reader = new BufferedReader(new InputStreamReader(baseStream, charset));
         header = (OboHeader) readNextEntry();
     }
 
