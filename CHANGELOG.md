@@ -8,10 +8,10 @@
  * ```[MED-RT]``` Specify more drug and disease nodes from concepts
  * ```[MED-RT]``` Add Drug, disease, and path mappings
  * ```[MED-RT]``` Marked MED-RT as usable
- * ```[DisGeNET]``` Implemented DisGeNET updater
  * ```[PharmGKB]``` Add guideline annotations and clinical annotation evidences
  * ```[PharmGKB]``` Split occurrences into literature and webpage
  * ```[UniProt]``` Implemented updater and parser for UniProt
+ * ```[EMA]``` Implemented EMA (EPAR, HMPC) data source module
 
 ### 🔧 Bug fixes and other changes
 

@@ -1,27 +1,28 @@
 # Data sources
 
-| ID            | Name                                                              | Website                                                  | State            |
-| ------------- | ----------------------------------------------------------------- | -------------------------------------------------------- | ---------------- |
-| ABDAMED2      | ABDATA ABDAMED Drug Database                                      | [Link](https://abdata.de/datenangebot/abdamed/)          | Work in progress |
-| CancerDrugsDB | A curated listing of licensed cancer drugs by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/cancerdrugs-db) | Usable           |
-| DGIdb         | The Drug Gene Interaction Database                                | [Link](http://dgidb.org)                                 | Work in progress |
-| DisGeNET      | DisGeNET                                                          | [Link](https://www.disgenet.org)                         | Work in progress |
-| DrugBank      | DrugBank                                                          | [Link](http://drugbank.ca)                               | Work in progress |
-| DrugCentral   | DrugCentral                                                       | [Link](http://drugcentral.org)                           | Work in progress |
-| GeneOntology  | Gene Ontology                                                     | [Link](http://geneontology.org)                          | Work in progress |
-| HGNC          | HUGO Gene Nomenclature Committee                                  | [Link](https://www.genenames.org)                        | Usable           |
-| HPO           | Human Phenotype Ontology                                          | [Link](https://hpo.jax.org)                              | Work in progress |
-| ITIS          | Integrated Taxonomic Information System                           | [Link](https://www.itis.gov)                             | Work in progress |
-| KEGG          | Kyoto Encyclopedia of Genes and Genomes                           | [Link](https://www.kegg.jp)                              | Work in progress |
-| MED-RT        | Medication Reference Terminology (MED-RT™)                        | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/)             | Usable           |
-| Mondo         | Mondo Disease Ontology                                            | [Link](https://mondo.monarchinitiative.org)              | Work in progress |
-| NDF-RT        | National Drug File – Reference Terminology (NDF-RT™)              | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/)             | Usable           |
-| PharmGKB      | PharmGKB                                                          | [Link](https://www.pharmgkb.org)                         | Usable           |
-| SIDER         | SIDER: Side Effect Resource                                       | [Link](http://sideeffects.embl.de)                       | Work in progress |
-| UNII          | FDA Substance Registration System - Unique Ingredient Identifier  | [Link](https://fdasis.nlm.nih.gov/srs/)                  | Usable           |
-| UniProt       | Functional information on proteins, with accurate, consistent and rich annotation. | [Link](https://www.uniprot.org)                          | Work in progress |
-| USDA-PLANTS   | USDA PLANTS Database                                              | [Link](https://plants.sc.egov.usda.gov)                  | Usable           |
-|               |                                                                   |                                                          |                  |
+| ID            | Name                                                                               | Website                                                               | State            |
+| ------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------- |
+| ABDAMED2      | ABDATA ABDAMED Drug Database                                                       | [Link](https://abdata.de/datenangebot/abdamed/)                       | Work in progress |
+| CancerDrugsDB | A curated listing of licensed cancer drugs by the Anticancer Fund                  | [Link](https://www.anticancerfund.org/en/cancerdrugs-db)              | Usable           |
+| DGIdb         | The Drug Gene Interaction Database                                                 | [Link](http://dgidb.org)                                              | Work in progress |
+| DisGeNET      | DisGeNET                                                                           | [Link](https://www.disgenet.org)                                      | Work in progress |
+| DrugBank      | DrugBank                                                                           | [Link](http://drugbank.ca)                                            | Work in progress |
+| DrugCentral   | DrugCentral                                                                        | [Link](http://drugcentral.org)                                        | Work in progress |
+| EMA           | European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC]            | [Link](https://www.ema.europa.eu/en/medicines/download-medicine-data) | Usable           |
+| GeneOntology  | Gene Ontology                                                                      | [Link](http://geneontology.org)                                       | Work in progress |
+| HGNC          | HUGO Gene Nomenclature Committee                                                   | [Link](https://www.genenames.org)                                     | Usable           |
+| HPO           | Human Phenotype Ontology                                                           | [Link](https://hpo.jax.org)                                           | Work in progress |
+| ITIS          | Integrated Taxonomic Information System                                            | [Link](https://www.itis.gov)                                          | Work in progress |
+| KEGG          | Kyoto Encyclopedia of Genes and Genomes                                            | [Link](https://www.kegg.jp)                                           | Work in progress |
+| MED-RT        | Medication Reference Terminology (MED-RT™)                                         | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/)                          | Usable           |
+| Mondo         | Mondo Disease Ontology                                                             | [Link](https://mondo.monarchinitiative.org)                           | Work in progress |
+| NDF-RT        | National Drug File – Reference Terminology (NDF-RT™)                               | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/)                          | Usable           |
+| PharmGKB      | PharmGKB                                                                           | [Link](https://www.pharmgkb.org)                                      | Usable           |
+| SIDER         | SIDER: Side Effect Resource                                                        | [Link](http://sideeffects.embl.de)                                    | Work in progress |
+| UNII          | FDA Substance Registration System - Unique Ingredient Identifier                   | [Link](https://fdasis.nlm.nih.gov/srs/)                               | Usable           |
+| UniProt       | Functional information on proteins, with accurate, consistent and rich annotation. | [Link](https://www.uniprot.org)                                       | Work in progress |
+| USDA-PLANTS   | USDA PLANTS Database                                                               | [Link](https://plants.sc.egov.usda.gov)                               | Usable           |
+|               |                                                                                    |                                                                       |                  |
 
 ## Licenses and references
 
@@ -56,6 +57,12 @@
 > Creative Commons Attribution-ShareAlike 4.0 International Public License
 
 > Ursu O, Holmes J, Knockel J, et al. DrugCentral: online drug compendium. Nucleic Acids Res. 2017;45(D1):D932-D939. doi: [10.1093/nar/gkw993](http://dx.doi.org/10.1093/nar/gkw993)
+
+### EMA
+
+> Used data are publicly available on the EMA website at https://www.ema.europa.eu/en/medicines/download-medicine-data.
+
+> Access to documents policy can be found at https://www.ema.europa.eu/en/about-us/how-we-work/access-documents
 
 ### GeneOntology
 
