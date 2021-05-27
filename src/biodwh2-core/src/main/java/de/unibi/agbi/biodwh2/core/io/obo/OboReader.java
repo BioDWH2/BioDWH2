@@ -10,9 +10,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * https://owlcollab.github.io/oboformat/doc/obo-syntax.html
+ * OBO file format 1.4 reader
+ * <p/>
+ * http://purl.obolibrary.org/obo/oboformat/spec.html
  */
-@SuppressWarnings("WeakerAccess")
 public final class OboReader implements Iterable<OboEntry> {
     private static final Pattern QUOTED_STRING_PATTERN = Pattern.compile("\"(\\.|[^\"])*\"");
 
@@ -22,7 +23,6 @@ public final class OboReader implements Iterable<OboEntry> {
     boolean hasNextEntry;
     private String nextType;
 
-    @SuppressWarnings("unused")
     public OboReader(final String filePath, final Charset charset) throws IOException {
         this(FileUtils.openInputStream(new File(filePath)), charset);
     }
@@ -33,8 +33,8 @@ public final class OboReader implements Iterable<OboEntry> {
         header = (OboHeader) readNextEntry();
     }
 
-    OboEntry readNextEntry() {
-        final OboEntry entry = instantiateEntryFromType();
+    OboStructure readNextEntry() {
+        final OboStructure entry = instantiateEntryFromType();
         nextType = null;
         hasNextEntry = false;
         String line;
@@ -52,7 +52,7 @@ public final class OboReader implements Iterable<OboEntry> {
         return entry;
     }
 
-    private OboEntry instantiateEntryFromType() {
+    private OboStructure instantiateEntryFromType() {
         if (nextType == null)
             return new OboHeader();
         switch (nextType) {
@@ -98,7 +98,8 @@ public final class OboReader implements Iterable<OboEntry> {
             @Override
             public boolean hasNext() {
                 final boolean lastHasNextEntry = hasNextEntry;
-                lastEntry = readNextEntry();
+                if (lastHasNextEntry)
+                    lastEntry = (OboEntry) readNextEntry();
                 return lastHasNextEntry;
             }
 

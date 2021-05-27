@@ -1,45 +1,152 @@
 package de.unibi.agbi.biodwh2.core.io.obo;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-public class OboEntry {
+/**
+ * Shared OBO entry properties for Term, Typedef, and Instance
+ */
+public class OboEntry extends OboStructure {
     private final String type;
-    private final Map<String, List<String>> keyValuePairs;
 
     OboEntry(final String type) {
+        super();
         this.type = type;
-        keyValuePairs = new HashMap<>();
     }
 
-    void addKeyValuePair(String key, String value) {
-        if (!keyValuePairs.containsKey(key))
-            keyValuePairs.put(key, new ArrayList<>());
-        keyValuePairs.get(key).add(value);
-    }
-
-    public String getType() {
+    public final String getType() {
         return type;
     }
 
-    public boolean containsKey(final String key) {
-        return keyValuePairs.containsKey(key);
+    /**
+     * cardinality 1
+     *
+     * @return ID (Class-ID for Term, Rel-ID for Typedef, Instance-ID for Instance)
+     */
+    public final String getId() {
+        return getFirst("id");
     }
 
-    public String[] get(final String key) {
-        final List<String> value = keyValuePairs.get(key);
-        return value == null ? null : value.toArray(new String[0]);
+    /**
+     * cardinality 0-1
+     *
+     * @return QuotedString ws XrefList
+     */
+    public final String getDef() {
+        return getFirst("def");
     }
 
-    public String getFirst(final String key) {
-        final List<String> values = keyValuePairs.get(key);
-        return values == null || values.size() == 0 ? null : values.get(0);
+    /**
+     * cardinality 0-1
+     *
+     * @return TVP
+     */
+    public final String getName() {
+        return getFirst("name");
     }
 
-    protected Boolean getBooleanValue(final String key) {
-        String value = getFirst(key);
-        return value == null ? null : "true".equalsIgnoreCase(value);
+    /**
+     * cardinality 1
+     *
+     * @return OBONamespace
+     */
+    public final String getNamespace() {
+        return getFirst("namespace");
+    }
+
+    /**
+     * cardinality 0-1
+     *
+     * @return TVP
+     */
+    public final String getComment() {
+        return getFirst("comment");
+    }
+
+    /**
+     * cardinality 0-1
+     *
+     * @return TVP
+     */
+    public final String getCreatedBy() {
+        return getFirst("created_by");
+    }
+
+    /**
+     * cardinality 0-1
+     *
+     * @return ISO-8601-DateTime
+     */
+    public final String getCreationDate() {
+        return getFirst("creation_date");
+    }
+
+    /**
+     * cardinality 0-1
+     *
+     * @return BT
+     */
+    public final Boolean isAnonymous() {
+        return getBooleanValue("is_anonymous");
+    }
+
+    /**
+     * cardinality 0-1
+     *
+     * @return BT
+     */
+    public final Boolean isObsolete() {
+        return getBooleanValue("is_obsolete");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return Xref[]
+     */
+    public final String[] getXrefs() {
+        return get("xref");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return ID[]
+     */
+    public final String[] getAltIds() {
+        return get("alt_id");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return ID[] (Class-ID for Term, Rel-ID for Typedef, Instance-ID for Instance)
+     */
+    public final String[] replacedBy() {
+        return get("replaced_by");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return ID[]
+     */
+    public String[] consider() {
+        return get("consider");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return (QuotedString ws SynonymScope [ ws SynonymType - ID ] ws XrefList)[]
+     */
+    public String[] getSynonyms() {
+        return get("synonym");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return Subset-ID[]
+     */
+    public String[] getSubsets() {
+        return get("subset");
     }
 }

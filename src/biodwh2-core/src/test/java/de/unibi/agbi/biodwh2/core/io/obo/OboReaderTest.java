@@ -19,10 +19,19 @@ class OboReaderTest {
             assertEquals(16, reader.getHeader().get("subsetdef").length);
             final Iterator<OboEntry> entryIterator = reader.iterator();
             assertTrue(entryIterator.hasNext());
-            final OboEntry entry = entryIterator.next();
+            OboEntry entry = entryIterator.next();
             assertEquals("Term", entry.getType());
             assertEquals("GO:0000001", entry.getFirst("id"));
             assertEquals("GO:0048308", entry.getFirst("is_a"));
+            assertTrue(entryIterator.hasNext());
+            entry = entryIterator.next();
+            assertEquals("Term", entry.getType());
+            assertEquals("GO:0000002", entry.getFirst("id"));
+            assertTrue(entryIterator.hasNext());
+            entry = entryIterator.next();
+            assertEquals("Term", entry.getType());
+            assertEquals("GO:0000003", entry.getFirst("id"));
+            assertFalse(entryIterator.hasNext());
         }
     }
 }

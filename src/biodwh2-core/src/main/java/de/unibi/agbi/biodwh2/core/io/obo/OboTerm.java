@@ -1,75 +1,84 @@
 package de.unibi.agbi.biodwh2.core.io.obo;
 
 /**
- * term-frame ::= nl*
- *         '[Term]' nl
- *         id-Tag Class-ID EOL
- *         { term-frame-clause EOL }
- *
- * term-frame-clause ::=
- *         is_anonymous-BT
- *         | name-TVP
- *         | namespace-Tag OBONamespace
- *         | alt_id-Tag ID
- *         | def-Tag QuotedString ws XrefList
- *         | comment-TVP
- *         | subset-Tag Subset-ID
- *         | synonym-Tag QuotedString ws SynonymScope [ ws SynonymType-ID ] XrefList
- *         | xref-Tag Xref
- *         | builtin-BT
- *         | property_value-Tag Relation-ID ws ( QuotedString ws XSD-Type | ID )
- *         | is_a-Tag Class-ID
- *         | intersection_of-Tag Class-ID
- *         | intersection_of-Tag Relation-ID ws Class-ID
- *         | union_of-Tag Class-ID
- *         | equivalent_to-Tag Class-ID
- *         | disjoint_from-Tag Class-ID
- *         | relationship-Tag Relation-ID ws Class-ID
- *         | is_obsolete-BT
- *         | replaced_by-Tag Class-ID
- *         | consider-Tag ID
- *         | created_by-TVP
- *         | creation_date-Tag ISO-8601-DateTime
+ * OBO Term definition
+ * <p/>
+ * http://purl.obolibrary.org/obo/oboformat/spec.html#3.3
  */
-@SuppressWarnings("unused")
 public final class OboTerm extends OboEntry {
     OboTerm() {
         super("Term");
     }
 
-    public String getId() {
-        return getFirst("id");
+    /**
+     * cardinality *
+     *
+     * @return BT[]
+     */
+    public Boolean[] builtin() {
+        return getBooleanValues("builtin");
     }
 
-    public Boolean isAnonymous() {
-        return getBooleanValue("is_anonymous");
+    /**
+     * cardinality *
+     *
+     * @return Class-ID[]
+     */
+    public String[] isA() {
+        return get("is_a");
     }
 
-    public String getName() {
-        return getFirst("name");
+    /**
+     * cardinality *
+     *
+     * @return Class-ID[]
+     */
+    public String[] equivalentTo() {
+        return get("equivalent_to");
     }
 
-    public String getNamespace() {
-        return getFirst("namespace");
+    /**
+     * cardinality *
+     *
+     * @return Class-ID[]
+     */
+    public String[] disjointFrom() {
+        return get("disjoint_from");
     }
 
-    public String getComment() {
-        return getFirst("comment");
+    /**
+     * cardinality 0, 2-*
+     *
+     * @return Class-ID[]
+     */
+    public String[] unionOf() {
+        return get("union_of");
     }
 
-    public Boolean builtin() {
-        return getBooleanValue("builtin");
+    /**
+     * cardinality 0, 2-*
+     *
+     * @return (Class - ID | Rel - ID ws Class - ID)[]
+     */
+    public String[] intersectionOf() {
+        return get("intersection_of");
     }
 
-    public Boolean isObsolete() {
-        return getBooleanValue("is_obsolete");
+    /**
+     * cardinality *
+     *
+     * @return (Rel - ID ws ( QuotedString ws XSD - Type | ID))[]
+     */
+    public String[] getPropertyValues() {
+        return get("property_value");
     }
 
-    public String getCreatedBy() {
-        return getFirst("created_by");
-    }
-
-    public String getCreationDate() {
-        return getFirst("creation_date");
+    /**
+     * cardinality *
+     *
+     * @return (Rel - ID ws Class - ID)[]
+     */
+    public String[] getRelationships() {
+        return get("relationship");
     }
 }

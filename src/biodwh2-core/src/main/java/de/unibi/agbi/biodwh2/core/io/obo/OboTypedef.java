@@ -1,84 +1,248 @@
 package de.unibi.agbi.biodwh2.core.io.obo;
 
 /**
- * typedef-frame ::= [ nl ]
- *         '[Typedef]' nl
- *         id-Tag Relation-ID EOL
- *         { typedef-frame-clause EOL }
- *
- * typedef-frame-clause ::=
- *         is_anonymous-BT
- *         | name-TVP
- *         | namespace-Tag OBONamespace
- *         | alt_id-Tag ID
- *         | def-Tag QuotedString ws XrefList
- *         | comment-TVP
- *         | subset-Tag Subset-ID
- *         | synonym-Tag QuotedString ws SynonymScope [ ws SynonymType-ID ] ws XrefList
- *         | xref-Tag Xref
- *         | property_value-Tag Relation-ID ws ( QuotedString ws XSD-Type | ID )
- *         | domain-Tag Class-ID
- *         | range-Tag Class-ID
- *         | builtin-BT
- *         | holds_over_chain-Tag Relation-ID ws Relation-ID
- *         | is_anti_symmetric-BT
- *         | is_cyclic-BT
- *         | is_reflexive-BT
- *         | is_symmetric-BT
- *         | is_transitive-BT
- *         | is_functional-BT
- *         | is_inverse_functional-BT
- *         | is_a-Tag Rel-ID
- *         | intersection_of-Tag Rel-ID
- *         | union_of-Tag Rel-ID
- *         | equivalent_to-Tag Rel-ID
- *         | disjoint_from-Tag Rel-ID
- *         | inverse_of-Tag Rel-ID
- *         | transitive_over-Tag Relation-ID
- *         | equivalent_to_chain-Tag Relation-ID ws Relation-ID
- *         | disjoint_over-Tag Rel-ID
- *         | relationship-Tag Rel-ID Rel-ID
- *         | is-obsolete-BT
- *         | replaced_by-Tag Rel-ID
- *         | consider-Tag ID
- *         | created_by-TVP
- *         | creation_date-Tag ISO-8601-DateTime
- *         | expand_assertion_to-Tag QuotedString ws XrefList
- *         | expand_expression_to-Tag QuotedString ws XrefList
- *         | is_metadata_tag-BT
- *         | is_class_level-BT
+ * OBO Typedef definition
+ * <p/>
+ * http://purl.obolibrary.org/obo/oboformat/spec.html#3.4
  */
-@SuppressWarnings("unused")
 public final class OboTypedef extends OboEntry {
     OboTypedef() {
         super("Typedef");
     }
 
-    public String getId() {
-        return getFirst("id");
+    /**
+     * cardinality 0-1
+     *
+     * @return BT
+     */
+    public Boolean isMetadataTag() {
+        return getBooleanValue("is_metadata_tag");
     }
 
-    public Boolean isAnonymous() {
-        return getBooleanValue("is_anonymous");
+    /**
+     * cardinality 0-1
+     *
+     * @return BT
+     */
+    public Boolean isCyclic() {
+        return getBooleanValue("is_cyclic");
     }
 
-    public String getName() {
-        return getFirst("name");
+    /**
+     * cardinality 0-1
+     *
+     * @return BT
+     */
+    public Boolean isReflexive() {
+        return getBooleanValue("is_reflexive");
     }
 
-    public String getNamespace() {
-        return getFirst("namespace");
+    /**
+     * cardinality 0-1
+     *
+     * @return BT
+     */
+    public Boolean isSymmetric() {
+        return getBooleanValue("is_symmetric");
     }
 
-    public Boolean isObsolete() {
-        return getBooleanValue("is-obsolete");
+    /**
+     * cardinality 0-1
+     *
+     * @return BT
+     */
+    public Boolean isAntiSymmetric() {
+        return getBooleanValue("is_anti_symmetric");
     }
 
-    public String getCreatedBy() {
-        return getFirst("created_by");
+    /**
+     * cardinality 0-1
+     *
+     * @return BT
+     */
+    public Boolean isTransitive() {
+        return getBooleanValue("is_transitive");
     }
 
-    public String getCreationDate() {
-        return getFirst("creation_date");
+    /**
+     * cardinality 0-1
+     *
+     * @return BT
+     */
+    public Boolean isFunctional() {
+        return getBooleanValue("is_functional");
+    }
+
+    /**
+     * cardinality 0-1
+     *
+     * @return BT
+     */
+    public Boolean isInverseFunctional() {
+        return getBooleanValue("is_inverse_functional");
+    }
+
+    /**
+     * cardinality 0-1
+     *
+     * @return BT
+     */
+    public Boolean isClassLevel() {
+        return getBooleanValue("is_class_level");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return BT[]
+     */
+    public Boolean[] builtin() {
+        return getBooleanValues("builtin");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return Rel-ID[]
+     */
+    public String[] isA() {
+        return get("is_a");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return Rel-ID[]
+     */
+    public String[] equivalentTo() {
+        return get("equivalent_to");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return Rel-ID[]
+     */
+    public String[] disjointFrom() {
+        return get("disjoint_from");
+    }
+
+    /**
+     * cardinality 0, 2-*
+     *
+     * @return Rel-ID[]
+     */
+    public String[] unionOf() {
+        return get("union_of");
+    }
+
+    /**
+     * cardinality 0, 2-*
+     *
+     * @return Rel-ID[]
+     */
+    public String[] intersectionOf() {
+        return get("intersection_of");
+    }
+
+    /**
+     * cardinality *
+     * <p>
+     * disjoint_over-Tag Rel-ID
+     *
+     * @return Rel-ID[]
+     */
+    public String[] inverseOf() {
+        return get("inverse_of");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return Rel-ID[]
+     */
+    public String[] transitiveOver() {
+        return get("transitive_over");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return Rel-ID[]
+     */
+    public String[] disjointOver() {
+        return get("disjoint_over");
+    }
+
+    /**
+     * cardinality 0-1
+     *
+     * @return Class-ID
+     */
+    public String getDomain() {
+        return getFirst("domain");
+    }
+
+    /**
+     * cardinality 0-1
+     *
+     * @return Class-ID
+     */
+    public String getRange() {
+        return getFirst("range");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return (Rel - ID ws ( QuotedString ws XSD - Type | ID))[]
+     */
+    public String[] getPropertyValues() {
+        return get("property_value");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return (Rel - ID ws Rel - ID)[]
+     */
+    public String[] getRelationships() {
+        return get("relationship");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return (Rel - ID ws Rel - ID)[]
+     */
+    public String[] holdsOverChain() {
+        return get("holds_over_chain");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return (Rel - ID ws Rel - ID)[]
+     */
+    public String[] equivalentToChain() {
+        return get("equivalent_to_chain");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return (QuotedString ws XrefList)[]
+     */
+    public String[] expandAssertionTo() {
+        return get("expand_assertion_to");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return (QuotedString ws XrefList)[]
+     */
+    public String[] expandExpressionTo() {
+        return get("expand_expression_to");
     }
 }
