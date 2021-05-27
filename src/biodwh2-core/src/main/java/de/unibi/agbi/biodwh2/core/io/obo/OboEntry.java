@@ -29,7 +29,8 @@ public class OboEntry {
     }
 
     public String[] get(final String key) {
-        return keyValuePairs.getOrDefault(key, null).toArray(new String[0]);
+        final List<String> value = keyValuePairs.get(key);
+        return value == null ? null : value.toArray(new String[0]);
     }
 
     public String getFirst(final String key) {

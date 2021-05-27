@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -53,13 +54,13 @@ public final class GFF3Reader implements Iterable<GFF3Entry> {
         SEQUENCE_ONTOLOGY_MAP.put("SO:0000316", "cds");
     }
 
-    public GFF3Reader(final String filePath, final String charsetName) throws IOException {
-        this(FileUtils.openInputStream(new File(filePath)), charsetName);
+    public GFF3Reader(final String filePath, final Charset charset) throws IOException {
+        this(FileUtils.openInputStream(new File(filePath)), charset);
     }
 
-    public GFF3Reader(final InputStream stream, final String charsetName) throws UnsupportedEncodingException {
+    public GFF3Reader(final InputStream stream, final Charset charset) {
         final InputStream baseStream = new BufferedInputStream(stream);
-        reader = new BufferedReader(new InputStreamReader(baseStream, charsetName));
+        reader = new BufferedReader(new InputStreamReader(baseStream, charset));
     }
 
     @Override

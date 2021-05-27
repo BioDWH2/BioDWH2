@@ -14,6 +14,7 @@ import de.unibi.agbi.biodwh2.drugbank.model.DrugbankMetaboliteId;
 import de.unibi.agbi.biodwh2.drugbank.model.MetaboliteStructure;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -50,7 +51,7 @@ public class DrugBankParser extends Parser<DrugBankDataSource> {
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (isZipEntrySdf(zipEntry.getName())) {
-                    return new SdfReader(zipInputStream, "UTF-8");
+                    return new SdfReader(zipInputStream, StandardCharsets.UTF_8);
                 }
             }
         } catch (IOException e) {

@@ -8,14 +8,16 @@
  * ```[MED-RT]``` Specify more drug and disease nodes from concepts
  * ```[MED-RT]``` Add Drug, disease, and path mappings
  * ```[MED-RT]``` Marked MED-RT as usable
- * ```[DisGeNET]``` Implemented DisGeNET updater
  * ```[PharmGKB]``` Add guideline annotations and clinical annotation evidences
  * ```[PharmGKB]``` Split occurrences into literature and webpage
  * ```[UniProt]``` Implemented updater and parser for UniProt
  * ```[DrugBank]``` Replaced loading the whole XML database into ram with streaming
+ * ```[EMA]``` Implemented EMA (EPAR, HMPC) data source module
 
 ### 🔧 Bug fixes and other changes
 
+ * ```[feature]``` IO format readers now use Charset class instead of charset name
+ * ```[feature]``` OBO ontologies now share a unified graph exporter
  * ```[feature]``` CSV and TSV format reader in FileUtils now ignores missing columns
  * ```[fix]``` Fix HTTP FTP pre web source parsing
  * ```[docs]``` Data source modules are now listed as usable instead of done, as always something might change

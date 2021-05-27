@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -210,11 +211,12 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
 
     private void exportPubChemDatabase(final Workspace workspace, final DataSource dataSource,
                                        final Graph graph) throws IOException {
-        String[] fileNames = dataSource.listSourceFiles(workspace);
-        for (String fileName : fileNames)
+        final String[] fileNames = dataSource.listSourceFiles(workspace);
+        for (final String fileName : fileNames)
             if (fileName.startsWith("Compound_") && fileName.endsWith(".sdf.gz")) {
-                SdfReader reader = new SdfReader(FileUtils.openGzip(workspace, dataSource, fileName), "UTF-8");
-                for (SdfEntry entry : reader)
+                final SdfReader reader = new SdfReader(FileUtils.openGzip(workspace, dataSource, fileName),
+                                                       StandardCharsets.UTF_8);
+                for (final SdfEntry entry : reader)
                     createPubChemCompoundNode(graph, entry);
             }
     }
