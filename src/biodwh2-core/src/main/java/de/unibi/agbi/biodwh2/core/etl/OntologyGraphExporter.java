@@ -14,13 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class OntologyGraphExporter<D extends DataSource> extends GraphExporter<D> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntologyGraphExporter.class);
+    private static final String ID_PROPERTY = "id";
 
     public OntologyGraphExporter(final D dataSource) {
         super(dataSource);
@@ -29,7 +27,7 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         final boolean ignoreObsolete = ignoreObsolete(workspace);
-        graph.setNodeIndexPropertyKeys("id");
+        graph.setNodeIndexPropertyKeys(ID_PROPERTY);
         try {
             final OboReader reader = new OboReader(dataSource.resolveSourceFilePath(workspace, getOntologyFileName()),
                                                    StandardCharsets.UTF_8);
@@ -52,16 +50,84 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
         builder.withPropertyIfNotNull("remarks", header.getRemarks());
         builder.withPropertyIfNotNull("ontology", header.getOntology());
         builder.withPropertyIfNotNull("imports", header.getImports());
-        final Node node = builder.build();
-        final String[] subsetDefs = header.getSubsetDefs();
-        if (subsetDefs != null) {
-            for (final String subsetDef : subsetDefs) {
-                final String[] parts = StringUtils.split(subsetDef, " ", 2);
-                final String name = StringUtils.strip(parts[1].trim(), "\"");
-                final Node subsetDefNode = graph.addNode("Subset", "id", parts[0], "name", name);
-                graph.addEdge(node, subsetDefNode, "HAS_SUBSET");
-            }
+        builder.withPropertyIfNotNull("owl_axioms", header.getOWLAxioms());
+        builder.withPropertyIfNotNull("treat_xrefs_as_equivalent", header.treatXrefsAsEquivalent());
+        builder.withPropertyIfNotNull("treat_xrefs_as_genus_differentia", header.treatXrefsAsGenusDifferentia());
+        builder.withPropertyIfNotNull("treat_xrefs_as_has_subclass", header.treatXrefsAsHasSubclass());
+        builder.withPropertyIfNotNull("treat_xrefs_as_is_a", header.treatXrefsAsIsA());
+        builder.withPropertyIfNotNull("treat_xrefs_as_relationship", header.treatXrefsAsRelationship());
+        builder.withPropertyIfNotNull("treat_xrefs_as_reverse_genus_differentia",
+                                      header.treatXrefsAsReverseGenusDifferentia());
+        builder.withPropertyIfNotNull("property_values", header.getPropertyValues());
+        for (final String unreservedTokenKey : header.getUnreservedTokenKeys()) {
+            final String key = StringUtils.replace(unreservedTokenKey, "-", "_");
+            builder.withPropertyIfNotNull(key, header.get(key));
         }
+        final Node node = builder.build();
+        exportHeaderSubsetDefinitions(graph, header, node);
+        exportHeaderSynonymTypeDefinitions(graph, header, node);
+        exportHeaderIdspaces(graph, header, node);
+
+    }
+
+    private void exportHeaderSubsetDefinitions(final Graph graph, final OboHeader header, final Node headerNode) {
+        final String[] subsetDefs = header.getSubsetDefs();
+        if (subsetDefs != null)
+            for (final String subsetDef : subsetDefs)
+                exportHeaderSubsetDefinition(graph, headerNode, subsetDef);
+    }
+
+    private void exportHeaderSubsetDefinition(final Graph graph, final Node headerNode, final String subsetDef) {
+        final String[] parts = StringUtils.split(subsetDef, " ", 2);
+        final String name = StringUtils.strip(parts[1].trim(), "\"");
+        final Node subsetDefNode = graph.addNode("Subset", ID_PROPERTY, parts[0], "name", name);
+        graph.addEdge(headerNode, subsetDefNode, "HAS_SUBSET");
+    }
+
+    private void exportHeaderSynonymTypeDefinitions(final Graph graph, final OboHeader header, final Node headerNode) {
+        final String[] synonymTypeDefs = header.getSynonymTypeDefs();
+        if (synonymTypeDefs != null)
+            for (final String synonymTypeDef : synonymTypeDefs)
+                exportHeaderSynonymTypeDefinition(graph, headerNode, synonymTypeDef);
+    }
+
+    private void exportHeaderSynonymTypeDefinition(final Graph graph, final Node headerNode,
+                                                   final String synonymTypeDef) {
+        final int idSplitIndex = synonymTypeDef.indexOf(' ');
+        final String id = synonymTypeDef.substring(0, idSplitIndex);
+        final boolean endsWithOptionalSynonymScope = Arrays.stream(SynonymScope.values()).anyMatch(
+                scope -> synonymTypeDef.endsWith(scope.name()));
+        final String name;
+        final SynonymScope scope;
+        final Node subsetDefNode;
+        if (endsWithOptionalSynonymScope) {
+            final int scopeSplitIndex = synonymTypeDef.lastIndexOf(' ');
+            name = StringUtils.strip(synonymTypeDef.substring(idSplitIndex, scopeSplitIndex).trim(), "\"");
+            scope = SynonymScope.valueOf(synonymTypeDef.substring(scopeSplitIndex + 1));
+            subsetDefNode = graph.addNode("SynonymType", ID_PROPERTY, id, "name", name, "scope", scope.name());
+        } else {
+            name = StringUtils.strip(synonymTypeDef.substring(idSplitIndex).trim(), "\"");
+            subsetDefNode = graph.addNode("SynonymType", ID_PROPERTY, id, "name", name);
+        }
+        graph.addEdge(headerNode, subsetDefNode, "HAS_SYNONYM_TYPE");
+    }
+
+    private void exportHeaderIdspaces(final Graph graph, final OboHeader header, final Node headerNode) {
+        final String[] idspaces = header.getIdspaces();
+        if (idspaces != null)
+            for (final String idspace : idspaces)
+                exportHeaderIdspace(graph, headerNode, idspace);
+    }
+
+    private void exportHeaderIdspace(final Graph graph, final Node headerNode, final String idspace) {
+        final String[] parts = StringUtils.split(idspace, " ", 3);
+        final Node idspaceNode;
+        if (parts.length == 3) {
+            final String name = StringUtils.strip(parts[2].trim(), "\"");
+            idspaceNode = graph.addNode("Idspace", ID_PROPERTY, parts[0], "iri", parts[1], "name", name);
+        } else
+            idspaceNode = graph.addNode("Idspace", ID_PROPERTY, parts[0], "iri", parts[1]);
+        graph.addEdge(headerNode, idspaceNode, "HAS_IDSPACE");
     }
 
     private void exportEntries(final boolean ignoreObsolete, final Graph graph, final OboReader reader) {
@@ -95,7 +161,7 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
     }
 
     private void populateBuilderWithEntry(final NodeBuilder builder, final OboEntry entry) {
-        builder.withProperty("id", entry.getId());
+        builder.withProperty(ID_PROPERTY, entry.getId());
         builder.withPropertyIfNotNull("def", entry.getDef());
         builder.withPropertyIfNotNull("name", entry.getName());
         builder.withPropertyIfNotNull("namespace", entry.getNamespace());
@@ -105,6 +171,7 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
         builder.withPropertyIfNotNull("creation_date", entry.getCreationDate());
         builder.withPropertyIfNotNull("xrefs", entry.getXrefs());
         builder.withPropertyIfNotNull("alt_ids", entry.getAltIds());
+        builder.withPropertyIfNotNull("property_values", entry.getPropertyValues());
         builder.withProperty("obsolete", entry.isObsolete());
         builder.withProperty("anonymous", entry.isAnonymous());
     }
@@ -115,7 +182,7 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
             for (final String targetId : targetIds) {
                 if (targetId == null)
                     continue;
-                final Node targetNode = graph.findNode("id", targetId);
+                final Node targetNode = graph.findNode(ID_PROPERTY, targetId);
                 if (targetNode == null) {
                     relationCache.putIfAbsent(targetId, new HashMap<>());
                     relationCache.get(targetId).putIfAbsent(relationName, new ArrayList<>());
@@ -124,7 +191,7 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
                     graph.addEdge(entryNode, targetNode, relationName);
             }
         }
-        final String entryId = entryNode.getProperty("id");
+        final String entryId = entryNode.getProperty(ID_PROPERTY);
         if (relationCache.containsKey(entryId)) {
             final Map<String, List<Long>> relations = relationCache.get(entryId);
             for (final String key : relations.keySet())

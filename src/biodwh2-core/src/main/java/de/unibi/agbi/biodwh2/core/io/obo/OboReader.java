@@ -31,6 +31,7 @@ public final class OboReader implements Iterable<OboEntry> {
         final InputStream baseStream = new BufferedInputStream(stream);
         reader = new BufferedReader(new InputStreamReader(baseStream, charset));
         header = (OboHeader) readNextEntry();
+        header.cacheUnreservedTokens();
     }
 
     OboStructure readNextEntry() {

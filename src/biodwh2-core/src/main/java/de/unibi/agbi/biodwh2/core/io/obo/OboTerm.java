@@ -58,7 +58,7 @@ public final class OboTerm extends OboEntry {
     /**
      * cardinality 0, 2-*
      *
-     * @return (Class - ID | Rel - ID ws Class - ID)[]
+     * @return (Class-ID | Rel-ID ws Class-ID)[]
      */
     public String[] intersectionOf() {
         return get("intersection_of");
@@ -67,16 +67,7 @@ public final class OboTerm extends OboEntry {
     /**
      * cardinality *
      *
-     * @return (Rel - ID ws ( QuotedString ws XSD - Type | ID))[]
-     */
-    public String[] getPropertyValues() {
-        return get("property_value");
-    }
-
-    /**
-     * cardinality *
-     *
-     * @return (Rel - ID ws Class - ID)[]
+     * @return (Rel-ID ws Class-ID)[]
      */
     public String[] getRelationships() {
         return get("relationship");

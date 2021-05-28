@@ -1,15 +1,16 @@
 package de.unibi.agbi.biodwh2.core.io.obo;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 abstract class OboStructure {
     private final Map<String, List<String>> keyValuePairs;
 
     OboStructure() {
         keyValuePairs = new HashMap<>();
+    }
+
+    protected Set<String> getKeys() {
+        return keyValuePairs.keySet();
     }
 
     void addKeyValuePair(final String key, final String value) {

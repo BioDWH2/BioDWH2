@@ -128,16 +128,16 @@ public class OboEntry extends OboStructure {
      *
      * @return ID[]
      */
-    public String[] consider() {
+    public final String[] consider() {
         return get("consider");
     }
 
     /**
      * cardinality *
      *
-     * @return (QuotedString ws SynonymScope [ ws SynonymType - ID ] ws XrefList)[]
+     * @return (QuotedString ws SynonymScope [ ws SynonymType-ID ] ws XrefList)[]
      */
-    public String[] getSynonyms() {
+    public final String[] getSynonyms() {
         return get("synonym");
     }
 
@@ -146,7 +146,16 @@ public class OboEntry extends OboStructure {
      *
      * @return Subset-ID[]
      */
-    public String[] getSubsets() {
+    public final String[] getSubsets() {
         return get("subset");
+    }
+
+    /**
+     * cardinality *
+     *
+     * @return (Rel-ID ws ( QuotedString ws XSD-Type | ID))[]
+     */
+    public final String[] getPropertyValues() {
+        return get("property_value");
     }
 }

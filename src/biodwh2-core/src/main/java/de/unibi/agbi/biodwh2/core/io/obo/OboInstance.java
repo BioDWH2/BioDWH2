@@ -22,12 +22,9 @@ public final class OboInstance extends OboEntry {
     /**
      * cardinality *
      *
-     * @return (Rel - ID ws ID)[]
+     * @return (Rel-ID ws ID)[]
      */
     public String[] getRelationships() {
         return get("relationship");
     }
-
-    // TODO: property_value-Tag Relation-ID ID
-    // TODO: PropertyValueTagValue
 }

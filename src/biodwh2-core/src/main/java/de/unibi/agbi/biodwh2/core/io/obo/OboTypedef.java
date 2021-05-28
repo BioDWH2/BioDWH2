@@ -195,16 +195,7 @@ public final class OboTypedef extends OboEntry {
     /**
      * cardinality *
      *
-     * @return (Rel - ID ws ( QuotedString ws XSD - Type | ID))[]
-     */
-    public String[] getPropertyValues() {
-        return get("property_value");
-    }
-
-    /**
-     * cardinality *
-     *
-     * @return (Rel - ID ws Rel - ID)[]
+     * @return (Rel-ID ws Rel-ID)[]
      */
     public String[] getRelationships() {
         return get("relationship");
@@ -213,7 +204,7 @@ public final class OboTypedef extends OboEntry {
     /**
      * cardinality *
      *
-     * @return (Rel - ID ws Rel - ID)[]
+     * @return (Rel-ID ws Rel-ID)[]
      */
     public String[] holdsOverChain() {
         return get("holds_over_chain");
@@ -222,7 +213,7 @@ public final class OboTypedef extends OboEntry {
     /**
      * cardinality *
      *
-     * @return (Rel - ID ws Rel - ID)[]
+     * @return (Rel-ID ws Rel-ID)[]
      */
     public String[] equivalentToChain() {
         return get("equivalent_to_chain");
