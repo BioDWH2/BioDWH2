@@ -158,4 +158,13 @@ public class OboEntry extends OboStructure {
     public final String[] getPropertyValues() {
         return get("property_value");
     }
+
+    /**
+     * cardinality *
+     *
+     * @return (Rel-ID ws ID)[]
+     */
+    public final String[] getRelationships() {
+        return get("relationship");
+    }
 }

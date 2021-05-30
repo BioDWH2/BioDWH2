@@ -197,15 +197,6 @@ public final class OboTypedef extends OboEntry {
      *
      * @return (Rel-ID ws Rel-ID)[]
      */
-    public String[] getRelationships() {
-        return get("relationship");
-    }
-
-    /**
-     * cardinality *
-     *
-     * @return (Rel-ID ws Rel-ID)[]
-     */
     public String[] holdsOverChain() {
         return get("holds_over_chain");
     }

@@ -63,13 +63,4 @@ public final class OboTerm extends OboEntry {
     public String[] intersectionOf() {
         return get("intersection_of");
     }
-
-    /**
-     * cardinality *
-     *
-     * @return (Rel-ID ws Class-ID)[]
-     */
-    public String[] getRelationships() {
-        return get("relationship");
-    }
 }

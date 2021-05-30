@@ -18,13 +18,4 @@ public final class OboInstance extends OboEntry {
     public String instanceOf() {
         return getFirst("instance_of");
     }
-
-    /**
-     * cardinality *
-     *
-     * @return (Rel-ID ws ID)[]
-     */
-    public String[] getRelationships() {
-        return get("relationship");
-    }
 }

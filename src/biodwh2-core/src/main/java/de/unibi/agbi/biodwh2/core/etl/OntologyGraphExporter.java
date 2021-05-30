@@ -9,15 +9,18 @@ import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public abstract class OntologyGraphExporter<D extends DataSource> extends GraphExporter<D> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OntologyGraphExporter.class);
+    private static class EdgeCacheEntry {
+        public long sourceNodeId;
+        public String propertyKey;
+        public String propertyValue;
+    }
+
     private static final String ID_PROPERTY = "id";
 
     public OntologyGraphExporter(final D dataSource) {
@@ -131,7 +134,7 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
     }
 
     private void exportEntries(final boolean ignoreObsolete, final Graph graph, final OboReader reader) {
-        final Map<String, Map<String, List<Long>>> relationCache = new HashMap<>();
+        final Map<String, Map<String, List<EdgeCacheEntry>>> relationCache = new HashMap<>();
         for (final OboEntry entry : reader) {
             if (ignoreObsolete && Boolean.TRUE.equals(entry.isObsolete()))
                 continue;
@@ -141,17 +144,17 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
                 exportTypedef(graph, (OboTypedef) entry, relationCache);
             else if (entry instanceof OboInstance)
                 exportInstance(graph, (OboInstance) entry, relationCache);
-            else if (LOGGER.isInfoEnabled())
-                LOGGER.info("Ignoring unknown OBO entry of type '" + entry.getType() + "'");
         }
+        System.out.println(relationCache.size());
     }
 
     private void exportTerm(final Graph graph, final OboTerm term,
-                            final Map<String, Map<String, List<Long>>> relationCache) {
+                            final Map<String, Map<String, List<EdgeCacheEntry>>> relationCache) {
         final NodeBuilder builder = graph.buildNode().withLabel(term.getType());
         populateBuilderWithEntry(builder, term);
         builder.withPropertyIfNotNull("builtin", term.builtin());
         final Node node = builder.build();
+        handleRelationshipsWithRelId(graph, term.getRelationships(), node, relationCache);
         handleRelationships(graph, term.isA(), "IS_A", node, relationCache);
         handleRelationships(graph, term.equivalentTo(), "EQUIVALENT_TO", node, relationCache);
         handleRelationships(graph, term.disjointFrom(), "DISJOINT_FROM", node, relationCache);
@@ -176,33 +179,86 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
         builder.withProperty("anonymous", entry.isAnonymous());
     }
 
+    private void handleRelationshipsWithRelId(final Graph graph, final String[] relationships, final Node entryNode,
+                                              final Map<String, Map<String, List<EdgeCacheEntry>>> relationCache) {
+        if (relationships != null) {
+            final String relationName = "HAS_RELATIONSHIP";
+            for (final String relationship : relationships) {
+                if (relationship == null)
+                    continue;
+                final String[] parts = StringUtils.split(relationship, " ", 2);
+                final String relationId = parts[0];
+                final String targetId = parts[1];
+                final Node targetNode = graph.findNode(ID_PROPERTY, targetId);
+                if (targetNode == null) {
+                    addRelationshipToCache(relationCache, entryNode.getId(), targetId, relationName, "rel_id",
+                                           relationId);
+                } else
+                    graph.addEdge(entryNode, targetNode, relationName, "rel_id", relationId);
+            }
+        }
+        handleCachedRelationshipsForNode(graph, entryNode, relationCache);
+    }
+
+    private void addRelationshipToCache(final Map<String, Map<String, List<EdgeCacheEntry>>> relationCache,
+                                        final long sourceNodeId, final String targetId, final String relationName,
+                                        final String propertyKey, final String propertyValue) {
+        relationCache.putIfAbsent(targetId, new HashMap<>());
+        relationCache.get(targetId).putIfAbsent(relationName, new ArrayList<>());
+        final EdgeCacheEntry cacheEntry = new EdgeCacheEntry();
+        cacheEntry.sourceNodeId = sourceNodeId;
+        cacheEntry.propertyKey = propertyKey;
+        cacheEntry.propertyValue = propertyValue;
+        relationCache.get(targetId).get(relationName).add(cacheEntry);
+    }
+
+    private void handleCachedRelationshipsForNode(final Graph graph, final Node node,
+                                                  final Map<String, Map<String, List<EdgeCacheEntry>>> relationCache) {
+        final String targetId = node.getProperty(ID_PROPERTY);
+        if (targetId != null && relationCache.containsKey(targetId)) {
+            final Map<String, List<EdgeCacheEntry>> relations = relationCache.get(targetId);
+            for (final String key : relations.keySet())
+                for (final EdgeCacheEntry cacheEntry : relations.get(key))
+                    if (cacheEntry.propertyKey != null && cacheEntry.propertyValue != null)
+                        graph.addEdge(cacheEntry.sourceNodeId, node, key, cacheEntry.propertyKey,
+                                      cacheEntry.propertyValue);
+                    else
+                        graph.addEdge(cacheEntry.sourceNodeId, node, key);
+            relationCache.remove(targetId);
+        }
+    }
+
     private void handleRelationships(final Graph graph, final String[] targetIds, final String relationName,
-                                     final Node entryNode, final Map<String, Map<String, List<Long>>> relationCache) {
+                                     final Node entryNode,
+                                     final Map<String, Map<String, List<EdgeCacheEntry>>> relationCache) {
         if (targetIds != null) {
             for (final String targetId : targetIds) {
                 if (targetId == null)
                     continue;
-                final Node targetNode = graph.findNode(ID_PROPERTY, targetId);
+                String id = targetId;
+                String annotation = null;
+                if (targetId.contains(" ")) {
+                    final String[] parts = StringUtils.split(targetId, " ", 2);
+                    id = parts[0];
+                    annotation = parts[1];
+                }
+                final Node targetNode = graph.findNode(ID_PROPERTY, id);
                 if (targetNode == null) {
-                    relationCache.putIfAbsent(targetId, new HashMap<>());
-                    relationCache.get(targetId).putIfAbsent(relationName, new ArrayList<>());
-                    relationCache.get(targetId).get(relationName).add(entryNode.getId());
-                } else
-                    graph.addEdge(entryNode, targetNode, relationName);
+                    addRelationshipToCache(relationCache, entryNode.getId(), id, relationName, "annotation",
+                                           annotation);
+                } else {
+                    if (annotation != null)
+                        graph.addEdge(entryNode, targetNode, relationName, "annotation", annotation);
+                    else
+                        graph.addEdge(entryNode, targetNode, relationName);
+                }
             }
         }
-        final String entryId = entryNode.getProperty(ID_PROPERTY);
-        if (relationCache.containsKey(entryId)) {
-            final Map<String, List<Long>> relations = relationCache.get(entryId);
-            for (final String key : relations.keySet())
-                for (final Long targetNodeId : relations.get(key))
-                    graph.addEdge(targetNodeId, entryNode, key);
-            relationCache.remove(entryId);
-        }
+        handleCachedRelationshipsForNode(graph, entryNode, relationCache);
     }
 
     private void exportTypedef(final Graph graph, final OboTypedef typedef,
-                               final Map<String, Map<String, List<Long>>> relationCache) {
+                               final Map<String, Map<String, List<EdgeCacheEntry>>> relationCache) {
         final NodeBuilder builder = graph.buildNode().withLabel(typedef.getType());
         populateBuilderWithEntry(builder, typedef);
         builder.withPropertyIfNotNull("builtin", typedef.builtin());
@@ -215,7 +271,13 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
         builder.withPropertyIfNotNull("is_reflexive", typedef.isReflexive());
         builder.withPropertyIfNotNull("is_cyclic", typedef.isCyclic());
         builder.withPropertyIfNotNull("is_metadata_tag", typedef.isMetadataTag());
+        builder.withPropertyIfNotNull("expand_assertion_to", typedef.expandAssertionTo());
+        builder.withPropertyIfNotNull("expand_expression_to", typedef.expandExpressionTo());
         final Node node = builder.build();
+        handleRelationshipsWithRelId(graph, typedef.getRelationships(), node, relationCache);
+        handleRelationships(graph, typedef.intersectionOf(), "INTERSECTION_OF", node, relationCache);
+        handleRelationships(graph, typedef.holdsOverChain(), "HOLDS_OVER_CHAIN", node, relationCache);
+        handleRelationships(graph, typedef.equivalentToChain(), "EQUIVALENT_TO_CHAIN", node, relationCache);
         handleRelationships(graph, typedef.isA(), "IS_A", node, relationCache);
         handleRelationships(graph, typedef.equivalentTo(), "EQUIVALENT_TO", node, relationCache);
         handleRelationships(graph, typedef.disjointFrom(), "DISJOINT_FROM", node, relationCache);
@@ -230,10 +292,11 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
     }
 
     private void exportInstance(final Graph graph, final OboInstance instance,
-                                final Map<String, Map<String, List<Long>>> relationCache) {
+                                final Map<String, Map<String, List<EdgeCacheEntry>>> relationCache) {
         final NodeBuilder builder = graph.buildNode().withLabel(instance.getType());
         populateBuilderWithEntry(builder, instance);
         final Node node = builder.build();
+        handleRelationshipsWithRelId(graph, instance.getRelationships(), node, relationCache);
         handleRelationships(graph, instance.consider(), "CONSIDER", node, relationCache);
         handleRelationships(graph, new String[]{instance.instanceOf()}, "INSTANCE_IF", node, relationCache);
         handleRelationships(graph, instance.replacedBy(), "REPLACED_BY", node, relationCache);
