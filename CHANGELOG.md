@@ -25,6 +25,7 @@ Released:
  * ```[fix]``` Fix HTTP FTP pre web source parsing
  * ```[docs]``` Data source modules are now listed as usable instead of done, as always something might change
  * ```[docs]``` Updated development docs with new IntelliJ Idea version
+ * ```[docs]``` Started adding data source specific README files with additional information
 
 ---
 

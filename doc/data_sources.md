@@ -6,11 +6,11 @@
 | CancerDrugsDB | A curated listing of licensed cancer drugs by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/cancerdrugs-db) | Usable |
 | DGIdb         | The Drug Gene Interaction Database | [Link](http://dgidb.org) | Work in progress |
 | DrugBank      | DrugBank | [Link](http://drugbank.ca) | Work in progress |
-| DrugCentral   | DrugCentral | [Link](http://drugcentral.org) | Work in progress |
+| [DrugCentral](sources/DrugCentral/README.md) | DrugCentral | [Link](http://drugcentral.org) | Work in progress |
 | EMA           | European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC] | [Link](https://www.ema.europa.eu/en/medicines/download-medicine-data) | Usable |
 | GeneOntology  | Gene Ontology | [Link](http://geneontology.org) | Work in progress |
 | HGNC          | HUGO Gene Nomenclature Committee | [Link](https://www.genenames.org) | Usable |
-| [HPO](HPO/README.md) | Human Phenotype Ontology | [Link](https://hpo.jax.org) | Usable |
+| [HPO](sources/HPO/README.md) | Human Phenotype Ontology | [Link](https://hpo.jax.org) | Usable |
 | ITIS          | Integrated Taxonomic Information System | [Link](https://www.itis.gov) | Work in progress |
 | KEGG          | Kyoto Encyclopedia of Genes and Genomes | [Link](https://www.kegg.jp) | Work in progress |
 | MED-RT        | Medication Reference Terminology (MED-RT™) | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/) | Usable |
@@ -39,12 +39,6 @@
 
 > DGIdb 3.0: a redesign and expansion of the drug–gene interaction database. Cotto KC, Wagner AH, Feng Y, Kiwala S, Coffman AC, Spies G, Wollam A, Spies NC, Griffith OL, Griffith M. Nucleic Acids Research. 2017 Nov 17. doi: [10.1093/nar/gkx1143](https://doi.org/10.1093/nar/gkx1143).
 
-### DisGeNET
-
-> https://www.disgenet.org/legal
-
-> The DisGeNET database is made available under the Attribution-NonCommercial-ShareAlike 4.0 International License whose text can be found here. If DisGeNET is incorporated into other works, we ask that DisGeNET is properly cited (see the citation guidelines ), and that the version number of DisGeNET is clearly displayed.
-
 ### DrugBank
 
 > Creative Common’s Attribution-NonCommercial 4.0 International License
@@ -53,9 +47,7 @@
 
 ### DrugCentral
 
-> Creative Commons Attribution-ShareAlike 4.0 International Public License
-
-> Ursu O, Holmes J, Knockel J, et al. DrugCentral: online drug compendium. Nucleic Acids Res. 2017;45(D1):D932-D939. doi: [10.1093/nar/gkw993](http://dx.doi.org/10.1093/nar/gkw993)
+See [here](sources/DrugCentral/README.md)
 
 ### EMA
 
@@ -79,7 +71,7 @@
 
 ### HPO
 
-> https://hpo.jax.org/app/license
+See [here](sources/HPO/README.md)
 
 ### ITIS
 

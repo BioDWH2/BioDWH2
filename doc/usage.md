@@ -153,6 +153,10 @@ After creating and processing the workspace, the resulting graph can be analyzed
       "skipLINCSSignatures": boolean,
       "skipFAERSReports": boolean
     },
+    "HPO": {
+      "forceExport": boolean,
+      "omimLicensed": boolean
+    },
     "...": {
       "forceExport": boolean
     }
