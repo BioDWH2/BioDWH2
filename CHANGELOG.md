@@ -2,6 +2,8 @@
 
 ## 📦 Upcoming release
 
+Released: 
+
 ### 📚 Data Sources
 
  * ```[HGNC]``` Add new mane_select column to gene model
@@ -28,6 +30,8 @@
 
 ## 📦 Version [v0.3.3](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.3)
 
+Released: 18.05.2021
+
 ### 📚 Data Sources
 
  * ```[PharmGKB]``` Updated data source module for new download files and data schema changes
@@ -42,6 +46,8 @@
 
 ## 📦 Version [v0.3.2](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.2)
 
+Released: 07.05.2021
+
 ### 🔧 Bug fixes and other changes
 
  * ```[fix]``` Fixed a sanity error blocking addition of new data sources for newly created workspaces
@@ -49,6 +55,8 @@
 ---
 
 ## 📦 Version [v0.3.1](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.1)
+
+Released: 07.05.2021
 
 ### 📚 Data Sources
 
@@ -66,6 +74,8 @@
 ---
 
 ## 📦 Version [v0.3.0](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.0)
+
+Released: 29.04.2021
 
 ### 📚 Data Sources
 
@@ -87,6 +97,8 @@
 ---
 
 ## 📦 Version [v0.2.1](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.2.1)
+
+Released: 01.03.2021
 
 ### 🔧 Bug fixes and other changes
 
