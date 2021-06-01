@@ -30,7 +30,6 @@
         <module>biodwh2-mondo</module>
         <module>biodwh2-geneontology</module>
         <module>biodwh2-hpo</module>
-        <module>biodwh2-disgenet</module>
         <module>biodwh2-unii</module>
         <module>biodwh2-ncbi</module>
         <module>biodwh2-itis</module>
