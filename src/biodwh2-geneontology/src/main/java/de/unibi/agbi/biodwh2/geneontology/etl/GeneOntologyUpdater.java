@@ -12,8 +12,12 @@ import java.io.IOException;
 
 public class GeneOntologyUpdater extends OBOOntologyUpdater<GeneOntologyDataSource> {
     private static final String ANNOTATION_URL_PREFIX = "http://current.geneontology.org/annotations/";
+    static final String GOA_HUMAN_FILE_NAME = "goa_human.gaf.gz";
+    static final String GOA_HUMAN_COMPLEX_FILE_NAME = "goa_human_complex.gaf.gz";
+    static final String GOA_HUMAN_ISOFORM_FILE_NAME = "goa_human_isoform.gaf.gz";
+    static final String GOA_HUMAN_RNA_FILE_NAME = "goa_human_rna.gaf.gz";
     private static final String[] ANNOTATION_FILE_NAMES = new String[]{
-            "goa_human.gaf.gz", "goa_human_complex.gaf.gz", "goa_human_isoform.gaf.gz", "goa_human_rna.gaf.gz"
+            GOA_HUMAN_FILE_NAME, GOA_HUMAN_COMPLEX_FILE_NAME, GOA_HUMAN_ISOFORM_FILE_NAME, GOA_HUMAN_RNA_FILE_NAME
     };
 
     public GeneOntologyUpdater(final GeneOntologyDataSource dataSource) {
