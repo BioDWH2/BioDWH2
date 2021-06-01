@@ -26,6 +26,7 @@ public enum IdentifierType {
     NCBI_GENE("NCBI_Gene"),
     NDF_RT_NUI("NDF-RT_NUI"),
     OMIM("OMIM"),
+    ORPHANET("ORPHA"),
     PHARM_GKB("PharmGKB"),
     PROTEIN_DATA_BANK("PDB"),
     PUB_CHEM_COMPOUND("PubChem_CID"),

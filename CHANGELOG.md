@@ -13,6 +13,7 @@
  * ```[UniProt]``` Implemented updater and parser for UniProt
  * ```[DrugBank]``` Replaced loading the whole XML database into ram with streaming
  * ```[EMA]``` Implemented EMA (EPAR, HMPC) data source module
+ * ```[HPO]``` Marked HPO as usable
 
 ### 🔧 Bug fixes and other changes
 

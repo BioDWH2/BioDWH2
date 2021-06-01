@@ -145,7 +145,7 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
             else if (entry instanceof OboInstance)
                 exportInstance(graph, (OboInstance) entry, relationCache);
         }
-        System.out.println(relationCache.size());
+        //System.out.println(relationCache.size());
     }
 
     private void exportTerm(final Graph graph, final OboTerm term,
