@@ -21,7 +21,7 @@ public final class HTTPFTPClient {
         public String size;
     }
 
-    private static final String PRE_TABLE_ENTRY_REGEX = "<a\\s+href=\"[a-zA-Z_.]+\">([a-zA-Z_.]+)</a>\\s+([0-9]{4}-[0-9]{2}-[0-9]{2}\\s+[0-9]{2}:[0-9]{2})\\s+([0-9.]+[KMG]?)";
+    private static final String PRE_TABLE_ENTRY_REGEX = "<a\\s+href=\"[a-zA-Z0-9-_.]+\">([a-zA-Z0-9-_.]+)</a>\\s+([0-9]{4}-[0-9]{2}-[0-9]{2}\\s+[0-9]{2}:[0-9]{2})\\s+([0-9.]+[KMG]?)";
 
     private final String url;
     private final Map<String, Entry[]> entryCache;
