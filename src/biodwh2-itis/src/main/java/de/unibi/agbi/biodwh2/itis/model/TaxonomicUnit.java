@@ -65,8 +65,10 @@ public class TaxonomicUnit {
     @JsonProperty("hybrid_author_id")
     public int hybridAuthorId;
     @JsonProperty("kingdom_id")
+    @GraphProperty("kingdom_id")
     public int kingdomId;
     @JsonProperty("rank_id")
+    @GraphProperty("rank_id")
     public int rankId;
     @JsonProperty("update_date")
     public String updateDate;

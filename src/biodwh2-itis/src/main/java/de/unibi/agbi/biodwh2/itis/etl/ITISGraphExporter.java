@@ -84,16 +84,18 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
     }
 
     private void createTaxonUnitTypeNodes(final Graph graph) {
-        final Map<Integer, Long> rankNodeIdLookup = new HashMap<>();
+        final Map<String, Long> rankNodeIdLookup = new HashMap<>();
         for (final TaxonUnitType rank : dataSource.taxonUnitTypes) {
-            final Node node = graph.addNode(RANK_LABEL, ID_KEY, rank.id, "name", rank.name);
-            rankNodeIdLookup.put(rank.id, node.getId());
+            final String id = rank.kingdomId + "_" + rank.id;
+            final Node node = graph.addNode(RANK_LABEL, ID_KEY, id, "rank_id", rank.id, "name", rank.name);
+            rankNodeIdLookup.put(id, node.getId());
             graph.addEdge(graph.findNode(KINGDOM_LABEL, ID_KEY, rank.kingdomId), node, "HAS_RANK");
         }
         for (final TaxonUnitType rank : dataSource.taxonUnitTypes) {
-            final long nodeId = rankNodeIdLookup.get(rank.id);
-            graph.addEdge(nodeId, rankNodeIdLookup.get(rank.dirParentRankId), "HAS_PARENT");
-            graph.addEdge(nodeId, rankNodeIdLookup.get(rank.reqParentRankId), "HAS_REQ_PARENT");
+            final String id = rank.kingdomId + "_" + rank.id;
+            final long nodeId = rankNodeIdLookup.get(id);
+            graph.addEdge(nodeId, rankNodeIdLookup.get(rank.kingdomId + "_" + rank.dirParentRankId), "HAS_PARENT");
+            graph.addEdge(nodeId, rankNodeIdLookup.get(rank.kingdomId + "_" + rank.reqParentRankId), "HAS_REQ_PARENT");
         }
     }
 
