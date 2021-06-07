@@ -20,7 +20,7 @@
 | SIDER         | SIDER: Side Effect Resource | [Link](http://sideeffects.embl.de) | Work in progress |
 | UNII          | FDA Substance Registration System - Unique Ingredient Identifier | [Link](https://fdasis.nlm.nih.gov/srs/) | Usable |
 | UniProt       | Functional information on proteins, with accurate, consistent and rich annotation. | [Link](https://www.uniprot.org) | Work in progress |
-| USDA-PLANTS   | USDA PLANTS Database | [Link](https://plants.sc.egov.usda.gov) | Usable |
+| [USDA-PLANTS](sources/USDA-PLANTS/README.md) | USDA PLANTS Database | [Link](https://plants.sc.egov.usda.gov) | Usable |
 |               |      |         |       |
 
 ## Licenses and references
@@ -135,4 +135,4 @@ See [here](sources/HPO/README.md)
 
 ### USDA-PLANTS
 
-> Plant information, including the distribution maps, lists, and text, is not copyrighted and is free for any use. Please cite the PLANTS Database as: USDA, NRCS. 2020. The PLANTS Database (http://plants.usda.gov, 23 November 2020). National Plant Data Team, Greensboro, NC 27401-4901 USA.
+See [here](sources/USDA-PLANTS/README.md)

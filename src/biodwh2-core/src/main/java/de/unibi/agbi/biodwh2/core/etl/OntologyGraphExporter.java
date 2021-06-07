@@ -21,7 +21,7 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
         public String propertyValue;
     }
 
-    private static final String ID_PROPERTY = "id";
+    protected static final String ID_PROPERTY = "id";
 
     public OntologyGraphExporter(final D dataSource) {
         super(dataSource);

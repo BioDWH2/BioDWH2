@@ -20,6 +20,7 @@ import java.io.IOException;
 
 public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntologyDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GeneOntologyGraphExporter.class);
+    private static final String DB_OBJECT_LABEL = "DBObject";
 
     public GeneOntologyGraphExporter(final GeneOntologyDataSource dataSource) {
         super(dataSource);
@@ -42,7 +43,7 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
 
     private boolean exportAnnotations(final Workspace workspace, final Graph graph) throws ExporterException {
         try {
-            exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_FILE_NAME);
+            //exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_FILE_NAME);
             exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_COMPLEX_FILE_NAME);
             exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_ISOFORM_FILE_NAME);
             exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_RNA_FILE_NAME);
@@ -57,7 +58,7 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting annotations file '" + fileName + "'...");
         for (final GAFEntry entry : getAnnotationReader(workspace, fileName))
-            if (!entry.db.startsWith("!"))
+            if (entry.db.charAt(0) != '!')
                 exportAnnotation(graph, entry);
     }
 
@@ -69,7 +70,7 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
     }
 
     private void exportAnnotation(final Graph graph, final GAFEntry entry) {
-        final Node termNode = graph.findNode("Term", "id", entry.goId);
+        final Node termNode = graph.findNode("Term", ID_PROPERTY, entry.goId);
         // If referencing an obsolete term excluded via config file, just skip this annotation
         if (termNode == null)
             return;
@@ -93,10 +94,10 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
 
     private Node getOrCreateDatabaseObject(final Graph graph, final GAFEntry entry) {
         final String id = entry.db + ':' + entry.dbObjectId;
-        Node node = graph.findNode("DBObject", "id", id);
+        Node node = graph.findNode(DB_OBJECT_LABEL, ID_PROPERTY, id);
         if (node == null) {
-            final NodeBuilder builder = graph.buildNode().withLabel("DBObject");
-            builder.withProperty("id", id);
+            final NodeBuilder builder = graph.buildNode().withLabel(DB_OBJECT_LABEL);
+            builder.withProperty(ID_PROPERTY, id);
             builder.withProperty("symbol", entry.dbObjectSymbol);
             builder.withProperty("type", entry.dbObjectType);
             builder.withPropertyIfNotNull("name", entry.dbObjectName);
