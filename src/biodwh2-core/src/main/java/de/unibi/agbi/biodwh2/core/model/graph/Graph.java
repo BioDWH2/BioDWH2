@@ -242,6 +242,83 @@ public final class Graph extends BaseGraph {
         return e;
     }
 
+    public Edge addEdge(final Node from, final Node to, final String label, final String propertyKey1,
+                        final Object propertyValue1, final String propertyKey2, final Object propertyValue2,
+                        final String propertyKey3, final Object propertyValue3) {
+        validateSourceNode(from);
+        validateTargetNode(to);
+        return addEdge(from.getId(), to.getId(), label, propertyKey1, propertyValue1, propertyKey2, propertyValue2,
+                       propertyKey3, propertyValue3);
+    }
+
+    public Edge addEdge(final long fromId, final Node to, final String label, final String propertyKey1,
+                        final Object propertyValue1, final String propertyKey2, final Object propertyValue2,
+                        final String propertyKey3, final Object propertyValue3) {
+        validateTargetNode(to);
+        return addEdge(fromId, to.getId(), label, propertyKey1, propertyValue1, propertyKey2, propertyValue2,
+                       propertyKey3, propertyValue3);
+    }
+
+    public Edge addEdge(final Node from, final long toId, final String label, final String propertyKey1,
+                        final Object propertyValue1, final String propertyKey2, final Object propertyValue2,
+                        final String propertyKey3, final Object propertyValue3) {
+        validateSourceNode(from);
+        return addEdge(from.getId(), toId, label, propertyKey1, propertyValue1, propertyKey2, propertyValue2,
+                       propertyKey3, propertyValue3);
+    }
+
+    public Edge addEdge(final long fromId, final long toId, final String label, final String propertyKey1,
+                        final Object propertyValue1, final String propertyKey2, final Object propertyValue2,
+                        final String propertyKey3, final Object propertyValue3) {
+        final Edge e = Edge.newEdge(fromId, toId, label);
+        e.setProperty(propertyKey1, propertyValue1);
+        e.setProperty(propertyKey2, propertyValue2);
+        e.setProperty(propertyKey3, propertyValue3);
+        update(e);
+        return e;
+    }
+
+    public Edge addEdge(final Node from, final Node to, final String label, final String propertyKey1,
+                        final Object propertyValue1, final String propertyKey2, final Object propertyValue2,
+                        final String propertyKey3, final Object propertyValue3, final String propertyKey4,
+                        final Object propertyValue4) {
+        validateSourceNode(from);
+        validateTargetNode(to);
+        return addEdge(from.getId(), to.getId(), label, propertyKey1, propertyValue1, propertyKey2, propertyValue2,
+                       propertyKey3, propertyValue3, propertyKey4, propertyValue4);
+    }
+
+    public Edge addEdge(final long fromId, final Node to, final String label, final String propertyKey1,
+                        final Object propertyValue1, final String propertyKey2, final Object propertyValue2,
+                        final String propertyKey3, final Object propertyValue3, final String propertyKey4,
+                        final Object propertyValue4) {
+        validateTargetNode(to);
+        return addEdge(fromId, to.getId(), label, propertyKey1, propertyValue1, propertyKey2, propertyValue2,
+                       propertyKey3, propertyValue3, propertyKey4, propertyValue4);
+    }
+
+    public Edge addEdge(final Node from, final long toId, final String label, final String propertyKey1,
+                        final Object propertyValue1, final String propertyKey2, final Object propertyValue2,
+                        final String propertyKey3, final Object propertyValue3, final String propertyKey4,
+                        final Object propertyValue4) {
+        validateSourceNode(from);
+        return addEdge(from.getId(), toId, label, propertyKey1, propertyValue1, propertyKey2, propertyValue2,
+                       propertyKey3, propertyValue3, propertyKey4, propertyValue4);
+    }
+
+    public Edge addEdge(final long fromId, final long toId, final String label, final String propertyKey1,
+                        final Object propertyValue1, final String propertyKey2, final Object propertyValue2,
+                        final String propertyKey3, final Object propertyValue3, final String propertyKey4,
+                        final Object propertyValue4) {
+        final Edge e = Edge.newEdge(fromId, toId, label);
+        e.setProperty(propertyKey1, propertyValue1);
+        e.setProperty(propertyKey2, propertyValue2);
+        e.setProperty(propertyKey3, propertyValue3);
+        e.setProperty(propertyKey4, propertyValue4);
+        update(e);
+        return e;
+    }
+
     public Edge addEdge(final Node from, final Node to, final String label, final Map<String, Object> properties) {
         validateSourceNode(from);
         validateTargetNode(to);
