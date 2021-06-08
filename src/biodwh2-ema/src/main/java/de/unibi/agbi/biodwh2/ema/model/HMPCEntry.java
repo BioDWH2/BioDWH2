@@ -5,14 +5,14 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphBooleanProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
 @JsonPropertyOrder({
         "Status", "Latin name of herbal substance", "Botanical name of plant",
         "English common name of herbal substance", "Combination", "Use", "Outcome", "Date added to the inventory",
         "Date added to the priority list", "First published", "Revision date", "URL"
 })
-@NodeLabels({"HMPCEntry"})
+@GraphNodeLabel("HMPCEntry")
 public class HMPCEntry {
     @JsonProperty("Status")
     @GraphProperty("status")

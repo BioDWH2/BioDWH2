@@ -3,10 +3,7 @@ package de.unibi.agbi.biodwh2.pharmgkb.etl;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
-import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
-import de.unibi.agbi.biodwh2.core.model.graph.Graph;
-import de.unibi.agbi.biodwh2.core.model.graph.Node;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
+import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.pharmgkb.PharmGKBDataSource;
 import de.unibi.agbi.biodwh2.pharmgkb.model.*;
 import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.Citation;
@@ -56,7 +53,26 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.setNodeIndexPropertyKeys(ID_PROPERTY, "symbol", NAME_PROPERTY);
+        graph.addIndex(IndexDescription.forNode(LITERATURE_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(VARIANT_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(HAPLOTYPE_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(HAPLOTYPE_SET_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PATHWAY_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(CHEMICAL_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PHENOTYPE_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("StudyParameters", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("GuidelineAnnotation", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("ClinicalAnnotation", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("DrugLabel", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(GENE_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        // TODO: gene symbols appear with duplicates which are data errors!
+        graph.addIndex(IndexDescription.forNode(GENE_LABEL, "symbol", IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode(VARIANT_LABEL, NAME_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(HAPLOTYPE_LABEL, NAME_PROPERTY, IndexDescription.Type.UNIQUE));
+        // TODO: chemical names appear with duplicates which are data errors!
+        graph.addIndex(IndexDescription.forNode(CHEMICAL_LABEL, NAME_PROPERTY, IndexDescription.Type.NON_UNIQUE));
+        // TODO: phenotype names appear with duplicates which are data errors!
+        graph.addIndex(IndexDescription.forNode(PHENOTYPE_LABEL, NAME_PROPERTY, IndexDescription.Type.NON_UNIQUE));
         addGuidelineAnnotations(graph, dataSource.guidelineAnnotations);
         addGenes(graph, dataSource.genes);
         addChemicals(graph, dataSource.chemicals);

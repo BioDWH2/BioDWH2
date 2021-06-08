@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.mocks.mock1.Mock1DataSource;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 
 public final class Mock1GraphExporter extends GraphExporter<Mock1DataSource> {
@@ -18,7 +19,9 @@ public final class Mock1GraphExporter extends GraphExporter<Mock1DataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
-        graph.setNodeIndexPropertyKeys("hgnc_id");
+        graph.addIndex(IndexDescription.forNode("Gene", "hgnc_id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Drug", "drugbank_id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Dummy1", "id", IndexDescription.Type.UNIQUE));
         Node tlr4Node = graph.addNode("Gene");
         tlr4Node.setProperty("hgnc_id", "TLR4");
         tlr4Node.setProperty("array_test", new String[]{"value1", "value2", "value3"});

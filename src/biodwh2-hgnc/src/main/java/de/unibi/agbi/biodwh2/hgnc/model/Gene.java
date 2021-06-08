@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
 @SuppressWarnings({"unused", "SpellCheckingInspection"})
 @JsonPropertyOrder({
@@ -17,7 +17,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
         "lncrnadb", "enzyme_id", "intermediate_filament_db", "rna_central_ids", "lncipedia", "gtrnadb", "agr",
         "mane_select"
 })
-@NodeLabels("Gene")
+@GraphNodeLabel("Gene")
 public final class Gene {
     @JsonProperty("hgnc_id")
     @GraphProperty("hgnc_id")

@@ -6,6 +6,7 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.drugcentral.DrugCentralDataSource;
 import de.unibi.agbi.biodwh2.drugcentral.model.*;
@@ -34,7 +35,17 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         final boolean skipLINCSSignatures = "true".equalsIgnoreCase(properties.get("skipLINCSSignatures"));
         final boolean skipFAERSReports = "true".equalsIgnoreCase(properties.get("skipFAERSReports"));
         final boolean skipDrugLabelFullTexts = "true".equalsIgnoreCase(properties.get("skipDrugLabelFullTexts"));
-        g.setNodeIndexPropertyKeys("id", "stem");
+        g.addIndex(IndexDescription.forNode("DrugLabel", "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("Reference", "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("AttributeType", "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("FAERS", "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("InnStem", "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("OrangeBookExclusivity", "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("OrangeBookProduct", "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("Structure", "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("GOTerm", "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("TargetKeyword", "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("InnStem", "stem", IndexDescription.Type.UNIQUE));
         // "ddi_risk.tsv", "approval_type.tsv", "target_class.tsv", "ref_type.tsv", "protein_type.tsv"
         // are ignored because no necessary additional info is included
         createNodesFromTsvFile(workspace, g, DataSource.class, "data_source.tsv");

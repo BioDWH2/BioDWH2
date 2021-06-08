@@ -142,7 +142,7 @@ public final class GraphMapper {
     }
 
     private boolean hasMatchedNodeSameLabel(final NodeMappingDescription description, final Node node) {
-        return description.getType().equals(node.getLabels()[0]);
+        return description.getType().equals(node.getLabel());
     }
 
     private void mapPaths(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
@@ -185,7 +185,7 @@ public final class GraphMapper {
             segment.direction == PathMapping.EdgeDirection.FORWARD) {
             for (final Edge edge : graph.findEdges(edgeLabel, Edge.FROM_ID_FIELD, fromNodeId)) {
                 final Node nextNode = graph.getNode(edge.getToId());
-                if (anyNodeLabelEquals(nextNode, toNodeLabel)) {
+                if (nextNode.getLabel().equals(toNodeLabel)) {
                     final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
                     nextPathIds[currentEdgePathIndex] = edge.getId();
                     nextPathIds[currentEdgePathIndex + 1] = nextNode.getId();
@@ -197,7 +197,7 @@ public final class GraphMapper {
             segment.direction == PathMapping.EdgeDirection.BACKWARD) {
             for (final Edge edge : graph.findEdges(edgeLabel, Edge.TO_ID_FIELD, fromNodeId)) {
                 final Node nextNode = graph.getNode(edge.getFromId());
-                if (anyNodeLabelEquals(nextNode, toNodeLabel)) {
+                if (nextNode.getLabel().equals(toNodeLabel)) {
                     final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
                     nextPathIds[currentEdgePathIndex] = edge.getId();
                     nextPathIds[currentEdgePathIndex + 1] = nextNode.getId();
@@ -205,13 +205,6 @@ public final class GraphMapper {
                 }
             }
         }
-    }
-
-    private boolean anyNodeLabelEquals(final Node node, final String label) {
-        for (final String nodeLabel : node.getLabels())
-            if (nodeLabel.equals(label))
-                return true;
-        return false;
     }
 
     private void mapPathInstance(final Graph graph, final MappingDescriber describer, final long[] pathIds) {

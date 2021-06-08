@@ -8,6 +8,7 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.uniprot.UniProtDataSource;
@@ -34,7 +35,7 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.setNodeIndexPropertyKeys("id");
+        graph.addIndex(IndexDescription.forNode("Organism", "id", IndexDescription.Type.UNIQUE));
         final String filePath = dataSource.resolveSourceFilePath(workspace, "uniprot_sprot_human.xml.gz");
         final File zipFile = new File(filePath);
         if (!zipFile.exists())

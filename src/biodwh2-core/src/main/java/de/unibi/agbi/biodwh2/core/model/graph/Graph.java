@@ -81,21 +81,13 @@ public final class Graph extends BaseGraph {
         return n;
     }
 
-    Node addNode(final String[] labels, final Map<String, Object> properties) {
-        final Node n = Node.newNode(labels);
-        for (Map.Entry<String, Object> entry : properties.entrySet())
-            n.setProperty(entry.getKey(), entry.getValue());
-        update(n);
-        return n;
-    }
-
     public NodeBuilder buildNode() {
         return Node.newNodeBuilder(this);
     }
 
     public final <T> Node addNodeFromModel(final T obj) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node n = Node.newNode(mapping.labels);
+        final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
         update(n);
         return n;
@@ -109,7 +101,7 @@ public final class Graph extends BaseGraph {
 
     public final <T> Node addNodeFromModel(final T obj, final String propertyKey, final Object propertyValue) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node n = Node.newNode(mapping.labels);
+        final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey, propertyValue);
         update(n);
@@ -119,7 +111,7 @@ public final class Graph extends BaseGraph {
     public final <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
                                            final String propertyKey2, final Object propertyValue2) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node n = Node.newNode(mapping.labels);
+        final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);
@@ -131,7 +123,7 @@ public final class Graph extends BaseGraph {
                                            final String propertyKey2, final Object propertyValue2,
                                            final String propertyKey3, final Object propertyValue3) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node n = Node.newNode(mapping.labels);
+        final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);
@@ -145,7 +137,7 @@ public final class Graph extends BaseGraph {
                                            final String propertyKey3, final Object propertyValue3,
                                            final String propertyKey4, final Object propertyValue4) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
-        final Node n = Node.newNode(mapping.labels);
+        final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);
@@ -360,7 +352,7 @@ public final class Graph extends BaseGraph {
     }
 
     public Node findNode(final String label) {
-        return firstOrDefault(findNodes(Node.LABELS_FIELD, label));
+        return firstOrDefault(findNodes(Node.LABEL_FIELD, label));
     }
 
     private <T> T firstOrDefault(final Iterable<T> iterable) {
@@ -372,24 +364,22 @@ public final class Graph extends BaseGraph {
     }
 
     public Node findNode(final String label, final String propertyKey, final Comparable<?> value) {
-        return firstOrDefault(findNodes(Node.LABELS_FIELD, label, propertyKey, value));
+        return firstOrDefault(findNodes(label, propertyKey, value));
     }
 
     public Node findNode(final String label, final String propertyKey1, final Comparable<?> value1,
                          final String propertyKey2, final Comparable<?> value2) {
-        return firstOrDefault(findNodes(Node.LABELS_FIELD, label, propertyKey1, value1, propertyKey2, value2));
+        return firstOrDefault(findNodes(label, propertyKey1, value1, propertyKey2, value2));
     }
 
     public Node findNode(final String label, final String propertyKey1, final Comparable<?> value1,
                          final String propertyKey2, final Comparable<?> value2, final String propertyKey3,
                          final Comparable<?> value3) {
-        return firstOrDefault(
-                findNodes(Node.LABELS_FIELD, label, propertyKey1, value1, propertyKey2, value2, propertyKey3, value3));
+        return firstOrDefault(findNodes(label, propertyKey1, value1, propertyKey2, value2, propertyKey3, value3));
     }
 
     public Node findNode(final String label, final Map<String, Comparable<?>> properties) {
-        properties.put(Node.LABELS_FIELD, label);
-        return firstOrDefault(findNodes(properties));
+        return firstOrDefault(findNodes(label, properties));
     }
 
     public Node findNode(final String propertyKey, final Comparable<?> value) {
@@ -408,30 +398,6 @@ public final class Graph extends BaseGraph {
 
     public Node findNode(final Map<String, Comparable<?>> properties) {
         return firstOrDefault(findNodes(properties));
-    }
-
-    public Iterable<Node> findNodes(final String label) {
-        return findNodes(Node.LABELS_FIELD, label);
-    }
-
-    public Iterable<Node> findNodes(final String label, final String propertyKey, final Comparable<?> value) {
-        return findNodes(Node.LABELS_FIELD, label, propertyKey, value);
-    }
-
-    public Iterable<Node> findNodes(final String label, final String propertyKey1, final Comparable<?> value1,
-                                    final String propertyKey2, final Comparable<?> value2) {
-        return findNodes(Node.LABELS_FIELD, label, propertyKey1, value1, propertyKey2, value2);
-    }
-
-    public Iterable<Node> findNodes(final String label, final String propertyKey1, final Comparable<?> value1,
-                                    final String propertyKey2, final Comparable<?> value2, final String propertyKey3,
-                                    final Comparable<?> value3) {
-        return findNodes(Node.LABELS_FIELD, label, propertyKey1, value1, propertyKey2, value2, propertyKey3, value3);
-    }
-
-    public Iterable<Node> findNodes(final String label, final Map<String, Comparable<?>> properties) {
-        properties.put(Node.LABELS_FIELD, label);
-        return findNodes(properties);
     }
 
     public Edge findEdge(final String label) {
@@ -455,6 +421,24 @@ public final class Graph extends BaseGraph {
 
     public Edge findEdge(final String label, final Map<String, Comparable<?>> properties) {
         return firstOrDefault(findEdges(label, properties));
+    }
+
+    public Edge findEdge(final String propertyKey, final Comparable<?> value) {
+        return firstOrDefault(findEdges(propertyKey, value));
+    }
+
+    public Edge findEdge(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
+                         final Comparable<?> value2) {
+        return firstOrDefault(findEdges(propertyKey1, value1, propertyKey2, value2));
+    }
+
+    public Edge findEdge(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
+                         final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3) {
+        return firstOrDefault(findEdges(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3));
+    }
+
+    public Edge findEdge(final Map<String, Comparable<?>> properties) {
+        return firstOrDefault(findEdges(properties));
     }
 
     public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId, final String edgeLabel) {

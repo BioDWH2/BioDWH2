@@ -7,6 +7,8 @@ import de.unibi.agbi.biodwh2.core.etl.GraphMerger;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.*;
+import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.migration.GraphMigrator;
 import de.unibi.agbi.biodwh2.core.text.TableFormatter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -203,7 +205,8 @@ public final class Workspace {
             return true;
         final DataSourceMetadata metadata = dataSource.getMetadata();
         return metadata.exportSuccessful == null || !metadata.exportSuccessful || areDataSourceExportsMissing(
-                dataSource) || isDataSourceExportOutdated(dataSource, metadata);
+                dataSource) || isDataSourceExportOutdated(dataSource, metadata) || isExportedGraphVersionOutdated(
+                dataSource);
     }
 
     private boolean isDataSourceExportForced(final DataSource dataSource) {
@@ -225,6 +228,14 @@ public final class Workspace {
     private boolean isDataSourceExportOutdated(final DataSource dataSource, final DataSourceMetadata metadata) {
         return metadata.exportVersion == null ||
                metadata.exportVersion < dataSource.getGraphExporter().getExportVersion();
+    }
+
+    private boolean isExportedGraphVersionOutdated(final DataSource dataSource) {
+        final Path filePath = dataSource.getFilePath(this, DataSourceFileType.PERSISTENT_GRAPH);
+        if (!filePath.toFile().exists())
+            return true;
+        final Integer exportedVersion = GraphMigrator.peekVersion(filePath);
+        return exportedVersion == null || Graph.VERSION > exportedVersion;
     }
 
     private void mergeDataSources() {

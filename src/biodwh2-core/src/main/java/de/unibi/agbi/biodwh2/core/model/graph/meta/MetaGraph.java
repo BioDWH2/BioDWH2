@@ -15,22 +15,21 @@ public final class MetaGraph {
     public MetaGraph(final Graph graph) {
         nodes = new HashMap<>();
         edges = new HashMap<>();
-        for (final Node node : graph.getNodes())
-            for (final String label : node.getLabels()) {
-                if (!nodes.containsKey(label))
-                    nodes.put(label, new MetaNode(label));
-                nodes.get(label).count++;
-            }
+        for (final Node node : graph.getNodes()) {
+            final String label = node.getLabel();
+            if (!nodes.containsKey(label))
+                nodes.put(label, new MetaNode(label));
+            nodes.get(label).count++;
+        }
         for (final Edge edge : graph.getEdges()) {
             final Node fromNode = graph.getNode(edge.getFromId());
             final Node toNode = graph.getNode(edge.getToId());
-            for (final String fromLabel : fromNode.getLabels())
-                for (final String toLabel : toNode.getLabels()) {
-                    final String key = edge.getLabel() + "|" + fromLabel + "|" + toLabel;
-                    if (!edges.containsKey(key))
-                        edges.put(key, new MetaEdge(fromLabel, toLabel, edge.getLabel()));
-                    edges.get(key).count++;
-                }
+            final String fromLabel = fromNode.getLabel();
+            final String toLabel = toNode.getLabel();
+            final String key = edge.getLabel() + "|" + fromLabel + "|" + toLabel;
+            if (!edges.containsKey(key))
+                edges.put(key, new MetaEdge(fromLabel, toLabel, edge.getLabel()));
+            edges.get(key).count++;
         }
     }
 

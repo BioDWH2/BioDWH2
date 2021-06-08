@@ -1,11 +1,10 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
 import com.univocity.parsers.annotations.Parsed;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
-@NodeLabels("AutomatedAnnotation")
+@GraphNodeLabel("AutomatedAnnotation")
 public class AutomatedAnnotation {
     @Parsed(field = "Chemical ID")
     public String chemicalId;

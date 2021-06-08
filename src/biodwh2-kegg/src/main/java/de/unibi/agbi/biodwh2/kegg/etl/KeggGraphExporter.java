@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.kegg.etl;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.kegg.KeggDataSource;
@@ -33,7 +34,10 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
-        graph.setNodeIndexPropertyKeys("id", "pmid", "doi");
+        graph.addIndex(IndexDescription.forNode("Drug", "id", IndexDescription.Type.UNIQUE));
+        // TODO
+        graph.addIndex(IndexDescription.forNode("Reference", "pmid", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Reference", "doi", IndexDescription.Type.UNIQUE));
         exportDrugs(graph);
         return true;
     }
@@ -55,8 +59,10 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
     }
 
     private NodeBuilder getNodeBuilderForKeggEntry(final Graph graph, final KeggEntry entry) {
-        final NodeBuilder builder = graph.buildNode().withLabels(entry.tags.toArray(new String[0]));
+        final NodeBuilder builder = graph.buildNode().withLabel(entry.tags.get(0));
         builder.withProperty("id", entry.id);
+        if (entry.tags.size() > 1)
+            builder.withProperty("tags", entry.tags.toArray(new String[0]));
         if (entry.names.size() > 0)
             builder.withProperty("names", entry.names.toArray(new String[0]));
         if (entry.externalIds.size() > 0)

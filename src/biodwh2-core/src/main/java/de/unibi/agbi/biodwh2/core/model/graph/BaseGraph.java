@@ -1,9 +1,7 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
-import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreCollection;
-import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreDB;
-import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreIndex;
+import de.unibi.agbi.biodwh2.core.io.mvstore.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,24 +9,33 @@ import java.nio.file.Path;
 import java.util.*;
 
 abstract class BaseGraph implements AutoCloseable {
+    public static final int VERSION = 2;
     public static final String LABEL_PREFIX_SEPARATOR = "_";
-    //private static final char NODE_REPOSITORY_PREFIX = '$';
+    private static final char NODE_REPOSITORY_PREFIX = '$';
     private static final char EDGE_REPOSITORY_PREFIX = '!';
+    private static final String VERSION_KEY = "version";
     public static final String EXTENSION = "db";
 
     private MVStoreDB database;
-    private MVStoreCollection<Node> nodes;
+    private final MVMapWrapper<String, Object> metaMap;
+    private final Map<String, MVStoreCollection<Node>> nodeRepositories;
     private final Map<String, MVStoreCollection<Edge>> edgeRepositories;
 
     protected BaseGraph(final Path databaseFilePath, final boolean reopen, final boolean readOnly) {
         if (!reopen)
             deleteOldDatabaseFile(databaseFilePath);
+        nodeRepositories = new HashMap<>();
         edgeRepositories = new HashMap<>();
         database = openDatabase(databaseFilePath, readOnly);
-        nodes = database.getCollection("nodes");
-        for (final String repositoryKey : database.getCollectionNames())
+        metaMap = database.openMap("metadata");
+        if (!reopen)
+            metaMap.put(VERSION_KEY, VERSION);
+        for (final String repositoryKey : database.getCollectionNames()) {
             if (repositoryKey.charAt(0) == EDGE_REPOSITORY_PREFIX)
                 edgeRepositories.put(repositoryKey.substring(1), database.getCollection(repositoryKey));
+            else if (repositoryKey.charAt(0) == NODE_REPOSITORY_PREFIX)
+                nodeRepositories.put(repositoryKey.substring(1), database.getCollection(repositoryKey));
+        }
         if (!readOnly)
             createInternalIndicesIfNotExist();
     }
@@ -46,29 +53,37 @@ abstract class BaseGraph implements AutoCloseable {
     }
 
     private void createInternalIndicesIfNotExist() {
-        addIndexIfNotExists(nodes, Node.LABELS_FIELD, true);
         for (final MVStoreCollection<Edge> edges : edgeRepositories.values())
             createEdgeRepositoryIndicesIfNotExist(edges);
     }
 
-    private void addIndexIfNotExists(final MVStoreCollection<?> repository, final String key, final boolean array) {
-        repository.getIndex(key, array);
-    }
-
     private void createEdgeRepositoryIndicesIfNotExist(final MVStoreCollection<Edge> edges) {
-        addIndexIfNotExists(edges, Edge.FROM_ID_FIELD, false);
-        addIndexIfNotExists(edges, Edge.TO_ID_FIELD, false);
+        edges.getIndex(Edge.FROM_ID_FIELD, false, MVStoreIndexType.NON_UNIQUE);
+        edges.getIndex(Edge.TO_ID_FIELD, false, MVStoreIndexType.NON_UNIQUE);
     }
 
-    public void setNodeIndexPropertyKeys(final String... keys) {
-        for (final String key : keys)
-            addIndexIfNotExists(nodes, key, false);
+    public final Integer getVersion() {
+        return metaMap.containsKey(VERSION_KEY) ? (Integer) metaMap.get(VERSION_KEY) : null;
+    }
+
+    public void addIndex(final IndexDescription description) {
+        if (description.getLabel() == null)
+            throw new GraphCacheException("Indices with null label are not allowed");
+        final MVStoreIndexType type = description.getType() == IndexDescription.Type.UNIQUE ? MVStoreIndexType.UNIQUE :
+                                      MVStoreIndexType.NON_UNIQUE;
+        if (description.getTarget() == IndexDescription.Target.NODE) {
+            getOrCreateNodeRepository(description.getLabel()).getIndex(description.getProperty(),
+                                                                       description.isArrayProperty(), type);
+        } else if (description.getTarget() == IndexDescription.Target.EDGE) {
+            getOrCreateEdgeRepository(description.getLabel()).getIndex(description.getProperty(),
+                                                                       description.isArrayProperty(), type);
+        }
     }
 
     public final void close() {
         if (database != null)
             database.close();
-        nodes = null;
+        nodeRepositories.clear();
         edgeRepositories.clear();
         database = null;
     }
@@ -76,7 +91,19 @@ abstract class BaseGraph implements AutoCloseable {
     public final void update(final Node node) {
         if (node == null)
             throw new GraphCacheException("Failed to update node because it is null");
-        nodes.put(node);
+        final String label = node.getLabel();
+        if (label == null || label.length() == 0)
+            throw new GraphCacheException("Failed to add or update node because the label is null or empty");
+        getOrCreateNodeRepository(label).put(node);
+    }
+
+    private MVStoreCollection<Node> getOrCreateNodeRepository(final String label) {
+        MVStoreCollection<Node> nodes = nodeRepositories.get(label);
+        if (nodes == null) {
+            nodes = database.getCollection(NODE_REPOSITORY_PREFIX + label);
+            nodeRepositories.put(label, nodes);
+        }
+        return nodes;
     }
 
     public final void update(final Edge edge) {
@@ -99,32 +126,18 @@ abstract class BaseGraph implements AutoCloseable {
     }
 
     public final Iterable<Node> getNodes() {
-        return nodes;
+        return () -> new RepositoriesIterator<>(nodeRepositories.values());
     }
 
     public final Iterable<Edge> getEdges() {
-        return () -> new Iterator<Edge>() {
-            private Iterator<Edge> current = null;
-            private final Iterator<MVStoreCollection<Edge>> repositories = edgeRepositories.values().iterator();
-
-            @Override
-            public boolean hasNext() {
-                while ((current == null || !current.hasNext()) && repositories.hasNext())
-                    current = repositories.next().iterator();
-                return current != null && current.hasNext();
-            }
-
-            @Override
-            public Edge next() {
-                while ((current == null || !current.hasNext()) && repositories.hasNext())
-                    current = repositories.next().iterator();
-                return current != null ? current.next() : null;
-            }
-        };
+        return () -> new RepositoriesIterator<>(edgeRepositories.values());
     }
 
     public final long getNumberOfNodes() {
-        return nodes.size();
+        long result = 0;
+        for (final MVStoreCollection<Node> nodes : nodeRepositories.values())
+            result += nodes.size();
+        return result;
     }
 
     public final long getNumberOfEdges() {
@@ -135,7 +148,12 @@ abstract class BaseGraph implements AutoCloseable {
     }
 
     public final Node getNode(final long nodeId) {
-        return nodes.get(nodeId);
+        for (final MVStoreCollection<Node> nodes : nodeRepositories.values()) {
+            final Node node = nodes.get(nodeId);
+            if (node != null)
+                return node;
+        }
+        return null;
     }
 
     public final Edge getEdge(final long edgeId) {
@@ -147,24 +165,77 @@ abstract class BaseGraph implements AutoCloseable {
         return null;
     }
 
+    public Iterable<Node> findNodes(final String label) {
+        return () -> getOrCreateNodeRepository(label).iterator();
+    }
+
+    public Iterable<Node> findNodes(final String label, final String propertyKey, final Comparable<?> value) {
+        return getOrCreateNodeRepository(label).find(propertyKey, value);
+    }
+
+    public Iterable<Node> findNodes(final String label, final String propertyKey1, final Comparable<?> value1,
+                                    final String propertyKey2, final Comparable<?> value2) {
+        return getOrCreateNodeRepository(label).find(propertyKey1, value1, propertyKey2, value2);
+    }
+
+    public Iterable<Node> findNodes(final String label, final String propertyKey1, final Comparable<?> value1,
+                                    final String propertyKey2, final Comparable<?> value2, final String propertyKey3,
+                                    final Comparable<?> value3) {
+        return getOrCreateNodeRepository(label).find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3);
+    }
+
+    public Iterable<Node> findNodes(final String label, final Map<String, Comparable<?>> properties) {
+        if (properties == null || properties.size() == 0)
+            return findNodes(label);
+        final String[] keys = new String[properties.size()];
+        final Comparable<?>[] values = new Comparable<?>[properties.size()];
+        int index = 0;
+        for (final String propertyKey : properties.keySet()) {
+            keys[index] = propertyKey;
+            values[index++] = properties.get(propertyKey);
+        }
+        return getOrCreateNodeRepository(label).find(keys, values);
+    }
+
     public Iterable<Node> findNodes(final String propertyKey, final Comparable<?> value) {
-        return nodes.find(propertyKey, value);
+        return () -> new RepositoriesIterator<Node>(nodeRepositories.values()) {
+            @Override
+            protected Iterator<Node> filterNextRepository(MVStoreCollection<Node> next) {
+                return next.find(propertyKey, value).iterator();
+            }
+        };
     }
 
     public Iterable<Node> findNodes(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2) {
-        return nodes.find(propertyKey1, value1, propertyKey2, value2);
+        return () -> new RepositoriesIterator<Node>(nodeRepositories.values()) {
+            @Override
+            protected Iterator<Node> filterNextRepository(MVStoreCollection<Node> next) {
+                return next.find(propertyKey1, value1, propertyKey2, value2).iterator();
+            }
+        };
     }
 
     public Iterable<Node> findNodes(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3) {
-        return nodes.find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3);
+        return () -> new RepositoriesIterator<Node>(nodeRepositories.values()) {
+            @Override
+            protected Iterator<Node> filterNextRepository(MVStoreCollection<Node> next) {
+                return next.find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3).iterator();
+            }
+        };
     }
 
     public Iterable<Node> findNodes(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3,
                                     final String propertyKey4, final Comparable<?> value4) {
-        return nodes.find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3, propertyKey4, value4);
+        return () -> new RepositoriesIterator<Node>(nodeRepositories.values()) {
+            @Override
+            protected Iterator<Node> filterNextRepository(MVStoreCollection<Node> next) {
+                return next.find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3, propertyKey4, value4)
+                           .iterator();
+            }
+        };
     }
 
     public Iterable<Node> findNodes(final Map<String, Comparable<?>> properties) {
@@ -177,7 +248,12 @@ abstract class BaseGraph implements AutoCloseable {
             keys[index] = propertyKey;
             values[index++] = properties.get(propertyKey);
         }
-        return nodes.find(keys, values);
+        return () -> new RepositoriesIterator<Node>(nodeRepositories.values()) {
+            @Override
+            protected Iterator<Node> filterNextRepository(MVStoreCollection<Node> next) {
+                return next.find(keys, values).iterator();
+            }
+        };
     }
 
     public Iterable<Edge> findEdges(final String label) {
@@ -212,6 +288,65 @@ abstract class BaseGraph implements AutoCloseable {
         return getOrCreateEdgeRepository(label).find(keys, values);
     }
 
+    public Iterable<Edge> findEdges(final String propertyKey, final Comparable<?> value) {
+        return () -> new RepositoriesIterator<Edge>(edgeRepositories.values()) {
+            @Override
+            protected Iterator<Edge> filterNextRepository(MVStoreCollection<Edge> next) {
+                return next.find(propertyKey, value).iterator();
+            }
+        };
+    }
+
+    public Iterable<Edge> findEdges(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
+                                    final Comparable<?> value2) {
+        return () -> new RepositoriesIterator<Edge>(edgeRepositories.values()) {
+            @Override
+            protected Iterator<Edge> filterNextRepository(MVStoreCollection<Edge> next) {
+                return next.find(propertyKey1, value1, propertyKey2, value2).iterator();
+            }
+        };
+    }
+
+    public Iterable<Edge> findEdges(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
+                                    final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3) {
+        return () -> new RepositoriesIterator<Edge>(edgeRepositories.values()) {
+            @Override
+            protected Iterator<Edge> filterNextRepository(MVStoreCollection<Edge> next) {
+                return next.find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3).iterator();
+            }
+        };
+    }
+
+    public Iterable<Edge> findEdges(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
+                                    final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3,
+                                    final String propertyKey4, final Comparable<?> value4) {
+        return () -> new RepositoriesIterator<Edge>(edgeRepositories.values()) {
+            @Override
+            protected Iterator<Edge> filterNextRepository(MVStoreCollection<Edge> next) {
+                return next.find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3, propertyKey4, value4)
+                           .iterator();
+            }
+        };
+    }
+
+    public Iterable<Edge> findEdges(final Map<String, Comparable<?>> properties) {
+        if (properties == null || properties.size() == 0)
+            return getEdges();
+        final String[] keys = new String[properties.size()];
+        final Comparable<?>[] values = new Comparable<?>[properties.size()];
+        int index = 0;
+        for (final String propertyKey : properties.keySet()) {
+            keys[index] = propertyKey;
+            values[index++] = properties.get(propertyKey);
+        }
+        return () -> new RepositoriesIterator<Edge>(edgeRepositories.values()) {
+            @Override
+            protected Iterator<Edge> filterNextRepository(MVStoreCollection<Edge> next) {
+                return next.find(keys, values).iterator();
+            }
+        };
+    }
+
     public void mergeNodes(final Node first, final Node second) {
         for (final MVStoreCollection<Edge> edges : edgeRepositories.values()) {
             for (final Edge edge : edges.find(Edge.FROM_ID_FIELD, second.getId())) {
@@ -224,24 +359,31 @@ abstract class BaseGraph implements AutoCloseable {
             }
         }
         // TODO: properties
-        nodes.remove(second);
+        getOrCreateNodeRepository(second.getLabel()).remove(second);
     }
 
     public void mergeDatabase(final String dataSourceId, final BaseGraph databaseToMerge) {
         final String dataSourcePrefix = dataSourceId + LABEL_PREFIX_SEPARATOR;
-        for (final MVStoreIndex index : databaseToMerge.nodes.getIndices()) {
-            nodes.getIndex(index.getKey(), index.isArrayIndex());
+        for (final String sourceLabel : databaseToMerge.nodeRepositories.keySet()) {
+            final String targetLabel = dataSourcePrefix + sourceLabel;
+            for (final MVStoreIndex index : databaseToMerge.nodeRepositories.get(sourceLabel).getIndices())
+                getOrCreateNodeRepository(targetLabel).getIndex(index.getKey(), index.isArrayIndex(), index.getType());
+        }
+        for (final String sourceLabel : databaseToMerge.edgeRepositories.keySet()) {
+            final String targetLabel = dataSourcePrefix + sourceLabel;
+            for (final MVStoreIndex index : databaseToMerge.edgeRepositories.get(sourceLabel).getIndices())
+                getOrCreateEdgeRepository(targetLabel).getIndex(index.getKey(), index.isArrayIndex(), index.getType());
         }
         final Map<Long, Long> mapping = new HashMap<>();
-        for (final Node n : databaseToMerge.nodes) {
-            final Long oldId = n.getId();
-            n.resetId();
-            final String[] labels = n.getLabels();
-            for (int i = 0; i < labels.length; i++)
-                labels[i] = dataSourcePrefix + labels[i];
-            n.setProperty(Node.LABELS_FIELD, labels);
-            nodes.put(n);
-            mapping.put(oldId, n.getId());
+        for (final String sourceLabel : databaseToMerge.nodeRepositories.keySet()) {
+            final String targetLabel = dataSourcePrefix + sourceLabel;
+            for (final Node n : databaseToMerge.nodeRepositories.get(sourceLabel)) {
+                final Long oldId = n.getId();
+                n.resetId();
+                n.setProperty(Node.LABEL_FIELD, targetLabel);
+                getOrCreateNodeRepository(targetLabel).put(n);
+                mapping.put(oldId, n.getId());
+            }
         }
         for (final String sourceLabel : databaseToMerge.edgeRepositories.keySet()) {
             final String targetLabel = dataSourcePrefix + sourceLabel;
@@ -250,8 +392,38 @@ abstract class BaseGraph implements AutoCloseable {
                 e.setProperty(Edge.LABEL_FIELD, targetLabel);
                 e.setFromId(mapping.get(e.getFromId()));
                 e.setToId(mapping.get(e.getToId()));
-                getOrCreateEdgeRepository(e.getLabel()).put(e);
+                getOrCreateEdgeRepository(targetLabel).put(e);
             }
+        }
+    }
+
+    private static class RepositoriesIterator<T extends MVStoreModel> implements Iterator<T> {
+        private Iterator<T> current = null;
+        private final Iterator<MVStoreCollection<T>> repositories;
+
+        RepositoriesIterator(Collection<MVStoreCollection<T>> repositories) {
+            this.repositories = repositories.iterator();
+        }
+
+        @Override
+        public boolean hasNext() {
+            advanceRepositoryIteratorIfNeeded();
+            return current != null && current.hasNext();
+        }
+
+        private void advanceRepositoryIteratorIfNeeded() {
+            while ((current == null || !current.hasNext()) && repositories.hasNext())
+                current = filterNextRepository(repositories.next());
+        }
+
+        protected Iterator<T> filterNextRepository(MVStoreCollection<T> next) {
+            return next.iterator();
+        }
+
+        @Override
+        public T next() {
+            advanceRepositoryIteratorIfNeeded();
+            return current != null ? current.next() : null;
         }
     }
 }

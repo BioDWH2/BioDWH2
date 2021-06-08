@@ -6,6 +6,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.obo.*;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +31,12 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         final boolean ignoreObsolete = ignoreObsolete(workspace);
-        graph.setNodeIndexPropertyKeys(ID_PROPERTY);
+        graph.addIndex(IndexDescription.forNode("Subset", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("SynonymType", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Idspace", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Term", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Typedef", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Instance", ID_PROPERTY, IndexDescription.Type.UNIQUE));
         try {
             final OboReader reader = new OboReader(dataSource.resolveSourceFilePath(workspace, getOntologyFileName()),
                                                    StandardCharsets.UTF_8);

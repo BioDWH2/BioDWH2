@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphBooleanProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
 @JsonPropertyOrder({
         "Category", "Medicine name", "Therapeutic area", "International non-proprietary name (INN) / common name",
@@ -15,7 +15,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
         "Human pharmacotherapeutic group", "Vet pharmacotherapeutic group", "Date of opinion", "Decision date",
         "Revision number", "Condition / indication", "Species", "ATCvet code", "First published", "Revision date", "URL"
 })
-@NodeLabels({"EPAREntry"})
+@GraphNodeLabel("EPAREntry")
 public class EPAREntry {
     @JsonProperty("Category")
     @GraphProperty("category")

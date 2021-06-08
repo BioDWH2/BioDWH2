@@ -23,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public final class GraphMLGraphWriter extends GraphWriter {
     private static class Property {
@@ -133,8 +132,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
     }
 
     private String getNodeLabelKeyId(final Node node, final String key) {
-        final String sortedLabels = Arrays.stream(node.getLabels()).sorted().collect(Collectors.joining(","));
-        final String labelKey = "node|" + sortedLabels + "|" + key;
+        final String labelKey = "node|" + node.getLabel() + "|" + key;
         if (!labelKeyIdMap.containsKey(labelKey)) {
             labelKeyIdMap.put(labelKey, "nt" + labelKeyIdCounter);
             labelKeyIdCounter++;
@@ -240,7 +238,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
     }
 
     private void writeNode(final XMLStreamWriter writer, final Node node) throws XMLStreamException {
-        final String label = Arrays.stream(node.getLabels()).sorted().collect(Collectors.joining(":", ":", ""));
+        final String label = ':' + node.getLabel();
         writer.writeStartElement("node");
         writer.writeAttribute("id", "n" + node.getId());
         writer.writeAttribute("labels", label);

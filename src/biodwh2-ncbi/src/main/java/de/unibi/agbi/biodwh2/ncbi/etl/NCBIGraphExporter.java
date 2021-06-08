@@ -11,6 +11,7 @@ import de.unibi.agbi.biodwh2.core.io.sdf.SdfEntry;
 import de.unibi.agbi.biodwh2.core.io.sdf.SdfReader;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.ncbi.NCBIDataSource;
 import de.unibi.agbi.biodwh2.ncbi.model.GeneAccession;
@@ -43,7 +44,8 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.setNodeIndexPropertyKeys("id");
+        graph.addIndex(IndexDescription.forNode("Gene", "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Compound", "id", IndexDescription.Type.UNIQUE));
         geneIdNodeIdMap = new HashMap<>();
         try {
             exportGeneDatabase(workspace, dataSource, graph);

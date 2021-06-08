@@ -9,12 +9,12 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class MVStoreIndexTest {
+class MVStoreNonUniqueIndexTest {
     @Test
     void putTest() throws IOException {
         final Path tempFilePath = Files.createTempFile("putTest", ".db");
         final MVStoreDB db = new MVStoreDB(tempFilePath.toString());
-        final MVStoreIndex index = new MVStoreIndex(db, "index", "test", false);
+        final MVStoreIndex index = new MVStoreNonUniqueIndex(db, "index", "test", false);
         final MVStoreId id = new MVStoreId();
         index.put("value", id.getIdValue());
         final Set<Long> foundIds = index.find("value");
@@ -27,7 +27,7 @@ class MVStoreIndexTest {
     void putArrayTest() throws IOException {
         final Path tempFilePath = Files.createTempFile("putArrayTest", ".db");
         final MVStoreDB db = new MVStoreDB(tempFilePath.toString());
-        final MVStoreIndex index = new MVStoreIndex(db, "index", "test", true);
+        final MVStoreIndex index = new MVStoreNonUniqueIndex(db, "index", "test", true);
         final MVStoreId id = new MVStoreId();
         final String[] array = new String[]{"value1", "value2", "value3"};
         index.put(array, id.getIdValue());
@@ -42,7 +42,7 @@ class MVStoreIndexTest {
     void removeTest() throws IOException {
         final Path tempFilePath = Files.createTempFile("putTest", ".db");
         final MVStoreDB db = new MVStoreDB(tempFilePath.toString());
-        final MVStoreIndex index = new MVStoreIndex(db, "index", "test", false);
+        final MVStoreIndex index = new MVStoreNonUniqueIndex(db, "index", "test", false);
         final MVStoreId id1 = new MVStoreId();
         final MVStoreId id2 = new MVStoreId();
         index.put("value", id1.getIdValue());
@@ -60,8 +60,8 @@ class MVStoreIndexTest {
     void pagesTest() throws IOException {
         final Path tempFilePath = Files.createTempFile("pagesTest", ".db");
         final MVStoreDB db = new MVStoreDB(tempFilePath.toString());
-        final MVStoreIndex index1 = new MVStoreIndex(db, "index1", "i", false, 10);
-        final MVStoreIndex index2 = new MVStoreIndex(db, "index2", "label", false, 10);
+        final MVStoreIndex index1 = new MVStoreNonUniqueIndex(db, "index1", "i", false, 10);
+        final MVStoreIndex index2 = new MVStoreNonUniqueIndex(db, "index2", "label", false, 10);
         for (int i = 0; i < 55; i++) {
             final MVStoreId id = new MVStoreId();
             index1.put(i, id.getIdValue());

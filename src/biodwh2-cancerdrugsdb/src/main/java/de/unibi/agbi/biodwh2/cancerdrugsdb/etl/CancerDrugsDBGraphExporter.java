@@ -7,6 +7,7 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.mapping.IdentifierUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +30,11 @@ public class CancerDrugsDBGraphExporter extends GraphExporter<CancerDrugsDBDataS
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.setNodeIndexPropertyKeys("symbol", "name");
+        graph.addIndex(IndexDescription.forNode("Drug", "name", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Drug", "drugbank_id", IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Drug", "atc", true, IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Gene", "symbol", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Disease", "name", IndexDescription.Type.UNIQUE));
         for (final Entry entry : dataSource.entries)
             exportEntry(graph, entry);
         return true;

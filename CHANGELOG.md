@@ -16,9 +16,13 @@ Released:
  * ```[DrugBank]``` Replaced loading the whole XML database into ram with streaming
  * ```[EMA]``` Implemented EMA (EPAR, HMPC) data source module
  * ```[HPO]``` Marked HPO as usable
+ * ```[USDA-PLANTS]``` Add HAS_SYNONYM edges between plant nodes
 
 ### 🔧 Bug fixes and other changes
 
+ * ```[feature]``` Implemented new index structure for edges and nodes based on labels
+ * ```[feature]``` Added unique index support
+ * ```[feature]``` Nodes only support one label again for new index structure
  * ```[feature]``` IO format readers now use Charset class instead of charset name
  * ```[feature]``` OBO ontologies now share a unified graph exporter
  * ```[feature]``` CSV and TSV format reader in FileUtils now ignores missing columns

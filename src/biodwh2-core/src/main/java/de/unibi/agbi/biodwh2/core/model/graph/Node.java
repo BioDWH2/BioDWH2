@@ -9,17 +9,17 @@ import java.util.Set;
 
 public class Node extends MVStoreModel {
     private static final long serialVersionUID = -5027987220033105538L;
-    public static final String LABELS_FIELD = "__labels";
-    public static final Set<String> IGNORED_FIELDS = new HashSet<>(Arrays.asList(ID_FIELD, LABELS_FIELD));
+    public static final String LABEL_FIELD = "__label";
+    public static final Set<String> IGNORED_FIELDS = new HashSet<>(Arrays.asList(ID_FIELD, LABEL_FIELD));
 
     private Node() {
         super();
     }
 
-    public static Node newNode(final String... labels) {
+    public static Node newNode(final String label) {
         Node node = new Node();
         node.put(ID_FIELD, new MVStoreId().getIdValue());
-        node.put(LABELS_FIELD, labels);
+        node.put(LABEL_FIELD, label);
         return node;
     }
 
@@ -31,7 +31,7 @@ public class Node extends MVStoreModel {
         put(ID_FIELD, new MVStoreId().getIdValue());
     }
 
-    public String[] getLabels() {
-        return getProperty(LABELS_FIELD);
+    public String getLabel() {
+        return getProperty(LABEL_FIELD);
     }
 }

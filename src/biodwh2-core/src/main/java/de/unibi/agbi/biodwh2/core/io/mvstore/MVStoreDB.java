@@ -29,7 +29,7 @@ public final class MVStoreDB implements AutoCloseable {
             Collections.addAll(collectionNames, collectionNamesArray);
     }
 
-    <K, V> MVMapWrapper<K, V> openMap(final String name) {
+    public <K, V> MVMapWrapper<K, V> openMap(final String name) {
         return new MVMapWrapper<>(store, store.openMap(name));
     }
 

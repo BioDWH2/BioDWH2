@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.ndfrt.NDFRTDataSource;
 import de.unibi.agbi.biodwh2.ndfrt.model.*;
@@ -44,7 +45,21 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph g) {
-        g.setNodeIndexPropertyKeys("id", "code");
+        final String refBy = dataSource.terminology.refBy;
+        g.addIndex(IndexDescription.forNode("KindDefinition", refBy, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("RoleDefinition", refBy, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("PropertyDefinition", refBy, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("QualifierDefinition", refBy, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("AssociationDefinition", refBy, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("Namespace", refBy, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("DoseForm", refBy, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("PhysiologicEffect", refBy, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("Drug", refBy, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("Ingredient", refBy, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("MechanismOfAction", refBy, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("Pharmacokinetics", refBy, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("Disease", refBy, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("TherapeuticCategory", refBy, IndexDescription.Type.UNIQUE));
         kindRefLabelMap = buildKindRefLabelMap();
         roleRefLabelMap = buildRoleRefLabelMap();
         propertyRefPropertyMap = dataSource.terminology.properties.stream().collect(
@@ -155,12 +170,8 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
     }
 
     private void addKind(final Graph g, final Kind kind) {
-        final Map<String, Object> properties = new HashMap<>();
-        properties.put("id", kind.id);
-        properties.put("code", kind.code);
-        properties.put("name", kind.name);
-        properties.put("is_reference", kind.reference);
-        final Node node = g.addNode("KindDefinition", properties);
+        final Node node = g.addNode("KindDefinition", "id", kind.id, "code", kind.code, "name", kind.name,
+                                    "is_reference", kind.reference);
         final Node namespaceNode = g.findNode("Namespace", dataSource.terminology.refBy, kind.namespace);
         g.addEdge(node, namespaceNode, IN_NAMESPACE_EDGE_LABEL);
     }
@@ -298,7 +309,7 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
     private Node findConceptNode(final Graph g, final String ref) {
         final Iterable<Node> nodes = g.findNodes(dataSource.terminology.refBy, ref);
         for (Node node : nodes)
-            if (!"PropertyDefinition".equals(node.getLabels()[0]))
+            if (!"PropertyDefinition".equals(node.getLabel()))
                 return node;
         return null;
     }

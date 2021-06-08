@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
-final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
+public final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     private final MVMap<K, V> mvMap;
     private final MVStore mvStore;
     private MVStore.TxCounter lock;

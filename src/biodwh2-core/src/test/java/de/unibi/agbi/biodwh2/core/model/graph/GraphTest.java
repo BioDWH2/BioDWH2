@@ -20,7 +20,7 @@ class GraphTest {
         g.update(node);
         node = g.findNode("Gene", "test", "Hello");
         assertNotNull(node);
-        assertEquals("Gene", node.getLabels()[0]);
+        assertEquals("Gene", node.getLabel());
         assertTrue(node.hasProperty("test"));
         assertEquals("Hello", node.getProperty("test"));
     }

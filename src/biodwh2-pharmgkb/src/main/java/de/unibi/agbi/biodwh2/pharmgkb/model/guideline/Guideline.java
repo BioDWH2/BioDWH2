@@ -2,12 +2,12 @@ package de.unibi.agbi.biodwh2.pharmgkb.model.guideline;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@NodeLabels({"GuidelineAnnotation"})
+@GraphNodeLabel("GuidelineAnnotation")
 public final class Guideline {
     public String objCls;
     @GraphProperty("id")

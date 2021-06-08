@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.medrt.etl;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.medrt.MEDRTDataSource;
 import de.unibi.agbi.biodwh2.medrt.model.*;
@@ -39,9 +40,15 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     }
 
     @Override
-    protected boolean exportGraph(final Workspace workspace, final Graph g) {
-        g.setNodeIndexPropertyKeys("code", "namespace");
-        addTerminology(g);
+    protected boolean exportGraph(final Workspace workspace, final Graph graph) {
+        graph.addIndex(IndexDescription.forNode("Drug", "code", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Disease", "code", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Concept", "code", IndexDescription.Type.UNIQUE));
+        for (final String label : conceptLabelMap.values())
+            graph.addIndex(IndexDescription.forNode(label, "code", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TERM_LABEL, "name", IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TERM_LABEL, "namespace", IndexDescription.Type.NON_UNIQUE));
+        addTerminology(graph);
         return true;
     }
 
@@ -154,7 +161,11 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     }
 
     private Node findAssociationNode(final Graph g, final String code, String name, final String namespace) {
-        Node node = g.findNode("code", code);
+        Node node = g.findNode("Drug", "code", code);
+        if (node == null)
+            node = g.findNode("Disease", "code", code);
+        if (node == null)
+            node = g.findNode("Concept", "code", code);
         if (node == null) {
             if ("RxNorm".equals(namespace)) {
                 node = g.addNode("Drug", "code", code, "namespace", namespace, "name", name);

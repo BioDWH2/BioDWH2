@@ -8,6 +8,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.sider.SiderDataSource;
 import de.unibi.agbi.biodwh2.sider.model.*;
@@ -47,7 +48,10 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.setNodeIndexPropertyKeys(UMLS_ID_KEY, MEDDRA_ID_KEY, FLAT_ID_KEY, STEREO_ID_KEY);
+        graph.addIndex(IndexDescription.forNode("Drug", FLAT_ID_KEY, IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Drug", STEREO_ID_KEY, IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode(MEDDRA_TERM_LABEL, UMLS_ID_KEY, IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode(MEDDRA_TERM_LABEL, MEDDRA_ID_KEY, IndexDescription.Type.NON_UNIQUE));
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting drug names...");
         final Map<String, Long> drugIdNodeIdMap = addAllDrugNames(workspace, graph);
@@ -146,7 +150,7 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
         if (nodeId == null)
             nodeId = drugIdNodeIdMap.get(stereoId);
         if (nodeId != null) {
-            Node node = graph.getNode(nodeId);
+            final Node node = graph.getNode(nodeId);
             if (!node.hasProperty(STEREO_ID_KEY)) {
                 node.setProperty(STEREO_ID_KEY, stereoId);
                 graph.update(node);
@@ -154,7 +158,7 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
             }
             return nodeId;
         }
-        Node node = graph.addNode("Drug", FLAT_ID_KEY, flatId, STEREO_ID_KEY, stereoId);
+        final Node node = graph.addNode("Drug", FLAT_ID_KEY, flatId, STEREO_ID_KEY, stereoId);
         drugIdNodeIdMap.put(flatId, node.getId());
         drugIdNodeIdMap.put(stereoId, node.getId());
         return node.getId();

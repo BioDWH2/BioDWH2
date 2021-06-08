@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.dgidb.DGIdbDataSource;
 import de.unibi.agbi.biodwh2.dgidb.model.Category;
@@ -28,7 +29,8 @@ public class DGIdbGraphExporter extends GraphExporter<DGIdbDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
-        graph.setNodeIndexPropertyKeys("chembl_id", "entrez_id");
+        graph.addIndex(IndexDescription.forNode("Drug", "chembl_id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Gene", "entrez_id", IndexDescription.Type.UNIQUE));
         for (Drug drug : dataSource.drugs.stream().distinct().collect(Collectors.toList()))
             graph.addNodeFromModel(drug);
         for (Gene gene : dataSource.genes.stream().distinct().collect(Collectors.toList()))

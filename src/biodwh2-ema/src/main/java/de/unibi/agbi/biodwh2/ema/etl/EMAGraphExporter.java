@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.ema.EMADataSource;
 import de.unibi.agbi.biodwh2.ema.model.EPAREntry;
@@ -24,7 +25,7 @@ public class EMAGraphExporter extends GraphExporter<EMADataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.setNodeIndexPropertyKeys("name");
+        graph.addIndex(IndexDescription.forNode("HerbalUse", "name", IndexDescription.Type.UNIQUE));
         final List<Set<String>> nameGroups = getNormalizedCompanyNameGroups();
         final Map<String, Long> nameNodeIdMap = new HashMap<>();
         for (final Set<String> group : nameGroups) {

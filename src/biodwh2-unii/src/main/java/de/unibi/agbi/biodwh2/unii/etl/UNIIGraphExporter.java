@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.unii.etl;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.unii.UNIIDataSource;
 import de.unibi.agbi.biodwh2.unii.model.UNIIDataEntry;
@@ -35,7 +36,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
         itisIdNodeIdMap = new HashMap<>();
         ncbiTaxonomyIdNodeIdMap = new HashMap<>();
         usdaPlantsSymbolNodeIdMap = new HashMap<>();
-        graph.setNodeIndexPropertyKeys("id");
+        graph.addIndex(IndexDescription.forNode(UNII_LABEL, "id", IndexDescription.Type.UNIQUE));
         Map<String, List<UNIIEntry>> uniiEntriesMap = new HashMap<>();
         for (UNIIEntry entry : dataSource.uniiEntries) {
             if (!uniiEntriesMap.containsKey(entry.unii))

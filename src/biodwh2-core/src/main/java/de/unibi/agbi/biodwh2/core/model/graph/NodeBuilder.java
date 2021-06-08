@@ -6,7 +6,7 @@ public final class NodeBuilder extends HashMap<String, Object> {
     private static final long serialVersionUID = 9026156747952856158L;
 
     private final Graph graph;
-    private String[] labels;
+    private String label;
 
     NodeBuilder(final Graph graph) {
         super();
@@ -14,11 +14,7 @@ public final class NodeBuilder extends HashMap<String, Object> {
     }
 
     public NodeBuilder withLabel(final String label) {
-        return withLabels(label);
-    }
-
-    public NodeBuilder withLabels(final String... labels) {
-        this.labels = labels;
+        this.label = label;
         return this;
     }
 
@@ -38,6 +34,6 @@ public final class NodeBuilder extends HashMap<String, Object> {
     }
 
     public Node build() {
-        return graph.addNode(labels, this);
+        return graph.addNode(label, this);
     }
 }
