@@ -9,8 +9,6 @@ import java.util.List;
 public class CmdArgs {
     @CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Print this message", order = 0)
     public boolean help;
-    @CommandLine.Option(names = {"-ui"}, description = "Start BioDWH2 in UI mode", order = 1)
-    public boolean ui;
     @CommandLine.Option(names = {
             "-c", "--create"
     }, arity = "1", paramLabel = "<workspacePath>", description = "Create a new empty workspace", order = 2)
