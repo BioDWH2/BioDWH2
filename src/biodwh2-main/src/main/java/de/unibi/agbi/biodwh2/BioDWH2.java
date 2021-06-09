@@ -4,8 +4,6 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DataSourceLoader;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.text.TableFormatter;
-import de.unibi.agbi.biodwh2.ui.Gui;
-import javafx.application.Application;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,9 +34,7 @@ public final class BioDWH2 {
     }
 
     private void run(final CmdArgs commandLine) {
-        if (commandLine.ui) {
-            Application.launch(Gui.class);
-        } else if (commandLine.listDataSources)
+        if (commandLine.listDataSources)
             listDataSources(commandLine);
         else if (commandLine.addDataSource != null)
             addDataSource(commandLine);
