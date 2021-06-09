@@ -47,8 +47,9 @@ public final class MVStoreDB implements AutoCloseable {
         return (MVStoreCollection<T>) collection;
     }
 
+    @Override
     public void close() {
-        if (!store.isClosed())
+        if (store != null && !store.isClosed())
             store.close();
     }
 

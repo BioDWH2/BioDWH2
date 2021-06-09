@@ -56,7 +56,7 @@ public final class HTTPFTPClient {
         return new Entry[0];
     }
 
-    private Entry[] parseWebSourceTable(final String path, Element table) {
+    private Entry[] parseWebSourceTable(final String path, final Element table) {
         final List<Entry> result = new ArrayList<>();
         for (final Element row : table.select("tr")) {
             final Elements columns = row.select("td");

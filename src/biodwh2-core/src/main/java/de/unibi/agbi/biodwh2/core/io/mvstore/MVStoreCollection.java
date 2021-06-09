@@ -73,8 +73,8 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
                 case UNIQUE:
                     index = new MVStoreUniqueIndex(db, indexName, key, arrayIndex, readOnly);
                     break;
-                default:
                 case NON_UNIQUE:
+                default:
                     index = new MVStoreNonUniqueIndex(db, indexName, key, arrayIndex, readOnly);
                     break;
             }
@@ -132,7 +132,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     }
 
     private void updateAllPropertyKeys(final T obj) {
-        int previousSize = allPropertyKeys.size();
+        final int previousSize = allPropertyKeys.size();
         allPropertyKeys.addAll(obj.keySet());
         if (previousSize != allPropertyKeys.size())
             metaMap.put(ALL_PROPERTY_KEYS, allPropertyKeys.toArray(new String[0]));

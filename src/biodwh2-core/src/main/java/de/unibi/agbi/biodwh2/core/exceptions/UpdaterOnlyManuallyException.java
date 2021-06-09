@@ -7,20 +7,20 @@ public class UpdaterOnlyManuallyException extends UpdaterException {
         super();
     }
 
-    public UpdaterOnlyManuallyException(String message) {
+    public UpdaterOnlyManuallyException(final String message) {
         super(message);
     }
 
-    public UpdaterOnlyManuallyException(String message, Throwable cause) {
+    public UpdaterOnlyManuallyException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public UpdaterOnlyManuallyException(Throwable cause) {
+    public UpdaterOnlyManuallyException(final Throwable cause) {
         super(cause);
     }
 
-    public UpdaterOnlyManuallyException(String message, Throwable cause, boolean enableSuppression,
-                                        boolean writableStackTrace) {
+    public UpdaterOnlyManuallyException(final String message, final Throwable cause, final boolean enableSuppression,
+                                        final boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

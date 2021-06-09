@@ -66,9 +66,9 @@ public final class GraphMLGraphWriter extends GraphWriter {
         properties.clear();
         removeOldExport(workspace, dataSource);
         generateProperties(graph);
-        try (final OutputStream outputStream = Files.newOutputStream(
+        try (OutputStream stream = Files.newOutputStream(
                 dataSource.getFilePath(workspace, DataSourceFileType.INTERMEDIATE_GRAPHML))) {
-            writeGraphFile(outputStream, graph);
+            writeGraphFile(stream, graph);
         } catch (XMLStreamException | IOException e) {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("Failed to write graphml file", e);

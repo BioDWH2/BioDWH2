@@ -40,7 +40,7 @@ public abstract class Updater<D extends DataSource> {
 
     public abstract Version getNewestVersion() throws UpdaterException;
 
-    public final UpdateState update(Workspace workspace) throws UpdaterException {
+    public final UpdateState update(final Workspace workspace) throws UpdaterException {
         final Version newestVersion = getNewestVersion();
         final Version workspaceVersion = dataSource.getMetadata().version;
         if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
@@ -58,7 +58,7 @@ public abstract class Updater<D extends DataSource> {
         return UpdateState.FAILED;
     }
 
-    public final UpdateState updateManually(Workspace workspace, String version) {
+    public final UpdateState updateManually(final Workspace workspace, final String version) {
         final Version workspaceVersion = dataSource.getMetadata().version;
         final Version newestVersion = Version.tryParse(version);
         if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
@@ -73,15 +73,15 @@ public abstract class Updater<D extends DataSource> {
         return UpdateState.UPDATED;
     }
 
-    private boolean isDataSourceUpToDate(Version newestVersion, Version workspaceVersion) {
+    private boolean isDataSourceUpToDate(final Version newestVersion, final Version workspaceVersion) {
         if (versionNotAvailable())
             return false;
         return workspaceVersion != null && newestVersion.compareTo(workspaceVersion) == 0;
     }
 
-    protected abstract boolean tryUpdateFiles(Workspace workspace) throws UpdaterException;
+    protected abstract boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException;
 
-    private void updateDataSourceMetadata(Workspace workspace, Version version) {
+    private void updateDataSourceMetadata(final Workspace workspace, final Version version) {
         final DataSourceMetadata metadata = dataSource.getMetadata();
         metadata.version = version;
         metadata.setUpdateDateTimeNow();
@@ -90,12 +90,12 @@ public abstract class Updater<D extends DataSource> {
     }
 
     public final boolean isDataSourceUpToDate() {
-        Version newestVersion = tryGetNewestVersion();
+        final Version newestVersion = tryGetNewestVersion();
         final Version workspaceVersion = dataSource.getMetadata().version;
         return isDataSourceUpToDate(newestVersion, workspaceVersion);
     }
 
-    protected static Version convertDateTimeToVersion(LocalDateTime dateTime) {
+    protected static Version convertDateTimeToVersion(final LocalDateTime dateTime) {
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd.HHmmss");
         return Version.parse(dateTime.format(formatter));
     }

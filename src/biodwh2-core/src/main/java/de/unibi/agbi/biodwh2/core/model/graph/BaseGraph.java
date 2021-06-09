@@ -16,17 +16,19 @@ abstract class BaseGraph implements AutoCloseable {
     private static final String VERSION_KEY = "version";
     public static final String EXTENSION = "db";
 
+    private final Path filePath;
     private MVStoreDB database;
     private final MVMapWrapper<String, Object> metaMap;
     private final Map<String, MVStoreCollection<Node>> nodeRepositories;
     private final Map<String, MVStoreCollection<Edge>> edgeRepositories;
 
-    protected BaseGraph(final Path databaseFilePath, final boolean reopen, final boolean readOnly) {
+    protected BaseGraph(final Path filePath, final boolean reopen, final boolean readOnly) {
+        this.filePath = filePath;
         if (!reopen)
-            deleteOldDatabaseFile(databaseFilePath);
+            deleteOldDatabaseFile(filePath);
         nodeRepositories = new HashMap<>();
         edgeRepositories = new HashMap<>();
-        database = openDatabase(databaseFilePath, readOnly);
+        database = openDatabase(filePath, readOnly);
         metaMap = database.openMap("metadata");
         if (!reopen)
             metaMap.put(VERSION_KEY, VERSION);
@@ -66,6 +68,10 @@ abstract class BaseGraph implements AutoCloseable {
         return metaMap.containsKey(VERSION_KEY) ? (Integer) metaMap.get(VERSION_KEY) : null;
     }
 
+    public Path getFilePath() {
+        return filePath;
+    }
+
     public void addIndex(final IndexDescription description) {
         if (description.getLabel() == null)
             throw new GraphCacheException("Indices with null label are not allowed");
@@ -80,7 +86,8 @@ abstract class BaseGraph implements AutoCloseable {
         }
     }
 
-    public final void close() {
+    @Override
+    public void close() {
         if (database != null)
             database.close();
         nodeRepositories.clear();
@@ -398,10 +405,10 @@ abstract class BaseGraph implements AutoCloseable {
     }
 
     private static class RepositoriesIterator<T extends MVStoreModel> implements Iterator<T> {
-        private Iterator<T> current = null;
+        private Iterator<T> current;
         private final Iterator<MVStoreCollection<T>> repositories;
 
-        RepositoriesIterator(Collection<MVStoreCollection<T>> repositories) {
+        RepositoriesIterator(final Collection<MVStoreCollection<T>> repositories) {
             this.repositories = repositories.iterator();
         }
 
@@ -416,7 +423,7 @@ abstract class BaseGraph implements AutoCloseable {
                 current = filterNextRepository(repositories.next());
         }
 
-        protected Iterator<T> filterNextRepository(MVStoreCollection<T> next) {
+        protected Iterator<T> filterNextRepository(final MVStoreCollection<T> next) {
             return next.iterator();
         }
 

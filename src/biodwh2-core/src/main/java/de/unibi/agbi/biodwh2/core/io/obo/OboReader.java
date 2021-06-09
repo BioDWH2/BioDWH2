@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  * <p/>
  * http://purl.obolibrary.org/obo/oboformat/spec.html
  */
-public final class OboReader implements Iterable<OboEntry> {
+public final class OboReader implements Iterable<OboEntry>, AutoCloseable {
     private static final Pattern QUOTED_STRING_PATTERN = Pattern.compile("\"(\\.|[^\"])*\"");
 
     private final BufferedReader reader;
@@ -109,5 +109,11 @@ public final class OboReader implements Iterable<OboEntry> {
                 return lastEntry;
             }
         };
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (reader != null)
+            reader.close();
     }
 }

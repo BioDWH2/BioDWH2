@@ -82,8 +82,7 @@ public final class PathMapping {
                 builder.append("(:").append(segment.fromNodeLabel).append(')');
             if (segment.direction == PathMapping.EdgeDirection.BACKWARD)
                 builder.append('<');
-            builder.append('-');
-            builder.append("[:").append(segment.edgeLabel).append("]-");
+            builder.append("-[:").append(segment.edgeLabel).append("]-");
             if (segment.direction == PathMapping.EdgeDirection.FORWARD)
                 builder.append('>');
             builder.append("(:").append(segment.toNodeLabel).append(')');

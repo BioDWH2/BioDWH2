@@ -1,11 +1,10 @@
 package de.unibi.agbi.biodwh2.core.math;
 
-@SuppressWarnings("unused")
 public final class Vector2D {
     public final double x;
     public final double y;
 
-    public Vector2D(double x, double y) {
+    public Vector2D(final double x, final double y) {
         this.x = x;
         this.y = y;
     }
@@ -43,6 +42,7 @@ public final class Vector2D {
         return new Vector2D(this.x * x, this.y * y);
     }
 
+    @SuppressWarnings("unused")
     public Vector2D multiply(final Vector2D other) {
         return new Vector2D(x * other.x, y * other.y);
     }

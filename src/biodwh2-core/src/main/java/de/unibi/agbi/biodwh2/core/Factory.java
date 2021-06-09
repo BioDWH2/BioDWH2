@@ -101,7 +101,7 @@ public final class Factory {
     }
 
     private static String getClassPathFromUri(final String uri) {
-        return uri.replace("/", ".").replace(".class", "");
+        return uri.replace('/', '.').replace(".class", "");
     }
 
     private void loadClassPath(final ClassLoader classLoader, final String classPath) {

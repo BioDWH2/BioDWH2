@@ -6,8 +6,8 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 
-public final class SdfReader implements Iterable<SdfEntry> {
-    private BufferedReader reader;
+public final class SdfReader implements Iterable<SdfEntry>, AutoCloseable {
+    private final BufferedReader reader;
     SdfEntry lastEntry;
 
     @SuppressWarnings("unused")
@@ -46,7 +46,7 @@ public final class SdfReader implements Iterable<SdfEntry> {
         String line = readLineSafe();
         while (line != null) {
             if (inConnectionTable) {
-                if (line.trim().equals("M  END")) {
+                if ("M  END".equals(line.trim())) {
                     inConnectionTable = false;
                     entry.setConnectionTable(connectionTable.toString());
                 } else {
@@ -54,7 +54,7 @@ public final class SdfReader implements Iterable<SdfEntry> {
                         connectionTable.append('\n');
                     connectionTable.append(line);
                 }
-            } else if (line.trim().equals("$$$$")) {
+            } else if ("$$$$".equals(line.trim())) {
                 trimSdfPropertiesCarriageReturn(entry);
                 return entry;
             } else {
@@ -62,7 +62,7 @@ public final class SdfReader implements Iterable<SdfEntry> {
                     lastPropertyKey = line.substring(line.indexOf('<') + 1, line.length() - 1);
                     entry.properties.put(lastPropertyKey, "");
                 } else if (lastPropertyKey != null) {
-                    entry.properties.put(lastPropertyKey, entry.properties.get(lastPropertyKey) + "\n" + line);
+                    entry.properties.put(lastPropertyKey, entry.properties.get(lastPropertyKey) + '\n' + line);
                 }
             }
             line = readLineSafe();
@@ -92,5 +92,11 @@ public final class SdfReader implements Iterable<SdfEntry> {
 
     private static void trimSdfPropertiesCarriageReturn(final SdfEntry entry) {
         entry.properties.replaceAll((k, v) -> entry.properties.get(k).trim());
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (reader != null)
+            reader.close();
     }
 }

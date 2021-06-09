@@ -139,22 +139,22 @@ public final class GraphMLPropertyFormatter {
     public static String format(final char[] array) {
         final StringBuilder builder = new StringBuilder(ARRAY_START);
         if (array.length > 0)
-            builder.append("\"").append(array[0]);
+            builder.append('"').append(array[0]);
         for (int i = 1; i < array.length; i++)
             builder.append(STRING_ARRAY_SEPARATOR).append(array[i]);
         if (array.length > 0)
-            builder.append("\"");
+            builder.append('"');
         return builder.append(ARRAY_END).toString();
     }
 
     public static String format(final CharSequence[] array) {
         final StringBuilder builder = new StringBuilder(ARRAY_START);
         if (array.length > 0)
-            builder.append("\"").append(replaceInvalidXmlCharacters(array[0], true));
+            builder.append('"').append(replaceInvalidXmlCharacters(array[0], true));
         for (int i = 1; i < array.length; i++)
             builder.append(STRING_ARRAY_SEPARATOR).append(replaceInvalidXmlCharacters(array[i], true));
         if (array.length > 0)
-            builder.append("\"");
+            builder.append('"');
         return builder.append(ARRAY_END).toString();
     }
 
@@ -164,7 +164,7 @@ public final class GraphMLPropertyFormatter {
             return format((CharSequence[]) array);
         // If type erasure removed CharSequence or Character as the component type, check the elements directly
         if (array.length > 0) {
-            for (Object o : array) {
+            for (final Object o : array) {
                 if (o instanceof CharSequence)
                     return format(convertToStringArray(array));
                 if (o instanceof Character)

@@ -11,6 +11,7 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
+@SuppressWarnings("unused")
 public final class FileUtils {
     private FileUtils() {
     }
@@ -167,5 +169,14 @@ public final class FileUtils {
                 return false;
             }
         return true;
+    }
+
+    public static BufferedReader createBufferedReaderFromStream(final InputStream stream) {
+        return createBufferedReaderFromStream(stream, StandardCharsets.UTF_8);
+    }
+
+    public static BufferedReader createBufferedReaderFromStream(final InputStream stream, final Charset charset) {
+        final InputStreamReader reader = new InputStreamReader(stream, charset);
+        return new BufferedReader(reader);
     }
 }

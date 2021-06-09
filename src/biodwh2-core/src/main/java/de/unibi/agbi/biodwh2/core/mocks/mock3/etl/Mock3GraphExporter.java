@@ -20,7 +20,7 @@ public class Mock3GraphExporter extends GraphExporter<Mock3DataSource> {
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         graph.addIndex(IndexDescription.forNode("Test", "id", IndexDescription.Type.UNIQUE));
-        for (long i = 0; i < 10000; i++) {
+        for (long i = 0; i < 10_000; i++) {
             final Node n = graph.addNode("Test", "id", i, "name", "testnode-" + i);
             if (i > 0)
                 graph.addEdge(n, graph.findNode("Test", "id", i - 1), "HAS_PREVIOUS");

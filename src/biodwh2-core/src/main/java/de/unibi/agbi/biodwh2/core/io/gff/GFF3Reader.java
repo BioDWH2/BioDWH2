@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * GFF version 3 file format reader. https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
  */
-public final class GFF3Reader implements Iterable<GFF3Entry> {
+public final class GFF3Reader implements Iterable<GFF3Entry>, AutoCloseable {
     private static final Map<String, String> PERCENT_ENCODED_CHARACTERS = new HashMap<>();
     /**
      * Small lookup table for some Sequence Ontology (SO) terms and respective accession numbers.
@@ -35,9 +35,9 @@ public final class GFF3Reader implements Iterable<GFF3Entry> {
             String hex = Integer.toHexString(i).toUpperCase(Locale.US);
             if (hex.length() == 1)
                 hex = '0' + hex;
-            PERCENT_ENCODED_CHARACTERS.put('%' + hex, "" + (char) i);
+            PERCENT_ENCODED_CHARACTERS.put('%' + hex, String.valueOf((char) i));
         }
-        PERCENT_ENCODED_CHARACTERS.put("%7F", "" + 0x7F);
+        PERCENT_ENCODED_CHARACTERS.put("%7F", String.valueOf((char) 0x7F));
         PERCENT_ENCODED_CHARACTERS.put("%3B", ";");
         PERCENT_ENCODED_CHARACTERS.put("%3D", "=");
         PERCENT_ENCODED_CHARACTERS.put("%26", "&");
@@ -120,7 +120,7 @@ public final class GFF3Reader implements Iterable<GFF3Entry> {
     }
 
     private String readSequence(String line) {
-        StringBuilder sequence = new StringBuilder();
+        final StringBuilder sequence = new StringBuilder();
         if (line != null)
             sequence.append(line);
         String seekLine;
@@ -204,5 +204,11 @@ public final class GFF3Reader implements Iterable<GFF3Entry> {
             }
         }
         return result;
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (reader != null)
+            reader.close();
     }
 }

@@ -57,7 +57,7 @@ public final class Workspace {
 
     private Configuration createOrLoadConfiguration() {
         try {
-            Configuration configuration = loadConfiguration();
+            final Configuration configuration = loadConfiguration();
             return configuration == null ? createConfiguration() : configuration;
         } catch (IOException e) {
             throw new WorkspaceException("Failed to load or create workspace configuration", e);
@@ -85,7 +85,7 @@ public final class Workspace {
     private DataSource[] getUsedDataSources() {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Using data sources " + StringUtils.join(configuration.getDataSourceIds(), ", "));
-        DataSource[] result = new DataSourceLoader().getDataSources(configuration.getDataSourceIds());
+        final DataSource[] result = new DataSourceLoader().getDataSources(configuration.getDataSourceIds());
         if (result.length != configuration.getNumberOfDataSources())
             throw new WorkspaceException("Failed to load all data sources. Please ensure the configured data source " +
                                          "IDs are valid and all data source modules are available in the classpath.");
@@ -143,7 +143,7 @@ public final class Workspace {
         final List<String> row = new ArrayList<>();
         final DataSourceMetadata metadata = dataSource.getMetadata();
         final Version latestVersion = dataSource.getNewestVersion();
-        LocalDateTime updateDateTime = metadata.getLocalUpdateDateTime();
+        final LocalDateTime updateDateTime = metadata.getLocalUpdateDateTime();
         Collections.addAll(row, dataSource.getId(), dataSource.isUpToDate() ? "true" : "-",
                            metadata.version == null ? "-" : metadata.version.toString(),
                            latestVersion == null ? "-" : latestVersion.toString(),
@@ -217,7 +217,7 @@ public final class Workspace {
 
     private boolean areDataSourceExportsMissing(final DataSource dataSource) {
         return fileDoesNotExist(dataSource.getFilePath(this, DataSourceFileType.PERSISTENT_GRAPH)) ||
-               (!configuration.getSkipGraphMLExport() && fileDoesNotExist(
+               (!configuration.shouldSkipGraphMLExport() && fileDoesNotExist(
                        dataSource.getFilePath(this, DataSourceFileType.INTERMEDIATE_GRAPHML)));
     }
 
@@ -251,7 +251,7 @@ public final class Workspace {
         }
     }
 
-    public final Path getFilePath(final WorkspaceFileType type) {
+    public Path getFilePath(final WorkspaceFileType type) {
         return Paths.get(getSourcesDirectory(), type.getName());
     }
 

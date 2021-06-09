@@ -42,11 +42,9 @@ public enum IdentifierType {
     USDA_PLANTS_SYMBOL("USDA_PLANTS_Symbol"),
     VANDF_VUID("VANDF_VUID");
 
-
+    public final String prefix;
 
     IdentifierType(final String prefix) {
         this.prefix = prefix;
     }
-
-    public final String prefix;
 }

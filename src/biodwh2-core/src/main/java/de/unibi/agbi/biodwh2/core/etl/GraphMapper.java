@@ -29,7 +29,7 @@ public final class GraphMapper {
     public void map(final Workspace workspace, final DataSource[] dataSources) {
         copyGraph(workspace);
         final Path graphFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_PERSISTENT_GRAPH);
-        try (final Graph graph = new Graph(graphFilePath, true)) {
+        try (Graph graph = new Graph(graphFilePath, true)) {
             mapGraph(graph, dataSources);
             saveGraph(graph, workspace);
             generateMetaGraphStatistics(graph, workspace);
@@ -228,7 +228,7 @@ public final class GraphMapper {
 
     private void saveGraph(final Graph graph, final Workspace workspace) {
         final Path outputGraphFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_GRAPHML);
-        if (workspace.getConfiguration().getSkipGraphMLExport()) {
+        if (workspace.getConfiguration().shouldSkipGraphMLExport()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Skipping mapped graph GraphML export as per configuration");
             FileUtils.safeDelete(outputGraphFilePath);
@@ -242,7 +242,7 @@ public final class GraphMapper {
     private void generateMetaGraphStatistics(final Graph graph, final Workspace workspace) {
         final Path metaGraphImageFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_META_GRAPH_IMAGE);
         final Path metaGraphStatsFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_META_GRAPH_STATISTICS);
-        if (workspace.getConfiguration().getSkipMetaGraphGeneration()) {
+        if (workspace.getConfiguration().shouldSkipMetaGraphGeneration()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Skipping mapped graph meta graph generation as per configuration");
             FileUtils.safeDelete(metaGraphImageFilePath);

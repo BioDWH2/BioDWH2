@@ -22,7 +22,7 @@ public final class Mock1GraphExporter extends GraphExporter<Mock1DataSource> {
         graph.addIndex(IndexDescription.forNode("Gene", "hgnc_id", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Drug", "drugbank_id", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Dummy1", "id", IndexDescription.Type.UNIQUE));
-        Node tlr4Node = graph.addNode("Gene");
+        final Node tlr4Node = graph.addNode("Gene");
         tlr4Node.setProperty("hgnc_id", "TLR4");
         tlr4Node.setProperty("array_test", new String[]{"value1", "value2", "value3"});
         tlr4Node.setProperty("string_test", "value1");

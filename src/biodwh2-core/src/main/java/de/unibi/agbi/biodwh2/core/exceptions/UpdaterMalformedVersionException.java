@@ -7,11 +7,11 @@ public class UpdaterMalformedVersionException extends UpdaterException {
         super();
     }
 
-    public UpdaterMalformedVersionException(String version) {
+    public UpdaterMalformedVersionException(final String version) {
         super("The version string '" + version + "' is malformed");
     }
 
-    public UpdaterMalformedVersionException(String version, Throwable cause) {
+    public UpdaterMalformedVersionException(final String version, final Throwable cause) {
         super("The version string '" + version + "' is malformed", cause);
     }
 }

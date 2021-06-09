@@ -12,20 +12,20 @@ import java.util.*;
 public final class Graph extends BaseGraph {
     private final Map<Class<?>, ClassMapping> classMappingsCache = new HashMap<>();
 
-    public Graph(final String databaseFilePath) {
-        this(Paths.get(databaseFilePath), false, false);
+    public Graph(final String filePath) {
+        this(Paths.get(filePath), false, false);
     }
 
-    public Graph(final Path databaseFilePath) {
-        this(databaseFilePath, false, false);
+    public Graph(final Path filePath) {
+        this(filePath, false, false);
     }
 
-    public Graph(final Path databaseFilePath, final boolean reopen) {
-        this(databaseFilePath, reopen, false);
+    public Graph(final Path filePath, final boolean reopen) {
+        this(filePath, reopen, false);
     }
 
-    public Graph(final Path databaseFilePath, final boolean reopen, final boolean readOnly) {
-        super(databaseFilePath, reopen, readOnly);
+    public Graph(final Path filePath, final boolean reopen, final boolean readOnly) {
+        super(filePath, reopen, readOnly);
     }
 
     public Node addNode(final String label) {
@@ -75,17 +75,17 @@ public final class Graph extends BaseGraph {
 
     public Node addNode(final String label, final Map<String, Object> properties) {
         final Node n = Node.newNode(label);
-        for (Map.Entry<String, Object> entry : properties.entrySet())
+        for (final Map.Entry<String, Object> entry : properties.entrySet())
             n.setProperty(entry.getKey(), entry.getValue());
         update(n);
         return n;
     }
 
     public NodeBuilder buildNode() {
-        return Node.newNodeBuilder(this);
+        return new NodeBuilder(this);
     }
 
-    public final <T> Node addNodeFromModel(final T obj) {
+    public <T> Node addNodeFromModel(final T obj) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
         final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
@@ -99,7 +99,7 @@ public final class Graph extends BaseGraph {
         return classMappingsCache.get(type);
     }
 
-    public final <T> Node addNodeFromModel(final T obj, final String propertyKey, final Object propertyValue) {
+    public <T> Node addNodeFromModel(final T obj, final String propertyKey, final Object propertyValue) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
         final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
@@ -108,8 +108,8 @@ public final class Graph extends BaseGraph {
         return n;
     }
 
-    public final <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
-                                           final String propertyKey2, final Object propertyValue2) {
+    public <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
+                                     final String propertyKey2, final Object propertyValue2) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
         final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
@@ -119,9 +119,9 @@ public final class Graph extends BaseGraph {
         return n;
     }
 
-    public final <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
-                                           final String propertyKey2, final Object propertyValue2,
-                                           final String propertyKey3, final Object propertyValue3) {
+    public <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
+                                     final String propertyKey2, final Object propertyValue2, final String propertyKey3,
+                                     final Object propertyValue3) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
         final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
@@ -132,10 +132,10 @@ public final class Graph extends BaseGraph {
         return n;
     }
 
-    public final <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
-                                           final String propertyKey2, final Object propertyValue2,
-                                           final String propertyKey3, final Object propertyValue3,
-                                           final String propertyKey4, final Object propertyValue4) {
+    public <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
+                                     final String propertyKey2, final Object propertyValue2, final String propertyKey3,
+                                     final Object propertyValue3, final String propertyKey4,
+                                     final Object propertyValue4) {
         final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
         final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
@@ -329,7 +329,7 @@ public final class Graph extends BaseGraph {
 
     public Edge addEdge(final long fromId, final long toId, final String label, final Map<String, Object> properties) {
         final Edge e = Edge.newEdge(fromId, toId, label);
-        for (Map.Entry<String, Object> entry : properties.entrySet())
+        for (final Map.Entry<String, Object> entry : properties.entrySet())
             e.setProperty(entry.getKey(), entry.getValue());
         update(e);
         return e;

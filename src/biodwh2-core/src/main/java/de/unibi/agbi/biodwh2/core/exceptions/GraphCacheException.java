@@ -7,19 +7,20 @@ public class GraphCacheException extends RuntimeException {
         super();
     }
 
-    public GraphCacheException(String s) {
-        super(s);
+    public GraphCacheException(final String message) {
+        super(message);
     }
 
-    public GraphCacheException(String s, Throwable throwable) {
-        super(s, throwable);
+    public GraphCacheException(final String message, final Throwable cause) {
+        super(message, cause);
     }
 
-    public GraphCacheException(Throwable throwable) {
-        super(throwable);
+    public GraphCacheException(final Throwable cause) {
+        super(cause);
     }
 
-    public GraphCacheException(String s, Throwable throwable, boolean b, boolean b1) {
-        super(s, throwable, b, b1);
+    public GraphCacheException(final String message, final Throwable cause, final boolean enableSuppression,
+                               final boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

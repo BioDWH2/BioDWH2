@@ -6,10 +6,7 @@ import de.unibi.agbi.biodwh2.core.etl.OntologyGraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
-import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
-import de.unibi.agbi.biodwh2.core.model.graph.Graph;
-import de.unibi.agbi.biodwh2.core.model.graph.Node;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
+import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.geneontology.GeneOntologyDataSource;
 import de.unibi.agbi.biodwh2.geneontology.model.GAFEntry;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +25,7 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -38,12 +35,13 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
+        graph.addIndex(IndexDescription.forNode(DB_OBJECT_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
         return super.exportGraph(workspace, graph) && exportAnnotations(workspace, graph);
     }
 
     private boolean exportAnnotations(final Workspace workspace, final Graph graph) throws ExporterException {
         try {
-            //exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_FILE_NAME);
+            exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_FILE_NAME);
             exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_COMPLEX_FILE_NAME);
             exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_ISOFORM_FILE_NAME);
             exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_RNA_FILE_NAME);

@@ -28,17 +28,14 @@ public abstract class GraphExporter<D extends DataSource> {
     public abstract long getExportVersion();
 
     public final boolean export(final Workspace workspace) throws ExporterException {
-        final Graph g = new Graph(dataSource.getFilePath(workspace, DataSourceFileType.PERSISTENT_GRAPH));
         boolean exportSuccessful;
-        try {
+        try (Graph g = new Graph(dataSource.getFilePath(workspace, DataSourceFileType.PERSISTENT_GRAPH))) {
             exportSuccessful = exportGraph(workspace, g);
             if (exportSuccessful) {
                 exportSuccessful = trySaveGraphToFile(workspace, g);
                 if (exportSuccessful)
                     generateMetaGraphStatistics(workspace, g);
             }
-        } finally {
-            g.close();
         }
         return exportSuccessful;
     }
@@ -47,7 +44,7 @@ public abstract class GraphExporter<D extends DataSource> {
 
     private boolean trySaveGraphToFile(final Workspace workspace, final Graph g) {
         final GraphMLGraphWriter writer = new GraphMLGraphWriter();
-        if (workspace.getConfiguration().getSkipGraphMLExport()) {
+        if (workspace.getConfiguration().shouldSkipGraphMLExport()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Skipping '" + dataSource.getId() + "' GraphML export as per configuration");
             writer.removeOldExport(workspace, dataSource);
@@ -61,7 +58,7 @@ public abstract class GraphExporter<D extends DataSource> {
     private void generateMetaGraphStatistics(final Workspace workspace, final Graph g) {
         final Path metaGraphImageFilePath = dataSource.getFilePath(workspace, DataSourceFileType.META_GRAPH_IMAGE);
         final Path metaGraphStatsFilePath = dataSource.getFilePath(workspace, DataSourceFileType.META_GRAPH_STATISTICS);
-        if (workspace.getConfiguration().getSkipMetaGraphGeneration()) {
+        if (workspace.getConfiguration().shouldSkipMetaGraphGeneration()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Skipping '" + dataSource.getId() + "' meta graph generation as per configuration");
             FileUtils.safeDelete(metaGraphImageFilePath);
@@ -87,7 +84,7 @@ public abstract class GraphExporter<D extends DataSource> {
     }
 
     protected final <T> void createNodesFromModels(final Graph g, final Iterable<T> models) {
-        for (T obj : models)
+        for (final T obj : models)
             g.addNodeFromModel(obj);
     }
 }

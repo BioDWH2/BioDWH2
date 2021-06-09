@@ -89,7 +89,7 @@ public final class MetaGraphImage {
      * Force directed layout adapted from https://github.com/Benjoyo/ForceDirectedPlacement/
      */
     private void calculateNodeLocations() {
-        float area = Math.min(width * width, height * height);
+        final float area = Math.min(width * width, height * height);
         k = C * Math.sqrt(area / nodes.size());
         t = width * 0.1;
         final Random rand = new Random();
@@ -122,8 +122,8 @@ public final class MetaGraphImage {
                     continue;
                 double deltaPosX = v.x - u.x;
                 double deltaPosY = v.y - u.y;
-                double length = vectorLength(deltaPosX, deltaPosY);
-                double repulsiveForce = forceRepulsive(length, k);
+                final double length = vectorLength(deltaPosX, deltaPosY);
+                final double repulsiveForce = forceRepulsive(length, k);
                 deltaPosX *= (1 / length) * repulsiveForce;
                 deltaPosY *= (1 / length) * repulsiveForce;
                 v.displacementX += deltaPosX;
@@ -138,8 +138,8 @@ public final class MetaGraphImage {
                 continue;
             double deltaPosX = v.x - u.x;
             double deltaPosY = v.y - u.y;
-            double length = vectorLength(deltaPosX, deltaPosY);
-            double attractiveForce = forceAttractive(length, k);
+            final double length = vectorLength(deltaPosX, deltaPosY);
+            final double attractiveForce = forceAttractive(length, k);
             deltaPosX *= (1 / length) * attractiveForce;
             deltaPosY *= (1 / length) * attractiveForce;
             nodes.get(e.fromLabel).displacementX -= deltaPosX;
@@ -151,7 +151,7 @@ public final class MetaGraphImage {
         for (final MetaNodeLayout v : nodes.values()) {
             double displacementX = v.displacementX;
             double displacementY = v.displacementY;
-            double length = vectorLength(displacementX, displacementY);
+            final double length = vectorLength(displacementX, displacementY);
             if (length > CRITERION)
                 equilibriumReached = false;
             displacementX *= (1 / length) * Math.min(length, t);

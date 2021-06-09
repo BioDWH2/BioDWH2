@@ -12,27 +12,36 @@ public final class Mock1MappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if ("Gene".equals(localMappingLabel)) {
-            NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
-            description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("hgnc_id"));
-            return new NodeMappingDescription[]{description};
-        }
-        if ("Drug".equals(localMappingLabel)) {
-            NodeMappingDescription drugDescription = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
-            drugDescription.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
-            NodeMappingDescription compoundDescription = new NodeMappingDescription(
-                    NodeMappingDescription.NodeType.COMPOUND);
-            compoundDescription.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
-            return new NodeMappingDescription[]{drugDescription, compoundDescription};
-        }
-        if ("Dummy1".equals(localMappingLabel)) {
-            NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DUMMY);
-            description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id"));
-            if (node.hasProperty("id2"))
-                description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id2"));
-            return new NodeMappingDescription[]{description};
-        }
+        if ("Gene".equals(localMappingLabel))
+            return describeGene(node);
+        if ("Drug".equals(localMappingLabel))
+            return describeDrug(node);
+        if ("Dummy1".equals(localMappingLabel))
+            return describeDummy(node);
         return null;
+    }
+
+    private NodeMappingDescription[] describeGene(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("hgnc_id"));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeDrug(final Node node) {
+        final NodeMappingDescription drugDescription = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
+        drugDescription.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
+        final NodeMappingDescription compoundDescription = new NodeMappingDescription(
+                NodeMappingDescription.NodeType.COMPOUND);
+        compoundDescription.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
+        return new NodeMappingDescription[]{drugDescription, compoundDescription};
+    }
+
+    private NodeMappingDescription[] describeDummy(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DUMMY);
+        description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id"));
+        if (node.hasProperty("id2"))
+            description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id2"));
+        return new NodeMappingDescription[]{description};
     }
 
     @Override

@@ -27,15 +27,14 @@ public final class MVStoreUniqueIndex extends MVStoreIndex {
     @Override
     public void put(final Object propertyValue, final long id) {
         if (arrayIndex)
-            put((Comparable<?>[]) propertyValue, id);
+            put((Comparable<?>[]) propertyValue);
         else
             put((Comparable<?>) propertyValue, id);
     }
 
-    private void put(final Comparable<?>[] propertyValue, final long id) {
-        if (propertyValue != null) {
+    private void put(final Comparable<?>[] propertyValue) {
+        if (propertyValue != null)
             throw new MVStoreIndexException("Unique array indices are not yet supported!");
-        }
     }
 
     private void put(final Comparable<?> propertyValue, final long id) {

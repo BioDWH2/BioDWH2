@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Edge extends MVStoreModel {
+public final class Edge extends MVStoreModel {
     private static final long serialVersionUID = -6592771152520163851L;
     public static final String FROM_ID_FIELD = "__from_id";
     public static final String TO_ID_FIELD = "__to_id";
@@ -19,17 +19,8 @@ public class Edge extends MVStoreModel {
         super();
     }
 
-    public static Edge newEdge(final MVStoreId fromId, final MVStoreId toId, final String label) {
-        Edge edge = new Edge();
-        edge.put(ID_FIELD, new MVStoreId().getIdValue());
-        edge.put(FROM_ID_FIELD, fromId.getIdValue());
-        edge.put(TO_ID_FIELD, toId.getIdValue());
-        edge.put(LABEL_FIELD, label);
-        return edge;
-    }
-
     static Edge newEdge(final long fromId, final long toId, final String label) {
-        Edge edge = new Edge();
+        final Edge edge = new Edge();
         edge.put(ID_FIELD, new MVStoreId().getIdValue());
         edge.put(FROM_ID_FIELD, fromId);
         edge.put(TO_ID_FIELD, toId);
