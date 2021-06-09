@@ -11,6 +11,7 @@ import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.WorkspaceFileType;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
+import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,11 +67,13 @@ public class GraphMerger {
     private void generateMetaGraphStatistics(final Graph graph, final Workspace workspace) {
         final Path metaGraphImageFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_META_GRAPH_IMAGE);
         final Path metaGraphStatsFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_META_GRAPH_STATISTICS);
+        final Path metaGraphDynamicVisFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_META_GRAPH_DYNAMIC_VIS);
         if (workspace.getConfiguration().shouldSkipMetaGraphGeneration()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Skipping merged graph meta graph generation as per configuration");
             FileUtils.safeDelete(metaGraphImageFilePath);
             FileUtils.safeDelete(metaGraphStatsFilePath);
+            FileUtils.safeDelete(metaGraphDynamicVisFilePath);
             return;
         }
         if (LOGGER.isInfoEnabled())
@@ -89,5 +92,7 @@ public class GraphMerger {
         final MetaGraphImage image = new MetaGraphImage(metaGraph, 2048, 2048);
         image.drawAndSaveImage(metaGraphImageFilePath);
         FileUtils.writeTextToUTF8File(metaGraphStatsFilePath, statistics);
+        final MetaGraphDynamicVisWriter visWriter = new MetaGraphDynamicVisWriter(metaGraph);
+        visWriter.write(metaGraphDynamicVisFilePath);
     }
 }

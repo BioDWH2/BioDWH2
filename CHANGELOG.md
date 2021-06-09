@@ -20,6 +20,7 @@ Released:
 
 ### 🔧 Bug fixes and other changes
 
+ * ```[feature]``` Added generated html page for dynamic meta graph visualizations
  * ```[feature]``` Implemented new index structure for edges and nodes based on labels
  * ```[feature]``` Added unique index support
  * ```[feature]``` Nodes only support one label again for new index structure
