@@ -8,6 +8,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.hpo.HPODataSource;
 import de.unibi.agbi.biodwh2.hpo.model.EvidenceCode;
@@ -40,6 +41,8 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
+        graph.addIndex(IndexDescription.forNode("Gene", "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Disease", "id", IndexDescription.Type.UNIQUE));
         final Map<String, String> properties = dataSource.getProperties(workspace);
         omimLicensed = "true".equalsIgnoreCase(properties.get("omimLicensed"));
         return super.exportGraph(workspace, graph) && exportAnnotations(workspace, graph);
