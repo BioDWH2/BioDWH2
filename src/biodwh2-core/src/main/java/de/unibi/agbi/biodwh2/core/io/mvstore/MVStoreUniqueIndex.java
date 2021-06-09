@@ -11,6 +11,10 @@ public final class MVStoreUniqueIndex extends MVStoreIndex {
 
     private final MVMapWrapper<Comparable<?>, Long> map;
 
+    public MVStoreUniqueIndex(final MVStoreDB db, final String name, final String key, final boolean arrayIndex) {
+        this(db, name, key, arrayIndex, false);
+    }
+
     public MVStoreUniqueIndex(final MVStoreDB db, final String name, final String key, final boolean arrayIndex,
                               final boolean readOnly) {
         super(name, key, false, readOnly);
