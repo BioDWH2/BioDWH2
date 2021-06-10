@@ -29,6 +29,11 @@ public final class MVStoreUniqueIndex extends MVStoreIndex {
     }
 
     @Override
+    public boolean contains(final Comparable<?> propertyValue) {
+        return map.containsKey(propertyValue);
+    }
+
+    @Override
     public void put(final Object propertyValue, final long id) {
         if (arrayIndex)
             put((Comparable<?>[]) propertyValue);

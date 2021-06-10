@@ -39,4 +39,6 @@ public abstract class MVStoreIndex {
     public abstract void remove(final Object propertyValue, final long id);
 
     public abstract void put(final Object propertyValue, final long id);
+
+    public abstract boolean contains(final Comparable<?> propertyValue);
 }
