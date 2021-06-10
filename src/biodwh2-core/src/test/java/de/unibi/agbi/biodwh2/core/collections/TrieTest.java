@@ -8,9 +8,10 @@ class TrieTest {
     @Test
     void addTest() {
         final Trie trie = new Trie();
-        trie.add("a");
-        trie.add("ab");
-        trie.add("ababa");
+        assertFalse(trie.add(null));
+        assertTrue(trie.add("a"));
+        assertTrue(trie.add("ab"));
+        assertTrue(trie.add("ababa"));
         assertEquals(3, trie.size());
     }
 

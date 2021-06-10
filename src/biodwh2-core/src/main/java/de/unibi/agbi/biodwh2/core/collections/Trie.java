@@ -22,6 +22,8 @@ public final class Trie extends AbstractCollection<CharSequence> implements Seri
 
     @Override
     public boolean add(final CharSequence word) {
+        if (word == null)
+            return false;
         Map<Character, Node> children = root.children;
         for (int i = 0; i < word.length(); i++) {
             char c = word.charAt(i);
@@ -124,11 +126,11 @@ public final class Trie extends AbstractCollection<CharSequence> implements Seri
         return false;
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
+    private void writeObject(final ObjectOutputStream out) throws IOException {
         out.writeObject(toArray());
     }
 
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
         final Object[] array = (Object[]) in.readObject();
         for (final Object obj : array)
             add((CharSequence) obj);
