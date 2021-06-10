@@ -41,6 +41,7 @@ Released: 09.06.2021
 
  * ```[fix]``` Removed GUI until missing javafx issues are resolved
 
+---
 ## 📦 Version [v0.3.3](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.3)
 
 Released: 18.05.2021

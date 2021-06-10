@@ -7,7 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class MVStoreNonUniqueIndexTest {
     @Test
@@ -43,17 +43,39 @@ class MVStoreNonUniqueIndexTest {
     void removeTest() throws IOException {
         final Path tempFilePath = Files.createTempFile("MVStoreNonUniqueIndexTest.removeTest", ".db");
         try (MVStoreDB db = new MVStoreDB(tempFilePath.toString())) {
-            final MVStoreIndex index = new MVStoreNonUniqueIndex(db, "index", "test", false);
-            final MVStoreId id1 = new MVStoreId();
-            final MVStoreId id2 = new MVStoreId();
-            index.put("value", id1.getIdValue());
-            index.put("value", id2.getIdValue());
-            Set<Long> foundIds = index.find("value");
-            assertEquals(2, foundIds.size());
-            index.remove("value", id1.getIdValue());
-            foundIds = index.find("value");
-            assertEquals(1, foundIds.size());
-            assertEquals(id2.getIdValue(), foundIds.stream().findFirst().get());
+            final MVStoreIndex index = new MVStoreNonUniqueIndex(db, "index", "test", false, 50);
+            final String indexKey = "value";
+            final MVStoreId[] ids = new MVStoreId[25];
+            for (int i = 0; i < ids.length; i++) {
+                ids[i] = new MVStoreId();
+                index.put(indexKey, ids[i].getIdValue());
+            }
+            // Validate that the index holds all ids
+            Set<Long> foundIds = index.find(indexKey);
+            assertEquals(ids.length, foundIds.size());
+            for (final MVStoreId id : ids)
+                assertTrue(foundIds.contains(id.getIdValue()));
+            // Remove the first id (min id in page metadata)
+            index.remove(indexKey, ids[0].getIdValue());
+            foundIds = index.find(indexKey);
+            assertEquals(ids.length - 1, foundIds.size());
+            for (int i = 1; i < ids.length; i++)
+                assertTrue(foundIds.contains(ids[i].getIdValue()));
+            // Remove the last id (max id in page metadata)
+            index.remove(indexKey, ids[ids.length - 1].getIdValue());
+            foundIds = index.find(indexKey);
+            assertEquals(ids.length - 2, foundIds.size());
+            for (int i = 1; i < ids.length - 1; i++)
+                assertTrue(foundIds.contains(ids[i].getIdValue()));
+            // Remove an id in between min/max
+            index.remove(indexKey, ids[ids.length / 2].getIdValue());
+            foundIds = index.find(indexKey);
+            assertEquals(ids.length - 3, foundIds.size());
+            for (int i = 1; i < ids.length - 1; i++)
+                if (i == ids.length / 2)
+                    assertFalse(foundIds.contains(ids[i].getIdValue()));
+                else
+                    assertTrue(foundIds.contains(ids[i].getIdValue()));
         }
     }
 

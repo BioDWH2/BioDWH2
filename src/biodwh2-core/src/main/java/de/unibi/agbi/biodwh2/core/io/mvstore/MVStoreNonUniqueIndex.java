@@ -182,11 +182,14 @@ public class MVStoreNonUniqueIndex extends MVStoreIndex {
             if (metadata.slotsUsed == 0) {
                 pageIndexToRemove = pageIndex;
             } else {
-                metadata.minId = page.getFirst();
-                metadata.maxId = page.getFirst();
-                for (final Long value : page) {
-                    metadata.minId = Math.min(value, metadata.minId);
-                    metadata.maxId = Math.max(value, metadata.maxId);
+                if (id == metadata.minId) {
+                    metadata.minId = page.getFirst();
+                    for (final Long value : page)
+                        metadata.minId = Math.min(value, metadata.minId);
+                } else if (id == metadata.maxId) {
+                    metadata.maxId = page.getFirst();
+                    for (final Long value : page)
+                        metadata.maxId = Math.max(value, metadata.maxId);
                 }
                 pagesMap.unsafePut(pageIndex, page);
             }

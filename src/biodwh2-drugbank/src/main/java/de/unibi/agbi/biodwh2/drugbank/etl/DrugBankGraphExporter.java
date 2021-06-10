@@ -32,6 +32,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugBankGraphExporter.class);
     private static final String DRUGBANK_ID_KEY = "drugbank_id";
+    private static final String DRUGBANK_IDS_KEY = "drugbank_ids";
     private static final String SMPDB_ID_KEY = "smpdb_id";
     private static final String ID_KEY = "id";
     private static final String NAME_KEY = "name";
@@ -181,7 +182,6 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
 
     private Map<String, Long> drugLookUp;
     private Map<String, Long> referenceLookUp;
-    private Map<String, Long> meshTermLookUp;
     private Map<String, Long> foodInteractionLookUp;
     private Map<String, Long> calculatedPropertyLookUp;
     private Map<String, Long> experimentalPropertyLookUp;
@@ -206,7 +206,6 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         drugLookUp = new HashMap<>();
         referenceLookUp = new HashMap<>();
-        meshTermLookUp = new HashMap<>();
         foodInteractionLookUp = new HashMap<>();
         calculatedPropertyLookUp = new HashMap<>();
         experimentalPropertyLookUp = new HashMap<>();
@@ -217,6 +216,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         pathwayEnzymeCache = new HashMap<>();
         pathwayDrugCache = new HashMap<>();
         reactionCache = new LinkedList<>();
+        graph.addIndex(IndexDescription.forNode(MESH_TERM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(POLYPEPTIDE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(ENZYME_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(TARGET_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
@@ -383,6 +383,8 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private Node createDrugNode(final Graph graph, final Drug drug, final Map<String, Long> drugLookUp) {
         final NodeBuilder drugBuilder = graph.buildNode().withLabel(DRUG_LABEL);
         drugBuilder.withProperty(DRUGBANK_ID_KEY, getPrimaryOrFirstDrugBankId(drug).value);
+        drugBuilder.withProperty(DRUGBANK_IDS_KEY,
+                                 drug.drugbankIds.stream().map(id -> id.value).toArray(String[]::new));
         drugBuilder.withProperty(NAME_KEY, drug.name);
         drugBuilder.withProperty(DESCRIPTION_KEY, drug.description);
         drugBuilder.withProperty(GROUP_KEY, drug.groups.stream().map(Group::toValue).toArray(String[]::new));
@@ -600,14 +602,15 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
 
     private void addDrugCategories(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.categories != null)
-            for (final Category category : drug.categories) {
-                if (!meshTermLookUp.containsKey(category.meshId)) {
-                    final Node node = graph.addNode(MESH_TERM_LABEL, ID_KEY, category.meshId, NAME_KEY,
-                                                    category.category);
-                    meshTermLookUp.put(category.meshId, node.getId());
-                }
-                graph.addEdge(drugNode, meshTermLookUp.get(category.meshId), HAS_CATEGORY_LABEL);
-            }
+            for (final Category category : drug.categories)
+                addDrugCategory(graph, drugNode, category);
+    }
+
+    private void addDrugCategory(final Graph graph, final Node drugNode, final Category category) {
+        Node meshTermNode = graph.findNode(MESH_TERM_LABEL, ID_KEY, category.meshId);
+        if (meshTermNode == null)
+            meshTermNode = graph.addNode(MESH_TERM_LABEL, ID_KEY, category.meshId, NAME_KEY, category.category);
+        graph.addEdge(drugNode, meshTermNode, HAS_CATEGORY_LABEL);
     }
 
     private void addDrugInteractants(final Graph graph, final Drug drug, final Node drugNode) {
@@ -754,49 +757,46 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private void createReferenceListNode(final Graph graph, final Node parent, final ReferenceList references) {
         if (references == null)
             return;
-        if (isListNullOrEmpty(references.textbooks) && isListNullOrEmpty(references.articles) && isListNullOrEmpty(
-                references.attachments) && isListNullOrEmpty(references.links))
-            return;
         if (isListNotEmpty(references.textbooks)) {
             for (final Textbook reference : references.textbooks) {
-                if (!referenceLookUp.containsKey(reference.refId)) {
-                    final Node node = graph.addNodeFromModel(reference);
-                    referenceLookUp.put(reference.refId, node.getId());
+                Long nodeId = referenceLookUp.get(reference.refId);
+                if (nodeId == null) {
+                    nodeId = graph.addNodeFromModel(reference).getId();
+                    referenceLookUp.put(reference.refId, nodeId);
                 }
-                graph.addEdge(parent, referenceLookUp.get(reference.refId), HAS_TEXTBOOK_LABEL);
+                graph.addEdge(parent, nodeId, HAS_TEXTBOOK_LABEL);
             }
         }
         if (isListNotEmpty(references.articles)) {
             for (final Article reference : references.articles) {
-                if (!referenceLookUp.containsKey(reference.refId)) {
-                    final Node node = graph.addNodeFromModel(reference);
-                    referenceLookUp.put(reference.refId, node.getId());
+                Long nodeId = referenceLookUp.get(reference.refId);
+                if (nodeId == null) {
+                    nodeId = graph.addNodeFromModel(reference).getId();
+                    referenceLookUp.put(reference.refId, nodeId);
                 }
-                graph.addEdge(parent, referenceLookUp.get(reference.refId), HAS_ARTICLE_LABEL);
+                graph.addEdge(parent, nodeId, HAS_ARTICLE_LABEL);
             }
         }
         if (isListNotEmpty(references.links)) {
             for (final Link reference : references.links) {
-                if (!referenceLookUp.containsKey(reference.refId)) {
-                    final Node node = graph.addNodeFromModel(reference);
-                    referenceLookUp.put(reference.refId, node.getId());
+                Long nodeId = referenceLookUp.get(reference.refId);
+                if (nodeId == null) {
+                    nodeId = graph.addNodeFromModel(reference).getId();
+                    referenceLookUp.put(reference.refId, nodeId);
                 }
-                graph.addEdge(parent, referenceLookUp.get(reference.refId), HAS_LINK_LABEL);
+                graph.addEdge(parent, nodeId, HAS_LINK_LABEL);
             }
         }
         if (isListNotEmpty(references.attachments)) {
             for (final Attachment reference : references.attachments) {
-                if (!referenceLookUp.containsKey(reference.refId)) {
-                    final Node node = graph.addNodeFromModel(reference);
-                    referenceLookUp.put(reference.refId, node.getId());
+                Long nodeId = referenceLookUp.get(reference.refId);
+                if (nodeId == null) {
+                    nodeId = graph.addNodeFromModel(reference).getId();
+                    referenceLookUp.put(reference.refId, nodeId);
                 }
-                graph.addEdge(parent, referenceLookUp.get(reference.refId), HAS_ATTACHMENT_LABEL);
+                graph.addEdge(parent, nodeId, HAS_ATTACHMENT_LABEL);
             }
         }
-    }
-
-    private boolean isListNullOrEmpty(final List<?> list) {
-        return list == null || list.size() == 0;
     }
 
     private boolean isListNotEmpty(final List<?> list) {
