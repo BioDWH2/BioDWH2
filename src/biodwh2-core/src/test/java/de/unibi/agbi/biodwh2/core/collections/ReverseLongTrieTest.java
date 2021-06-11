@@ -6,10 +6,10 @@ import java.io.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class LongTrieTest {
+class ReverseLongTrieTest {
     @Test
     void addTest() {
-        final LongTrie trie = new LongTrie();
+        final ReverseLongTrie trie = new ReverseLongTrie();
         assertFalse(trie.add(null));
         assertTrue(trie.add(4L));
         assertTrue(trie.add(10L));
@@ -19,7 +19,7 @@ class LongTrieTest {
 
     @Test
     void handleZeroTest() {
-        final LongTrie trie = new LongTrie();
+        final ReverseLongTrie trie = new ReverseLongTrie();
         assertTrue(trie.add(0L));
         assertEquals(1, trie.size());
         assertTrue(trie.contains(0L));
@@ -30,7 +30,7 @@ class LongTrieTest {
 
     @Test
     void addIsDistinctTest() {
-        final LongTrie trie = new LongTrie();
+        final ReverseLongTrie trie = new ReverseLongTrie();
         trie.add(5L);
         assertEquals(1, trie.size());
         trie.add(5L);
@@ -39,7 +39,7 @@ class LongTrieTest {
 
     @Test
     void sizeTest() {
-        final LongTrie trie = new LongTrie();
+        final ReverseLongTrie trie = new ReverseLongTrie();
         trie.add(5L);
         assertEquals(1, trie.size());
         trie.add(55L);
@@ -50,14 +50,14 @@ class LongTrieTest {
 
     @Test
     void containsTest() {
-        final LongTrie trie = new LongTrie();
+        final ReverseLongTrie trie = new ReverseLongTrie();
         trie.add(389593L);
         assertTrue(trie.contains(389593L));
     }
 
     @Test
     void removeTest() {
-        final LongTrie trie = new LongTrie();
+        final ReverseLongTrie trie = new ReverseLongTrie();
         trie.add(389593L);
         assertTrue(trie.contains(389593L));
         assertTrue(trie.remove(389593L));
@@ -66,7 +66,7 @@ class LongTrieTest {
 
     @Test
     void removeIntermediateLeafTest() {
-        final LongTrie trie = new LongTrie();
+        final ReverseLongTrie trie = new ReverseLongTrie();
         trie.add(321L);
         trie.add(654321L);
         assertFalse(trie.remove(321L));
@@ -76,7 +76,7 @@ class LongTrieTest {
 
     @Test
     void valuesTest() {
-        final LongTrie trie = new LongTrie();
+        final ReverseLongTrie trie = new ReverseLongTrie();
         assertEquals(0, trie.values().size());
         trie.add(5L);
         assertArrayEquals(new Long[]{5L}, trie.values().stream().sorted().toArray());
@@ -90,7 +90,7 @@ class LongTrieTest {
 
     @Test
     void isEmptyTest() {
-        final LongTrie trie = new LongTrie();
+        final ReverseLongTrie trie = new ReverseLongTrie();
         trie.add(555L);
         assertFalse(trie.isEmpty());
         trie.remove(555L);
@@ -99,7 +99,7 @@ class LongTrieTest {
 
     @Test
     void clearTest() {
-        final LongTrie trie = new LongTrie();
+        final ReverseLongTrie trie = new ReverseLongTrie();
         trie.add(5L);
         trie.add(10L);
         trie.add(3490L);
@@ -111,7 +111,7 @@ class LongTrieTest {
 
     @Test
     void serializableTest() throws IOException, ClassNotFoundException {
-        final LongTrie trie = new LongTrie();
+        final ReverseLongTrie trie = new ReverseLongTrie();
         trie.add(321L);
         trie.add(654321L);
         trie.add(0L);
@@ -120,7 +120,7 @@ class LongTrieTest {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         new ObjectOutputStream(output).writeObject(trie);
         final ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(output.toByteArray()));
-        final LongTrie loadedTrie = (LongTrie) ois.readObject();
+        final ReverseLongTrie loadedTrie = (ReverseLongTrie) ois.readObject();
         assertArrayEquals(trie.values().stream().sorted().toArray(), loadedTrie.values().stream().sorted().toArray());
     }
 }
