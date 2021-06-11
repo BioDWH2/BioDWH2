@@ -107,9 +107,10 @@ public class LongTrie extends AbstractCollection<Long> implements Serializable {
                                         final long multiplier) {
         if (node.isLeaf)
             values.add(value);
+        final long nextMultiplier = multiplier * 10;
         for (final Node child : node.children)
             if (child != null)
-                collectValuesRecursive(child, values, value + child.digit * multiplier, multiplier * 10);
+                collectValuesRecursive(child, values, value + child.digit * multiplier, nextMultiplier);
     }
 
     @Override
@@ -161,9 +162,7 @@ public class LongTrie extends AbstractCollection<Long> implements Serializable {
         root.readObject(in);
     }
 
-    private static class Node implements Serializable {
-        private static final long serialVersionUID = -3306600229709591221L;
-
+    private static class Node {
         public int digit;
         public Node[] children = new Node[10];
         private boolean isLeaf;
@@ -177,24 +176,22 @@ public class LongTrie extends AbstractCollection<Long> implements Serializable {
 
         private void writeObject(final ObjectOutputStream out) throws IOException {
             out.writeBoolean(isLeaf);
-            for (final Node child : children) {
-                if (child == null)
-                    out.writeBoolean(false);
-                else {
-                    out.writeBoolean(true);
-                    child.writeObject(out);
+            for (int i = 0; i < children.length; i++)
+                if (children[i] != null) {
+                    out.writeByte(i);
+                    children[i].writeObject(out);
                 }
-            }
+            out.writeByte(255);
         }
 
-        private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
+        private void readObject(final ObjectInputStream in) throws IOException {
             isLeaf = in.readBoolean();
             children = new Node[10];
-            for (int i = 0; i < children.length; i++)
-                if (in.readBoolean()) {
-                    children[i] = new Node(i);
-                    children[i].readObject(in);
-                }
+            int digit;
+            while ((digit = in.readUnsignedByte()) != 255) {
+                children[digit] = new Node(digit);
+                children[digit].readObject(in);
+            }
         }
     }
 }

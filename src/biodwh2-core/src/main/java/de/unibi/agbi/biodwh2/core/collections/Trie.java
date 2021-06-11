@@ -9,7 +9,7 @@ import java.util.*;
 public final class Trie extends AbstractCollection<CharSequence> implements Serializable {
     private static final long serialVersionUID = 3961256311025487069L;
 
-    private final Node root;
+    private Node root;
 
     public Trie() {
         root = new Node();
@@ -127,13 +127,12 @@ public final class Trie extends AbstractCollection<CharSequence> implements Seri
     }
 
     private void writeObject(final ObjectOutputStream out) throws IOException {
-        out.writeObject(toArray());
+        root.writeObject(out);
     }
 
     private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
-        final Object[] array = (Object[]) in.readObject();
-        for (final Object obj : array)
-            add((CharSequence) obj);
+        root = new Node();
+        root.readObject(in);
     }
 
     private static class Node {
@@ -147,6 +146,26 @@ public final class Trie extends AbstractCollection<CharSequence> implements Seri
 
         public Node(final char character) {
             this.character = character;
+        }
+
+        private void writeObject(final ObjectOutputStream out) throws IOException {
+            out.writeBoolean(isLeaf);
+            out.writeInt(children.size());
+            for (final Node child : children.values()) {
+                out.writeChar(child.character);
+                child.writeObject(out);
+            }
+        }
+
+        private void readObject(final ObjectInputStream in) throws IOException {
+            isLeaf = in.readBoolean();
+            final int count = in.readInt();
+            for (int i = 0; i < count; i++) {
+                final char c = in.readChar();
+                final Node child = new Node(c);
+                children.put(c, child);
+                child.readObject(in);
+            }
         }
     }
 }

@@ -2,6 +2,8 @@ package de.unibi.agbi.biodwh2.core.collections;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class TrieTest {
@@ -94,5 +96,19 @@ class TrieTest {
         trie.clear();
         //noinspection ConstantConditions
         assertTrue(trie.isEmpty());
+    }
+
+    @Test
+    void serializableTest() throws IOException, ClassNotFoundException {
+        final Trie trie = new Trie();
+        trie.add("a");
+        trie.add("ab");
+        trie.add("aa");
+        trie.add("abcde");
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        new ObjectOutputStream(output).writeObject(trie);
+        final ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(output.toByteArray()));
+        final Trie loadedTrie = (Trie) ois.readObject();
+        assertArrayEquals(trie.values().stream().sorted().toArray(), loadedTrie.values().stream().sorted().toArray());
     }
 }
