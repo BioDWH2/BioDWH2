@@ -64,7 +64,7 @@ public class CanadianNutrientFileParser extends Parser<CanadianNutrientFileDataS
             String line;
             br.readLine();
             while ((line = br.readLine()) != null) {
-                if (line.startsWith(","))
+                if (line.startsWith(",") || line.equals("\n") || line.equals(""))
                     continue;
                 lines.add(line);
             }
@@ -75,10 +75,6 @@ public class CanadianNutrientFileParser extends Parser<CanadianNutrientFileDataS
             LOGGER.error("Error parsing {}", path);
             throw new ParserFormatException(String.format("Error parsing %s", path));
         }
-
-        for (int i = 1; i < lines.size(); i++)
-            if (lines.get(i).equals("\n") || lines.get(i).equals(""))
-                lines.remove(i);
 
         for (int i = 1; i < lines.size(); i++) {
             if (lines.get(i).startsWith("\"")) {
