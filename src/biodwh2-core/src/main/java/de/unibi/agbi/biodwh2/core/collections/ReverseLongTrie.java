@@ -74,9 +74,11 @@ public class ReverseLongTrie extends AbstractCollection<Long> implements Seriali
     private int sizeRecursive(final Node node, int count) {
         if (node.isLeaf)
             count++;
-        for (final Node child : node.children)
+        for (int i = 0; i < node.children.length; i++) {
+            final Node child = node.children[i];
             if (child != null)
                 count = sizeRecursive(child, count);
+        }
         return count;
     }
 
@@ -108,9 +110,11 @@ public class ReverseLongTrie extends AbstractCollection<Long> implements Seriali
         if (node.isLeaf)
             values.add(value);
         final long nextMultiplier = multiplier * 10;
-        for (final Node child : node.children)
+        for (int i = 0; i < node.children.length; i++) {
+            final Node child = node.children[i];
             if (child != null)
                 collectValuesRecursive(child, values, value + child.digit * multiplier, nextMultiplier);
+        }
     }
 
     @Override

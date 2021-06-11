@@ -110,6 +110,21 @@ class LongTrieTest {
     }
 
     @Test
+    void concurrentModificationTest() {
+        final LongTrie trie = new LongTrie();
+        trie.add(5L);
+        trie.add(55L);
+        trie.add(555L);
+        trie.add(554L);
+        trie.add(10L);
+        trie.add(3490L);
+        assertDoesNotThrow(() -> {
+            for (final Long value : trie)
+                trie.remove(value);
+        });
+    }
+
+    @Test
     void serializableTest() throws IOException, ClassNotFoundException {
         final LongTrie trie = new LongTrie();
         trie.add(321L);

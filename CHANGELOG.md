@@ -20,6 +20,7 @@ Released:
 
 ### 🔧 Bug fixes and other changes
 
+ * ```[feature]``` Added Trie, LongTrie, and ReverseLongTrie data structures
  * ```[feature]``` Added generated html page for dynamic meta graph visualizations
  * ```[feature]``` Implemented new index structure for edges and nodes based on labels
  * ```[feature]``` Added unique index support

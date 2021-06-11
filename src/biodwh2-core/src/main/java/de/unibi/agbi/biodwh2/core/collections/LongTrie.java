@@ -84,9 +84,11 @@ public class LongTrie extends AbstractCollection<Long> implements Serializable {
     private int sizeRecursive(final Node node, int count) {
         if (node.isLeaf)
             count++;
-        for (final Node child : node.children)
+        for (int i = 0; i < node.children.length; i++) {
+            final Node child = node.children[i];
             if (child != null)
                 count = sizeRecursive(child, count);
+        }
         return count;
     }
 
@@ -116,9 +118,11 @@ public class LongTrie extends AbstractCollection<Long> implements Serializable {
     private void collectValuesRecursive(final Node node, final List<Long> values, final long value) {
         if (node.isLeaf)
             values.add(value);
-        for (final Node child : node.children)
+        for (int i = 0; i < node.children.length; i++) {
+            final Node child = node.children[i];
             if (child != null)
                 collectValuesRecursive(child, values, value * 10 + child.digit);
+        }
     }
 
     @Override
