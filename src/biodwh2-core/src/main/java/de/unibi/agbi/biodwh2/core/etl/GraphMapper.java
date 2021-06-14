@@ -66,16 +66,16 @@ public final class GraphMapper {
     }
 
     private void mapNodes(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
-        final Map<String, Set<Long>> idNodeIdMap = new HashMap<>();
+        final Map<String, Map<String, Long>> labelIdNodeIdMap = new HashMap<>();
         for (final MappingDescriber describer : dataSourceDescriberMap.values()) {
             final String[] localMappingLabels = describer.getNodeMappingLabels();
             if (localMappingLabels != null)
                 for (final String localMappingLabel : localMappingLabels)
-                    mapNodesWithLabel(graph, idNodeIdMap, describer, localMappingLabel);
+                    mapNodesWithLabel(graph, labelIdNodeIdMap, describer, localMappingLabel);
         }
     }
 
-    private void mapNodesWithLabel(final Graph graph, final Map<String, Set<Long>> idNodeIdMap,
+    private void mapNodesWithLabel(final Graph graph, final Map<String, Map<String, Long>> labelIdNodeIdMap,
                                    final MappingDescriber describer, final String localMappingLabel) {
         final String prefixedMappingLabel = describer.prefixLabel(localMappingLabel);
         if (LOGGER.isInfoEnabled())
@@ -84,41 +84,35 @@ public final class GraphMapper {
             final NodeMappingDescription[] mappingDescriptions = describer.describe(graph, node, localMappingLabel);
             if (mappingDescriptions != null)
                 for (final NodeMappingDescription mappingDescription : mappingDescriptions)
-                    if (mappingDescription != null)
+                    if (mappingDescription != null) {
+                        final Map<String, Long> idNodeIdMap = labelIdNodeIdMap.computeIfAbsent(
+                                mappingDescription.getType(), k -> new HashMap<>());
                         mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId());
+                    }
         }
     }
 
     private void mergeMatchingNodes(final Graph graph, final NodeMappingDescription description,
-                                    final Map<String, Set<Long>> idNodeIdMap, final long mappedNodeId) {
+                                    final Map<String, Long> idNodeIdMap, final long mappedNodeId) {
         final Set<Long> matchedNodeIds = matchNodesFromIds(idNodeIdMap, description);
-        final Node mergedNode = mergeOrCreateMappingNode(graph, description, matchedNodeIds, idNodeIdMap);
+        final Node mergedNode = mergeOrCreateMappingNode(graph, description, matchedNodeIds);
         graph.addEdge(mappedNodeId, mergedNode, MAPPED_TO_EDGE_LABEL);
-        for (final String id : mergedNode.<Set<String>>getProperty(IDS_NODE_PROPERTY)) {
-            Set<Long> nodeIds = idNodeIdMap.get(id);
-            if (nodeIds == null) {
-                nodeIds = new HashSet<>();
-                idNodeIdMap.put(id, nodeIds);
-            }
-            nodeIds.add(mergedNode.getId());
-        }
+        for (final String id : mergedNode.<Collection<String>>getProperty(IDS_NODE_PROPERTY))
+            idNodeIdMap.put(id, mergedNode.getId());
     }
 
-    private Set<Long> matchNodesFromIds(final Map<String, Set<Long>> idNodeIdMap,
-                                        final NodeMappingDescription description) {
+    private Set<Long> matchNodesFromIds(final Map<String, Long> idNodeIdMap, final NodeMappingDescription description) {
         final Set<Long> matchedNodeIds = new HashSet<>();
         for (final String id : description.getIdentifiers())
             if (idNodeIdMap.containsKey(id))
-                matchedNodeIds.addAll(idNodeIdMap.get(id));
+                matchedNodeIds.add(idNodeIdMap.get(id));
         return matchedNodeIds;
     }
 
     private Node mergeOrCreateMappingNode(final Graph graph, final NodeMappingDescription description,
-                                          final Set<Long> matchedNodeIds, final Map<String, Set<Long>> idNodeIdMap) {
+                                          final Set<Long> matchedNodeIds) {
         final Set<String> ids = new HashSet<>(description.getIdentifiers());
         final Set<String> names = description.getNames();
-        final int idsCount = ids.size();
-        final int namesCount = names.size();
         Node mergedNode = null;
         for (final Long nodeId : matchedNodeIds) {
             final Node matchedNode = graph.getNode(nodeId);
@@ -131,21 +125,16 @@ public final class GraphMapper {
                 names.addAll(nodeNames);
             if (mergedNode == null)
                 mergedNode = matchedNode;
-            else {
+            else
                 graph.mergeNodes(mergedNode, matchedNode);
-                for (final String id : nodeIds)
-                    idNodeIdMap.get(id).remove(nodeId);
-            }
         }
         if (mergedNode == null) {
             mergedNode = graph.addNode(description.getType(), MAPPED_NODE_PROPERTY, true, IDS_NODE_PROPERTY, ids,
                                        NAMES_NODE_PROPERTY, names);
         } else {
-            if (idsCount != ids.size() || namesCount != names.size()) {
-                mergedNode.setProperty(IDS_NODE_PROPERTY, ids);
-                mergedNode.setProperty(NAMES_NODE_PROPERTY, names);
-                graph.update(mergedNode);
-            }
+            mergedNode.setProperty(IDS_NODE_PROPERTY, ids);
+            mergedNode.setProperty(NAMES_NODE_PROPERTY, names);
+            graph.update(mergedNode);
         }
         return mergedNode;
     }

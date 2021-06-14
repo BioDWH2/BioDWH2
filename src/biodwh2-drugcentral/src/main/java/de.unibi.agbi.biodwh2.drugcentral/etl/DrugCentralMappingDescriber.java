@@ -74,13 +74,14 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
         final Long[] nodeIds = graph.getAdjacentNodeIdsForEdgeLabel(node.getId(), "DrugCentral_HAS_IDENTIFIER");
         for (final Long nodeId : nodeIds) {
             final Node adjacentNode = graph.getNode(nodeId);
-            if ("DRUGBANK_ID".equals(adjacentNode.getProperty("type"))) {
-                compoundDescription.addIdentifier(IdentifierType.DRUG_BANK,
-                                                  adjacentNode.<String>getProperty("identifier"));
-                drugDescription.addIdentifier(IdentifierType.DRUG_BANK, adjacentNode.<String>getProperty("identifier"));
-            } else if ("UNII".equals(adjacentNode.getProperty("type"))) {
-                compoundDescription.addIdentifier(IdentifierType.UNII, adjacentNode.<String>getProperty("identifier"));
-                drugDescription.addIdentifier(IdentifierType.UNII, adjacentNode.<String>getProperty("identifier"));
+            final String type = adjacentNode.getProperty("type");
+            final String identifier = adjacentNode.getProperty("identifier");
+            if ("DRUGBANK_ID".equals(type)) {
+                compoundDescription.addIdentifier(IdentifierType.DRUG_BANK, identifier);
+                drugDescription.addIdentifier(IdentifierType.DRUG_BANK, identifier);
+            } else if ("UNII".equals(type)) {
+                compoundDescription.addIdentifier(IdentifierType.UNII, identifier);
+                drugDescription.addIdentifier(IdentifierType.UNII, identifier);
             }
         }
         return new NodeMappingDescription[]{compoundDescription, drugDescription};
