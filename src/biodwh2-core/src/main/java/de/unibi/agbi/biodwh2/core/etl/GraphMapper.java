@@ -48,7 +48,7 @@ public final class GraphMapper {
         }
     }
 
-    private void mapGraph(final Graph graph, final DataSource[] dataSources) {
+    void mapGraph(final Graph graph, final DataSource[] dataSources) {
         final Map<String, MappingDescriber> map = getDataSourceDescriberMap(dataSources);
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Mapping nodes");
@@ -69,18 +69,23 @@ public final class GraphMapper {
         final Map<String, Set<Long>> idNodeIdMap = new HashMap<>();
         for (final MappingDescriber describer : dataSourceDescriberMap.values()) {
             final String[] localMappingLabels = describer.getNodeMappingLabels();
-            for (final String localMappingLabel : localMappingLabels) {
-                final String prefixedMappingLabel = describer.prefixLabel(localMappingLabel);
-                if (LOGGER.isInfoEnabled())
-                    LOGGER.info("Mapping nodes with label '" + prefixedMappingLabel + "'");
-                for (final Node node : graph.getNodes(prefixedMappingLabel)) {
-                    final NodeMappingDescription[] mappingDescriptions = describer.describe(graph, node,
-                                                                                            localMappingLabel);
-                    if (mappingDescriptions != null)
-                        for (final NodeMappingDescription mappingDescription : mappingDescriptions)
-                            mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId());
-                }
-            }
+            if (localMappingLabels != null)
+                for (final String localMappingLabel : localMappingLabels)
+                    mapNodesWithLabel(graph, idNodeIdMap, describer, localMappingLabel);
+        }
+    }
+
+    private void mapNodesWithLabel(final Graph graph, final Map<String, Set<Long>> idNodeIdMap,
+                                   final MappingDescriber describer, final String localMappingLabel) {
+        final String prefixedMappingLabel = describer.prefixLabel(localMappingLabel);
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Mapping nodes with label '" + prefixedMappingLabel + "'");
+        for (final Node node : graph.getNodes(prefixedMappingLabel)) {
+            final NodeMappingDescription[] mappingDescriptions = describer.describe(graph, node, localMappingLabel);
+            if (mappingDescriptions != null)
+                for (final NodeMappingDescription mappingDescription : mappingDescriptions)
+                    if (mappingDescription != null)
+                        mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId());
         }
     }
 
@@ -90,9 +95,12 @@ public final class GraphMapper {
         final Node mergedNode = mergeOrCreateMappingNode(graph, description, matchedNodeIds, idNodeIdMap);
         graph.addEdge(mappedNodeId, mergedNode, MAPPED_TO_EDGE_LABEL);
         for (final String id : mergedNode.<Set<String>>getProperty(IDS_NODE_PROPERTY)) {
-            if (!idNodeIdMap.containsKey(id))
-                idNodeIdMap.put(id, new HashSet<>());
-            idNodeIdMap.get(id).add(mergedNode.getId());
+            Set<Long> nodeIds = idNodeIdMap.get(id);
+            if (nodeIds == null) {
+                nodeIds = new HashSet<>();
+                idNodeIdMap.put(id, nodeIds);
+            }
+            nodeIds.add(mergedNode.getId());
         }
     }
 
@@ -156,7 +164,7 @@ public final class GraphMapper {
     }
 
     private List<PathMapping> getNonEmptyPathMappingsForDescriber(final MappingDescriber describer) {
-        return Arrays.stream(describer.getEdgePathMappings()).filter(m -> m.getSegmentCount() > 0).collect(
+        return Arrays.stream(describer.getEdgePathMappings()).filter(m -> m != null && m.getSegmentCount() > 0).collect(
                 Collectors.toList());
     }
 
