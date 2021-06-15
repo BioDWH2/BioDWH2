@@ -14,10 +14,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Locale;
 
 public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntologyDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GeneOntologyGraphExporter.class);
-    private static final String DB_OBJECT_LABEL = "DBObject";
+    static final String DB_OBJECT_LABEL = "DBObject";
 
     public GeneOntologyGraphExporter(final GeneOntologyDataSource dataSource) {
         super(dataSource);
@@ -25,7 +26,7 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
 
     @Override
     public long getExportVersion() {
-        return 3;
+        return 4;
     }
 
     @Override
@@ -73,9 +74,13 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
         if (termNode == null)
             return;
         final Node databaseObject = getOrCreateDatabaseObject(graph, entry);
-        final EdgeBuilder builder = graph.buildEdge().fromNode(databaseObject).toNode(termNode).withLabel(
-                "HAS_ANNOTATION");
-        builder.withProperty("qualifier", StringUtils.split(entry.qualifier, '|'));
+        final String[] qualifierParts = StringUtils.split(entry.qualifier, '|');
+        final String qualifier;
+        if (qualifierParts.length == 2)
+            qualifier = qualifierParts[0].toUpperCase(Locale.US) + "_" + qualifierParts[1].toUpperCase(Locale.US);
+        else
+            qualifier = qualifierParts[0].toUpperCase(Locale.US);
+        final EdgeBuilder builder = graph.buildEdge().fromNode(databaseObject).toNode(termNode).withLabel(qualifier);
         builder.withProperty("references", StringUtils.split(entry.dbReference, '|'));
         final String[] taxa = StringUtils.split(entry.taxon, '|');
         builder.withProperty("taxon", taxa[0]);
@@ -91,11 +96,13 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
     }
 
     private Node getOrCreateDatabaseObject(final Graph graph, final GAFEntry entry) {
-        final String id = entry.db + ':' + entry.dbObjectId;
+        final String id = entry.geneProductFormId != null ? entry.geneProductFormId : entry.db + ':' + entry.dbObjectId;
         Node node = graph.findNode(DB_OBJECT_LABEL, ID_PROPERTY, id);
         if (node == null) {
             final NodeBuilder builder = graph.buildNode().withLabel(DB_OBJECT_LABEL);
             builder.withProperty(ID_PROPERTY, id);
+            builder.withProperty("db", entry.db);
+            builder.withProperty("db_object_id", entry.dbObjectId);
             builder.withProperty("symbol", entry.dbObjectSymbol);
             builder.withProperty("type", entry.dbObjectType);
             builder.withPropertyIfNotNull("name", entry.dbObjectName);

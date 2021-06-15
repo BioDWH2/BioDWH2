@@ -17,6 +17,8 @@ Released:
  * ```[EMA]``` Implemented EMA (EPAR, HMPC) data source module
  * ```[HPO]``` Marked HPO as usable
  * ```[USDA-PLANTS]``` Add HAS_SYNONYM edges between plant nodes
+ * ```[GeneOntology]``` Add Protein and RNA mapping
+ * ```[GeneOntology]``` Annotation edges are now named after annotation types
 
 ### 🔧 Bug fixes and other changes
 
