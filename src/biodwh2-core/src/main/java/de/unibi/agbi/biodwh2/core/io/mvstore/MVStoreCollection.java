@@ -75,7 +75,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
                     break;
                 case NON_UNIQUE:
                 default:
-                    index = new MVStoreNonUniqueIndex(db, indexName, key, arrayIndex, readOnly);
+                    index = new MVStoreNonUniqueTrieIndex(db, indexName, key, arrayIndex, readOnly);
                     break;
             }
             indices.put(key, index);
