@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DataSourceLoader;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.net.BioDWH2Updater;
 import de.unibi.agbi.biodwh2.core.text.TableFormatter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -34,6 +35,7 @@ public final class BioDWH2 {
     }
 
     private void run(final CmdArgs commandLine) {
+        BioDWH2Updater.checkForUpdate("BioDWH2", "https://api.github.com/repos/BioDWH2/BioDWH2/releases");
         if (commandLine.listDataSources)
             listDataSources(commandLine);
         else if (commandLine.addDataSource != null)
