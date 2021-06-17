@@ -4,6 +4,8 @@ import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPWebUpdater;
 import de.unibi.agbi.biodwh2.uniprot.UniProtDataSource;
 
 public class UniProtUpdater extends MultiFileFTPWebUpdater<UniProtDataSource> {
+    static final String HUMAN_SPROT_FILE_NAME = "uniprot_sprot_human.xml.gz";
+
     public UniProtUpdater(final UniProtDataSource dataSource) {
         super(dataSource);
     }
@@ -15,8 +17,6 @@ public class UniProtUpdater extends MultiFileFTPWebUpdater<UniProtDataSource> {
 
     @Override
     protected String[] getFilePaths() {
-        return new String[]{
-                "uniprot_sprot_human.xml.gz"
-        };
+        return new String[]{HUMAN_SPROT_FILE_NAME};
     }
 }

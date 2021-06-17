@@ -36,10 +36,10 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.addIndex(IndexDescription.forNode("Organism", "id", IndexDescription.Type.UNIQUE));
-        final String filePath = dataSource.resolveSourceFilePath(workspace, "uniprot_sprot_human.xml.gz");
+        final String filePath = dataSource.resolveSourceFilePath(workspace, UniProtUpdater.HUMAN_SPROT_FILE_NAME);
         final File zipFile = new File(filePath);
         if (!zipFile.exists())
-            throw new ExporterException("Failed to parse the file 'uniprot_sprot_human.xml.gz'");
+            throw new ExporterException("Failed to parse the file '" + UniProtUpdater.HUMAN_SPROT_FILE_NAME + "'");
         try {
             final GZIPInputStream zipStream = openZipInputStream(zipFile);
             final XmlMapper xmlMapper = new XmlMapper();
