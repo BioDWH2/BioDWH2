@@ -54,7 +54,7 @@ public class HGNCMappingDescriber extends MappingDescriber {
 
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
-        if (edges.length == 1 && HGNCGraphExporter.CODES_FOR_LABEL.equals(edges[0].getLabel()))
+        if (edges.length == 1 && edges[0].getLabel().endsWith(HGNCGraphExporter.CODES_FOR_LABEL))
             return new PathMappingDescription(PathMappingDescription.EdgeType.CODES_FOR);
         return null;
     }
