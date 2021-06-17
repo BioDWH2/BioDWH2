@@ -38,6 +38,7 @@
         <module>biodwh2-cancerdrugsdb</module>
         <module>biodwh2-uniprot</module>
         <module>biodwh2-ema</module>
+        <module>biodwh2-pathwaycommons</module>
     </modules>
 
     <packaging>pom</packaging>

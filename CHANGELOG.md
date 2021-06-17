@@ -7,6 +7,11 @@ Released:
 ### 📚 Data Sources
 
  * ```[HGNC]``` Use UniProt ids of genes as Protein nodes and add ```CODES_FOR``` relationships. These are also represented in the mapping layer.
+ * ```[PathwayCommons]``` Add PathwayCommons data source module
+
+### 🔧 Bug fixes and other changes
+
+ * ```[feature]``` Added GMT gene set format reader
 
 ## 📦 Version [v0.3.5](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.5)
 
