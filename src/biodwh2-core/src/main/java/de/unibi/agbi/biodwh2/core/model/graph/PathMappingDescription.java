@@ -9,7 +9,8 @@ public final class PathMappingDescription {
         INDICATES,
         CONTRAINDICATES,
         INDUCES,
-        INTERACTS
+        INTERACTS,
+        CODES_FOR
     }
 
     private final String type;

@@ -95,7 +95,6 @@ public final class Gene {
     @GraphArrayProperty(value = "ccds_ids", arrayDelimiter = "|")
     public String ccdsId;
     @JsonProperty("uniprot_ids")
-    @GraphArrayProperty(value = "uniprot_ids", arrayDelimiter = "|")
     public String uniprotIds;
     @JsonProperty("pubmed_id")
     @GraphArrayProperty(value = "pubmed_ids", arrayDelimiter = "|")
