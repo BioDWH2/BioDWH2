@@ -1,23 +1,24 @@
 package de.unibi.agbi.biodwh2.pathwaycommons.etl;
 
-import de.unibi.agbi.biodwh2.core.Workspace;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
-import de.unibi.agbi.biodwh2.core.model.Version;
+import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPWebUpdater;
 import de.unibi.agbi.biodwh2.pathwaycommons.PathwayCommonsDataSource;
 
-public class PathwayCommonsUpdater extends Updater<PathwayCommonsDataSource> {
+public class PathwayCommonsUpdater extends MultiFileFTPWebUpdater<PathwayCommonsDataSource> {
     public PathwayCommonsUpdater(final PathwayCommonsDataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
-        return null;
+    protected String getFTPIndexUrl() {
+        return "https://www.pathwaycommons.org/archives/PC2/v12/";
     }
 
     @Override
-    protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        return false;
+    protected String[] getFilePaths() {
+        return new String[]{
+                "pathways.txt.gz", "datasources.txt", "PathwayCommons12.All.uniprot.gmt.gz",
+                "PathwayCommons12.All.hgnc.txt.gz", "PathwayCommons12.All.hgnc.sif.gz",
+                "PathwayCommons12.All.hgnc.gmt.gz", "PathwayCommons12.All.BIOPAX.owl.gz"
+        };
     }
 }
