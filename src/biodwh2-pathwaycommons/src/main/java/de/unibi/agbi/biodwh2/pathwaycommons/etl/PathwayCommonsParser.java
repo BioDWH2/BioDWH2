@@ -2,7 +2,6 @@ package de.unibi.agbi.biodwh2.pathwaycommons.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
 import de.unibi.agbi.biodwh2.pathwaycommons.PathwayCommonsDataSource;
 
 public class PathwayCommonsParser extends Parser<PathwayCommonsDataSource> {
@@ -11,7 +10,7 @@ public class PathwayCommonsParser extends Parser<PathwayCommonsDataSource> {
     }
 
     @Override
-    public boolean parse(final Workspace workspace) throws ParserException {
+    public boolean parse(final Workspace workspace) {
         return true;
     }
 }
