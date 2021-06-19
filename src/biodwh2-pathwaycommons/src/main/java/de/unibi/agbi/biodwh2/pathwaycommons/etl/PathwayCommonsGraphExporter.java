@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.pathwaycommons.etl;
 
+import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
@@ -7,10 +8,12 @@ import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.gmt.GMTReader;
 import de.unibi.agbi.biodwh2.core.io.gmt.GeneSet;
+import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.pathwaycommons.PathwayCommonsDataSource;
+import de.unibi.agbi.biodwh2.pathwaycommons.model.InteractionEntry;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class PathwayCommonsGraphExporter extends GraphExporter<PathwayCommonsDataSource> {
@@ -33,7 +37,7 @@ public class PathwayCommonsGraphExporter extends GraphExporter<PathwayCommonsDat
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -43,6 +47,7 @@ public class PathwayCommonsGraphExporter extends GraphExporter<PathwayCommonsDat
         graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, "id", IndexDescription.Type.UNIQUE));
         exportPathwayGeneSets(workspace, graph);
         exportPathwayProteinSets(workspace, graph);
+        exportInteractions(workspace, graph);
         return true;
     }
 
@@ -126,5 +131,38 @@ public class PathwayCommonsGraphExporter extends GraphExporter<PathwayCommonsDat
         if (node == null)
             node = graph.addNode(PROTEIN_LABEL, "id", uniprotAccession);
         return node;
+    }
+
+    private void exportInteractions(final Workspace workspace, final Graph graph) {
+        try {
+            final MappingIterator<InteractionEntry> entries = FileUtils.openGzipTsvWithHeader(workspace, dataSource,
+                                                                                              "PathwayCommons12.All.hgnc.txt.gz",
+                                                                                              InteractionEntry.class);
+            while (entries.hasNext()) {
+                final InteractionEntry entry = entries.next();
+                final Node nodeA = graph.findNode(GENE_LABEL, "symbol", entry.participantA);
+                final Node nodeB = graph.findNode(GENE_LABEL, "symbol", entry.participantB);
+                if (nodeA != null && nodeB != null) {
+                    final String edgeLabel = StringUtils.replace(entry.type, "-", "_").toUpperCase(Locale.US);
+                    final String[] dataSources = StringUtils.isNotEmpty(entry.dataSources) ? StringUtils.split(
+                            entry.dataSources, ';') : null;
+                    final String[] pmids = StringUtils.isNotEmpty(entry.pubmedIds) ? StringUtils.split(entry.pubmedIds,
+                                                                                                       ';') : null;
+                    final String[] mediatorNames = StringUtils.isNotEmpty(entry.mediatorIds) ? StringUtils.split(
+                            entry.mediatorIds, ';') : null;
+                    final EdgeBuilder builder = graph.buildEdge().fromNode(nodeA).toNode(nodeB).withLabel(edgeLabel);
+                    builder.withPropertyIfNotNull("data_sources", dataSources);
+                    builder.withPropertyIfNotNull("pathway_names", entry.pathwayNames);
+                    builder.withPropertyIfNotNull("pubmed_ids", pmids);
+                    builder.withPropertyIfNotNull("mediator_names", mediatorNames);
+                    builder.build();
+                }
+                else {
+                    // TODO: handle missing nodes
+                }
+            }
+        } catch (IOException e) {
+            throw new ExporterFormatException(e);
+        }
     }
 }
