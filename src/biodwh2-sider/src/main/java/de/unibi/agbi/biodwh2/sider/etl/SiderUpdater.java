@@ -18,21 +18,24 @@ public class SiderUpdater extends MultiFileFTPUpdater<SiderDataSource> {
     static final String SIDE_EFFECTS_FILE_NAME = "meddra_all_label_se.tsv.gz";
     static final String FREQUENCIES_FILE_NAME = "meddra_freq.tsv.gz";
 
-    public SiderUpdater(SiderDataSource dataSource) {
+    public SiderUpdater(final SiderDataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
+    protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         try {
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + DRUG_NAMES_FILE_NAME,
-                                             dataSource.resolveSourceFilePath(workspace, DRUG_NAMES_FILE_NAME));
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + DRUG_ATC_FILE_NAME,
-                                             dataSource.resolveSourceFilePath(workspace, DRUG_ATC_FILE_NAME));
+            downloadFile(workspace, DRUG_NAMES_FILE_NAME);
+            downloadFile(workspace, DRUG_ATC_FILE_NAME);
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
         return super.tryUpdateFiles(workspace);
+    }
+
+    private void downloadFile(final Workspace workspace, final String fileName) throws IOException {
+        final String targetFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + fileName, targetFilePath);
     }
 
     @Override

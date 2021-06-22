@@ -1,28 +1,36 @@
 # Data sources
 
-| ID            | Name | Website | State |
-| ------------- | ---- | ------- | ----- |
-| ABDAMED2      | ABDATA ABDAMED Drug Database | [Link](https://abdata.de/datenangebot/abdamed/) | Work in progress |
-| CancerDrugsDB | A curated listing of licensed cancer drugs by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/cancerdrugs-db) | Usable |
-| DGIdb         | The Drug Gene Interaction Database | [Link](http://dgidb.org) | Work in progress |
-| DrugBank      | DrugBank | [Link](http://drugbank.ca) | Work in progress |
-| [DrugCentral](sources/DrugCentral/README.md) | DrugCentral | [Link](http://drugcentral.org) | Work in progress |
-| EMA           | European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC] | [Link](https://www.ema.europa.eu/en/medicines/download-medicine-data) | Usable |
-| GeneOntology  | Gene Ontology | [Link](http://geneontology.org) | Work in progress |
-| HGNC          | HUGO Gene Nomenclature Committee | [Link](https://www.genenames.org) | Usable |
-| [HPO](sources/HPO/README.md) | Human Phenotype Ontology | [Link](https://hpo.jax.org) | Usable |
-| ITIS          | Integrated Taxonomic Information System | [Link](https://www.itis.gov) | Work in progress |
-| KEGG          | Kyoto Encyclopedia of Genes and Genomes | [Link](https://www.kegg.jp) | Work in progress |
-| MED-RT        | Medication Reference Terminology (MED-RT™) | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/) | Usable |
-| Mondo         | Mondo Disease Ontology | [Link](https://mondo.monarchinitiative.org) | Work in progress |
-| NDF-RT        | National Drug File – Reference Terminology (NDF-RT™) | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/) | Usable |
-| [PathwayCommons](sources/PathwayCommons/README.md) | Data warehouse of different pathway databases | [Link](http://www.pathwaycommons.org) | Work in progress |
-| PharmGKB      | PharmGKB | [Link](https://www.pharmgkb.org) | Usable |
-| SIDER         | SIDER: Side Effect Resource | [Link](http://sideeffects.embl.de) | Work in progress |
-| UNII          | FDA Substance Registration System - Unique Ingredient Identifier | [Link](https://fdasis.nlm.nih.gov/srs/) | Usable |
-| UniProt       | Functional information on proteins, with accurate, consistent and rich annotation. | [Link](https://www.uniprot.org) | Work in progress |
-| [USDA-PLANTS](sources/USDA-PLANTS/README.md) | USDA PLANTS Database | [Link](https://plants.sc.egov.usda.gov) | Usable |
-|               |      |         |       |
+## Usable
+
+| ID            | Name | Website |
+| ------------- | ---- | ------- |
+| CancerDrugsDB | A curated listing of licensed cancer drugs by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/cancerdrugs-db) |
+| EMA           | European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC] | [Link](https://www.ema.europa.eu/en/medicines/download-medicine-data) |
+| HGNC          | HUGO Gene Nomenclature Committee | [Link](https://www.genenames.org) |
+| [HPO](sources/HPO/README.md) | Human Phenotype Ontology | [Link](https://hpo.jax.org) |
+| MED-RT        | Medication Reference Terminology (MED-RT™) | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/) |
+| NDF-RT        | National Drug File – Reference Terminology (NDF-RT™) | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/) |
+| PharmGKB      | PharmGKB | [Link](https://www.pharmgkb.org) |
+| UNII          | FDA Substance Registration System - Unique Ingredient Identifier | [Link](https://fdasis.nlm.nih.gov/srs/) |
+| [USDA-PLANTS](sources/USDA-PLANTS/README.md) | USDA PLANTS Database | [Link](https://plants.sc.egov.usda.gov) |
+|               |      |         |
+
+## Work in Progress
+
+| ID            | Name | Website |
+| ------------- | ---- | ------- |
+| ABDAMED2      | ABDATA ABDAMED Drug Database | [Link](https://abdata.de/datenangebot/abdamed/) |
+| DGIdb         | The Drug Gene Interaction Database | [Link](http://dgidb.org) |
+| DrugBank      | DrugBank | [Link](http://drugbank.ca) |
+| [DrugCentral](sources/DrugCentral/README.md) | DrugCentral | [Link](http://drugcentral.org) |
+| GeneOntology  | Gene Ontology | [Link](http://geneontology.org) |
+| ITIS          | Integrated Taxonomic Information System | [Link](https://www.itis.gov) |
+| KEGG          | Kyoto Encyclopedia of Genes and Genomes | [Link](https://www.kegg.jp) |
+| Mondo         | Mondo Disease Ontology | [Link](https://mondo.monarchinitiative.org) |
+| [PathwayCommons](sources/PathwayCommons/README.md) | Data warehouse of different pathway databases | [Link](http://www.pathwaycommons.org) |
+| [SIDER](sources/SIDER/README.md) | SIDER: Side Effect Resource | [Link](http://sideeffects.embl.de) |
+| UniProt       | Functional information on proteins, with accurate, consistent and rich annotation. | [Link](https://www.uniprot.org) |
+|               |      |         |
 
 ## Licenses and references
 
@@ -46,10 +54,6 @@
 
 > Wishart DS, Knox C, Guo AC, Shrivastava S, Hassanali M, Stothard P, Chang Z, Woolsey J. Drugbank: a comprehensive resource for in silico drug discovery and exploration. Nucleic Acids Res. 2006 Jan 1;34 (Database issue):D668-72. 16381955.
 
-### DrugCentral
-
-See [here](sources/DrugCentral/README.md)
-
 ### EMA
 
 > Used data are publicly available on the EMA website at https://www.ema.europa.eu/en/medicines/download-medicine-data.
@@ -69,10 +73,6 @@ See [here](sources/DrugCentral/README.md)
 > **Data release policy**: No restrictions are imposed on access to, or use of, the data provided by the HGNC, which are provided to enhance knowledge and encourage progress in the scientific community. The HGNC provide these data in good faith, but make no warranty, express or implied, nor assume any legal liability or responsibility for any purpose for which they are used.
 
 > **Guidelines on use of data in publications (copyright and licensing)**: It is a condition of our funding from NIH and the Wellcome Trust that the nomenclature and information we provide is freely available to all. Anyone may use the HGNC data, but we request that they reference the "HUGO Gene Nomenclature Committee at the European Bioinformatics Institute" and the website where possible.
-
-### HPO
-
-See [here](sources/HPO/README.md)
 
 ### ITIS
 
@@ -116,14 +116,6 @@ See [here](sources/HPO/README.md)
 
 > https://www.pharmgkb.org/page/citingPharmgkb
 
-### SIDER
-
-> Except as otherwise noted, SIDER is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 4.0 License. For commercial use or customized versions, please contact biobyte solutions GmbH.
-
-> Kuhn M, Letunic I, Jensen LJ, Bork P. The SIDER database of drugs and side effects. Nucleic Acids Res. 2015 Oct 19. doi: [10.1093/nar/gkv1075](http://dx.doi.org/10.1093/nar/gkv1075)
-
-> Kuhn M, Campillos M, Letunic I, Jensen LJ, Bork P. A side effect resource to capture phenotypic effects of drugs. Mol Syst Biol. 2010;6:343. Epub 2010 Jan 19.
-
 ### UNII
 
 > https://fdasis.nlm.nih.gov/srs/
@@ -133,7 +125,3 @@ See [here](sources/HPO/README.md)
 ### UniProt
 
 > We have chosen to apply the [Creative Commons Attribution (CC BY 4.0) License](https://creativecommons.org/licenses/by/4.0/) to all copyrightable parts of our databases. (c) 2002-2021 UniProt Consortium
-
-### USDA-PLANTS
-
-See [here](sources/USDA-PLANTS/README.md)

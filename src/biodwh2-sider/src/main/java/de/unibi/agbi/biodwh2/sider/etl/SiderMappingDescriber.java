@@ -13,27 +13,32 @@ public class SiderMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        switch (localMappingLabel) {
-            case "Drug": {
-                NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
-                String id = StringUtils.stripStart(node.getProperty("id"), "CID");
-                description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, "" + Long.parseLong(id));
-                return new NodeMappingDescription[]{description};
-            }
-            case "Disease": {
-                NodeMappingDescription description = new NodeMappingDescription(
-                        NodeMappingDescription.NodeType.DISEASE);
-                description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
-                return new NodeMappingDescription[]{description};
-            }
-            case "SideEffect": {
-                NodeMappingDescription description = new NodeMappingDescription(
-                        NodeMappingDescription.NodeType.ADVERSE_EVENT);
-                description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
-                return new NodeMappingDescription[]{description};
-            }
-        }
+        if ("Drug".equals(localMappingLabel))
+            return describeDrug(node);
+        if ("Disease".equals(localMappingLabel))
+            return describeDisease(node);
+        if ("SideEffect".equals(localMappingLabel))
+            return describeSideEffect(node);
         return null;
+    }
+
+    private NodeMappingDescription[] describeSideEffect(final Node node) {
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.ADVERSE_EVENT);
+        description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeDisease(final Node node) {
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
+        description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeDrug(final Node node) {
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
+        String id = StringUtils.stripStart(node.getProperty("id"), "CID");
+        description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, "" + Long.parseLong(id));
+        return new NodeMappingDescription[]{description};
     }
 
     @Override
