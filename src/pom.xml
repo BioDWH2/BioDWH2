@@ -39,6 +39,7 @@
         <module>biodwh2-uniprot</module>
         <module>biodwh2-ema</module>
         <module>biodwh2-pathwaycommons</module>
+        <module>biodwh2-redodb</module>
     </modules>
 
     <packaging>pom</packaging>

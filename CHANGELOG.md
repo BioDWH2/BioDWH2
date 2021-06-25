@@ -8,6 +8,7 @@ Released:
 
  * ```[HGNC]``` Use UniProt ids of genes as Protein nodes and add ```CODES_FOR``` relationships. These are also represented in the mapping layer.
  * ```[PathwayCommons]``` Add PathwayCommons data source module
+ * ```[ReDO-DB]``` Add ReDO_DB data source module
 
 ### 🔧 Bug fixes and other changes
 
