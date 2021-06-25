@@ -4,6 +4,10 @@
 
 Released: 
 
+## 📦 Version [v0.3.6](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.6)
+
+Released: 25.06.2021
+
 ### 📚 Data Sources
 
  * ```[HGNC]``` Use UniProt ids of genes as Protein nodes and add ```CODES_FOR``` relationships. These are also represented in the mapping layer.
