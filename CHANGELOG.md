@@ -9,10 +9,13 @@ Released:
  * ```[HGNC]``` Use UniProt ids of genes as Protein nodes and add ```CODES_FOR``` relationships. These are also represented in the mapping layer.
  * ```[PathwayCommons]``` Add PathwayCommons data source module
  * ```[ReDO-DB]``` Add ReDO_DB data source module
+ * ```[Sider]``` Reworked graph exporter
 
 ### 🔧 Bug fixes and other changes
 
  * ```[feature]``` Added GMT gene set format reader
+ * ```[feature]``` Added updater to check for new BioDWH2 versions
+ * ```[docs]``` Improve data sources documentation
 
 ## 📦 Version [v0.3.5](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.5)
 

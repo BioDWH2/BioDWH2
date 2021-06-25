@@ -23,20 +23,21 @@ public class SiderMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeSideEffect(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.ADVERSE_EVENT);
+        final NodeMappingDescription description = new NodeMappingDescription(
+                NodeMappingDescription.NodeType.ADVERSE_EVENT);
         description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describeDisease(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
         description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describeDrug(final Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
-        String id = StringUtils.stripStart(node.getProperty("id"), "CID");
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
+        final String id = StringUtils.stripStart(node.getProperty("flat_id"), "CID");
         description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, "" + Long.parseLong(id));
         return new NodeMappingDescription[]{description};
     }
