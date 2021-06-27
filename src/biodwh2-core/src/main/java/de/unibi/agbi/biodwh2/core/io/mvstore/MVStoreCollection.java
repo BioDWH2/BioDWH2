@@ -50,7 +50,8 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     private Set<String> initAllPropertyKeys() {
         final String[] result = (String[]) metaMap.get(ALL_PROPERTY_KEYS);
         if (result == null) {
-            metaMap.put(ALL_PROPERTY_KEYS, new String[0]);
+            if (!readOnly)
+                metaMap.put(ALL_PROPERTY_KEYS, new String[0]);
             return new HashSet<>();
         }
         return new HashSet<>(Arrays.asList(result));

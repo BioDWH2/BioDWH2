@@ -147,11 +147,29 @@ abstract class BaseGraph implements AutoCloseable {
         return result;
     }
 
+    public final long getNumberOfNodes(final String label) {
+        final MVStoreCollection<Node> nodes = nodeRepositories.get(label);
+        return nodes != null ? nodes.size() : 0;
+    }
+
     public final long getNumberOfEdges() {
         long result = 0;
         for (final MVStoreCollection<Edge> edges : edgeRepositories.values())
             result += edges.size();
         return result;
+    }
+
+    public final long getNumberOfEdges(final String label) {
+        final MVStoreCollection<Edge> edges = edgeRepositories.get(label);
+        return edges != null ? edges.size() : 0;
+    }
+
+    public final String[] getNodeLabels() {
+        return nodeRepositories.keySet().toArray(new String[0]);
+    }
+
+    public final String[] getEdgeLabels() {
+        return edgeRepositories.keySet().toArray(new String[0]);
     }
 
     public final Node getNode(final long nodeId) {

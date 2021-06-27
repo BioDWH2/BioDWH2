@@ -193,7 +193,7 @@ public final class GraphMLPropertyFormatter {
         return charArray;
     }
 
-    private static String formatString(Object value) {
+    private static String formatString(final Object value) {
         return String.format(Locale.US, FORMAT, value);
     }
 
@@ -202,7 +202,7 @@ public final class GraphMLPropertyFormatter {
         private Class<?> componentType;
         private boolean isList;
 
-        public Type(Class<?> type) {
+        public Type(final Class<?> type) {
             this.type = type;
             if (type.isArray()) {
                 isList = true;
