@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.core.io.mvstore;
 
+import de.unibi.agbi.biodwh2.core.lang.Type;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 
 import java.util.*;
@@ -9,6 +10,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     private static final String INDEX_ARRAY_FLAGS = "index_array_flags";
     private static final String INDEX_TYPES = "index_types";
     private static final String ALL_PROPERTY_KEYS = "all_property_keys";
+    private static final String ALL_PROPERTY_TYPES = "all_property_types";
 
     private final boolean readOnly;
     private final MVStoreDB db;
@@ -16,7 +18,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     private final MVMapWrapper<Long, T> map;
     private final MVMapWrapper<String, Object> metaMap;
     private final Map<String, MVStoreIndex> indices;
-    private final Set<String> allPropertyKeys;
+    private final Map<String, Type> propertyKeyTypes;
     private boolean isDirty;
 
     MVStoreCollection(final MVStoreDB db, final String name, final boolean readOnly) {
@@ -26,7 +28,8 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
         map = db.openMap(name);
         metaMap = db.openMap(name + "!meta");
         indices = new HashMap<>();
-        allPropertyKeys = initAllPropertyKeys();
+        propertyKeyTypes = new HashMap<>();
+        initPropertyKeyTypes();
         isDirty = false;
         initIndices();
     }
@@ -55,14 +58,15 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
         }
     }
 
-    private Set<String> initAllPropertyKeys() {
-        final String[] result = (String[]) metaMap.get(ALL_PROPERTY_KEYS);
-        if (result == null) {
-            if (!readOnly)
-                metaMap.put(ALL_PROPERTY_KEYS, new String[0]);
-            return new HashSet<>();
-        }
-        return new HashSet<>(Arrays.asList(result));
+    private void initPropertyKeyTypes() {
+        final String[] keys = (String[]) metaMap.get(ALL_PROPERTY_KEYS);
+        final Type[] types = (Type[]) metaMap.get(ALL_PROPERTY_TYPES);
+        if (keys == null || types == null)
+            for (final T obj : map.values())
+                updateAllPropertyKeys(obj);
+        else
+            for (int i = 0; i < keys.length; i++)
+                propertyKeyTypes.put(keys[i], types[i]);
     }
 
     public MVStoreIndex getIndex(final String key) {
@@ -121,6 +125,10 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
                 MVStoreIndex::getIndexDescription).toArray(MVIndexDescription[]::new);
     }
 
+    public Map<String, Type> getPropertyKeyTypes() {
+        return new HashMap<>(propertyKeyTypes);
+    }
+
     public void put(final T obj) {
         isDirty = true;
         removeOldVersionFromIndices(map.get(obj.getId()));
@@ -146,10 +154,37 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     }
 
     private void updateAllPropertyKeys(final T obj) {
-        final int previousSize = allPropertyKeys.size();
-        allPropertyKeys.addAll(obj.keySet());
-        if (previousSize != allPropertyKeys.size())
-            metaMap.put(ALL_PROPERTY_KEYS, allPropertyKeys.toArray(new String[0]));
+        final int previousSize = propertyKeyTypes.size();
+        boolean changed = false;
+        for (final String key : obj.keySet()) {
+            final Object value = obj.getProperty(key);
+            if (value == null)
+                continue;
+            if (!propertyKeyTypes.containsKey(key)) {
+                propertyKeyTypes.put(key, Type.fromObject(value));
+                changed = true;
+            } else if (propertyKeyTypes.get(key) != null) {
+                final Type oldType = propertyKeyTypes.get(key);
+                final Type newType = Type.fromObject(value);
+                if (oldType.isList() && newType.getComponentType() != null) {
+                    if (oldType.getComponentType() == null || newType.getComponentType().isAssignableFrom(
+                            oldType.getComponentType())) {
+                        propertyKeyTypes.put(key, newType);
+                        changed = true;
+                    }
+                }
+            }
+        }
+        if (changed || previousSize != propertyKeyTypes.size()) {
+            final String[] keys = propertyKeyTypes.keySet().toArray(new String[0]);
+            final Type[] types = new Type[keys.length];
+            for (int i = 0; i < types.length; i++)
+                types[i] = propertyKeyTypes.get(keys[i]);
+            if (!readOnly) {
+                metaMap.put(ALL_PROPERTY_KEYS, keys);
+                metaMap.put(ALL_PROPERTY_TYPES, types);
+            }
+        }
     }
 
     public T get(final MVStoreId id) {
@@ -190,7 +225,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
 
     public synchronized Iterable<T> find(final String[] propertyKeys, final Comparable<?>[] propertyValues) {
         for (final String propertyKey : propertyKeys)
-            if (!allPropertyKeys.contains(propertyKey))
+            if (!propertyKeyTypes.containsKey(propertyKey))
                 return new ArrayList<>();
         final boolean[] hasIndexFlags = new boolean[propertyKeys.length];
         Set<Long> ids = retainIndexedIds(propertyKeys, propertyValues, hasIndexFlags);

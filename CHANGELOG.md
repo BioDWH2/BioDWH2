@@ -4,6 +4,11 @@
 
 Released: 
 
+### 🔧 Bug fixes and other changes
+
+ * ```[feature]``` Graph exposes index descriptions
+ * ```[feature]``` Graph stores and exposes node and edge property keys with types
+
 ## 📦 Version [v0.3.6](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.6)
 
 Released: 25.06.2021

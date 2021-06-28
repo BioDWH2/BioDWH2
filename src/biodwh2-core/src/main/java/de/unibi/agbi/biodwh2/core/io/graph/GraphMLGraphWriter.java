@@ -4,7 +4,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.IndentingXMLStreamWriter;
-import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreModel;
+import de.unibi.agbi.biodwh2.core.lang.Type;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
@@ -84,55 +84,30 @@ public final class GraphMLGraphWriter extends GraphWriter {
     }
 
     private void generateProperties(final Graph graph) {
-        final Map<String, GraphMLPropertyFormatter.Type> nodePropertyKeyTypes = collectAllNodePropertyKeyTypes(
-                graph.getNodes());
+        final Map<String, Type> nodePropertyKeyTypes = collectAllNodePropertyKeyTypes(graph);
         for (final String key : nodePropertyKeyTypes.keySet())
             properties.add(generateProperty(key, nodePropertyKeyTypes.get(key), "node"));
-        final Map<String, GraphMLPropertyFormatter.Type> edgePropertyKeyTypes = collectAllEdgePropertyKeyTypes(
-                graph.getEdges());
+        final Map<String, Type> edgePropertyKeyTypes = collectAllEdgePropertyKeyTypes(graph);
         for (final String key : edgePropertyKeyTypes.keySet())
             properties.add(generateProperty(key, edgePropertyKeyTypes.get(key), "edge"));
     }
 
-    private Map<String, GraphMLPropertyFormatter.Type> collectAllNodePropertyKeyTypes(final Iterable<Node> nodes) {
-        final Map<String, GraphMLPropertyFormatter.Type> propertyKeyTypes = new HashMap<>();
-        propertyKeyTypes.put("labels", new GraphMLPropertyFormatter.Type(String.class));
-        for (final Node node : nodes) {
-            final Map<String, GraphMLPropertyFormatter.Type> nodePropertyKeyTypes = getPropertyKeyTypes(node);
-            for (final String key : nodePropertyKeyTypes.keySet()) {
-                if (!Node.IGNORED_FIELDS.contains(key)) {
-                    final String labelKeyId = getNodeLabelKeyId(node, key);
-                    if (!propertyKeyTypes.containsKey(labelKeyId))
-                        propertyKeyTypes.put(labelKeyId, nodePropertyKeyTypes.get(key));
-                    else if (nodePropertyKeyTypes.get(key) != null) {
-                        final GraphMLPropertyFormatter.Type oldType = propertyKeyTypes.get(labelKeyId);
-                        final GraphMLPropertyFormatter.Type newType = nodePropertyKeyTypes.get(key);
-                        if (oldType.isList() && newType.getComponentType() != null) {
-                            if (oldType.getComponentType() == null || newType.getComponentType().isAssignableFrom(
-                                    oldType.getComponentType()))
-                                propertyKeyTypes.put(labelKeyId, newType);
-                        }
-                    }
-                }
-            }
+    private Map<String, Type> collectAllNodePropertyKeyTypes(final Graph graph) {
+        final Map<String, Type> propertyKeyTypes = new HashMap<>();
+        propertyKeyTypes.put("labels", new Type(String.class));
+        for (final String label : graph.getNodeLabels()) {
+            final Map<String, Type> nodePropertyKeyTypes = graph.getPropertyKeyTypesForNodeLabel(label);
+            for (final String key : nodePropertyKeyTypes.keySet())
+                if (!Node.IGNORED_FIELDS.contains(key))
+                    propertyKeyTypes.put(getNodeLabelKeyId(label, key), nodePropertyKeyTypes.get(key));
         }
         for (final String key : propertyKeyTypes.keySet())
-            propertyKeyTypes.putIfAbsent(key, new GraphMLPropertyFormatter.Type(String.class));
+            propertyKeyTypes.putIfAbsent(key, new Type(String.class));
         return propertyKeyTypes;
     }
 
-    private Map<String, GraphMLPropertyFormatter.Type> getPropertyKeyTypes(final MVStoreModel obj) {
-        final Map<String, GraphMLPropertyFormatter.Type> keyTypeMap = new HashMap<>();
-        for (final String key : obj.keySet()) {
-            final Object value = obj.get(key);
-            if (value != null)
-                keyTypeMap.put(key, GraphMLPropertyFormatter.Type.fromObject(value));
-        }
-        return keyTypeMap;
-    }
-
-    private String getNodeLabelKeyId(final Node node, final String key) {
-        final String labelKey = "node|" + node.getLabel() + "|" + key;
+    private String getNodeLabelKeyId(final String label, final String key) {
+        final String labelKey = "node|" + label + "|" + key;
         if (!labelKeyIdMap.containsKey(labelKey)) {
             labelKeyIdMap.put(labelKey, "nt" + labelKeyIdCounter);
             labelKeyIdCounter++;
@@ -140,8 +115,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
         return labelKeyIdMap.get(labelKey);
     }
 
-    private Property generateProperty(final String key, final GraphMLPropertyFormatter.Type type,
-                                      final String forType) {
+    private Property generateProperty(final String key, final Type type, final String forType) {
         final GraphMLPropertyFormatter.PropertyType propertyType = GraphMLPropertyFormatter.getPropertyType(type);
         final Property p = new Property();
         p.id = key;
@@ -161,26 +135,22 @@ public final class GraphMLGraphWriter extends GraphWriter {
         return p;
     }
 
-    private Map<String, GraphMLPropertyFormatter.Type> collectAllEdgePropertyKeyTypes(final Iterable<Edge> edges) {
-        final Map<String, GraphMLPropertyFormatter.Type> propertyKeyTypes = new HashMap<>();
-        propertyKeyTypes.put("label", new GraphMLPropertyFormatter.Type(String.class));
-        for (final Edge edge : edges) {
-            final Map<String, GraphMLPropertyFormatter.Type> edgePropertyKeyTypes = getPropertyKeyTypes(edge);
-            for (final String key : edgePropertyKeyTypes.keySet()) {
-                if (!Edge.IGNORED_FIELDS.contains(key)) {
-                    final String labelKeyId = getEdgeLabelKeyId(edge, key);
-                    if (!propertyKeyTypes.containsKey(labelKeyId) || edgePropertyKeyTypes.get(key) != null)
-                        propertyKeyTypes.put(labelKeyId, edgePropertyKeyTypes.get(key));
-                }
-            }
+    private Map<String, Type> collectAllEdgePropertyKeyTypes(final Graph graph) {
+        final Map<String, Type> propertyKeyTypes = new HashMap<>();
+        propertyKeyTypes.put("label", new Type(String.class));
+        for (final String label : graph.getEdgeLabels()) {
+            final Map<String, Type> edgePropertyKeyTypes = graph.getPropertyKeyTypesForEdgeLabel(label);
+            for (final String key : edgePropertyKeyTypes.keySet())
+                if (!Edge.IGNORED_FIELDS.contains(key))
+                    propertyKeyTypes.put(getEdgeLabelKeyId(label, key), edgePropertyKeyTypes.get(key));
         }
         for (final String key : propertyKeyTypes.keySet())
-            propertyKeyTypes.putIfAbsent(key, new GraphMLPropertyFormatter.Type(String.class));
+            propertyKeyTypes.putIfAbsent(key, new Type(String.class));
         return propertyKeyTypes;
     }
 
-    private String getEdgeLabelKeyId(final Edge edge, final String key) {
-        final String labelKey = "edge|" + edge.getLabel() + "|" + key;
+    private String getEdgeLabelKeyId(final String label, final String key) {
+        final String labelKey = "edge|" + label + "|" + key;
         if (!labelKeyIdMap.containsKey(labelKey)) {
             labelKeyIdMap.put(labelKey, "et" + labelKeyIdCounter);
             labelKeyIdCounter++;
@@ -245,7 +215,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
         writePropertyIfNotNull(writer, "labels", label);
         for (final String key : node.keySet())
             if (!Node.IGNORED_FIELDS.contains(key))
-                writePropertyIfNotNull(writer, getNodeLabelKeyId(node, key), node.getProperty(key));
+                writePropertyIfNotNull(writer, getNodeLabelKeyId(node.getLabel(), key), node.getProperty(key));
         writer.writeEndElement();
     }
 
@@ -268,7 +238,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
         writePropertyIfNotNull(writer, "label", edge.getLabel());
         for (final String key : edge.keySet())
             if (!Edge.IGNORED_FIELDS.contains(key))
-                writePropertyIfNotNull(writer, getEdgeLabelKeyId(edge, key), edge.getProperty(key));
+                writePropertyIfNotNull(writer, getEdgeLabelKeyId(edge.getLabel(), key), edge.getProperty(key));
         writer.writeEndElement();
     }
 }

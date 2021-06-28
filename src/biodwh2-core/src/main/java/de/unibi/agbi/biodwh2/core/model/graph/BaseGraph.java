@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core.model.graph;
 
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
 import de.unibi.agbi.biodwh2.core.io.mvstore.*;
+import de.unibi.agbi.biodwh2.core.lang.Type;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -148,6 +149,20 @@ abstract class BaseGraph implements AutoCloseable {
         return new IndexDescription(target, label, indexDescription.getProperty(), indexDescription.isArrayProperty(),
                                     indexDescription.getType() == MVStoreIndexType.UNIQUE ?
                                     IndexDescription.Type.UNIQUE : IndexDescription.Type.NON_UNIQUE);
+    }
+
+    public final Map<String, Type> getPropertyKeyTypesForNodeLabel(final String label) {
+        final MVStoreCollection<Node> nodes = nodeRepositories.get(label);
+        if (nodes != null)
+            return nodes.getPropertyKeyTypes();
+        return new HashMap<>();
+    }
+
+    public final Map<String, Type> getPropertyKeyTypesForEdgeLabel(final String label) {
+        final MVStoreCollection<Edge> edges = edgeRepositories.get(label);
+        if (edges != null)
+            return edges.getPropertyKeyTypes();
+        return new HashMap<>();
     }
 
     public final Iterable<Node> getNodes() {
