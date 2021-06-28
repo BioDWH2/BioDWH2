@@ -12,12 +12,14 @@ public abstract class MVStoreIndex {
     protected final String key;
     protected final boolean arrayIndex;
     protected final boolean readOnly;
+    private final MVIndexDescription indexDescription;
 
     protected MVStoreIndex(final String name, final String key, final boolean arrayIndex, final boolean readOnly) {
         this.name = name;
         this.key = key;
         this.arrayIndex = arrayIndex;
         this.readOnly = readOnly;
+        indexDescription = new MVIndexDescription(key, arrayIndex, getType());
     }
 
     public final String getName() {
@@ -41,4 +43,8 @@ public abstract class MVStoreIndex {
     public abstract void put(final Object propertyValue, final long id);
 
     public abstract boolean contains(final Comparable<?> propertyValue);
+
+    public final MVIndexDescription getIndexDescription() {
+        return indexDescription;
+    }
 }

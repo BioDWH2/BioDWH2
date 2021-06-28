@@ -1,5 +1,7 @@
 package de.unibi.agbi.biodwh2.core.io.mvstore;
 
+import de.unibi.agbi.biodwh2.core.model.graph.Edge;
+
 import java.util.*;
 
 public final class MVStoreCollection<T extends MVStoreModel> implements Iterable<T> {
@@ -34,16 +36,22 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
         final boolean[] indexArrayFlags = (boolean[]) metaMap.get(INDEX_ARRAY_FLAGS);
         MVStoreIndexType[] indexTypes = (MVStoreIndexType[]) metaMap.get(INDEX_TYPES);
         if (indexKeys != null) {
+            // legacy fill index types with non-unique as previously only those existed
             if (indexTypes == null) {
                 indexTypes = new MVStoreIndexType[indexKeys.length];
                 Arrays.fill(indexTypes, MVStoreIndexType.NON_UNIQUE);
             }
             for (int i = 0; i < indexKeys.length; i++)
                 getIndex(indexKeys[i], indexArrayFlags[i], indexTypes[i], true);
-        } else if (!readOnly) {
-            metaMap.put(INDEX_KEYS, new String[0]);
-            metaMap.put(INDEX_ARRAY_FLAGS, new boolean[0]);
-            metaMap.put(INDEX_TYPES, new MVStoreIndexType[0]);
+        } else
+            storeIndicesMetadata(new String[0], new boolean[0], new MVStoreIndexType[0]);
+    }
+
+    private void storeIndicesMetadata(final String[] keys, final boolean[] arrayFlags, final MVStoreIndexType[] types) {
+        if (!readOnly) {
+            metaMap.put(INDEX_KEYS, keys);
+            metaMap.put(INDEX_ARRAY_FLAGS, arrayFlags);
+            metaMap.put(INDEX_TYPES, types);
         }
     }
 
@@ -89,25 +97,28 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     }
 
     private void addIndexMetadata(final MVStoreIndex index) {
-        String[] indexKeys = (String[]) metaMap.get(INDEX_KEYS);
-        indexKeys = indexKeys == null ? new String[1] : Arrays.copyOf(indexKeys, indexKeys.length + 1);
-        indexKeys[indexKeys.length - 1] = index.getKey();
-        boolean[] indexArrayFlags = (boolean[]) metaMap.get(INDEX_ARRAY_FLAGS);
-        indexArrayFlags = indexArrayFlags == null ? new boolean[1] : Arrays.copyOf(indexArrayFlags,
-                                                                                   indexArrayFlags.length + 1);
-        indexArrayFlags[indexArrayFlags.length - 1] = index.isArrayIndex();
-        MVStoreIndexType[] indexTypes = (MVStoreIndexType[]) metaMap.get(INDEX_TYPES);
-        indexTypes = indexTypes == null ? new MVStoreIndexType[1] : Arrays.copyOf(indexTypes, indexTypes.length + 1);
-        indexTypes[indexTypes.length - 1] = index.getType();
-        metaMap.put(INDEX_KEYS, indexKeys);
-        metaMap.put(INDEX_ARRAY_FLAGS, indexArrayFlags);
-        metaMap.put(INDEX_TYPES, indexTypes);
+        String[] keys = (String[]) metaMap.get(INDEX_KEYS);
+        keys = keys == null ? new String[1] : Arrays.copyOf(keys, keys.length + 1);
+        keys[keys.length - 1] = index.getKey();
+        boolean[] arrayFlags = (boolean[]) metaMap.get(INDEX_ARRAY_FLAGS);
+        arrayFlags = arrayFlags == null ? new boolean[1] : Arrays.copyOf(arrayFlags, arrayFlags.length + 1);
+        arrayFlags[arrayFlags.length - 1] = index.isArrayIndex();
+        MVStoreIndexType[] types = (MVStoreIndexType[]) metaMap.get(INDEX_TYPES);
+        types = types == null ? new MVStoreIndexType[1] : Arrays.copyOf(types, types.length + 1);
+        types[types.length - 1] = index.getType();
+        storeIndicesMetadata(keys, arrayFlags, types);
     }
 
     private void populateNewIndexIfDirty(final MVStoreIndex index) {
         if (isDirty)
             for (final T obj : map.values())
                 index.put(obj.get(index.getKey()), obj.getId());
+    }
+
+    public MVIndexDescription[] getIndexDescriptions() {
+        return indices.values().stream().filter(
+                i -> !i.getKey().equals(Edge.FROM_ID_FIELD) && !i.getKey().equals(Edge.TO_ID_FIELD)).map(
+                MVStoreIndex::getIndexDescription).toArray(MVIndexDescription[]::new);
     }
 
     public void put(final T obj) {
@@ -286,8 +297,10 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     }
 
     public void remove(final T obj) {
-        removeOldVersionFromIndices(map.get(obj.getId()));
-        map.remove(obj.getId());
-        isDirty = true;
+        if (map.containsKey(obj.getId())) {
+            removeOldVersionFromIndices(map.get(obj.getId()));
+            map.remove(obj.getId());
+            isDirty = true;
+        }
     }
 }
