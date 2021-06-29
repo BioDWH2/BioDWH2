@@ -29,6 +29,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | [DrugBank](sources/DrugBank/README.md) | DrugBank | [Link](http://drugbank.ca) |
 | [DrugCentral](sources/DrugCentral/README.md) | DrugCentral | [Link](http://drugcentral.org) |
 | [GeneOntology](sources/GeneOntology/README.md) | Gene Ontology | [Link](http://geneontology.org) |
+| [GWASCatalog](sources/GWASCatalog/README.md) | GWAS Catalog | [Link](https://www.ebi.ac.uk/gwas/home) |
 | [ITIS](sources/ITIS/README.md) | Integrated Taxonomic Information System | [Link](https://www.itis.gov) |
 | [KEGG](sources/KEGG/README.md) | Kyoto Encyclopedia of Genes and Genomes | [Link](https://www.kegg.jp) |
 | [Mondo](sources/Mondo/README.md) | Mondo Disease Ontology | [Link](https://mondo.monarchinitiative.org) |

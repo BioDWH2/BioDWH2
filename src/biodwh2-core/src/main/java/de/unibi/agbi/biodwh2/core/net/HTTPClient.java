@@ -1,6 +1,8 @@
 package de.unibi.agbi.biodwh2.core.net;
 
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.Base64;
 
 import java.io.*;
@@ -82,5 +84,38 @@ public final class HTTPClient {
     private static HttpURLConnection redirectURLConnectionIfNecessary(HttpURLConnection connection) throws IOException {
         final String target = connection.getHeaderField("location");
         return target == null ? connection : (HttpURLConnection) new URL(target).openConnection();
+    }
+
+    public static String resolveUrlLocation(final String url) throws IOException {
+        final HttpURLConnection urlConnection = (HttpURLConnection) new URL(url).openConnection();
+        urlConnection.setRequestProperty("User-Agent", USER_AGENT);
+        urlConnection.setInstanceFollowRedirects(false);
+        urlConnection.connect();
+        final String target = urlConnection.getHeaderField("location");
+        urlConnection.disconnect();
+        return target != null ? target : url;
+    }
+
+    public static String resolveFileName(final String url) throws IOException {
+        HttpURLConnection urlConnection = (HttpURLConnection) new URL(url).openConnection();
+        urlConnection.setRequestProperty("User-Agent", USER_AGENT);
+        urlConnection.setInstanceFollowRedirects(false);
+        urlConnection.connect();
+        String contentDisposition = urlConnection.getHeaderField("Content-Disposition");
+        urlConnection = redirectURLConnectionIfNecessary(urlConnection);
+        final String redirectedUrl = urlConnection.getURL().toString();
+        contentDisposition = contentDisposition != null ? contentDisposition : urlConnection.getHeaderField(
+                "Content-Disposition");
+        urlConnection.disconnect();
+        if (contentDisposition != null) {
+            final String[] parts = StringUtils.split(contentDisposition, ';');
+            for (final String part : parts) {
+                if (part.trim().startsWith("filename=")) {
+                    String fileName = StringUtils.split(part.trim(), "=", 2)[1];
+                    return StringUtils.strip(fileName, "\" \t");
+                }
+            }
+        }
+        return FilenameUtils.getName(redirectedUrl);
     }
 }

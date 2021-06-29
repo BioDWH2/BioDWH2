@@ -4,6 +4,10 @@
 
 Released: 
 
+### 📚 Data Sources
+
+ * ```[GWASCatalog]``` Started work on GWASCatalog data source module
+
 ### 🔧 Bug fixes and other changes
 
  * ```[feature]``` Graph exposes index descriptions

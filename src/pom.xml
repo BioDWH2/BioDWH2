@@ -40,6 +40,7 @@
         <module>biodwh2-ema</module>
         <module>biodwh2-pathwaycommons</module>
         <module>biodwh2-redodb</module>
+        <module>biodwh2-gwascatalog</module>
     </modules>
 
     <packaging>pom</packaging>
