@@ -179,8 +179,8 @@ public final class GraphMapper {
         final String toNodeLabel = describer.prefixLabel(segment.toNodeLabel);
         final long fromNodeId = currentPathIds[segmentIndex * 2];
         final int currentEdgePathIndex = segmentIndex * 2 + 1;
-        if (segment.direction == PathMapping.EdgeDirection.BIDIRECTIONAL ||
-            segment.direction == PathMapping.EdgeDirection.FORWARD) {
+        if (segment.direction == EdgeDirection.BIDIRECTIONAL ||
+            segment.direction == EdgeDirection.FORWARD) {
             for (final Edge edge : graph.findEdges(edgeLabel, Edge.FROM_ID_FIELD, fromNodeId)) {
                 final Node nextNode = graph.getNode(edge.getToId());
                 if (nextNode.getLabel().equals(toNodeLabel)) {
@@ -191,8 +191,8 @@ public final class GraphMapper {
                 }
             }
         }
-        if (segment.direction == PathMapping.EdgeDirection.BIDIRECTIONAL ||
-            segment.direction == PathMapping.EdgeDirection.BACKWARD) {
+        if (segment.direction == EdgeDirection.BIDIRECTIONAL ||
+            segment.direction == EdgeDirection.BACKWARD) {
             for (final Edge edge : graph.findEdges(edgeLabel, Edge.TO_ID_FIELD, fromNodeId)) {
                 final Node nextNode = graph.getNode(edge.getFromId());
                 if (nextNode.getLabel().equals(toNodeLabel)) {

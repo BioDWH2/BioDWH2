@@ -8,40 +8,43 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterMalformedVersionException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.drugcentral.DrugCentralDataSource;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
-    private static final String DownloadPageUrl = "https://drugcentral.org/ActiveDownload";
+    private static final String DOWNLOAD_PAGE_URL = "https://drugcentral.org/ActiveDownload";
+    private static final Pattern DOWNLOAD_URL_PATTERN = Pattern.compile(
+            "href=\"(https?://[a-zA-Z.\\-/]+drugcentral-pgdump_[0-9]{8}\\.sql\\.gz)\"");
 
-    public DrugCentralUpdater(DrugCentralDataSource dataSource) {
+    public DrugCentralUpdater(final DrugCentralDataSource dataSource) {
         super(dataSource);
     }
 
     @Override
     public Version getNewestVersion() throws UpdaterException {
+        final String url = getDrugCentralFileUrl();
+        final String version = StringUtils.split(StringUtils.splitByWholeSeparator(url, "pgdump_")[1], '.')[0];
+        return parseVersion(version.substring(0, 4) + "." + version.substring(4, 6) + "." + version.substring(6));
+    }
+
+    private String getDrugCentralFileUrl() throws UpdaterException {
         try {
-            String html = HTTPClient.getWebsiteSource(DownloadPageUrl);
-            for (String word : html.split(" {4}")) {
-                if (word.contains("drugcentral-pgdump_")) {
-                    String version = word.split("drugcentral-pgdump_")[1].split("\\.")[0];
-                    return parseVersion(
-                            version.substring(0, 4) + "." + version.substring(4, 6) + "." + version.substring(6));
-                }
-            }
+            final String html = HTTPClient.getWebsiteSource(DOWNLOAD_PAGE_URL);
+            final Matcher matcher = DOWNLOAD_URL_PATTERN.matcher(html);
+            if (matcher.find())
+                return matcher.group(1);
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
-        return null;
+        throw new UpdaterConnectionException("Failed to get database download URL from download page");
     }
 
-    private Version parseVersion(String version) throws UpdaterMalformedVersionException {
+    private Version parseVersion(final String version) throws UpdaterMalformedVersionException {
         try {
             return Version.parse(version);
         } catch (NullPointerException | NumberFormatException e) {
@@ -50,7 +53,7 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
+    protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         final String dumpFilePath = dataSource.resolveSourceFilePath(workspace, "rawDrugCentral.sql.gz");
         downloadDrugCentralDatabase(dumpFilePath);
         removeOldExtractedTsvFiles(workspace);
@@ -59,38 +62,16 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
     }
 
     private void downloadDrugCentralDatabase(final String dumpFilePath) throws UpdaterException {
-        File newFile = new File(dumpFilePath);
-        URL downloadFileUrl = getDrugCentralFileUrl();
         try {
-            FileUtils.copyURLToFile(downloadFileUrl, newFile);
+            HTTPClient.downloadFileAsBrowser(getDrugCentralFileUrl(), dumpFilePath);
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
-    }
-
-    private URL getDrugCentralFileUrl() throws UpdaterException {
-        try {
-            String html = HTTPClient.getWebsiteSource(DownloadPageUrl);
-            for (String word : html.split(" {4}"))
-                if (word.contains("drugcentral-pgdump_"))
-                    return resolveRedirectUrl(new URL(word.split("\"")[3]));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
-        throw new UpdaterConnectionException("Failed to get database download URL from download page");
-    }
-
-    private URL resolveRedirectUrl(URL url) throws IOException {
-        final HttpURLConnection connection = (HttpURLConnection) (url.openConnection());
-        connection.setInstanceFollowRedirects(false);
-        connection.connect();
-        String location = connection.getHeaderField("Location");
-        return StringUtils.isNotEmpty(location) ? new URL(location) : url;
     }
 
     private void removeOldExtractedTsvFiles(final Workspace workspace) {
-        String[] files = dataSource.listSourceFiles(workspace);
-        for (String file : files)
+        final String[] files = dataSource.listSourceFiles(workspace);
+        for (final String file : files)
             if (file.endsWith(".tsv") || file.endsWith(".sql"))
                 //noinspection ResultOfMethodCallIgnored
                 new File(dataSource.resolveSourceFilePath(workspace, file)).delete();
@@ -117,7 +98,7 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
             if (writer != null)
                 writer.close();
             writer = new PrintWriter(dataSource.resolveSourceFilePath(workspace, "schema.sql"));
-            writer.println(schema.toString());
+            writer.println(schema);
             writer.close();
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
@@ -125,15 +106,15 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
     }
 
     private BufferedReader getBufferedReaderFromFile(final String filePath) throws IOException {
-        GZIPInputStream zipStream = new GZIPInputStream(new FileInputStream(filePath));
+        final GZIPInputStream zipStream = new GZIPInputStream(new FileInputStream(filePath));
         return new BufferedReader(new InputStreamReader(zipStream, StandardCharsets.UTF_8));
     }
 
     private PrintWriter getTsvWriterFromCopyLine(final Workspace workspace,
                                                  final String line) throws FileNotFoundException {
-        String tableName = line.split(" ")[1].split("\\.")[1];
-        PrintWriter writer = new PrintWriter(dataSource.resolveSourceFilePath(workspace, tableName + ".tsv"));
-        String columnNames = StringUtils.join(line.split("\\(")[1].split("\\)")[0].split(", "), "\t");
+        final String tableName = StringUtils.split(line, ' ')[1].split("\\.")[1];
+        final PrintWriter writer = new PrintWriter(dataSource.resolveSourceFilePath(workspace, tableName + ".tsv"));
+        final String columnNames = StringUtils.join(line.split("\\(")[1].split("\\)")[0].split(", "), '\t');
         writer.println(columnNames);
         return writer;
     }

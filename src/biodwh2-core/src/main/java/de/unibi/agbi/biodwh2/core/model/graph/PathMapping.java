@@ -4,21 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class PathMapping {
-    public enum EdgeDirection {
-        /**
-         * (FromNode)-[Edge]-(ToNode)
-         */
-        BIDIRECTIONAL,
-        /**
-         * (FromNode)-[Edge]->(ToNode)
-         */
-        FORWARD,
-        /**
-         * (FromNode)<-[Edge]-(ToNode)
-         */
-        BACKWARD
-    }
-
     public static final class Segment {
         public final String fromNodeLabel;
         public final String edgeLabel;
@@ -80,10 +65,10 @@ public final class PathMapping {
             final PathMapping.Segment segment = segments.get(i);
             if (i == 0)
                 builder.append("(:").append(segment.fromNodeLabel).append(')');
-            if (segment.direction == PathMapping.EdgeDirection.BACKWARD)
+            if (segment.direction == EdgeDirection.BACKWARD)
                 builder.append('<');
             builder.append("-[:").append(segment.edgeLabel).append("]-");
-            if (segment.direction == PathMapping.EdgeDirection.FORWARD)
+            if (segment.direction == EdgeDirection.FORWARD)
                 builder.append('>');
             builder.append("(:").append(segment.toNodeLabel).append(')');
         }

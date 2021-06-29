@@ -133,7 +133,7 @@ public class DrugBankMappingDescriber extends MappingDescriber {
     @Override
     protected PathMapping[] getEdgePathMappings() {
         return new PathMapping[]{
-                new PathMapping().add("Drug", "INTERACTS_WITH_DRUG", "Drug", PathMapping.EdgeDirection.FORWARD)
+                new PathMapping().add("Drug", "INTERACTS_WITH_DRUG", "Drug", EdgeDirection.FORWARD)
         };
     }
 }

@@ -35,7 +35,7 @@ public class Mock3MappingDescriber extends MappingDescriber {
     @Override
     protected PathMapping[] getEdgePathMappings() {
         return new PathMapping[]{
-                new PathMapping().add("Test", "HAS_PREVIOUS", "Test", PathMapping.EdgeDirection.FORWARD)
+                new PathMapping().add("Test", "HAS_PREVIOUS", "Test", EdgeDirection.FORWARD)
         };
     }
 }

@@ -63,7 +63,7 @@ public class HGNCMappingDescriber extends MappingDescriber {
     protected PathMapping[] getEdgePathMappings() {
         return new PathMapping[]{
                 new PathMapping().add(HGNCGraphExporter.GENE_LABEL, HGNCGraphExporter.CODES_FOR_LABEL,
-                                      HGNCGraphExporter.PROTEIN_LABEL, PathMapping.EdgeDirection.FORWARD)
+                                      HGNCGraphExporter.PROTEIN_LABEL, EdgeDirection.FORWARD)
         };
     }
 }

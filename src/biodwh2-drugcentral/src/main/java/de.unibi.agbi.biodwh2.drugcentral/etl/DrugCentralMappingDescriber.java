@@ -16,7 +16,7 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
         if ("Reference".equalsIgnoreCase(localMappingLabel))
             return describeReference(node);
         if ("ParentDrugMolecule".equalsIgnoreCase(localMappingLabel))
-            return describeParentDrugMolecule(graph, node);
+            return describeParentDrugMolecule(node);
         if ("Structure".equalsIgnoreCase(localMappingLabel))
             return describeStructure(graph, node);
         if ("ActiveIngredient".equalsIgnoreCase(localMappingLabel))
@@ -56,7 +56,7 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
         return CitationUtils.getAMACitation(authors, title, volume, year, journal, pages, issue, doi);
     }
 
-    private NodeMappingDescription[] describeParentDrugMolecule(final Graph graph, final Node node) {
+    private NodeMappingDescription[] describeParentDrugMolecule(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
         description.addName(node.getProperty("name"));
         description.addIdentifier(IdentifierType.CAS, node.<String>getProperty("cas_reg_no"));
@@ -71,7 +71,8 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
         final NodeMappingDescription drugDescription = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
         drugDescription.addName(node.getProperty("name"));
         drugDescription.addIdentifier(IdentifierType.CAS, node.<String>getProperty("cas_reg_no"));
-        final Long[] nodeIds = graph.getAdjacentNodeIdsForEdgeLabel(node.getId(), "DrugCentral_HAS_IDENTIFIER");
+        final Long[] nodeIds = graph.getAdjacentNodeIdsForEdgeLabel(node.getId(), "DrugCentral_HAS_IDENTIFIER",
+                                                                    EdgeDirection.FORWARD);
         for (final Long nodeId : nodeIds) {
             final Node adjacentNode = graph.getNode(nodeId);
             final String type = adjacentNode.getProperty("type");
@@ -172,18 +173,14 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
 
     @Override
     protected PathMapping[] getEdgePathMappings() {
+        final PathMapping interactionPathMapping = new PathMapping();
+        interactionPathMapping.add("Structure", "BELONGS_TO", "DrugClass", EdgeDirection.FORWARD);
+        interactionPathMapping.add("DrugClass", "INTERACTS", "DrugClass", EdgeDirection.FORWARD);
+        interactionPathMapping.add("DrugClass", "BELONGS_TO", "Structure", EdgeDirection.BACKWARD);
         return new PathMapping[]{
-                new PathMapping().add("Structure", "INDICATION", "OMOPConcept", PathMapping.EdgeDirection.FORWARD),
-                new PathMapping().add("Structure", "CONTRAINDICATION", "OMOPConcept",
-                                      PathMapping.EdgeDirection.FORWARD), new PathMapping().add("Structure",
-                                                                                                "BELONGS_TO",
-                                                                                                "DrugClass",
-                                                                                                PathMapping.EdgeDirection.FORWARD)
-                                                                                           .add("DrugClass",
-                                                                                                "INTERACTS",
-                                                                                                "DrugClass",
-                                                                                                PathMapping.EdgeDirection.FORWARD).add(
-                "DrugClass", "BELONGS_TO", "Structure", PathMapping.EdgeDirection.BACKWARD)
+                new PathMapping().add("Structure", "INDICATION", "OMOPConcept", EdgeDirection.FORWARD),
+                new PathMapping().add("Structure", "CONTRAINDICATION", "OMOPConcept", EdgeDirection.FORWARD),
+                interactionPathMapping
         };
     }
 }

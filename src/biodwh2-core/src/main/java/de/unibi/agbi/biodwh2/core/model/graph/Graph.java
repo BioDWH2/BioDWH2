@@ -441,12 +441,41 @@ public final class Graph extends BaseGraph {
         return firstOrDefault(findEdges(properties));
     }
 
+    public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId) {
+        return getAdjacentNodeIdsForEdgeLabel(nodeId, null, EdgeDirection.BIDIRECTIONAL);
+    }
+
     public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId, final String edgeLabel) {
+        return getAdjacentNodeIdsForEdgeLabel(nodeId, edgeLabel, EdgeDirection.BIDIRECTIONAL);
+    }
+
+    /**
+     * Find nodes directly connected to the provided node with a specified edge label and direction.
+     *
+     * @param nodeId    ID of the node to find adjacent nodes for
+     * @param edgeLabel Label filter for connected edges (default: null)
+     * @param direction Direction filter for connected edges (default: BIDIRECTIONAL)
+     * @return Array of directly connected node IDs
+     */
+    public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId, final String edgeLabel,
+                                                 final EdgeDirection direction) {
         final Set<Long> nodeIds = new HashSet<>();
-        for (final Edge edge : findEdges(edgeLabel, Edge.FROM_ID_FIELD, nodeId))
-            nodeIds.add(edge.getToId());
-        for (final Edge edge : findEdges(edgeLabel, Edge.TO_ID_FIELD, nodeId))
-            nodeIds.add(edge.getFromId());
+        if (direction != EdgeDirection.BACKWARD) {
+            if (edgeLabel == null)
+                for (final Edge edge : findEdges(Edge.FROM_ID_FIELD, nodeId))
+                    nodeIds.add(edge.getToId());
+            else
+                for (final Edge edge : findEdges(edgeLabel, Edge.FROM_ID_FIELD, nodeId))
+                    nodeIds.add(edge.getToId());
+        }
+        if (direction != EdgeDirection.FORWARD) {
+            if (edgeLabel == null)
+                for (final Edge edge : findEdges(Edge.TO_ID_FIELD, nodeId))
+                    nodeIds.add(edge.getFromId());
+            else
+                for (final Edge edge : findEdges(edgeLabel, Edge.TO_ID_FIELD, nodeId))
+                    nodeIds.add(edge.getFromId());
+        }
         return nodeIds.toArray(new Long[0]);
     }
 

@@ -59,7 +59,7 @@ public final class Mock1MappingDescriber extends MappingDescriber {
     @Override
     protected PathMapping[] getEdgePathMappings() {
         return new PathMapping[]{
-                new PathMapping().add("Drug", "TARGETS", "Gene", PathMapping.EdgeDirection.FORWARD)
+                new PathMapping().add("Drug", "TARGETS", "Gene", EdgeDirection.FORWARD)
         };
     }
 }

@@ -23,7 +23,7 @@ public class DrugCentralDataSource extends DataSource {
 
     @Override
     public Parser<DrugCentralDataSource> getParser() {
-        return new DrugCentralParser(this);
+        return new PassThroughParser<>(this);
     }
 
     @Override
