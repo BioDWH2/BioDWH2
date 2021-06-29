@@ -5,7 +5,6 @@ import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.geneontology.etl.GeneOntologyGraphExporter;
 import de.unibi.agbi.biodwh2.geneontology.etl.GeneOntologyMappingDescriber;
-import de.unibi.agbi.biodwh2.geneontology.etl.GeneOntologyParser;
 import de.unibi.agbi.biodwh2.geneontology.etl.GeneOntologyUpdater;
 
 public class GeneOntologyDataSource extends DataSource {
@@ -26,7 +25,7 @@ public class GeneOntologyDataSource extends DataSource {
 
     @Override
     protected Parser<GeneOntologyDataSource> getParser() {
-        return new GeneOntologyParser(this);
+        return new PassThroughParser<>(this);
     }
 
     @Override

@@ -21,11 +21,11 @@ public class NDFRTParser extends Parser<NDFRTDataSource> {
     @Override
     public boolean parse(final Workspace workspace) throws ParserException {
         final String sourceFileName = dataSource.getMetadata().sourceFileNames.get(0);
-        String filePath = dataSource.resolveSourceFilePath(workspace, sourceFileName);
-        File coreZipFile = new File(filePath);
+        final String filePath = dataSource.resolveSourceFilePath(workspace, sourceFileName);
+        final File coreZipFile = new File(filePath);
         if (!coreZipFile.exists())
             throw new ParserFileNotFoundException(sourceFileName);
-        ZipInputStream zipInputStream = openZipInputStream(coreZipFile);
+        final ZipInputStream zipInputStream = openZipInputStream(coreZipFile);
         try {
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
@@ -42,8 +42,8 @@ public class NDFRTParser extends Parser<NDFRTDataSource> {
 
     private static ZipInputStream openZipInputStream(final File file) throws ParserFileNotFoundException {
         try {
-            FileInputStream inputStream = new FileInputStream(file);
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+            final FileInputStream inputStream = new FileInputStream(file);
+            final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
             return new ZipInputStream(bufferedInputStream);
         } catch (FileNotFoundException e) {
             throw new ParserFileNotFoundException(file.getName());
@@ -55,7 +55,7 @@ public class NDFRTParser extends Parser<NDFRTDataSource> {
     }
 
     private Terminology parseTerminologyFromZipStream(final InputStream stream) throws IOException {
-        XmlMapper xmlMapper = new XmlMapper();
+        final XmlMapper xmlMapper = new XmlMapper();
         return xmlMapper.readValue(stream, Terminology.class);
     }
 }

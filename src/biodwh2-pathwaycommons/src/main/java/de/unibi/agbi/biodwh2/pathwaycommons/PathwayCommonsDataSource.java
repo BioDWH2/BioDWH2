@@ -2,13 +2,9 @@ package de.unibi.agbi.biodwh2.pathwaycommons;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
-import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
-import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
+import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.pathwaycommons.etl.PathwayCommonsGraphExporter;
 import de.unibi.agbi.biodwh2.pathwaycommons.etl.PathwayCommonsMappingDescriber;
-import de.unibi.agbi.biodwh2.pathwaycommons.etl.PathwayCommonsParser;
 import de.unibi.agbi.biodwh2.pathwaycommons.etl.PathwayCommonsUpdater;
 
 public class PathwayCommonsDataSource extends DataSource {
@@ -29,7 +25,7 @@ public class PathwayCommonsDataSource extends DataSource {
 
     @Override
     protected Parser<? extends DataSource> getParser() {
-        return new PathwayCommonsParser(this);
+        return new PassThroughParser<>(this);
     }
 
     @Override

@@ -20,11 +20,11 @@ public class MEDRTParser extends Parser<MEDRTDataSource> {
 
     @Override
     public boolean parse(final Workspace workspace) throws ParserException {
-        String filePath = dataSource.resolveSourceFilePath(workspace, "Core_MEDRT_XML.zip");
-        File coreZipFile = new File(filePath);
+        final String filePath = dataSource.resolveSourceFilePath(workspace, "Core_MEDRT_XML.zip");
+        final File coreZipFile = new File(filePath);
         if (!coreZipFile.exists())
             throw new ParserFileNotFoundException("Core_MEDRT_XML.zip");
-        ZipInputStream zipInputStream = openZipInputStream(coreZipFile);
+        final ZipInputStream zipInputStream = openZipInputStream(coreZipFile);
         try {
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
@@ -41,8 +41,8 @@ public class MEDRTParser extends Parser<MEDRTDataSource> {
 
     private static ZipInputStream openZipInputStream(final File file) throws ParserFileNotFoundException {
         try {
-            FileInputStream inputStream = new FileInputStream(file);
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+            final FileInputStream inputStream = new FileInputStream(file);
+            final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
             return new ZipInputStream(bufferedInputStream);
         } catch (FileNotFoundException e) {
             throw new ParserFileNotFoundException(file.getName());
@@ -54,7 +54,7 @@ public class MEDRTParser extends Parser<MEDRTDataSource> {
     }
 
     private Terminology parseTerminologyFromZipStream(final InputStream stream) throws IOException {
-        XmlMapper xmlMapper = new XmlMapper();
+        final XmlMapper xmlMapper = new XmlMapper();
         return xmlMapper.readValue(stream, Terminology.class);
     }
 }

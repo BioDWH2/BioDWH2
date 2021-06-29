@@ -5,7 +5,6 @@ import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.hpo.etl.HPOGraphExporter;
 import de.unibi.agbi.biodwh2.hpo.etl.HPOMappingDescriber;
-import de.unibi.agbi.biodwh2.hpo.etl.HPOParser;
 import de.unibi.agbi.biodwh2.hpo.etl.HPOUpdater;
 
 public class HPODataSource extends DataSource {
@@ -26,7 +25,7 @@ public class HPODataSource extends DataSource {
 
     @Override
     protected Parser<HPODataSource> getParser() {
-        return new HPOParser(this);
+        return new PassThroughParser<>(this);
     }
 
     @Override
