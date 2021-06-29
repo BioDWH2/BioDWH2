@@ -11,6 +11,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.gwascatalog.GWASCatalogDataSource;
+import de.unibi.agbi.biodwh2.gwascatalog.model.Ancestry;
+import de.unibi.agbi.biodwh2.gwascatalog.model.Association;
 import de.unibi.agbi.biodwh2.gwascatalog.model.Study;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,6 +22,7 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
     static final String PUBLICATION_LABEL = "Publication";
     static final String STUDY_LABEL = "Study";
     static final String TRAIT_LABEL = "Trait";
+    static final String ANCESTRY_LABEL = "Ancestry";
 
     public GWASCatalogGraphExporter(final GWASCatalogDataSource dataSource) {
         super(dataSource);
@@ -36,17 +39,19 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         graph.addIndex(IndexDescription.forNode(STUDY_LABEL, "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(TRAIT_LABEL, "id", false, IndexDescription.Type.UNIQUE));
         try {
-            final MappingIterator<Study> studies = FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource,
-                                                                                             GWASCatalogUpdater.STUDIES_FILE_NAME,
-                                                                                             Study.class);
-            exportStudies(graph, studies);
+            exportStudies(workspace, graph);
+            exportAncestries(workspace, graph);
+            exportAssociations(workspace, graph);
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
         return true;
     }
 
-    private void exportStudies(final Graph graph, final MappingIterator<Study> studies) {
+    private void exportStudies(final Workspace workspace, final Graph graph) throws IOException {
+        final MappingIterator<Study> studies = FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource,
+                                                                                         GWASCatalogUpdater.STUDIES_FILE_NAME,
+                                                                                         Study.class);
         while (studies.hasNext())
             exportStudy(graph, studies.next());
     }
@@ -76,14 +81,20 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
     }
 
     private Node getOrCreatePublication(final Graph graph, final Study study) {
-        Node node = graph.findNode(PUBLICATION_LABEL, "pmid", study.pubmedId);
+        return getOrCreatePublication(graph, study.pubmedId, study.firstAuthor, study.journal, study.studyTitle,
+                                      study.datePublished);
+    }
+
+    private Node getOrCreatePublication(final Graph graph, final String pubmedId, final String firstAuthor,
+                                        final String journal, final String studyTitle, final String datePublished) {
+        Node node = graph.findNode(PUBLICATION_LABEL, "pmid", pubmedId);
         if (node == null) {
             final NodeBuilder builder = graph.buildNode().withLabel(PUBLICATION_LABEL);
-            builder.withProperty("pmid", study.pubmedId);
-            builder.withProperty("first_author", study.firstAuthor);
-            builder.withProperty("date_published", study.datePublished);
-            builder.withProperty("journal", study.journal);
-            builder.withProperty("title", study.studyTitle);
+            builder.withProperty("pmid", pubmedId);
+            builder.withPropertyIfNotNull("first_author", firstAuthor);
+            builder.withPropertyIfNotNull("date_published", datePublished);
+            builder.withPropertyIfNotNull("journal", journal);
+            builder.withPropertyIfNotNull("title", studyTitle);
             node = builder.build();
         }
         return node;
@@ -94,5 +105,53 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         if (node == null)
             node = graph.addNode(TRAIT_LABEL, "id", id);
         return node;
+    }
+
+    private void exportAncestries(final Workspace workspace, final Graph graph) throws IOException {
+        final MappingIterator<Ancestry> ancestries = FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource,
+                                                                                               GWASCatalogUpdater.ANCESTRY_FILE_NAME,
+                                                                                               Ancestry.class);
+        while (ancestries.hasNext())
+            exportAncestry(graph, ancestries.next());
+    }
+
+    private void exportAncestry(final Graph graph, final Ancestry ancestry) {
+        final NodeBuilder builder = graph.buildNode().withLabel(ANCESTRY_LABEL);
+        builder.withPropertyIfNotNull("stage", ancestry.stage);
+        if (ancestry.numberOfIndividuals != null)
+            builder.withPropertyIfNotNull("individuals", Integer.parseInt(ancestry.numberOfIndividuals));
+        builder.withPropertyIfNotNull("broad_category", ancestry.broadAncestralCategory);
+        builder.withPropertyIfNotNull("origin_country", ancestry.countryOfOrigin);
+        builder.withPropertyIfNotNull("recruitment_country", ancestry.countryOfRecruitment);
+        builder.withPropertyIfNotNull("additional_description", ancestry.additionalAncestryDescription);
+        final Node node = builder.build();
+        final Node studyNode = graph.findNode(STUDY_LABEL, "id", ancestry.studyAccession);
+        graph.addEdge(studyNode, node, "WITH_ANCESTRY");
+        getOrCreatePublication(graph, ancestry);
+    }
+
+    private Node getOrCreatePublication(final Graph graph, final Ancestry ancestry) {
+        return getOrCreatePublication(graph, ancestry.pubmedId, ancestry.firstAuthor, null, null,
+                                      ancestry.datePublished);
+    }
+
+    private void exportAssociations(final Workspace workspace, final Graph graph) throws IOException {
+        final MappingIterator<Association> associations = FileUtils.openTsvWithHeaderWithoutQuoting(workspace,
+                                                                                                    dataSource,
+                                                                                                    GWASCatalogUpdater.ASSOCIATIONS_FILE_NAME,
+                                                                                                    Association.class);
+        while (associations.hasNext())
+            exportAssociation(graph, associations.next());
+    }
+
+    private void exportAssociation(final Graph graph, final Association association) {
+        // TODO
+        final Node studyNode = graph.findNode(STUDY_LABEL, "id", association.studyAccession);
+        getOrCreatePublication(graph, association);
+    }
+
+    private Node getOrCreatePublication(final Graph graph, final Association association) {
+        return getOrCreatePublication(graph, association.pubmedId, association.firstAuthor, association.journal,
+                                      association.studyTitle, association.datePublished);
     }
 }
