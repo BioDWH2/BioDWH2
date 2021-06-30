@@ -4,6 +4,10 @@
 
 Released: 
 
+## 📦 Version [v0.3.7](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.7)
+
+Released: 30.06.2021
+
 ### 📚 Data Sources
 
  * ```[GWASCatalog]``` Started work on GWASCatalog data source module
