@@ -23,6 +23,7 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
     static final String STUDY_LABEL = "Study";
     static final String TRAIT_LABEL = "Trait";
     static final String ANCESTRY_LABEL = "Ancestry";
+    static final String ASSOCIATION_LABEL = "Association";
 
     public GWASCatalogGraphExporter(final GWASCatalogDataSource dataSource) {
         super(dataSource);
@@ -130,9 +131,8 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         getOrCreatePublication(graph, ancestry);
     }
 
-    private Node getOrCreatePublication(final Graph graph, final Ancestry ancestry) {
-        return getOrCreatePublication(graph, ancestry.pubmedId, ancestry.firstAuthor, null, null,
-                                      ancestry.datePublished);
+    private void getOrCreatePublication(final Graph graph, final Ancestry ancestry) {
+        getOrCreatePublication(graph, ancestry.pubmedId, ancestry.firstAuthor, null, null, ancestry.datePublished);
     }
 
     private void exportAssociations(final Workspace workspace, final Graph graph) throws IOException {
@@ -145,13 +145,48 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
     }
 
     private void exportAssociation(final Graph graph, final Association association) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel(ASSOCIATION_LABEL);
+        builder.withProperty("date_added", association.dateAddedToCatalog);
+        builder.withPropertyIfNotNull("mapped_traits", association.mappedTrait);
+        builder.withPropertyIfNotNull("chr_id", association.chrId);
+        builder.withPropertyIfNotNull("chr_position", association.chrPosition);
+        builder.withPropertyIfNotNull("cnv", association.cnv);
+        builder.withPropertyIfNotNull("context", association.context);
+        builder.withPropertyIfNotNull("downstream_gene_distance", association.downstreamGeneDistance);
+        builder.withPropertyIfNotNull("downstream_gene_id", association.downstreamGeneId);
+        builder.withPropertyIfNotNull("intergenic", association.intergenic);
+        builder.withPropertyIfNotNull("mapped_genes", association.mappedGenes);
+        builder.withPropertyIfNotNull("merged", association.merged);
+        builder.withPropertyIfNotNull("95_percent_confidence_interval", association.ninetyfiveConfidenceIntervalText);
+        builder.withPropertyIfNotNull("or_or_beta", association.orOrBeta);
+        builder.withPropertyIfNotNull("p_value", association.pValue);
+        builder.withPropertyIfNotNull("p_value_mlog", association.pValueMlog);
+        builder.withPropertyIfNotNull("p_value_text", association.pValueText);
+        builder.withPropertyIfNotNull("region", association.region);
+        builder.withPropertyIfNotNull("reported_genes", association.reportedGenes);
+        builder.withPropertyIfNotNull("risk_allele_frequency", association.riskAlleleFrequency);
+        builder.withPropertyIfNotNull("snp_gene_ids", association.snpGeneIds);
+        builder.withPropertyIfNotNull("snp_id_current", association.snpIdCurrent);
+        builder.withPropertyIfNotNull("snps", association.snps);
+        builder.withPropertyIfNotNull("strongest_snp_risk_allele", association.strongestSNPRiskAllele);
+        builder.withPropertyIfNotNull("upstream_gene_distance", association.upstreamGeneDistance);
+        builder.withPropertyIfNotNull("upstream_gene_id", association.upstreamGeneId);
+        final Node node = builder.build();
+        // TODO: add names to traits when list separator is fixed
+        if (association.mappedTraitUri != null) {
+            final String[] traitUris = StringUtils.split(association.mappedTraitUri, ',');
+            for (int i = 0; i < traitUris.length; i++) {
+                final Node traitNode = getOrCreateTrait(graph, traitUris[i].trim());
+                graph.addEdge(node, traitNode, "STUDIES");
+            }
+        }
         final Node studyNode = graph.findNode(STUDY_LABEL, "id", association.studyAccession);
+        graph.addEdge(studyNode, node, "WITH_ASSOCIATION");
         getOrCreatePublication(graph, association);
     }
 
-    private Node getOrCreatePublication(final Graph graph, final Association association) {
-        return getOrCreatePublication(graph, association.pubmedId, association.firstAuthor, association.journal,
-                                      association.studyTitle, association.datePublished);
+    private void getOrCreatePublication(final Graph graph, final Association association) {
+        getOrCreatePublication(graph, association.pubmedId, association.firstAuthor, association.journal,
+                               association.studyTitle, association.datePublished);
     }
 }

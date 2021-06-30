@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.gwascatalog.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 public final class GWASCatalogMappingDescriber extends MappingDescriber {
@@ -11,7 +12,16 @@ public final class GWASCatalogMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        return new NodeMappingDescription[0];
+        if (GWASCatalogGraphExporter.PUBLICATION_LABEL.equals(localMappingLabel))
+            return describePublication(node);
+        return null;
+    }
+
+    private NodeMappingDescription[] describePublication(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(
+                NodeMappingDescription.NodeType.PUBLICATION);
+        description.addIdentifier(IdentifierType.PUBMED_ID, node.<String>getProperty("pmid"));
+        return new NodeMappingDescription[]{description};
     }
 
     @Override
@@ -21,7 +31,7 @@ public final class GWASCatalogMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[0];
+        return new String[]{GWASCatalogGraphExporter.PUBLICATION_LABEL};
     }
 
     @Override
