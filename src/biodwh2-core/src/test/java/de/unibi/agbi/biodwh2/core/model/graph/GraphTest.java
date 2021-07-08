@@ -27,6 +27,25 @@ class GraphTest {
     }
 
     @Test
+    void testFindNodeWithDifferingTypes() throws Exception {
+        final Graph g = Graph.createTempGraph();
+        g.addNode("A", "test1", 1234, "test2", 56789L, "test3", -12, "test4", (byte) 42);
+        assertNotNull(g.findNode("A", "test1", (short) 1234));
+        assertNotNull(g.findNode("A", "test1", 1234));
+        assertNotNull(g.findNode("A", "test1", 1234L));
+        assertNotNull(g.findNode("A", "test2", 56789));
+        assertNotNull(g.findNode("A", "test2", 56789L));
+        assertNotNull(g.findNode("A", "test3", (byte) -12));
+        assertNotNull(g.findNode("A", "test3", (short) -12));
+        assertNotNull(g.findNode("A", "test3", -12));
+        assertNotNull(g.findNode("A", "test3", -12L));
+        assertNotNull(g.findNode("A", "test4", (byte) 42));
+        assertNotNull(g.findNode("A", "test4", (short) 42));
+        assertNotNull(g.findNode("A", "test4", 42));
+        assertNotNull(g.findNode("A", "test4", 42L));
+    }
+
+    @Test
     void nodeKeepsIdOnRetrieve() throws IOException {
         final Graph g = Graph.createTempGraph();
         Node n = g.addNode("Test");

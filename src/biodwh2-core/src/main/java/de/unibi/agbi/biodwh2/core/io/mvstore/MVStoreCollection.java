@@ -285,13 +285,13 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
             final Comparable<?> searchValue = propertyValues[i];
             final Object value = obj.get(propertyKeys[i]);
             if (value instanceof Comparable<?>) {
-                if (!value.equals(searchValue))
+                if (!propertyMatchesCriteria((Comparable<?>) value, searchValue))
                     return false;
             } else if (value instanceof Comparable<?>[]) {
                 final Comparable<?>[] valueArray = (Comparable<?>[]) value;
                 boolean matchedAnyInArray = false;
                 for (final Comparable<?> comparable : valueArray) {
-                    if (comparable != null && comparable.equals(searchValue)) {
+                    if (propertyMatchesCriteria(comparable, searchValue)) {
                         matchedAnyInArray = true;
                         break;
                     }
@@ -303,6 +303,15 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
             matched = true;
         }
         return matched;
+    }
+
+    private boolean propertyMatchesCriteria(final Comparable<?> a, final Comparable<?> b) {
+        if (a == null || b == null)
+            return false;
+        if (a instanceof Long || a instanceof Integer || a instanceof Short || a instanceof Byte)
+            if (b instanceof Long || b instanceof Integer || b instanceof Short || b instanceof Byte)
+                return ((Number) a).longValue() == ((Number) b).longValue();
+        return a.equals(b);
     }
 
     @Override
