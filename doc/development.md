@@ -61,7 +61,7 @@ Now your new module should be created and added to the module list. Open the ```
     <parent>
         <artifactId>biodwh2</artifactId>
         <groupId>de.unibi.agbi.biodwh2</groupId>
-        <version>0.3.3</version> <!-- BioDWH2 version -->
+        <version>0.3.7</version> <!-- BioDWH2 version -->
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -85,7 +85,7 @@ Now your new module should be created and added to the module list. Open the ```
 </project>
 ```
 
-Finally, make sure to add the package structure in your modules ```src > main > java``` like ```de.unibi.agbi.biodwh2.yourmodulename``` and follow the package structure like the other parser modules.
+Finally, make sure to add the package structure in your modules ```src > main > java``` like ```de.unibi.agbi.biodwh2.nameofmodule``` and follow the package structure like the other parser modules.
 
 BioDWH2 will automatically use your compiled module, if it is provided in the java classpath. For development, it is easier to add your module to the ```biodwh2-main``` module as a dependency. For this, open the ```pom.xml``` of the ```biodwh2-main``` module and add your module in the dependencies node:
 ```xml
@@ -103,3 +103,57 @@ BioDWH2 will automatically use your compiled module, if it is provided in the ja
 
 </dependencies>
 ```
+
+## Running and testing BioDWH2 inside IntelliJ IDEA
+
+When developing new data source modules, BioDWH2 can be run directly inside IntelliJ IDEA without the need to build a jar file every time. This is done using so called ```configurations```.
+
+![](img/setup_configurations1.png "")
+
+In our case a configuration basically represents running BioDWH2 with certain parameters, just like we would in the command line using a release version jar file. To create a new configuration we need to click the ```+``` and select ```Application```.
+
+![](img/setup_configurations2.png "")
+
+A new configuration needs several information.
+
+  1. A short name
+  2. The JDK used to run the program (Java 8)
+  3. The main module (```biodwh2-main```)
+  4. The java class containing the main method (```de.unibi.agbi.biodwh2.BioDWH2```)
+  5. The command line parameters
+
+The screenshot shows the help command as an example.
+
+![](img/setup_configurations3.png "")
+
+Usually, it's easiest to create all configurations needed and then switch between them as necessary during development. The ```create``` configuration usually would just be run once. ```update``` and ```update-skip``` are the configurations run most frequent.
+
+Once the updater of a new data source module is finished and run successfully once, development can continue just using the ```update-skip``` configuration. This reduces the requests to the data sources Website/FTP/... made when running the code frequently after each code change.
+
+Following are the command line parameters for the common configurations:
+
+  * help: ```-h```
+  * list-data-sources: ```--data-sources -v```
+  * create: ```-c /path/to/workspace```
+  * status: ```-s /path/to/workspace```
+  * update: ```-u /path/to/workspace```
+  * update skip: ```-u /path/to/workspace --skip-update```
+
+When a new data source module is developed and a workspace created, the new data source ID needs to be set in the workspace ```config.json```. The graph exporter usually tries to guess, whether it needs to run or to reuse the existing exported intermediate graph. This may cause issues when changing the data sources graph exporter code. There are two ways to tell the graph exporter to export a new graph. Each data source has a flag that can be configured in the workspace ```config.json``` called ```forceExport```. The config file could therefore look something like this:
+
+```json
+{
+  "version": 1,
+  "creationDateTime": "2020-01-31T23:10:05.066",
+  "dataSourceIds": ["CancerDrugsDB"],
+  "skipGraphMLExport": false,
+  "skipMetaGraphGeneration": false,
+  "dataSourceProperties": {
+    "CancerDrugsDB": { "forceExport": true }
+  }
+}
+```
+
+This is the easiest way for frequent code changes during development. However, to ensure new versions of the data source module will re-export for other users, even if the raw data wasn't updated, it's best to increase the graph exporters ```ExportVersion```. This number is arbitrary, but should be counted up. When a new version of the graph exporter is released, this export version should always be increased.
+
+![](img/setup_configurations4.png "")
