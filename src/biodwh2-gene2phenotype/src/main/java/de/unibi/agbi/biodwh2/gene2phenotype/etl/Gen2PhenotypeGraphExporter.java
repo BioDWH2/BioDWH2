@@ -51,7 +51,7 @@ public class Gen2PhenotypeGraphExporter extends GraphExporter<Gen2PhenotypeDataS
             organListNode.setProperty("organ_specificity_list", gdp.getOrganSpecificityList());
             graph.update(organListNode);
 
-            graph.addEdge(genNode, genDiseaseNode, "CHANGES");
+            graph.addEdge(genNode, genDiseaseNode, "MUTATES");
             graph.addEdge(genDiseaseNode, diseaseNode, "CAUSES");
             graph.addEdge(genDiseaseNode, phenotypesNode, "SHOWS");
             graph.addEdge(genDiseaseNode, organListNode, "AFFECTS");
