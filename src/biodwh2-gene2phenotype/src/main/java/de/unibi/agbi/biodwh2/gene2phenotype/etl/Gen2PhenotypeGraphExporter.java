@@ -23,38 +23,34 @@ public class Gen2PhenotypeGraphExporter extends GraphExporter<Gen2PhenotypeDataS
 
     @Override
     protected boolean exportGraph(Workspace workspace, Graph graph) throws ExporterException {
+        graph.setNodeIndexPropertyKeys("hgnc_symbol", "disease_name", "id");
         for (GeneDiseasePair gdp : dataSource.geneDiseasePairs){
             LOGGER.debug("exporting " + gdp.getGeneSymbol() + "-" + gdp.getDiseaseName());
-            Node genNode = createNode(graph, gdp.getGeneSymbol());
-            genNode.setProperty("hgncId", gdp.getHgncId());
+
+            Node genNode = createNode(graph, "Gene");
+            genNode.setProperty("hgnc_symbol", gdp.getGeneSymbol());
+            genNode.setProperty("hgnc_id", gdp.getHgncId());
             genNode.setProperty("mim", gdp.getGeneMim());
             graph.update(genNode);
 
-            Node diseaseNode = createNode(graph, gdp.getDiseaseName());
+            Node diseaseNode = createNode(graph, "Disease");
+            diseaseNode.setProperty("disease_name", gdp.getDiseaseName());
             diseaseNode.setProperty("mim", gdp.getDiseaseMim());
             graph.update(diseaseNode);
 
-            Node genDiseaseNode = createNode(graph, gdp.getGeneSymbol() + "-" + gdp.getDiseaseName());
+            Node genDiseaseNode = createNode(graph, "GeneDiseasePair");
+            genDiseaseNode.setProperty("id", gdp.getGeneSymbol() + "-" + gdp.getDiseaseName());
             genDiseaseNode.setProperty("confidence", gdp.getDiseaseConfidence());
             genDiseaseNode.setProperty("allelic_requirement", gdp.getAllelicRequirement());
             genDiseaseNode.setProperty("mutation_consequence", gdp.getMutationConsequence());
             genDiseaseNode.setProperty("panel", gdp.getG2Ppanel());
             genDiseaseNode.setProperty("entry date", gdp.getEntryDate());
+            genDiseaseNode.setProperty("phenotypes", gdp.getPhenotypes());
+            genDiseaseNode.setProperty("organ_specificity_list", gdp.getOrganSpecificityList());
             graph.update(genDiseaseNode);
-
-
-            Node phenotypesNode = createNode(graph, "phenotypes");
-            phenotypesNode.setProperty("phenotypes", gdp.getPhenotypes());
-            graph.update(phenotypesNode);
-
-            Node organListNode = createNode(graph, "organSpecificityList");
-            organListNode.setProperty("organ_specificity_list", gdp.getOrganSpecificityList());
-            graph.update(organListNode);
 
             graph.addEdge(genNode, genDiseaseNode, "MUTATES");
             graph.addEdge(genDiseaseNode, diseaseNode, "CAUSES");
-            graph.addEdge(genDiseaseNode, phenotypesNode, "SHOWS");
-            graph.addEdge(genDiseaseNode, organListNode, "AFFECTS");
         }
         LOGGER.debug("read " + graph.getNumberOfNodes() + " nodes and " + graph.getNumberOfEdges() + " edges");
         return true;
