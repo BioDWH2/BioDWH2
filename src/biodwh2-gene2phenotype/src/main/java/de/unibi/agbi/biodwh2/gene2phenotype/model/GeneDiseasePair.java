@@ -188,7 +188,7 @@ public class GeneDiseasePair {
         this.pmids.remove(index);
     }
 
-    public G2PPanel getG2ppanel() {
+    public G2PPanel getG2Ppanel() {
         return g2ppanel;
     }
 

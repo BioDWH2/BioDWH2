@@ -11,12 +11,16 @@ import de.unibi.agbi.biodwh2.gene2phenotype.etl.Gen2PhenotypeMappingDescriber;
 import de.unibi.agbi.biodwh2.gene2phenotype.etl.Gen2PhenotypeParser;
 import de.unibi.agbi.biodwh2.gene2phenotype.etl.Gen2PhenotypeUpdater;
 import de.unibi.agbi.biodwh2.gene2phenotype.model.GeneDiseasePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Gen2PhenotypeDataSource extends DataSource {
-    public List<GeneDiseasePair> geneDiseasePairs = new ArrayList<>(300);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Gen2PhenotypeDataSource.class);
+
+    public List<GeneDiseasePair> geneDiseasePairs = new ArrayList<>(460);
 
     @Override
     public String getId() {

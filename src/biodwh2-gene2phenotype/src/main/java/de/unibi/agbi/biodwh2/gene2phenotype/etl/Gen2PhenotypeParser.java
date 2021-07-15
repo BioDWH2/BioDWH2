@@ -88,6 +88,9 @@ public class Gen2PhenotypeParser extends Parser<Gen2PhenotypeDataSource> {
                 case "probable":
                     dc = DiseaseConfidence.PROBABLE;
                     break;
+                case "child IF":
+                    dc = DiseaseConfidence.CHILD_IF;
+                    break;
                 default:
                     LOGGER.warn(String.format("%s, %s error while parsing confidence", splitted[0], splitted[2]));
                     dc = null;
@@ -139,6 +142,5 @@ public class Gen2PhenotypeParser extends Parser<Gen2PhenotypeDataSource> {
                                         splitted[6], phenotypes, organList, pmids, g2pp, prevSymbols, hgncId,
                                         splitted[13]));
         }
-        System.out.println();
     }
 }

@@ -4,5 +4,6 @@ public enum DiseaseConfidence {
     DD_IF,
     CONFIRMED,
     POSSIBLE,
-    PROBABLE
+    PROBABLE,
+    CHILD_IF
 }
