@@ -36,8 +36,8 @@ public class Gen2PhenotypeGraphExporter extends GraphExporter<Gen2PhenotypeDataS
 
             Node genDiseaseNode = createNode(graph, gdp.getGeneSymbol() + "-" + gdp.getDiseaseName());
             genDiseaseNode.setProperty("confidence", gdp.getDiseaseConfidence());
-            genDiseaseNode.setProperty("allelic requirement", gdp.getAllelicRequirement());
-            genDiseaseNode.setProperty("mutation consequence", gdp.getMutationConsequence());
+            genDiseaseNode.setProperty("allelic_requirement", gdp.getAllelicRequirement());
+            genDiseaseNode.setProperty("mutation_consequence", gdp.getMutationConsequence());
             genDiseaseNode.setProperty("panel", gdp.getG2Ppanel());
             genDiseaseNode.setProperty("entry date", gdp.getEntryDate());
             graph.update(genDiseaseNode);
@@ -47,17 +47,16 @@ public class Gen2PhenotypeGraphExporter extends GraphExporter<Gen2PhenotypeDataS
             phenotypesNode.setProperty("phenotypes", gdp.getPhenotypes());
             graph.update(phenotypesNode);
 
-            Node organListNode = createNode(graph, "organ specificity list");
-            organListNode.setProperty("organ specificity list", gdp.getOrganSpecificityList());
+            Node organListNode = createNode(graph, "organSpecificityList");
+            organListNode.setProperty("organ_specificity_list", gdp.getOrganSpecificityList());
             graph.update(organListNode);
 
-            graph.addEdge(genNode, genDiseaseNode, "changes");
-            graph.addEdge(genDiseaseNode, diseaseNode, "causes");
-            graph.addEdge(genDiseaseNode, phenotypesNode, "shows");
-            graph.addEdge(genDiseaseNode, organListNode, "affects");
+            graph.addEdge(genNode, genDiseaseNode, "CHANGES");
+            graph.addEdge(genDiseaseNode, diseaseNode, "CAUSES");
+            graph.addEdge(genDiseaseNode, phenotypesNode, "SHOWS");
+            graph.addEdge(genDiseaseNode, organListNode, "AFFECTS");
         }
-        LOGGER.debug("generated " + graph.getNumberOfNodes() + " nodes");
-        LOGGER.debug("generated " + graph.getNumberOfEdges() + " edges");
+        LOGGER.debug("read " + graph.getNumberOfNodes() + " nodes and " + graph.getNumberOfEdges() + " edges");
         return true;
     }
 }
