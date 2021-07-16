@@ -33,15 +33,13 @@ public class CanadianNutrientFileGraphExporter extends GraphExporter<CanadianNut
 
     @Override
     protected boolean exportGraph(Workspace workspace, Graph graph) throws ExporterException {
-        graph.setNodeIndexPropertyKeys(
-                "food_code",            //because the source called this "identifier" and the food_id is only for the Data Base
-                "food_group_code",      //same as food_code
-                "food_source_code",     //same as food_code
-                "yield_id",
-                "refuse_id",
-                "measure_id",
-                "nutrient_source_code", //same as food_code
-                "nutrient_code"         //same as food_code
+        graph.setNodeIndexPropertyKeys("food_code",
+                                       //because the source called this "identifier" and the food_id is only for the Data Base
+                                       "food_group_code",      //same as food_code
+                                       "food_source_code",     //same as food_code
+                                       "yield_id", "refuse_id", "measure_id", "nutrient_source_code",
+                                       //same as food_code
+                                       "nutrient_code"         //same as food_code
         );
 
         loadNodes(graph);
@@ -53,49 +51,57 @@ public class CanadianNutrientFileGraphExporter extends GraphExporter<CanadianNut
         return true;
     }
 
+    /**
+     * generates for every food and nutrient amount the edges. Also annotates the edges if needed.
+     *
+     * @param graph the graph given by the main program.
+     */
     private void addEdges(Graph graph) {
-        for (Food f : dataSource.foods.values()){
+        for (Food f : dataSource.foods.values()) {
             graph.addEdge(foodNodes.get(f.getId()), foodGroupNodes.get(f.getFoodGroupID()), "IS_IN");
             try {
                 graph.addEdge(foodNodes.get(f.getId()), foodSourceNodes.get(f.getFoodSourceID()), "COMES_FROM");
-            }catch (GraphCacheException e){
+            } catch (GraphCacheException e) {
                 LOGGER.warn("Food source " + f.getFoodSourceID() + " for food " + f.getId() + " not found. Ignoring.");
             }
 
-            for (YieldAmount ya : dataSource.yieldAmounts){
-                if (ya.getFoodID().equals(f.getId())){
+            for (YieldAmount ya : dataSource.yieldAmounts) {
+                if (ya.getFoodID().equals(f.getId())) {
                     Map<String, Object> properties = new HashMap<>(2);
                     properties.put("yield_amount", ya.getAmount());
                     properties.put("date_of_entry", ya.getDateOfEntry());
-                    graph.addEdge(foodNodes.get(f.getId()), yieldNodes.get(ya.getYieldID()),"has_yield",properties);
+                    graph.addEdge(foodNodes.get(f.getId()), yieldNodes.get(ya.getYieldID()), "has_yield", properties);
                 }
             }
 
-            for (RefuseAmount ra : dataSource.refuseAmounts){
-                if (ra.getFoodID().equals(f.getId())){
+            for (RefuseAmount ra : dataSource.refuseAmounts) {
+                if (ra.getFoodID().equals(f.getId())) {
                     Map<String, Object> properties = new HashMap<>(2);
                     properties.put("refuse_amount", ra.getAmount());
                     properties.put("date_of_entry", ra.getDateOfEntry());
-                    graph.addEdge(foodNodes.get(f.getId()), refuseNodes.get(ra.getRefuseID()), "has_refuse", properties);
+                    graph.addEdge(foodNodes.get(f.getId()), refuseNodes.get(ra.getRefuseID()), "has_refuse",
+                                  properties);
                 }
             }
 
-            for (ConversionFactor cf : dataSource.conversionFactors){
-                if (cf.getFoodID().equals(f.getId())){
+            for (ConversionFactor cf : dataSource.conversionFactors) {
+                if (cf.getFoodID().equals(f.getId())) {
                     Map<String, Object> properties = new HashMap<>(2);
                     properties.put("conversion_factor", cf.getConversionValue());
                     properties.put("date_of_entry", cf.getDateOfEntry());
                     try {
-                        graph.addEdge(foodNodes.get(f.getId()), measureNodes.get(cf.getMeasureID()), "HAS_MEASURE", properties);
-                    }catch (GraphCacheException e){
-                        LOGGER.warn("Measurement with id " + cf.getMeasureID() + " for food " + f.getId() + " not found. Ignoring.");
+                        graph.addEdge(foodNodes.get(f.getId()), measureNodes.get(cf.getMeasureID()), "HAS_MEASURE",
+                                      properties);
+                    } catch (GraphCacheException e) {
+                        LOGGER.warn("Measurement with id " + cf.getMeasureID() + " for food " + f.getId() +
+                                    " not found. Ignoring.");
                     }
                 }
             }
         }
 
-        for (NutrientAmount na : dataSource.nutrientAmounts){
-            Node nutrientAmountNode = createNode(graph, "NutirentAmmount");
+        for (NutrientAmount na : dataSource.nutrientAmounts) {
+            Node nutrientAmountNode = createNode(graph, "NutrientAmount");
             nutrientAmountNode.setProperty("nutrient_value", na.getValue());
             nutrientAmountNode.setProperty("standard_error", na.getStandardError());
             nutrientAmountNode.setProperty("number_of_observations", na.getNumberOfObservations());
@@ -106,16 +112,22 @@ public class CanadianNutrientFileGraphExporter extends GraphExporter<CanadianNut
 
             try {
                 graph.addEdge(nutrientAmountNode, nutrientNodes.get(na.getNutrientID()), "OF_TYPE");
-            }catch (GraphCacheException e){
-                LOGGER.warn("Nutrient with id " + na.getNutrientID() + " for food " + na.getFoodID() + " not found. Ignoring.");
+            } catch (GraphCacheException e) {
+                LOGGER.warn("Nutrient with id " + na.getNutrientID() + " for food " + na.getFoodID() +
+                            " not found. Ignoring.");
             }
 
             graph.addEdge(nutrientAmountNode, nutrientSourceNodes.get(na.getNutrientSourceID()), "COMES_FROM");
         }
     }
 
-    private void loadNodes(Graph graph){
-        for (Food f : dataSource.foods.values()){
+    /**
+     * generates for every entry in the data files corresponding nodes in the graph.
+     *
+     * @param graph the graph given by the main program.
+     */
+    private void loadNodes(Graph graph) {
+        for (Food f : dataSource.foods.values()) {
             Node foodNode = createNode(graph, "Food");
             foodNode.setProperty("food_id", f.getId());
             foodNode.setProperty("food_code", f.getCode());
@@ -129,7 +141,7 @@ public class CanadianNutrientFileGraphExporter extends GraphExporter<CanadianNut
             foodNodes.put(f.getId(), foodNode);
         }
 
-        for (FoodGroup fg : dataSource.foodGroups.values()){
+        for (FoodGroup fg : dataSource.foodGroups.values()) {
             Node foodGroupNode = createNode(graph, "FoodGroup");
             foodGroupNode.setProperty("food_group_id", fg.getId());
             foodGroupNode.setProperty("food_group_code", fg.getCode());
@@ -139,15 +151,17 @@ public class CanadianNutrientFileGraphExporter extends GraphExporter<CanadianNut
             foodGroupNodes.put(fg.getId(), foodGroupNode);
         }
 
-        for (FoodSource fs : dataSource.foodSources.values()){
+        for (FoodSource fs : dataSource.foodSources.values()) {
             Node foodSourceNode = createNode(graph, "FoodSource");
             foodSourceNode.setProperty("food_source_id", fs.getId());
             foodSourceNode.setProperty("food_source_code", fs.getCode());
+            foodSourceNode.setProperty("description", fs.getDescription());
+            foodSourceNode.setProperty("description_france", fs.getDescriptionF());
             graph.update(foodSourceNode);
             foodSourceNodes.put(fs.getId(), foodSourceNode);
         }
 
-        for (Yield y : dataSource.yields.values()){
+        for (Yield y : dataSource.yields.values()) {
             Node yieldNode = createNode(graph, "Yield");
             yieldNode.setProperty("yield_id", y.getId());
             yieldNode.setProperty("name", y.getName());
@@ -156,7 +170,7 @@ public class CanadianNutrientFileGraphExporter extends GraphExporter<CanadianNut
             yieldNodes.put(y.getId(), yieldNode);
         }
 
-        for (Refuse r : dataSource.refuses.values()){
+        for (Refuse r : dataSource.refuses.values()) {
             Node refuseNode = createNode(graph, "Refuse");
             refuseNode.setProperty("refuse_id", r.getId());
             refuseNode.setProperty("name", r.getName());
@@ -165,7 +179,7 @@ public class CanadianNutrientFileGraphExporter extends GraphExporter<CanadianNut
             refuseNodes.put(r.getId(), refuseNode);
         }
 
-        for (Measure m : dataSource.measures.values()){
+        for (Measure m : dataSource.measures.values()) {
             Node measureNode = createNode(graph, "Measure");
             measureNode.setProperty("measure_id", m.getId());
             measureNode.setProperty("name", m.getName());
@@ -174,7 +188,7 @@ public class CanadianNutrientFileGraphExporter extends GraphExporter<CanadianNut
             measureNodes.put(m.getId(), measureNode);
         }
 
-        for (NutrientSource ns : dataSource.nutrientSources.values()){
+        for (NutrientSource ns : dataSource.nutrientSources.values()) {
             Node nutrientSourceNote = createNode(graph, "NutrientSource");
             nutrientSourceNote.setProperty("nutrient_source_id", ns.getId());
             nutrientSourceNote.setProperty("nutrient_source_code", ns.getCode());
@@ -184,7 +198,7 @@ public class CanadianNutrientFileGraphExporter extends GraphExporter<CanadianNut
             nutrientSourceNodes.put(ns.getId(), nutrientSourceNote);
         }
 
-        for (Nutrient n : dataSource.nutrients.values()){
+        for (Nutrient n : dataSource.nutrients.values()) {
             Node nutrientNode = createNode(graph, "Nutrient");
             nutrientNode.setProperty("nutrient_id", n.getId());
             nutrientNode.setProperty("nutrient_code", n.getCode());
@@ -192,7 +206,8 @@ public class CanadianNutrientFileGraphExporter extends GraphExporter<CanadianNut
             nutrientNode.setProperty("unit", n.getUnit());
             nutrientNode.setProperty("name", n.getName());
             nutrientNode.setProperty("name_france", n.getNameF());
-            nutrientNode.setProperty("infoods_tag", n.getTagName());    //sadly not every entry has one, so i can not use it as index
+            nutrientNode.setProperty("infoods_tag",
+                                     n.getTagName());    //sadly not every entry has one, so i can not use it as index
             nutrientNode.setProperty("decimals_of_value", n.getDecimals());
             graph.update(nutrientNode);
             nutrientNodes.put(n.getId(), nutrientNode);

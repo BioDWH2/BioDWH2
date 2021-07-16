@@ -23,7 +23,12 @@ import java.util.List;
 
 public class CanadianNutrientFileParser extends Parser<CanadianNutrientFileDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CanadianNutrientFileParser.class);
+
+    /**
+     * pattern to extract data from csv files with use ',' as delimiter and in the data and use '"' to encapsulate data
+     */
     private static final String CSV_PATTERN = ",(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
+
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public CanadianNutrientFileParser(CanadianNutrientFileDataSource dataSource) {
@@ -55,10 +60,10 @@ public class CanadianNutrientFileParser extends Parser<CanadianNutrientFileDataS
         LOGGER.debug("loading " + name);
         String path = dataSource.resolveSourceFilePath(workspace, name);
 
-        //the CSV-Files are so f****** broken i have to fix them before i can parse them at all
+        //the CSV-Files are broken, they need to be fix them before parsing them
         //some files have millions of ",," lines
         //sometimes a line is split in two
-        //sometimes they are empty or contain only a newline
+        //or they are empty or contain only a newline
         List<String> lines = new ArrayList<>(500000);
         try (BufferedReader br = Files.newBufferedReader(new File(path).toPath(), StandardCharsets.ISO_8859_1)) {
             String line;
@@ -84,17 +89,12 @@ public class CanadianNutrientFileParser extends Parser<CanadianNutrientFileDataS
                 lines.remove(i);
             }
         }
-
-        //
-        //for (int i = 0; i < lines.size(); i++) {
-        //    if (lines.get(i).equals("\"")){
-        //        lines.set(i-1, lines.get(i-1) + lines.get(i));
-        //        lines.remove(i);
-        //    }
-        //}
-
         return lines;
     }
+
+
+    // #######################################################
+    // methods to load the different files and prase them to usable Objects
 
     private boolean loadYield(Workspace workspace) throws ParserFileNotFoundException, ParserFormatException {
         List<String> lines = loadFile(workspace, "YIELD NAME.csv");
@@ -213,12 +213,13 @@ public class CanadianNutrientFileParser extends Parser<CanadianNutrientFileDataS
                 splitted[i] = splitted[i].replace("\"", "");
             }
             dataSource.refuseAmounts.add(new RefuseAmount(splitted[0], splitted[1], Double.parseDouble(splitted[2]),
-                                                        LocalDateTime.parse(splitted[3] + " 00:00:00", FORMATTER)));
+                                                          LocalDateTime.parse(splitted[3] + " 00:00:00", FORMATTER)));
         }
         return true;
     }
 
-    private boolean loadConversionFactor(Workspace workspace) throws ParserFileNotFoundException, ParserFormatException {
+    private boolean loadConversionFactor(
+            Workspace workspace) throws ParserFileNotFoundException, ParserFormatException {
         List<String> lines = loadFile(workspace, "CONVERSION FACTOR.csv");
 
         for (String line : lines) {
@@ -226,8 +227,9 @@ public class CanadianNutrientFileParser extends Parser<CanadianNutrientFileDataS
             for (int i = 0; i < splitted.length; i++) {
                 splitted[i] = splitted[i].replace("\"", "");
             }
-            dataSource.conversionFactors.add(new ConversionFactor(splitted[0], splitted[1], Double.parseDouble(splitted[2]),
-                                                                  LocalDateTime.parse(splitted[3] + " 00:00:00", FORMATTER)));
+            dataSource.conversionFactors.add(
+                    new ConversionFactor(splitted[0], splitted[1], Double.parseDouble(splitted[2]),
+                                         LocalDateTime.parse(splitted[3] + " 00:00:00", FORMATTER)));
         }
         return true;
     }
@@ -245,13 +247,10 @@ public class CanadianNutrientFileParser extends Parser<CanadianNutrientFileDataS
             if (splitted[4].equals(""))
                 splitted[4] = "-1";
 
-            dataSource.nutrientAmounts.add(new NutrientAmount(
-                splitted[0], splitted[1], splitted[5],
-                Double.parseDouble(splitted[2]),
-                Double.parseDouble(splitted[3]),
-                Integer.parseInt(splitted[4]),
-                LocalDateTime.parse(splitted[6] + " 00:00:00", FORMATTER)
-            ));
+            dataSource.nutrientAmounts.add(
+                    new NutrientAmount(splitted[0], splitted[1], splitted[5], Double.parseDouble(splitted[2]),
+                                       Double.parseDouble(splitted[3]), Integer.parseInt(splitted[4]),
+                                       LocalDateTime.parse(splitted[6] + " 00:00:00", FORMATTER)));
         }
         return true;
     }
@@ -270,13 +269,11 @@ public class CanadianNutrientFileParser extends Parser<CanadianNutrientFileDataS
             if (splitted[7].equals(""))
                 splitted[7] = "1970-01-01";
 
-            dataSource.foods.put(splitted[0], new Food(
-                    splitted[0], splitted[1], splitted[2], splitted[3], splitted[4], splitted[5],
-                    Integer.parseInt(splitted[8]),
-                    LocalDateTime.parse(splitted[6] + " 00:00:00", FORMATTER),
-                    LocalDateTime.parse(splitted[7] + " 00:00:00", FORMATTER),
-                    splitted[9]
-            ));
+            dataSource.foods.put(splitted[0],
+                                 new Food(splitted[0], splitted[1], splitted[2], splitted[3], splitted[4], splitted[5],
+                                          Integer.parseInt(splitted[8]),
+                                          LocalDateTime.parse(splitted[6] + " 00:00:00", FORMATTER),
+                                          LocalDateTime.parse(splitted[7] + " 00:00:00", FORMATTER), splitted[9]));
         }
         return true;
     }

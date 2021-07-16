@@ -11,20 +11,27 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class CanadianNutrientFileUpdater extends Updater<CanadianNutrientFileDataSource> {
+    /**
+     * Main page of the project. Is used to determinate the newest version by parsing the html code.
+     */
     private static final String CNF_MAIN_URL = "https://www.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/nutrient-data/canadian-nutrient-file-2015-download-files.html";
 
+    /**
+     * Download url for the Data
+     */
     private static final String CNF_DOWNLOAD_URL = "https://www.canada.ca/content/dam/hc-sc/migration/hc-sc/fn-an/alt_formats/zip/nutrition/fiche-nutri-data/cnf-fcen-csv.zip";
 
+    /**
+     * String that delimit the Date. It is used to find the place in the html code
+     */
     private static final String DATE_SEARCH_SEQUENCE = "dateModified";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CanadianNutrientFileUpdater.class);
@@ -37,12 +44,14 @@ public class CanadianNutrientFileUpdater extends Updater<CanadianNutrientFileDat
     public Version getNewestVersion() throws UpdaterException {
         String[] lines = getCNFPageContent();
 
-        String date = "";
+        String date;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime updateDateTime;
 
         for (String line : lines) {
+            //search for the date delimiter
             if (line.contains(DATE_SEARCH_SEQUENCE)) {
+                //extract date
                 date = line.split(">")[2];
                 date = date.split("<")[0];
                 updateDateTime = LocalDateTime.parse(date + " 00:00:00", formatter);
@@ -60,7 +69,7 @@ public class CanadianNutrientFileUpdater extends Updater<CanadianNutrientFileDat
         Path sourceFilePath = Paths.get(dataSource.resolveSourceFilePath(workspace, "cnf-fcen-csv.zip"));
         Path sourceFolderPath = sourceFilePath.getParent();
 
-        boolean suc = false;
+        boolean suc;
 
         try (BufferedInputStream in = new BufferedInputStream(new URL(CNF_DOWNLOAD_URL).openStream());
              FileOutputStream fileOutputStream = new FileOutputStream(sourceFilePath.toFile())) {
@@ -73,13 +82,12 @@ public class CanadianNutrientFileUpdater extends Updater<CanadianNutrientFileDat
             File temp = sourceFilePath.toFile();
             suc = temp.exists() && temp.isFile() && temp.length() != 0;
         } catch (IOException e) {
-            suc = false;
             LOGGER.error("Failed to download {}", CNF_DOWNLOAD_URL);
             throw new UpdaterConnectionException("Failed to download: " + CNF_DOWNLOAD_URL, e);
         }
 
         if (suc) {
-            ZipInputStream zipIn = null;
+            ZipInputStream zipIn;
             try {
                 zipIn = new ZipInputStream(new FileInputStream(sourceFilePath.toFile()));
                 ZipEntry entry = zipIn.getNextEntry();
@@ -94,7 +102,7 @@ public class CanadianNutrientFileUpdater extends Updater<CanadianNutrientFileDat
                         extractFile(zipIn, filePath);
                     } else {
                         File dir = new File(filePath);
-                        dir.mkdirs();
+                        suc &= dir.mkdirs();
                     }
                     zipIn.closeEntry();
                     entry = zipIn.getNextEntry();
@@ -102,7 +110,6 @@ public class CanadianNutrientFileUpdater extends Updater<CanadianNutrientFileDat
                 zipIn.close();
 
             } catch (IOException e) {
-                suc = false;
                 LOGGER.error("Failed to unzip {}", sourceFilePath);
                 throw new UpdaterConnectionException("Failed to unzip: " + sourceFilePath, e);
             }
@@ -110,7 +117,7 @@ public class CanadianNutrientFileUpdater extends Updater<CanadianNutrientFileDat
         }
 
         if (suc)
-            sourceFilePath.toFile().delete();
+            suc = sourceFilePath.toFile().delete();
 
         return suc;
     }
@@ -118,7 +125,7 @@ public class CanadianNutrientFileUpdater extends Updater<CanadianNutrientFileDat
     private void extractFile(ZipInputStream zipIn, String filePath) throws IOException {
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
         byte[] bytesIn = new byte[4096];
-        int read = 0;
+        int read;
         while ((read = zipIn.read(bytesIn)) != -1) {
             bos.write(bytesIn, 0, read);
         }
@@ -131,7 +138,7 @@ public class CanadianNutrientFileUpdater extends Updater<CanadianNutrientFileDat
         try {
             URL url = new URL(CNF_MAIN_URL);
             InputStream is = url.openStream();
-            int ptr = 0;
+            int ptr;
 
             while ((ptr = is.read()) != -1) {
                 buffer.append((char) ptr);

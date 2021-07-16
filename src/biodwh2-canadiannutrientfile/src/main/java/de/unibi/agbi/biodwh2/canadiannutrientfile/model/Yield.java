@@ -5,7 +5,7 @@ public class Yield {
     private final String name;
     private final String nameF;
 
-    public Yield(String id, String name, String nameF){
+    public Yield(String id, String name, String nameF) {
         this.id = id;
         this.name = name;
         this.nameF = nameF;
