@@ -55,13 +55,14 @@ public class Gen2PhenotypeUpdater extends Updater<Gen2PhenotypeDataSource> {
     public Version getNewestVersion() throws UpdaterException {
         String[] lines = getG2PPageContent();
 
-        String line = "";
-        String dateline = "";
+        String line;
+        String dateline;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime newest = LocalDateTime.parse("1970-01-01 00:00:00", formatter);
         LocalDateTime tempDateTime;
 
         // extracting the dates of the latest update and get the newest one
+        // by parsing the html page.
         for (int i = 0; i < lines.length; i++) {
             line = lines[i];
             if (line.contains("DD panel") || line.contains("Eye panel") || line.contains("Skin panel") || line.contains(
@@ -95,7 +96,7 @@ public class Gen2PhenotypeUpdater extends Updater<Gen2PhenotypeDataSource> {
             }
             succ &= cur;
         }
-        return false;
+        return succ;
     }
 
     /**
@@ -110,7 +111,7 @@ public class Gen2PhenotypeUpdater extends Updater<Gen2PhenotypeDataSource> {
         try {
             URL url = new URL(G2P_MAIN_URL);
             InputStream is = url.openStream();
-            int ptr = 0;
+            int ptr;
 
             while ((ptr = is.read()) != -1) {
                 buffer.append((char) ptr);

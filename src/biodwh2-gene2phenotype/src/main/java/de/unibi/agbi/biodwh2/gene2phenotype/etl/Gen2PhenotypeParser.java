@@ -45,11 +45,11 @@ public class Gen2PhenotypeParser extends Parser<Gen2PhenotypeDataSource> {
     }
 
     /**
-     * pars a given file line by line as CSV with respect to quotes e.g. a,"b,c",d -> a and b,c and d
-     * using a regex {@link #CSV_PATTERN}. Its stores the data in {@link #dataSource} using {@link GeneDiseasePair}
-     * @param path path to the file to parse
-     * @param dataSource the actuell datasource
-     * @throws ParserException
+     * pars a given file line by line as CSV with respect to quotes e.g. a,"b,c",d -> a and b,c and d using a regex
+     * {@link #CSV_PATTERN}. Its stores the data in {@link #dataSource} using {@link GeneDiseasePair}
+     *
+     * @param path       path to the file to parse
+     * @param dataSource the actual datasource
      */
     private void parseFile(String path, Gen2PhenotypeDataSource dataSource) throws ParserException {
         List<String> lines;
@@ -66,15 +66,13 @@ public class Gen2PhenotypeParser extends Parser<Gen2PhenotypeDataSource> {
 
         LOGGER.debug(String.format("Read %d lines from %s", lines.size(), path));
 
-        int j = 0;
         for (String line : lines.subList(1, lines.size())) {
-            // Regex voodoo
             String[] splitted = line.split(CSV_PATTERN, -1);
             for (int i = 0; i < splitted.length; i++) {
                 splitted[i] = splitted[i].replace("\"", "");
             }
 
-            DiseaseConfidence dc = null;
+            DiseaseConfidence dc;
             switch (splitted[4]) {
                 case "both RD and IF":
                     dc = DiseaseConfidence.DD_IF;
@@ -101,7 +99,7 @@ public class Gen2PhenotypeParser extends Parser<Gen2PhenotypeDataSource> {
             List<String> organList = Arrays.asList(splitted[8].split(";"));
             List<String> pmids = Arrays.asList(splitted[9].split(";"));
 
-            G2PPanel g2pp = null;
+            G2PPanel g2pp;
             switch (splitted[10]) {
                 case "Cancer":
                     g2pp = G2PPanel.CANCER;

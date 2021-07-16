@@ -11,9 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Gen2PhenotypeGraphExporter extends GraphExporter<Gen2PhenotypeDataSource> {
-    private static final String[] FILE_LIST = new String[]{
-            "SkinG2P.csv", "EyeG2P.csv", "DDG2P.csv", "CancerG2P.csv"
-    };
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Gen2PhenotypeGraphExporter.class);
 
@@ -24,13 +21,14 @@ public class Gen2PhenotypeGraphExporter extends GraphExporter<Gen2PhenotypeDataS
     @Override
     protected boolean exportGraph(Workspace workspace, Graph graph) throws ExporterException {
         graph.setNodeIndexPropertyKeys("hgnc_symbol", "disease_name", "id");
-        for (GeneDiseasePair gdp : dataSource.geneDiseasePairs){
+        for (GeneDiseasePair gdp : dataSource.geneDiseasePairs) {
             LOGGER.debug("exporting " + gdp.getGeneSymbol() + "-" + gdp.getDiseaseName());
 
             Node genNode = createNode(graph, "Gene");
             genNode.setProperty("hgnc_symbol", gdp.getGeneSymbol());
             genNode.setProperty("hgnc_id", gdp.getHgncId());
             genNode.setProperty("mim", gdp.getGeneMim());
+            genNode.setProperty("previous_symbols", gdp.getPrevSymbols());
             graph.update(genNode);
 
             Node diseaseNode = createNode(graph, "Disease");
@@ -47,6 +45,7 @@ public class Gen2PhenotypeGraphExporter extends GraphExporter<Gen2PhenotypeDataS
             genDiseaseNode.setProperty("entry date", gdp.getEntryDate());
             genDiseaseNode.setProperty("phenotypes", gdp.getPhenotypes());
             genDiseaseNode.setProperty("organ_specificity_list", gdp.getOrganSpecificityList());
+            genDiseaseNode.setProperty("pubmed_ids", gdp.getPmids());
             graph.update(genDiseaseNode);
 
             graph.addEdge(genNode, genDiseaseNode, "MUTATES");
