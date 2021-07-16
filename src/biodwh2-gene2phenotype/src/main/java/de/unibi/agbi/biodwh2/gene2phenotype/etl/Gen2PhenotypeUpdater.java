@@ -86,15 +86,14 @@ public class Gen2PhenotypeUpdater extends Updater<Gen2PhenotypeDataSource> {
     @Override
     protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
         boolean succ = true;
-        boolean cur;
+
         for (String file : FILES) {
-            cur = downloadFile(workspace, dataSource, file);
-            if (cur) {
+            succ = downloadFile(workspace, dataSource, file);
+            if (succ) {
                 LOGGER.debug("{} downloaded", file);
             } else {
                 LOGGER.debug("Download {} failed", file);
             }
-            succ &= cur;
         }
         return succ;
     }
