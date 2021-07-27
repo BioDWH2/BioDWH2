@@ -32,6 +32,7 @@ public final class NodeMappingDescription {
         SYMPTOM,
         TARGET,
         TAXON,
+        TRIAL,
         UNKNOWN,
         VARIANT
     }

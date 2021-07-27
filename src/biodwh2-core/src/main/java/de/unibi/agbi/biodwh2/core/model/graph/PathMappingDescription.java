@@ -10,7 +10,8 @@ public final class PathMappingDescription {
         CONTRAINDICATES,
         INDUCES,
         INTERACTS,
-        CODES_FOR
+        CODES_FOR,
+        INVESTIGATES
     }
 
     private final String type;
