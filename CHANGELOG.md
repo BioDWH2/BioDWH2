@@ -8,6 +8,7 @@ Released:
 
  * ```[feature]``` Unindexed numeric (long, int, short, byte) properties are comparable across java types
  * ```[feature]``` Added TRIAL node mapping type and INVESTIGATES path mapping type
+ * ```[feature]``` Added NCT_NUMBER mapping identifier type
  * ```[docs]``` Improve development documentation
 
 ## 📦 Version [v0.3.7](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.7)

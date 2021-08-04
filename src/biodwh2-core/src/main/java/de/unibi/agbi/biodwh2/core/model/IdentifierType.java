@@ -24,6 +24,7 @@ public enum IdentifierType {
     MESH("MeSH"),
     NCBI_TAXON("NCBI_Taxon"),
     NCBI_GENE("NCBI_Gene"),
+    NCT_NUMBER("NCT"),
     NDF_RT_NUI("NDF-RT_NUI"),
     OMIM("OMIM"),
     ORPHANET("ORPHA"),
