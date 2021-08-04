@@ -10,6 +10,7 @@ public final class NodeMappingDescription {
     public enum NodeType {
         ADVERSE_EVENT,
         ANATOMY,
+        CLINICAL_TRIAL,
         COMPOUND,
         DIPLOTYPE,
         DISEASE,
@@ -32,7 +33,6 @@ public final class NodeMappingDescription {
         SYMPTOM,
         TARGET,
         TAXON,
-        TRIAL,
         UNKNOWN,
         VARIANT
     }

@@ -7,7 +7,7 @@ Released:
 ### 🔧 Bug fixes and other changes
 
  * ```[feature]``` Unindexed numeric (long, int, short, byte) properties are comparable across java types
- * ```[feature]``` Added TRIAL node mapping type and INVESTIGATES path mapping type
+ * ```[feature]``` Added CLINICAL_TRIAL node mapping type and INVESTIGATES path mapping type
  * ```[feature]``` Added NCT_NUMBER mapping identifier type
  * ```[docs]``` Improve development documentation
 
