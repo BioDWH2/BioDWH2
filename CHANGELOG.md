@@ -4,11 +4,15 @@
 
 Released: 
 
+### 📚 Data Sources
+
+ * ```[GWASCatalog]``` Added ReDOTrialsDB data source module
+
 ### 🔧 Bug fixes and other changes
 
  * ```[feature]``` Unindexed numeric (long, int, short, byte) properties are comparable across java types
  * ```[feature]``` Added CLINICAL_TRIAL node mapping type and INVESTIGATES path mapping type
- * ```[feature]``` Added NCT_NUMBER mapping identifier type
+ * ```[feature]``` Added many international clinical trial mapping identifier types
  * ```[docs]``` Improve development documentation
 
 ## 📦 Version [v0.3.7](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.7)
