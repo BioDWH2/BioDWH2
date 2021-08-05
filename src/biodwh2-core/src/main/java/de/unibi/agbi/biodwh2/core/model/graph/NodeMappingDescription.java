@@ -109,7 +109,7 @@ public final class NodeMappingDescription {
         identifierCache = new HashSet<>();
         for (final String identifierType : identifier.keySet())
             for (final String id : identifier.get(identifierType))
-                identifierCache.add(identifierType + ":" + id);
+                identifierCache.add(identifierType + ':' + id);
         return identifierCache;
     }
 

@@ -4,6 +4,10 @@ public enum IdentifierType {
     CAS("CAS"),
     CHEMBL("ChEMBL"),
     CHEMSPIDER("ChemSpider"),
+    /**
+     * CTRI (Clinical Trials Registry India) http://ctri.nic.in/Clinicaltrials/
+     */
+    CTRI_TRIAL("CTRI"),
     DB_SNP("dbSNP"),
     DOI("DOI"),
     DRUG_BANK("DrugBank"),
@@ -20,6 +24,10 @@ public enum IdentifierType {
     ISBN_10("ISBN10"),
     ISBN_13("ISBN13"),
     ITIS_TAXON("ITIS_Taxon"),
+    /**
+     * JPRN (Japan Primary Registries Network) https://rctportal.niph.go.jp/en/link
+     */
+    JPRN_TRIAL("JPRN"),
     KEGG("KEGG"),
     MESH("MeSH"),
     NCBI_TAXON("NCBI_Taxon"),
