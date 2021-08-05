@@ -6,7 +6,7 @@ Released:
 
 ### 📚 Data Sources
 
- * ```[GWASCatalog]``` Added ReDOTrialsDB data source module
+ * ```[ReDOTrialsDB]``` Added ReDOTrialsDB data source module
 
 ### 🔧 Bug fixes and other changes
 
