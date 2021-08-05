@@ -13,6 +13,10 @@ public enum IdentifierType {
     DRUG_BANK("DrugBank"),
     DRUG_CENTRAL("DrugCentral"),
     DUMMY("Dummy"),
+    /**
+     * EMA CTR (Clinical Trials Registry) https://www.clinicaltrialsregister.eu
+     */
+    EMA_CTR("EMA_CTR"),
     ENSEMBL_GENE_ID("ENSEMBL_Gene"),
     EUROPEAN_CHEMICALS_AGENCY_EC("ECA_EC"),
     FDA_SPL("FDA_SPL"),
@@ -32,6 +36,10 @@ public enum IdentifierType {
     MESH("MeSH"),
     NCBI_TAXON("NCBI_Taxon"),
     NCBI_GENE("NCBI_Gene"),
+    /**
+     * NIH NCI (National Cancer Institute) https://www.cancer.gov/about-cancer/treatment/clinical-trials
+     */
+    NCI_TRIAL("NCI"),
     NCT_NUMBER("NCT"),
     NDF_RT_NUI("NDF-RT_NUI"),
     OMIM("OMIM"),

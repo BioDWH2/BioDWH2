@@ -10,8 +10,11 @@ import java.util.regex.Pattern;
 
 public final class ReDOTrialsDBMappingDescriber extends MappingDescriber {
     public static final Pattern NCT_NUMBER_PATTERN = Pattern.compile("NCT[0-9]+");
-    public static final Pattern JPRN_PATTERN = Pattern.compile("JPRN-(jRCT|UMIN|C)[0-9]+");
+    public static final Pattern JPRN_PATTERN = Pattern.compile("JPRN-(jRCTs?|UMIN|C)[0-9]+");
+    public static final Pattern UMIN_PATTERN = Pattern.compile("UMIN[0-9]+");
     public static final Pattern CTRI_PATTERN = Pattern.compile("CTRI/[0-9]{4}/[0-9]{2,3}/[0-9]+");
+    public static final Pattern NCI_PATTERN = Pattern.compile("NCI-[0-9]{4}-[0-9]+");
+    public static final Pattern EMA_CTR_PATTERN = Pattern.compile("[0-9]{4}-[0-9]+-[0-9]{2}");
 
     public ReDOTrialsDBMappingDescriber(final DataSource dataSource) {
         super(dataSource);
@@ -39,7 +42,19 @@ public final class ReDOTrialsDBMappingDescriber extends MappingDescriber {
     private NodeMappingDescription[] describeTrial(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(
                 NodeMappingDescription.NodeType.CLINICAL_TRIAL);
-        // TODO: also try using the otherIds property
+        final String[] otherIds = node.getProperty("other_ids");
+        if (otherIds != null)
+            for (final String id : otherIds) {
+                if (NCT_NUMBER_PATTERN.matcher(id).matches())
+                    description.addIdentifier(IdentifierType.NCT_NUMBER, id);
+                else if (NCI_PATTERN.matcher(id).matches())
+                    description.addIdentifier(IdentifierType.NCI_TRIAL, id);
+                else if (EMA_CTR_PATTERN.matcher(id).matches())
+                    description.addIdentifier(IdentifierType.EMA_CTR, id);
+                else if (UMIN_PATTERN.matcher(id).matches())
+                    description.addIdentifier(IdentifierType.JPRN_TRIAL, "JPRN-" + id);
+                // TODO: more
+            }
         final String id = node.getProperty("id");
         if (StringUtils.isNotEmpty(id)) {
             if (NCT_NUMBER_PATTERN.matcher(id).matches())
@@ -48,6 +63,10 @@ public final class ReDOTrialsDBMappingDescriber extends MappingDescriber {
                 description.addIdentifier(IdentifierType.JPRN_TRIAL, id);
             else if (CTRI_PATTERN.matcher(id).matches())
                 description.addIdentifier(IdentifierType.CTRI_TRIAL, id);
+            else if (NCI_PATTERN.matcher(id).matches())
+                description.addIdentifier(IdentifierType.NCI_TRIAL, id);
+            else if (EMA_CTR_PATTERN.matcher(id).matches())
+                description.addIdentifier(IdentifierType.EMA_CTR, id);
             // TODO: more
         }
         return new NodeMappingDescription[]{description};

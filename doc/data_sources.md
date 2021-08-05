@@ -16,6 +16,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | [NDF-RT](sources/NDF-RT/README.md) | National Drug File – Reference Terminology (NDF-RT™) | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/) |
 | [PharmGKB](sources/PharmGKB/README.md) | PharmGKB | [Link](https://www.pharmgkb.org) |
 | [ReDO-DB](sources/ReDO-DB/README.md) | A curated listing of non-cancer drugs which have shown some evidence of anticancer activity by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/redo-db) |
+| [ReDOTrialsDB](sources/ReDOTrialsDB/README.md) | A curated database, produced by the Anticancer Fund, of active clinical trials investigating the use of non-cancer drugs as potential cancer treatments | [Link](https://www.anticancerfund.org/en/redo-trials-db) |
 | [UNII](sources/UNII/README.md) | FDA Substance Registration System - Unique Ingredient Identifier | [Link](https://fdasis.nlm.nih.gov/srs/) |
 | [USDA-PLANTS](sources/USDA-PLANTS/README.md) | USDA PLANTS Database | [Link](https://plants.sc.egov.usda.gov) |
 |               |      |         |

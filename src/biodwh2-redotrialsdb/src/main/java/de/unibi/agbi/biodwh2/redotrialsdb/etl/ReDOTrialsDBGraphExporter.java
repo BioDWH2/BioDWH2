@@ -124,8 +124,8 @@ public final class ReDOTrialsDBGraphExporter extends GraphExporter<ReDOTrialsDBD
                 otherIds) || "none".equalsIgnoreCase(otherIds) || "not applicable".equalsIgnoreCase(otherIds) ||
             "no id yet".equalsIgnoreCase(otherIds))
             return null;
-        // TODO: list
-        return new String[]{otherIds};
+        return Arrays.stream(StringUtils.splitByWholeSeparator(otherIds, ";")).map(String::trim).filter(
+                v -> v.length() > 0).toArray(String[]::new);
     }
 
     /**
