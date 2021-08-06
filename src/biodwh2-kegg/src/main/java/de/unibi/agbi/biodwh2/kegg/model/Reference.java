@@ -6,7 +6,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 @GraphNodeLabel("Reference")
 public class Reference {
     @GraphProperty("pmid")
-    public String pmid;
+    public Integer pmid;
     public String remarks;
     @GraphProperty("authors")
     public String authors;

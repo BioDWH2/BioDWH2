@@ -486,7 +486,7 @@ public class KeggParser extends Parser<KeggDataSource> {
         if (line.value.trim().length() > 0) {
             final Matcher matcher = REFERENCE_PATTERN.matcher(line.value);
             if (matcher.matches()) {
-                reference.pmid = matcher.group(1);
+                reference.pmid = Integer.parseInt(matcher.group(1));
                 final String remarks = matcher.group(2).trim().replace('\n', ' ');
                 if (remarks.length() > 0) {
                     reference.remarks = remarks;

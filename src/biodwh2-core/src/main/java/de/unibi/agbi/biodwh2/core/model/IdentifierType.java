@@ -36,6 +36,8 @@ public enum IdentifierType {
     GEN_ATLAS("GenAtlas"),
     HGNC_SYMBOL("HGNC_Symbol"),
     HGNC_ID("HGNC"),
+    ICD10("ICD10"),
+    ICD11("ICD11"),
     INTERNATIONAL_NONPROPRIETARY_NAMES("INN"),
     /**
      * Iranian Registry of Clinical Trials (IRCT) https://en.irct.ir
