@@ -237,19 +237,20 @@ public class KeggParser extends Parser<KeggDataSource> {
                 entry.sequences.add(sequence);
                 break;
             case "BRACKET":
-                final Bracket bracket = new Bracket();
-                bracket.value = line.value;
+                // TODO: as bracket structures are not that easy to parse and low priority just store the FLAT-FILE info
+                final StringBuilder bracket = new StringBuilder("BRACKET     ").append(
+                        line.value.replace("\n", "\n            "));
                 for (int j = i + 1; j < chunk.length; j++) {
                     if (chunk[j].keyword.equals("  ORIGINAL")) {
-                        bracket.original = line.value;
+                        bracket.append("\n  ORIGINAL  ").append(chunk[j].value.replace("\n", "\n            "));
                         i++;
                     } else if (chunk[j].keyword.equals("  REPEAT")) {
-                        bracket.repeat = line.value;
+                        bracket.append("\n  REPEAT    ").append(chunk[j].value.replace("\n", "\n            "));
                         i++;
                     } else
                         break;
                 }
-                entry.bracket = bracket;
+                entry.bracket = bracket.toString();
                 break;
             case "METABOLISM":
                 if (lineNotEmpty)
@@ -557,6 +558,11 @@ public class KeggParser extends Parser<KeggDataSource> {
                 pair.ids.add(prefix + id);
         }
         pair.name = pair.name.trim().replace("  ", " ");
+        // Fix for data error in gene id
+        if (pair.ids.size() == 0 && pair.name.equals("GST [K00799]")) {
+            pair.name = "GST";
+            pair.ids.add("KO:K00799");
+        }
         return pair;
     }
 
@@ -602,8 +608,8 @@ public class KeggParser extends Parser<KeggDataSource> {
         return pair;
     }
 
-    private static List<KeggHierarchicalEntry.ParentChildRelation> parseMemberClassHierarchy(final ChunkLine line) {
-        final List<KeggHierarchicalEntry.ParentChildRelation> result = new ArrayList<>();
+    private static List<ParentChildRelation> parseMemberClassHierarchy(final ChunkLine line) {
+        final List<ParentChildRelation> result = new ArrayList<>();
         final Stack<NameIdsPair> depthStack = new Stack<>();
         int lastDepth = -1;
         for (String branch : StringUtils.split(line.value, '\n')) {
@@ -623,12 +629,12 @@ public class KeggParser extends Parser<KeggDataSource> {
                     depthStack.pop();
             lastDepth = depth;
             depthStack.set(depthStack.size() - 1, pair);
+            final ParentChildRelation relation = new ParentChildRelation();
             if (depthStack.size() > 1) {
-                final KeggHierarchicalEntry.ParentChildRelation relation = new KeggHierarchicalEntry.ParentChildRelation();
                 relation.parent = depthStack.get(depthStack.size() - 2);
-                relation.child = pair;
-                result.add(relation);
             }
+            relation.child = pair;
+            result.add(relation);
         }
         return result;
     }

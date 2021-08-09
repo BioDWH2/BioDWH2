@@ -6,6 +6,8 @@ import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
+
 public class KeggMappingDescriber extends MappingDescriber {
     public KeggMappingDescriber(final DataSource dataSource) {
         super(dataSource);
@@ -17,6 +19,8 @@ public class KeggMappingDescriber extends MappingDescriber {
             return describeDrug(node);
         if (KeggGraphExporter.REFERENCE_LABEL.equals(localMappingLabel))
             return describeReference(node);
+        if (KeggGraphExporter.GENE_LABEL.equals(localMappingLabel))
+            return describeGene(node);
         if (KeggGraphExporter.DISEASE_LABEL.equals(localMappingLabel))
             return describeDisease(node);
         return null;
@@ -24,8 +28,20 @@ public class KeggMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeDrug(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
-        description.addNames(node.<String>getProperty("name"));
-        description.addNames(node.<String[]>getProperty("names"));
+        final String[] names = getEntryNames(node);
+        description.addNames(names);
+        for (final String name : names) {
+            if (name.endsWith(")")) {
+                final int startIndex = name.lastIndexOf('(');
+                final String nameWithoutTags = name.substring(0, startIndex).trim();
+                final String[] nameTags = StringUtils.split(name.substring(startIndex + 1, name.length() - 1), '/');
+                for (final String nameTag : nameTags)
+                    if (nameTag.equals("INN")) {
+                        description.addIdentifier(IdentifierType.INTERNATIONAL_NONPROPRIETARY_NAMES, nameWithoutTags);
+                        break;
+                    }
+            }
+        }
         final String[] externalIdentifier = node.getProperty("external_identifier");
         if (externalIdentifier != null)
             for (final String identifier : externalIdentifier) {
@@ -38,6 +54,14 @@ public class KeggMappingDescriber extends MappingDescriber {
         return new NodeMappingDescription[]{description};
     }
 
+    private String[] getEntryNames(final Node node) {
+        final String name = node.getProperty("name");
+        if (name != null)
+            return new String[]{name.trim()};
+        final String[] names = node.getProperty("names");
+        return names != null ? Arrays.stream(names).map(String::trim).toArray(String[]::new) : new String[0];
+    }
+
     private NodeMappingDescription[] describeReference(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(
                 NodeMappingDescription.NodeType.PUBLICATION);
@@ -46,10 +70,17 @@ public class KeggMappingDescriber extends MappingDescriber {
         return new NodeMappingDescription[]{description};
     }
 
+    private NodeMappingDescription[] describeGene(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        description.addNames(node.<String>getProperty("name"));
+        description.addNames(node.<String[]>getProperty("symbols"));
+        description.addIdentifier(IdentifierType.KEGG, node.<String>getProperty("id"));
+        return new NodeMappingDescription[]{description};
+    }
+
     private NodeMappingDescription[] describeDisease(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
-        description.addNames(node.<String>getProperty("name"));
-        description.addNames(node.<String[]>getProperty("names"));
+        description.addNames(getEntryNames(node));
         final String[] externalIdentifier = node.getProperty("external_identifier");
         if (externalIdentifier != null)
             for (final String identifier : externalIdentifier) {
@@ -67,17 +98,23 @@ public class KeggMappingDescriber extends MappingDescriber {
     @Override
     protected String[] getNodeMappingLabels() {
         return new String[]{
-                KeggGraphExporter.DRUG_LABEL, KeggGraphExporter.REFERENCE_LABEL, KeggGraphExporter.DISEASE_LABEL
+                KeggGraphExporter.DRUG_LABEL, KeggGraphExporter.REFERENCE_LABEL, KeggGraphExporter.GENE_LABEL,
+                KeggGraphExporter.DISEASE_LABEL
         };
     }
 
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
+        if (edges.length == 1 && edges[0].getLabel().endsWith(KeggGraphExporter.TARGETS_LABEL))
+            return new PathMappingDescription(PathMappingDescription.EdgeType.TARGETS);
         return null;
     }
 
     @Override
     protected PathMapping[] getEdgePathMappings() {
-        return new PathMapping[0];
+        return new PathMapping[]{
+                new PathMapping().add(KeggGraphExporter.DRUG_LABEL, KeggGraphExporter.TARGETS_LABEL,
+                                      KeggGraphExporter.GENE_LABEL, EdgeDirection.FORWARD)
+        };
     }
 }
