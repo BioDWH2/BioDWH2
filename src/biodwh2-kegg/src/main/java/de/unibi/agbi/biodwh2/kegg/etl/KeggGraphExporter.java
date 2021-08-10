@@ -27,21 +27,12 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
     static final String NETWORK_LABEL = "Network";
     static final String DRUG_GROUP_LABEL = "DrugGroup";
     static final String GENE_LABEL = "Gene";
+    static final String COMPOUND_LABEL = "Compound";
+    static final String ORGANISM_LABEL = "Organism";
     static final String TARGETS_LABEL = "TARGETS";
-
-    private final Map<String, String> idPrefixLabelMap = new HashMap<>();
 
     public KeggGraphExporter(final KeggDataSource dataSource) {
         super(dataSource);
-        idPrefixLabelMap.put("CPD", "Compound");
-        idPrefixLabelMap.put("DR", DRUG_LABEL);
-        idPrefixLabelMap.put("ED", "EnvFactor");
-        idPrefixLabelMap.put("GN", "Genome");
-        idPrefixLabelMap.put("HSA", GENE_LABEL);
-        idPrefixLabelMap.put("KO", "Orthology");
-        idPrefixLabelMap.put("VG", "Virus");
-        idPrefixLabelMap.put("TAX", "Taxonomy");
-        idPrefixLabelMap.put("GL", "Glycan");
     }
 
     @Override
@@ -57,9 +48,13 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
         graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, "id", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(NETWORK_LABEL, "id", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(DRUG_GROUP_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(COMPOUND_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(ORGANISM_LABEL, "id", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(REFERENCE_LABEL, "pmid", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(REFERENCE_LABEL, "doi", IndexDescription.Type.UNIQUE));
         exportHumanGenesList(workspace, graph);
+        exportCompoundsList(workspace, graph);
+        exportOrganismsList(workspace, graph);
         exportDrugs(graph);
         exportVariants(graph);
         exportDiseases(graph);
@@ -69,15 +64,16 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
     }
 
     private void exportHumanGenesList(final Workspace workspace, final Graph graph) {
+        for (final String[] row : openTSV(workspace, KeggUpdater.HUMAN_GENES_LIST_FILE_NAME))
+            if (row != null && row.length == 2)
+                exportHumanGene(graph, row);
+    }
+
+    private Iterable<String[]> openTSV(final Workspace workspace, final String fileName) {
         try {
-            final MappingIterator<String[]> iterator = FileUtils.openTsv(workspace, dataSource,
-                                                                         KeggUpdater.HUMAN_GENES_LIST_FILE_NAME,
+            final MappingIterator<String[]> iterator = FileUtils.openTsv(workspace, dataSource, fileName,
                                                                          String[].class);
-            while (iterator.hasNext()) {
-                final String[] row = iterator.next();
-                if (row != null && row.length == 2)
-                    exportHumanGene(graph, row);
-            }
+            return () -> iterator;
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
@@ -92,6 +88,19 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
             graph.addNode(GENE_LABEL, "id", id, "name", symbolsAndName[1].trim(), "symbols", symbols);
         } else
             graph.addNode(GENE_LABEL, "id", id, "name", row[1].trim());
+    }
+
+    private void exportCompoundsList(Workspace workspace, Graph graph) {
+        for (final String[] row : openTSV(workspace, KeggUpdater.COMPOUNDS_LIST_FILE_NAME))
+            if (row != null && row.length == 2)
+                graph.addNode(COMPOUND_LABEL, "id", StringUtils.split(row[0], ":", 2)[1], "names",
+                              StringUtils.splitByWholeSeparator(row[1], "; "));
+    }
+
+    private void exportOrganismsList(Workspace workspace, Graph graph) {
+        for (final String[] row : openTSV(workspace, KeggUpdater.ORGANISMS_LIST_FILE_NAME))
+            if (row != null && row.length == 4)
+                graph.addNode(ORGANISM_LABEL, "id", row[0], "symbol", row[1], "name", row[2], "taxonomy", row[3]);
     }
 
     private void exportDrugs(final Graph graph) {
@@ -216,6 +225,8 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
             return graph.findNode(DRUG_GROUP_LABEL, "id", id);
         if (id.startsWith("D"))
             return graph.findNode(DRUG_LABEL, "id", id);
+        if (id.startsWith("C"))
+            return graph.findNode(COMPOUND_LABEL, "id", id);
         return null;
     }
 
@@ -226,7 +237,10 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
 
     private void exportVariant(final Graph graph, final Variant variant) {
         final NodeBuilder builder = getNodeBuilderForKeggEntry(graph, variant, VARIANT_LABEL);
-        // TODO
+        builder.withPropertyIfNotNull("organism", variant.organism);
+        // TODO: genes
+        // TODO: networks
+        // TODO: variations
         final Node node = builder.build();
         addAllReferencesForEntry(graph, variant, node);
     }
@@ -234,6 +248,9 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
     private void exportDiseases(final Graph graph) {
         for (final Disease disease : dataSource.diseases)
             exportDisease(graph, disease);
+        final Map<Long, Set<Long>> addedHierarchyRelationsCache = new HashMap<>();
+        for (final Disease disease : dataSource.diseases)
+            exportDiseaseHierarchy(graph, addedHierarchyRelationsCache, disease);
     }
 
     private void exportDisease(final Graph graph, final Disease disease) {
@@ -241,9 +258,69 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
         builder.withPropertyIfNotNull("description", disease.description);
         if (disease.categories.size() > 0)
             builder.withProperty("categories", disease.categories.toArray(new String[0]));
-        // TODO
+        if (disease.envFactors.size() > 0)
+            builder.withProperty("env_factors",
+                                 disease.envFactors.stream().map(Object::toString).toArray(String[]::new));
+        if (disease.carcinogens.size() > 0)
+            builder.withProperty("carcinogens",
+                                 disease.carcinogens.stream().map(Object::toString).toArray(String[]::new));
+        if (disease.pathogens.size() > 0)
+            builder.withProperty("pathogens", disease.pathogens.stream().map(Object::toString).toArray(String[]::new));
+        if (disease.pathogenModules.size() > 0)
+            builder.withProperty("pathogen_modules",
+                                 disease.pathogenModules.stream().map(Object::toString).toArray(String[]::new));
+        // TODO: networks
+        // TODO: drugs
+        // TODO: genes
         final Node node = builder.build();
         addAllReferencesForEntry(graph, disease, node);
+    }
+
+    private void exportDiseaseHierarchy(final Graph graph, final Map<Long, Set<Long>> addedHierarchyRelationsCache,
+                                        final Disease disease) {
+        final Node node = graph.findNode(DISEASE_LABEL, "id", disease.id);
+        if (!addedHierarchyRelationsCache.containsKey(node.getId()))
+            addedHierarchyRelationsCache.put(node.getId(), new HashSet<>());
+        for (final NameIdsPair group : disease.subGroups) {
+            if (group.ids.size() == 0) {
+                LOGGER.warn(
+                        "Failed to add disease hierarchy relation with parent " + disease.id + " and child " + group);
+                continue;
+            }
+            final String childId = StringUtils.split(group.ids.get(0), ":", 2)[1];
+            final Node child = graph.findNode(DISEASE_LABEL, "id", childId);
+            if (child == null) {
+                LOGGER.warn(
+                        "Failed to add disease hierarchy relation with parent " + disease.id + " and child " + group);
+                continue;
+            }
+            final Set<Long> childIds = addedHierarchyRelationsCache.get(node.getId());
+            if (!childIds.contains(child.getId())) {
+                graph.addEdge(node, child, "HAS_MEMBER");
+                childIds.add(child.getId());
+            }
+        }
+        for (final NameIdsPair group : disease.superGroups) {
+            if (group.ids.size() == 0) {
+                LOGGER.warn(
+                        "Failed to add disease hierarchy relation with parent " + group + " and child " + disease.id);
+                continue;
+            }
+            final String parentId = StringUtils.split(group.ids.get(0), ":", 2)[1];
+            final Node parent = graph.findNode(DISEASE_LABEL, "id", parentId);
+            if (parent == null) {
+                LOGGER.warn(
+                        "Failed to add disease hierarchy relation with parent " + group + " and child " + disease.id);
+                continue;
+            }
+            if (!addedHierarchyRelationsCache.containsKey(parent.getId()))
+                addedHierarchyRelationsCache.put(parent.getId(), new HashSet<>());
+            final Set<Long> childIds = addedHierarchyRelationsCache.get(parent.getId());
+            if (!childIds.contains(node.getId())) {
+                graph.addEdge(parent, node, "HAS_MEMBER");
+                childIds.add(node.getId());
+            }
+        }
     }
 
     private void exportNetworks(final Graph graph) {
@@ -253,7 +330,16 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
 
     private void exportNetwork(final Graph graph, final Network network) {
         final NodeBuilder builder = getNodeBuilderForKeggEntry(graph, network, NETWORK_LABEL);
-        // TODO
+        builder.withPropertyIfNotNull("type", network.type);
+        // TODO: definition
+        // TODO: expandedDefinition
+        // TODO: genes
+        // TODO: variants
+        // TODO: diseases
+        // TODO: members
+        // TODO: perturbants
+        // TODO: classes
+        // TODO: metabolites
         final Node node = builder.build();
         addAllReferencesForEntry(graph, network, node);
     }

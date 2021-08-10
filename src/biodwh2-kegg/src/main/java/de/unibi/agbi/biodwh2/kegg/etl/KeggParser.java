@@ -362,10 +362,10 @@ public class KeggParser extends Parser<KeggDataSource> {
                 entry.names.addAll(Arrays.asList(StringUtils.split(line.value, '\n')));
                 for (int j = i + 1; j < chunk.length; j++)
                     if (chunk[j].keyword.equals("  SUPERGRP")) {
-                        entry.superGroups.add(chunk[j].value);
+                        entry.superGroups.addAll(parseMultilineNameIdsPairs(chunk[j]));
                         i++;
                     } else if (chunk[j].keyword.equals("  SUBGROUP")) {
-                        entry.subGroups.add(chunk[j].value);
+                        entry.subGroups.addAll(parseMultilineNameIdsPairs(chunk[j]));
                         i++;
                     } else
                         break;
@@ -391,7 +391,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                     entry.pathogens.addAll(parseMultilineNameIdsPairs(line));
                 for (int j = i + 1; j < chunk.length; j++)
                     if (chunk[j].keyword.equals("  MODULE")) {
-                        entry.pathogenSignatureModules.addAll(parseMultilineIdNamePairs(chunk[j]));
+                        entry.pathogenModules.addAll(parseMultilineIdNamePairs(chunk[j]));
                         i++;
                     } else
                         break;
@@ -407,6 +407,9 @@ public class KeggParser extends Parser<KeggDataSource> {
                         i++;
                     } else
                         break;
+                break;
+            case "REL_PATHWAY":
+                entry.relPathways.addAll(parseMultilineIdNamePairs(line));
                 break;
             case "CATEGORY":
                 if (lineNotEmpty)

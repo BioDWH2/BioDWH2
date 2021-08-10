@@ -23,6 +23,10 @@ public class KeggMappingDescriber extends MappingDescriber {
             return describeGene(node);
         if (KeggGraphExporter.DISEASE_LABEL.equals(localMappingLabel))
             return describeDisease(node);
+        if (KeggGraphExporter.COMPOUND_LABEL.equals(localMappingLabel))
+            return describeCompound(node);
+        if (KeggGraphExporter.ORGANISM_LABEL.equals(localMappingLabel))
+            return describeOrganism(node);
         return null;
     }
 
@@ -89,9 +93,24 @@ public class KeggMappingDescriber extends MappingDescriber {
                     description.addIdentifier(IdentifierType.ICD10, idParts[1]);
                 else if ("ICD-11".equals(idParts[0]))
                     description.addIdentifier(IdentifierType.ICD11, idParts[1]);
-                else if ("OMIM".equals(idParts[0]))
-                    description.addIdentifier(IdentifierType.OMIM, idParts[1]);
+                // OMIM ids clump together a lot of KEGG diseases (for example H02463 has many different OMIM ids)
+                //else if ("OMIM".equals(idParts[0]))
+                //    description.addIdentifier(IdentifierType.OMIM, idParts[1]);
             }
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeCompound(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
+        description.addNames(node.<String>getProperty("names"));
+        description.addIdentifier(IdentifierType.KEGG, node.<String>getProperty("id"));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeOrganism(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.TAXON);
+        description.addNames(node.<String>getProperty("name"));
+        description.addIdentifier(IdentifierType.KEGG, node.<String>getProperty("id"));
         return new NodeMappingDescription[]{description};
     }
 
@@ -99,7 +118,7 @@ public class KeggMappingDescriber extends MappingDescriber {
     protected String[] getNodeMappingLabels() {
         return new String[]{
                 KeggGraphExporter.DRUG_LABEL, KeggGraphExporter.REFERENCE_LABEL, KeggGraphExporter.GENE_LABEL,
-                KeggGraphExporter.DISEASE_LABEL
+                KeggGraphExporter.DISEASE_LABEL, KeggGraphExporter.COMPOUND_LABEL, KeggGraphExporter.ORGANISM_LABEL
         };
     }
 

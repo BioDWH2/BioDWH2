@@ -9,6 +9,6 @@ public class NameIdsPair {
 
     @Override
     public String toString() {
-        return name + " [" + String.join("; ", ids) + "]";
+        return ids.size() == 0 ? name : name + " [" + String.join("; ", ids) + "]";
     }
 }

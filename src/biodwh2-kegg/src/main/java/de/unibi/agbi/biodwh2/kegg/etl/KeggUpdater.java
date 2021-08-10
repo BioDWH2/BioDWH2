@@ -20,6 +20,10 @@ public class KeggUpdater extends Updater<KeggDataSource> {
     private static final String FTP_BASE_PATH = "pub/kegg/medicus/";
     private static final String HUMAN_GENES_LIST_URL = "http://rest.kegg.jp/list/hsa";
     static final String HUMAN_GENES_LIST_FILE_NAME = "human_genes_list.tsv";
+    private static final String COMPOUNDS_LIST_URL = "http://rest.kegg.jp/list/compound";
+    static final String COMPOUNDS_LIST_FILE_NAME = "compounds_list.tsv";
+    private static final String ORGANISMS_LIST_URL = "http://rest.kegg.jp/list/organism";
+    static final String ORGANISMS_LIST_FILE_NAME = "organisms_list.tsv";
 
     public KeggUpdater(KeggDataSource dataSource) {
         super(dataSource);
@@ -65,6 +69,8 @@ public class KeggUpdater extends Updater<KeggDataSource> {
         success = success && updateFile(workspace, dataSource, ftpClient, "network/network");
         success = success && updateFile(workspace, dataSource, ftpClient, "network/variant");
         success = success && downloadAPIFile(workspace, HUMAN_GENES_LIST_URL, HUMAN_GENES_LIST_FILE_NAME);
+        success = success && downloadAPIFile(workspace, COMPOUNDS_LIST_URL, COMPOUNDS_LIST_FILE_NAME);
+        success = success && downloadAPIFile(workspace, ORGANISMS_LIST_URL, ORGANISMS_LIST_FILE_NAME);
         return success;
     }
 
