@@ -28,7 +28,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -61,9 +61,11 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
         uniiNode.setProperty("codes", getNameArrayOfTypeFromEntries(entries, "cd"));
         uniiNode.setProperty("brand_names", getNameArrayOfTypeFromEntries(entries, "bn"));
         graph.update(uniiNode);
-        if (dataEntry.itis != null || dataEntry.ncbi != null || dataEntry.plants != null) {
-            final Node speciesNode = getOrCreateTaxonomyNode(graph, dataEntry);
-            graph.addEdge(uniiNode, speciesNode, "PART_OF_SPECIES");
+        if (dataEntry != null) {
+            if (dataEntry.itis != null || dataEntry.ncbi != null || dataEntry.plants != null) {
+                final Node speciesNode = getOrCreateTaxonomyNode(graph, dataEntry);
+                graph.addEdge(uniiNode, speciesNode, "PART_OF_SPECIES");
+            }
         }
     }
 
