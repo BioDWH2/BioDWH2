@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 
 public final class ReDOTrialsDBUpdater extends Updater<ReDOTrialsDBDataSource> {
     private static final Pattern VERSION_PATTERN = Pattern.compile(
-            "Database build date:\\s+([0-9]{2}/[0-9]{2}/[0-9]{2})", Pattern.CASE_INSENSITIVE);
+            "<span id='Last_Import'>\\s*([0-9]{2}/[0-9]{2}/[0-9]{4})", Pattern.CASE_INSENSITIVE);
     static final String FILE_NAME = "ReDO_Trials_DB.txt";
     private static final String DOWNLOAD_URL = "https://acfdata.coworks.be/" + FILE_NAME;
 
