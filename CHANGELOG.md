@@ -1,5 +1,15 @@
 # Changelog
 
+## 📦 Version v0.3.9
+
+Released: Upcoming
+
+### 📚 Data Sources
+
+ * ```[ReDOTrialsDB]``` Fixed version detection
+ * ```[UNII]``` Fixed table columns
+ * ```[PharmGKB]``` Fixed removed StudyParameters column
+
 ## 📦 Version [v0.3.8](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.8)
 
 Released: 05.08.2021

@@ -38,9 +38,6 @@ public class StudyParameters {
     @Parsed(field = "Allele Of Frequency In Controls")
     @GraphProperty("allele_of_frequency_in_controls")
     public String alleleOfFrequencyInControls;
-    @Parsed(field = "P Value Operator")
-    @GraphProperty("p_value_operator")
-    public String pValueOperator;
     @Parsed(field = "P Value")
     @GraphProperty("p_value")
     public String pValue;
