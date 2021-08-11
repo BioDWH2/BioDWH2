@@ -16,6 +16,7 @@ public final class AnonymousFTPClient {
 
     public boolean connect(final String url) throws IOException {
         client = new FTPClient();
+        client.setConnectTimeout(10000);
         client.connect(url, 21);
         final boolean loginSuccess = client.login("anonymous", "anonymous");
         if (!loginSuccess) {

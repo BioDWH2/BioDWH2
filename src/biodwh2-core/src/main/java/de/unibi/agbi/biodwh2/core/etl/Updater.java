@@ -48,9 +48,12 @@ public abstract class Updater<D extends DataSource> {
                 LOGGER.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
             return UpdateState.ALREADY_UP_TO_DATE;
         }
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("New version of data source '" + dataSource.getId() + "' found (old: " +
-                        (workspaceVersion == null ? "none" : workspaceVersion) + ", new: " + newestVersion + ")");
+        if (LOGGER.isInfoEnabled()) {
+            final String versionInfo = versionNotAvailable() ? "" :
+                                       (" (old: " + (workspaceVersion == null ? "none" : workspaceVersion) + ", new: " +
+                                        newestVersion + ")");
+            LOGGER.info("New version of data source '" + dataSource.getId() + "' found" + versionInfo);
+        }
         if (tryUpdateFiles(workspace)) {
             updateDataSourceMetadata(workspace, newestVersion);
             return UpdateState.UPDATED;
@@ -66,9 +69,12 @@ public abstract class Updater<D extends DataSource> {
                 LOGGER.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
             return UpdateState.ALREADY_UP_TO_DATE;
         }
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("New version of data source '" + dataSource.getId() + "' found (old: " +
-                        (workspaceVersion == null ? "none" : workspaceVersion) + ", new: " + newestVersion + ")");
+        if (LOGGER.isInfoEnabled()) {
+            final String versionInfo = versionNotAvailable() ? "" :
+                                       (" (old: " + (workspaceVersion == null ? "none" : workspaceVersion) + ", new: " +
+                                        newestVersion + ")");
+            LOGGER.info("New version of data source '" + dataSource.getId() + "' found" + versionInfo);
+        }
         updateDataSourceMetadata(workspace, newestVersion);
         return UpdateState.UPDATED;
     }
