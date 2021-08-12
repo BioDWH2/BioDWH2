@@ -9,6 +9,7 @@ Released: Upcoming
  * ```[ReDOTrialsDB]``` Fixed version detection
  * ```[UNII]``` Fixed table columns
  * ```[PharmGKB]``` Fixed removed StudyParameters column
+ * ```[DrugCentral]``` Marked as usable
 
 ## 📦 Version [v0.3.8](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.8)
 
