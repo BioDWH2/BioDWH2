@@ -9,6 +9,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | ID            | Name | Website |
 | ------------- | ---- | ------- |
 | [CancerDrugsDB](sources/CancerDrugsDB/README.md) | A curated listing of licensed cancer drugs by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/cancerdrugs-db) |
+| [DrugCentral](sources/DrugCentral/README.md) | DrugCentral | [Link](http://drugcentral.org) |
 | [EMA](sources/EMA/README.md) | European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC] | [Link](https://www.ema.europa.eu/en/medicines/download-medicine-data) |
 | [HGNC](sources/HGNC/README.md) | HUGO Gene Nomenclature Committee | [Link](https://www.genenames.org) |
 | [HPO](sources/HPO/README.md) | Human Phenotype Ontology | [Link](https://hpo.jax.org) |
@@ -28,7 +29,6 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | [ABDAMED2](sources/ABDAMED2/README.md) | ABDATA ABDAMED Drug Database | [Link](https://abdata.de/datenangebot/abdamed/) |
 | [DGIdb](sources/DGIdb/README.md) | The Drug Gene Interaction Database | [Link](http://dgidb.org) |
 | [DrugBank](sources/DrugBank/README.md) | DrugBank | [Link](http://drugbank.ca) |
-| [DrugCentral](sources/DrugCentral/README.md) | DrugCentral | [Link](http://drugcentral.org) |
 | [GeneOntology](sources/GeneOntology/README.md) | Gene Ontology | [Link](http://geneontology.org) |
 | [GWASCatalog](sources/GWASCatalog/README.md) | GWAS Catalog | [Link](https://www.ebi.ac.uk/gwas/home) |
 | [ITIS](sources/ITIS/README.md) | Integrated Taxonomic Information System | [Link](https://www.itis.gov) |

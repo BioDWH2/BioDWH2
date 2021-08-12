@@ -19,6 +19,21 @@ import java.util.stream.Collectors;
 
 public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugCentralGraphExporter.class);
+    static final String DRUG_LABEL_LABEL = "DrugLabel";
+    static final String REFERENCE_LABEL = "Reference";
+    static final String ATTRIBUTE_TYPE_LABEL = "AttributeType";
+    public static final String FAERS_LABEL = "FAERS";
+    static final String INN_STEM_LABEL = "InnStem";
+    static final String ORANGE_BOOK_EXCLUSIVITY_LABEL = "OrangeBookExclusivity";
+    public static final String ORANGE_BOOK_PRODUCT_LABEL = "OrangeBookProduct";
+    static final String STRUCTURE_LABEL = "Structure";
+    static final String GO_TERM_LABEL = "GOTerm";
+    static final String TARGET_KEYWORD_LABEL = "TargetKeyword";
+    static final String ACTION_TYPE_LABEL = "ActionType";
+    public static final String PDB_LABEL = "PDB";
+    public static final String PARENT_DRUG_MOLECULE_LABEL = "ParentDrugMolecule";
+    public static final String OMOP_CONCEPT_LABEL = "OMOPConcept";
+    public static final String ACTIVE_INGREDIENT_LABEL = "ActiveIngredient";
 
     public DrugCentralGraphExporter(final DrugCentralDataSource dataSource) {
         super(dataSource);
@@ -35,17 +50,17 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         final boolean skipLINCSSignatures = "true".equalsIgnoreCase(properties.get("skipLINCSSignatures"));
         final boolean skipFAERSReports = "true".equalsIgnoreCase(properties.get("skipFAERSReports"));
         final boolean skipDrugLabelFullTexts = "true".equalsIgnoreCase(properties.get("skipDrugLabelFullTexts"));
-        g.addIndex(IndexDescription.forNode("DrugLabel", "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode("Reference", "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode("AttributeType", "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode("FAERS", "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode("InnStem", "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode("OrangeBookExclusivity", "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode("OrangeBookProduct", "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode("Structure", "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode("GOTerm", "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode("TargetKeyword", "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode("InnStem", "stem", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(DRUG_LABEL_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(REFERENCE_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(ATTRIBUTE_TYPE_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(FAERS_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(INN_STEM_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(ORANGE_BOOK_EXCLUSIVITY_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(ORANGE_BOOK_PRODUCT_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(STRUCTURE_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(GO_TERM_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(TARGET_KEYWORD_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(INN_STEM_LABEL, "stem", IndexDescription.Type.UNIQUE));
         // "ddi_risk.tsv", "approval_type.tsv", "target_class.tsv", "ref_type.tsv", "protein_type.tsv"
         // are ignored because no necessary additional info is included
         createNodesFromTsvFile(workspace, g, DataSource.class, "data_source.tsv");
@@ -186,7 +201,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
             final Node node = g.addNodeFromModel(property, "type_category", type.category, "type_name", type.name,
                                                  "type_units", type.units);
             g.addEdge(structureIdNodeIdMap.get(property.structId), node, "HAS_PROPERTY");
-            g.addEdge(node, g.findNode("Reference", "id", property.referenceId), "HAS_REFERENCE");
+            g.addEdge(node, g.findNode(REFERENCE_LABEL, "id", property.referenceId), "HAS_REFERENCE");
         }
     }
 
@@ -366,11 +381,11 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
             g.addEdge(node, targetIdNodeIdMap.get(bioactivity.targetId), "HAS_TARGET");
             g.addEdge(structureIdNodeIdMap.get(bioactivity.structId), node, "TARGETS");
             if (bioactivity.actionType != null)
-                g.addEdge(node, g.findNode("ActionType", "type", bioactivity.actionType), "OF_TYPE");
+                g.addEdge(node, g.findNode(ACTION_TYPE_LABEL, "type", bioactivity.actionType), "OF_TYPE");
             if (bioactivity.moaRefId != null)
-                g.addEdge(node, g.findNode("Reference", "id", bioactivity.moaRefId), "HAS_MOA_REFERENCE");
+                g.addEdge(node, g.findNode(REFERENCE_LABEL, "id", bioactivity.moaRefId), "HAS_MOA_REFERENCE");
             if (bioactivity.actRefId != null)
-                g.addEdge(node, g.findNode("Reference", "id", bioactivity.actRefId), "HAS_REFERENCE");
+                g.addEdge(node, g.findNode(REFERENCE_LABEL, "id", bioactivity.actRefId), "HAS_REFERENCE");
         }
     }
 

@@ -13,19 +13,19 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if ("Reference".equalsIgnoreCase(localMappingLabel))
+        if (DrugCentralGraphExporter.REFERENCE_LABEL.equalsIgnoreCase(localMappingLabel))
             return describeReference(node);
-        if ("ParentDrugMolecule".equalsIgnoreCase(localMappingLabel))
+        if (DrugCentralGraphExporter.PARENT_DRUG_MOLECULE_LABEL.equalsIgnoreCase(localMappingLabel))
             return describeParentDrugMolecule(node);
-        if ("Structure".equalsIgnoreCase(localMappingLabel))
+        if (DrugCentralGraphExporter.STRUCTURE_LABEL.equalsIgnoreCase(localMappingLabel))
             return describeStructure(graph, node);
-        if ("ActiveIngredient".equalsIgnoreCase(localMappingLabel))
-            return describeActiveIngredient(graph, node);
-        if ("OMOPConcept".equalsIgnoreCase(localMappingLabel))
+        if (DrugCentralGraphExporter.ACTIVE_INGREDIENT_LABEL.equalsIgnoreCase(localMappingLabel))
+            return describeActiveIngredient(node);
+        if (DrugCentralGraphExporter.OMOP_CONCEPT_LABEL.equalsIgnoreCase(localMappingLabel))
             return describeOMOPConcept(node);
-        if ("DrugLabel".equalsIgnoreCase(localMappingLabel))
+        if (DrugCentralGraphExporter.DRUG_LABEL_LABEL.equalsIgnoreCase(localMappingLabel))
             return describeDrugLabel(node);
-        if ("PDB".equalsIgnoreCase(localMappingLabel))
+        if (DrugCentralGraphExporter.PDB_LABEL.equalsIgnoreCase(localMappingLabel))
             return describeProtein(node);
         return null;
     }
@@ -88,7 +88,7 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
         return new NodeMappingDescription[]{compoundDescription, drugDescription};
     }
 
-    private NodeMappingDescription[] describeActiveIngredient(final Graph graph, final Node node) {
+    private NodeMappingDescription[] describeActiveIngredient(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
         description.addName(node.getProperty("substance_name"));
         description.addIdentifier(IdentifierType.UNII, node.<String>getProperty("substance_unii"));
@@ -154,7 +154,10 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
     @Override
     protected String[] getNodeMappingLabels() {
         return new String[]{
-                "Reference", "ParentDrugMolecule", "Structure", "ActiveIngredient", "OMOPConcept", "DrugLabel", "PDB"
+                DrugCentralGraphExporter.REFERENCE_LABEL, DrugCentralGraphExporter.PARENT_DRUG_MOLECULE_LABEL,
+                DrugCentralGraphExporter.STRUCTURE_LABEL, DrugCentralGraphExporter.ACTIVE_INGREDIENT_LABEL,
+                DrugCentralGraphExporter.OMOP_CONCEPT_LABEL, DrugCentralGraphExporter.DRUG_LABEL_LABEL,
+                DrugCentralGraphExporter.PDB_LABEL
         };
     }
 

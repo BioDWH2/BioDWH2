@@ -4,13 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.drugcentral.etl.DrugCentralGraphExporter;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({
         "id", "struct_id", "concept_id", "relationship_name", "concept_name", "umls_cui", "snomed_full_name",
         "cui_semantic_type", "snomed_conceptid"
 })
-@GraphNodeLabel("OMOPConcept")
+@GraphNodeLabel(DrugCentralGraphExporter.OMOP_CONCEPT_LABEL)
 public final class OmopRelationship {
     @JsonProperty("id")
     public String id;

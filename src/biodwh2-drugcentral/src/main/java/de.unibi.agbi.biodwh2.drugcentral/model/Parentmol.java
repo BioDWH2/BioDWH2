@@ -4,12 +4,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.drugcentral.etl.DrugCentralGraphExporter;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({
         "cd_id", "name", "cas_reg_no", "inchi", "nostereo_inchi", "molfile", "molimg", "smiles", "inchikey"
 })
-@GraphNodeLabel("ParentDrugMolecule")
+@GraphNodeLabel(DrugCentralGraphExporter.PARENT_DRUG_MOLECULE_LABEL)
 public final class Parentmol {
     @JsonProperty("cd_id")
     @GraphProperty("cd_id")
