@@ -11,6 +11,10 @@ Released: Upcoming
  * ```[PharmGKB]``` Fixed removed StudyParameters column
  * ```[DrugCentral]``` Marked as usable
 
+### 🔧 Bug fixes and other changes
+
+ * ```[feature]``` Add --version command line option to print the current BioDWH2 version and check for updates
+
 ## 📦 Version [v0.3.8](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.8)
 
 Released: 05.08.2021

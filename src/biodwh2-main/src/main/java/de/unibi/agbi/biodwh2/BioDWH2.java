@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DataSourceLoader;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.io.ResourceUtils;
 import de.unibi.agbi.biodwh2.core.net.BioDWH2Updater;
 import de.unibi.agbi.biodwh2.core.text.TableFormatter;
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +49,8 @@ public final class BioDWH2 {
             checkWorkspaceState(commandLine);
         else if (commandLine.update != null)
             updateWorkspace(commandLine.update, commandLine.skipUpdate);
+        else if (commandLine.version)
+            printVersion();
         else
             printHelp(commandLine);
     }
@@ -129,6 +132,10 @@ public final class BioDWH2 {
         final String version = updateParameters.size() > 2 ? updateParameters.get(2) : null;
         final Workspace workspace = new Workspace(workspacePath);
         workspace.processDataSources(dataSourceId, version, skipUpdate);
+    }
+
+    private void printVersion() {
+        LOGGER.info("Version " + ResourceUtils.getManifestBioDWH2Version());
     }
 
     private void printHelp(final CmdArgs commandLine) {
