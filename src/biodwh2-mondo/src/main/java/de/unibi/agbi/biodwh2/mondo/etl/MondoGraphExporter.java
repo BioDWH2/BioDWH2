@@ -15,6 +15,6 @@ public class MondoGraphExporter extends OntologyGraphExporter<MondoDataSource> {
 
     @Override
     protected String getOntologyFileName() {
-        return "mondo.obo";
+        return MondoUpdater.FILE_NAME;
     }
 }

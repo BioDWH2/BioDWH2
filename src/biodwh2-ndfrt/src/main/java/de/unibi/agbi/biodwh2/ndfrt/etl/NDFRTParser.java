@@ -20,11 +20,10 @@ public class NDFRTParser extends Parser<NDFRTDataSource> {
 
     @Override
     public boolean parse(final Workspace workspace) throws ParserException {
-        final String sourceFileName = dataSource.getMetadata().sourceFileNames.get(0);
-        final String filePath = dataSource.resolveSourceFilePath(workspace, sourceFileName);
+        final String filePath = dataSource.resolveSourceFilePath(workspace, NDFRTUpdater.FILE_NAME);
         final File coreZipFile = new File(filePath);
         if (!coreZipFile.exists())
-            throw new ParserFileNotFoundException(sourceFileName);
+            throw new ParserFileNotFoundException(NDFRTUpdater.FILE_NAME);
         final ZipInputStream zipInputStream = openZipInputStream(coreZipFile);
         try {
             ZipEntry zipEntry;
@@ -35,7 +34,7 @@ public class NDFRTParser extends Parser<NDFRTDataSource> {
                 }
             }
         } catch (IOException e) {
-            throw new ParserFormatException("Failed to parse the file '" + sourceFileName + "'", e);
+            throw new ParserFormatException("Failed to parse the file '" + NDFRTUpdater.FILE_NAME + "'", e);
         }
         return false;
     }

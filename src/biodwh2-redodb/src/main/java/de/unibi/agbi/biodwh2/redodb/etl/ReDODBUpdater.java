@@ -48,4 +48,9 @@ public final class ReDODBUpdater extends Updater<ReDODBDataSource> {
         }
         return true;
     }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{FILE_NAME};
+    }
 }

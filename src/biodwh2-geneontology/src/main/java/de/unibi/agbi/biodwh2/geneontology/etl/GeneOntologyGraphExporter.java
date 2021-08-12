@@ -31,7 +31,7 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
 
     @Override
     protected String getOntologyFileName() {
-        return "go.obo";
+        return GeneOntologyUpdater.OBO_FILE_NAME;
     }
 
     @Override

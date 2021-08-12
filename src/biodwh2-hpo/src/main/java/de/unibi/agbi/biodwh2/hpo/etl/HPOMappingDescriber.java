@@ -15,9 +15,9 @@ public final class HPOMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if ("Gene".equals(localMappingLabel))
+        if (HPOGraphExporter.GENE_LABEL.equals(localMappingLabel))
             return describeGene(node);
-        if ("Disease".equals(localMappingLabel))
+        if (HPOGraphExporter.DISEASE_LABEL.equals(localMappingLabel))
             return describeDisease(node);
         return null;
     }
@@ -51,7 +51,7 @@ public final class HPOMappingDescriber extends MappingDescriber {
     @Override
     protected String[] getNodeMappingLabels() {
         return new String[]{
-                "Gene", "Disease"
+                HPOGraphExporter.GENE_LABEL, HPOGraphExporter.DISEASE_LABEL
         };
     }
 

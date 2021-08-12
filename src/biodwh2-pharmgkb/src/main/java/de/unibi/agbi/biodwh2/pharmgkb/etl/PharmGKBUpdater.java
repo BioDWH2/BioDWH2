@@ -70,4 +70,9 @@ public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
         }
         return true;
     }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return FILE_NAMES;
+    }
 }

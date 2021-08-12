@@ -102,7 +102,7 @@ public class KeggMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeCompound(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
-        description.addNames(node.<String>getProperty("names"));
+        description.addNames(node.<String[]>getProperty("names"));
         description.addIdentifier(IdentifierType.KEGG, node.<String>getProperty("id"));
         return new NodeMappingDescription[]{description};
     }

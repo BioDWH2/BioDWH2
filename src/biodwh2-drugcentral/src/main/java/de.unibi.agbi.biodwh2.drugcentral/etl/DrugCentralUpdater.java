@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
+    private static final String SQL_DUMP_FILE_PATH = "rawDrugCentral.sql.gz";
     private static final String DOWNLOAD_PAGE_URL = "https://drugcentral.org/ActiveDownload";
     private static final Pattern DOWNLOAD_URL_PATTERN = Pattern.compile(
             "href=\"(https?://[a-zA-Z.\\-/]+drugcentral-pgdump_[0-9]{8}\\.sql\\.gz)\"");
@@ -54,7 +55,7 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        final String dumpFilePath = dataSource.resolveSourceFilePath(workspace, "rawDrugCentral.sql.gz");
+        final String dumpFilePath = dataSource.resolveSourceFilePath(workspace, SQL_DUMP_FILE_PATH);
         downloadDrugCentralDatabase(dumpFilePath);
         removeOldExtractedTsvFiles(workspace);
         extractTsvFilesFromDatabaseDump(workspace, dumpFilePath);
@@ -117,5 +118,10 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
         final String columnNames = StringUtils.join(line.split("\\(")[1].split("\\)")[0].split(", "), '\t');
         writer.println(columnNames);
         return writer;
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{SQL_DUMP_FILE_PATH};
     }
 }

@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class CancerDrugsDBParser extends SingleFileCsvParser<CancerDrugsDBDataSource, Entry> {
     public CancerDrugsDBParser(final CancerDrugsDBDataSource dataSource) {
-        super(dataSource, Entry.class, true, CsvType.TSV, "cancerdrugsdb.txt");
+        super(dataSource, Entry.class, true, CsvType.TSV, CancerDrugsDBUpdater.FILE_NAME);
     }
 
     @Override

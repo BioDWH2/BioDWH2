@@ -53,4 +53,9 @@ public final class GWASCatalogUpdater extends Updater<GWASCatalogDataSource> {
         }
         return true;
     }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{ASSOCIATIONS_FILE_NAME, STUDIES_FILE_NAME, ANCESTRY_FILE_NAME};
+    }
 }

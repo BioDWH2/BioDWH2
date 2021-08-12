@@ -55,4 +55,12 @@ public class SiderUpdater extends MultiFileFTPUpdater<SiderDataSource> {
     protected String[] getTargetFileNames() {
         return new String[]{FREQUENCIES_FILE_NAME, INDICATIONS_FILE_NAME, SIDE_EFFECTS_FILE_NAME};
     }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{
+                DRUG_NAMES_FILE_NAME, DRUG_ATC_FILE_NAME, INDICATIONS_FILE_NAME, SIDE_EFFECTS_FILE_NAME,
+                FREQUENCIES_FILE_NAME
+        };
+    }
 }

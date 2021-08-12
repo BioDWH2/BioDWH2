@@ -6,14 +6,15 @@ Released: Upcoming
 
 ### 📚 Data Sources
 
- * ```[ReDOTrialsDB]``` Fixed version detection
- * ```[UNII]``` Fixed table columns
- * ```[PharmGKB]``` Fixed removed StudyParameters column
- * ```[DrugCentral]``` Marked as usable
+ * ```[ReDOTrialsDB]``` #42 Fixed version detection
+ * ```[UNII]``` #29 Fixed table columns
+ * ```[PharmGKB]``` #8 Fixed removed StudyParameters column
+ * ```[DrugCentral]``` #18 Marked as usable
 
 ### 🔧 Bug fixes and other changes
 
  * ```[feature]``` Add --version command line option to print the current BioDWH2 version and check for updates
+ * ```[feature]``` #33 Updater checks existence of expected files if version is up to date
 
 ## 📦 Version [v0.3.8](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.8)
 

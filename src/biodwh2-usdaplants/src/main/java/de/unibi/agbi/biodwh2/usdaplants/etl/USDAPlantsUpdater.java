@@ -40,4 +40,9 @@ public class USDAPlantsUpdater extends Updater<USDAPlantsDataSource> {
             throw new UpdaterConnectionException(e);
         }
     }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{PLANT_LIST_FILE_NAME};
+    }
 }

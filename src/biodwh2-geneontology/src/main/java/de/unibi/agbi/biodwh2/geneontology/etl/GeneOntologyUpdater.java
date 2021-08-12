@@ -11,6 +11,7 @@ import de.unibi.agbi.biodwh2.geneontology.GeneOntologyDataSource;
 import java.io.IOException;
 
 public class GeneOntologyUpdater extends OBOOntologyUpdater<GeneOntologyDataSource> {
+    static final String OBO_FILE_NAME = "go.obo";
     private static final String ANNOTATION_URL_PREFIX = "http://current.geneontology.org/annotations/";
     static final String GOA_HUMAN_FILE_NAME = "goa_human.gaf.gz";
     static final String GOA_HUMAN_COMPLEX_FILE_NAME = "goa_human_complex.gaf.gz";
@@ -45,7 +46,7 @@ public class GeneOntologyUpdater extends OBOOntologyUpdater<GeneOntologyDataSour
 
     @Override
     protected String getDownloadUrl() {
-        return "http://current.geneontology.org/ontology/go.obo";
+        return "http://current.geneontology.org/ontology/" + OBO_FILE_NAME;
     }
 
     @Override
@@ -57,6 +58,14 @@ public class GeneOntologyUpdater extends OBOOntologyUpdater<GeneOntologyDataSour
 
     @Override
     protected String getTargetFileName() {
-        return "go.obo";
+        return OBO_FILE_NAME;
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{
+                OBO_FILE_NAME, GOA_HUMAN_FILE_NAME, GOA_HUMAN_COMPLEX_FILE_NAME, GOA_HUMAN_ISOFORM_FILE_NAME,
+                GOA_HUMAN_RNA_FILE_NAME
+        };
     }
 }

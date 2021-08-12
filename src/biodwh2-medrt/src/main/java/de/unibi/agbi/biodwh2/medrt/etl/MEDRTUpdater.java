@@ -4,6 +4,8 @@ import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPWebUpdater;
 import de.unibi.agbi.biodwh2.medrt.MEDRTDataSource;
 
 public class MEDRTUpdater extends MultiFileFTPWebUpdater<MEDRTDataSource> {
+    static final String FILE_NAME = "Core_MEDRT_XML.zip";
+
     public MEDRTUpdater(MEDRTDataSource dataSource) {
         super(dataSource);
     }
@@ -15,6 +17,11 @@ public class MEDRTUpdater extends MultiFileFTPWebUpdater<MEDRTDataSource> {
 
     @Override
     protected String[] getFilePaths() {
-        return new String[]{"Core_MEDRT_XML.zip"};
+        return new String[]{FILE_NAME};
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{FILE_NAME};
     }
 }

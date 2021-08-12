@@ -48,11 +48,11 @@ public class KeggParser extends Parser<KeggDataSource> {
 
     @Override
     public boolean parse(final Workspace workspace) throws ParserException {
-        dataSource.variants = parseKeggFile(workspace, dataSource, Variant.class, "variant");
-        dataSource.drugGroups = parseKeggFile(workspace, dataSource, DrugGroup.class, "dgroup");
-        dataSource.drugs = parseKeggFile(workspace, dataSource, Drug.class, "drug");
-        dataSource.diseases = parseKeggFile(workspace, dataSource, Disease.class, "disease");
-        dataSource.networks = parseKeggFile(workspace, dataSource, Network.class, "network");
+        dataSource.variants = parseKeggFile(workspace, dataSource, Variant.class, KeggUpdater.VARIANT_FILE_NAME);
+        dataSource.drugGroups = parseKeggFile(workspace, dataSource, DrugGroup.class, KeggUpdater.DGROUP_FILE_NAME);
+        dataSource.drugs = parseKeggFile(workspace, dataSource, Drug.class, KeggUpdater.DRUG_FILE_NAME);
+        dataSource.diseases = parseKeggFile(workspace, dataSource, Disease.class, KeggUpdater.DISEASE_FILE_NAME);
+        dataSource.networks = parseKeggFile(workspace, dataSource, Network.class, KeggUpdater.NETWORK_FILE_NAME);
         return true;
     }
 

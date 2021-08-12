@@ -21,4 +21,9 @@ public class PathwayCommonsUpdater extends MultiFileFTPWebUpdater<PathwayCommons
                 "PathwayCommons12.All.hgnc.gmt.gz", "PathwayCommons12.All.BIOPAX.owl.gz"
         };
     }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return getFilePaths();
+    }
 }

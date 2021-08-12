@@ -20,10 +20,10 @@ public class MEDRTParser extends Parser<MEDRTDataSource> {
 
     @Override
     public boolean parse(final Workspace workspace) throws ParserException {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, "Core_MEDRT_XML.zip");
+        final String filePath = dataSource.resolveSourceFilePath(workspace, MEDRTUpdater.FILE_NAME);
         final File coreZipFile = new File(filePath);
         if (!coreZipFile.exists())
-            throw new ParserFileNotFoundException("Core_MEDRT_XML.zip");
+            throw new ParserFileNotFoundException(MEDRTUpdater.FILE_NAME);
         final ZipInputStream zipInputStream = openZipInputStream(coreZipFile);
         try {
             ZipEntry zipEntry;
@@ -34,7 +34,7 @@ public class MEDRTParser extends Parser<MEDRTDataSource> {
                 }
             }
         } catch (IOException e) {
-            throw new ParserFormatException("Failed to parse the file 'Core_MEDRT_XML.zip'", e);
+            throw new ParserFormatException("Failed to parse the file '" + MEDRTUpdater.FILE_NAME + "'", e);
         }
         return false;
     }

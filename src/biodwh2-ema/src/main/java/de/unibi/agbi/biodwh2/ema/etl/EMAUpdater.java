@@ -15,10 +15,12 @@ import java.util.Calendar;
  * https://www.ema.europa.eu/en/medicines/download-medicine-data
  */
 public class EMAUpdater extends Updater<EMADataSource> {
-    private static final String EPAR_TABLE_URL = "https://www.ema.europa.eu/sites/default/files/Medicines_output_european_public_assessment_reports.xlsx";
     static final String EPAR_TABLE_FILE_NAME = "Medicines_output_european_public_assessment_reports.xlsx";
-    private static final String HMPC_TABLE_URL = "https://www.ema.europa.eu/sites/default/files/Medicines_output_herbal_medicines.xlsx";
     static final String HMPC_TABLE_FILE_NAME = "Medicines_output_herbal_medicines.xlsx";
+    private static final String EPAR_TABLE_URL =
+            "https://www.ema.europa.eu/sites/default/files/" + EPAR_TABLE_FILE_NAME;
+    private static final String HMPC_TABLE_URL =
+            "https://www.ema.europa.eu/sites/default/files/" + HMPC_TABLE_FILE_NAME;
 
     public EMAUpdater(final EMADataSource dataSource) {
         super(dataSource);
@@ -44,5 +46,10 @@ public class EMAUpdater extends Updater<EMADataSource> {
             throw new UpdaterConnectionException(e);
         }
         return true;
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{EPAR_TABLE_FILE_NAME, HMPC_TABLE_FILE_NAME};
     }
 }

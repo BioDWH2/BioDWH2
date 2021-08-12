@@ -24,7 +24,7 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     static final String STRUCTURES_SDF_FILE_NAME = "drugbank_all_structures.sdf.zip";
     static final String METABOLITE_STRUCTURES_SDF_FILE_NAME = "drugbank_all_metabolite-structures.sdf.zip";
 
-    public DrugBankUpdater(DrugBankDataSource dataSource) {
+    public DrugBankUpdater(final DrugBankDataSource dataSource) {
         super(dataSource);
     }
 
@@ -45,7 +45,7 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
         return parseJsonSource(source);
     }
 
-    private JsonNode parseJsonSource(String source) throws UpdaterMalformedVersionException {
+    private JsonNode parseJsonSource(final String source) throws UpdaterMalformedVersionException {
         final ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.readTree(source);
@@ -54,14 +54,14 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
         }
     }
 
-    private String getFirstReleaseVersion(JsonNode json) throws UpdaterMalformedVersionException {
+    private String getFirstReleaseVersion(final JsonNode json) throws UpdaterMalformedVersionException {
         final JsonNode firstRelease = json.get(0);
         if (firstRelease == null)
             throw new UpdaterMalformedVersionException(json.toString());
         return firstRelease.get("version").asText();
     }
 
-    private Version parseVersion(String version) throws UpdaterMalformedVersionException {
+    private Version parseVersion(final String version) throws UpdaterMalformedVersionException {
         try {
             return Version.parse(version);
         } catch (NullPointerException | NumberFormatException e) {
@@ -70,7 +70,7 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
+    protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         final Map<String, String> drugBankProperties = dataSource.getProperties(workspace);
         final String username = drugBankProperties.getOrDefault("username", null);
         final String password = drugBankProperties.getOrDefault("password", null);
@@ -94,5 +94,10 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
             }
         }
         throw new UpdaterOnlyManuallyException();
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{FULL_DATABASE_FILE_NAME, STRUCTURES_SDF_FILE_NAME, METABOLITE_STRUCTURES_SDF_FILE_NAME};
     }
 }

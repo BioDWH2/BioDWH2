@@ -19,4 +19,9 @@ public class UniProtUpdater extends MultiFileFTPWebUpdater<UniProtDataSource> {
     protected String[] getFilePaths() {
         return new String[]{HUMAN_SPROT_FILE_NAME};
     }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{HUMAN_SPROT_FILE_NAME};
+    }
 }
