@@ -54,7 +54,7 @@ public class PathwayCommonsGraphExporter extends GraphExporter<PathwayCommonsDat
     private void exportPathwayGeneSets(final Workspace workspace, final Graph graph) {
         try {
             final GMTReader reader = new GMTReader(
-                    FileUtils.openGzip(workspace, dataSource, "PathwayCommons12.All.hgnc.gmt.gz"),
+                    FileUtils.openGzip(workspace, dataSource, PathwayCommonsUpdater.ALL_HGNC_GMT_FILE_PATH),
                     StandardCharsets.UTF_8);
             for (final GeneSet set : reader) {
                 final Node node = getOrCreatePathway(graph, set);
@@ -112,7 +112,7 @@ public class PathwayCommonsGraphExporter extends GraphExporter<PathwayCommonsDat
     private void exportPathwayProteinSets(final Workspace workspace, final Graph graph) {
         try {
             final GMTReader reader = new GMTReader(
-                    FileUtils.openGzip(workspace, dataSource, "PathwayCommons12.All.uniprot.gmt.gz"),
+                    FileUtils.openGzip(workspace, dataSource, PathwayCommonsUpdater.ALL_UNIPROT_GMT_FILE_PATH),
                     StandardCharsets.UTF_8);
             for (final GeneSet set : reader) {
                 final Node node = getOrCreatePathway(graph, set);
@@ -136,7 +136,7 @@ public class PathwayCommonsGraphExporter extends GraphExporter<PathwayCommonsDat
     private void exportInteractions(final Workspace workspace, final Graph graph) {
         try {
             final MappingIterator<InteractionEntry> entries = FileUtils.openGzipTsvWithHeader(workspace, dataSource,
-                                                                                              "PathwayCommons12.All.hgnc.txt.gz",
+                                                                                              PathwayCommonsUpdater.ALL_HGNC_TXT_FILE_PATH,
                                                                                               InteractionEntry.class);
             while (entries.hasNext()) {
                 final InteractionEntry entry = entries.next();
@@ -156,8 +156,7 @@ public class PathwayCommonsGraphExporter extends GraphExporter<PathwayCommonsDat
                     builder.withPropertyIfNotNull("pubmed_ids", pmids);
                     builder.withPropertyIfNotNull("mediator_names", mediatorNames);
                     builder.build();
-                }
-                else {
+                } else {
                     // TODO: handle missing nodes
                 }
             }
