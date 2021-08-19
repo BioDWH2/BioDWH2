@@ -27,24 +27,21 @@ public class Gen2PhenotypeMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describePhenotype(Node node) {
         NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
-        if (node.hasProperty("hpo_id"))
-            description.addIdentifier("HPO_ID", (String) node.getProperty("hpo_id"));
+        description.addIdentifier("HPO_ID", (String) node.getProperty("hpo_id"));
 
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describePublication(Node node) {
         NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PUBLICATION);
-        if (node.hasProperty("pubmed_id"))
-            description.addIdentifier(IdentifierType.PUBMED_ID, (String) node.getProperty("pubmed_id"));
+        description.addIdentifier(IdentifierType.PUBMED_ID, (String) node.getProperty("pubmed_id"));
 
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describeDisease(Node node) {
         NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
-        if (node.hasProperty("disease_name"))
-            description.addName(node.getProperty("disease_name"));
+        description.addName(node.getProperty("disease_name"));
         if (node.hasProperty("mim"))
             description.addIdentifier(IdentifierType.OMIM, (String) node.getProperty("mim"));
 
@@ -53,10 +50,9 @@ public class Gen2PhenotypeMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeGene(Node node) {
         NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        description.addIdentifier(IdentifierType.HGNC_SYMBOL, (String) node.getProperty("hgnc_symbol"));
         if (node.hasProperty("hgnc_id"))
             description.addIdentifier(IdentifierType.HGNC_ID, (Integer) node.getProperty("hgnc_id"));
-        if (node.hasProperty("hgnc_symbol"))
-            description.addIdentifier(IdentifierType.HGNC_SYMBOL, (String) node.getProperty("hgnc_symbol"));
         if (node.hasProperty("mim"))
             description.addIdentifier(IdentifierType.OMIM, (String) node.getProperty("mim"));
         if (node.hasProperty("previous_symbols")){

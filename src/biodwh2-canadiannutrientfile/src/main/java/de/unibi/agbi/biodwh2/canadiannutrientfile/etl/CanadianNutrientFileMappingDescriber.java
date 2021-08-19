@@ -11,7 +11,83 @@ public class CanadianNutrientFileMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(Graph graph, Node node, String localMappingLabel) {
-        return new NodeMappingDescription[0];
+        if ("Food".equalsIgnoreCase(localMappingLabel))
+            return describeFood(node);
+        if ("FoodGroup".equalsIgnoreCase(localMappingLabel))
+            return describeFoodGroup(node);
+        if ("Yield".equalsIgnoreCase(localMappingLabel))
+            return describeYield(node);
+        if ("Refuse".equalsIgnoreCase(localMappingLabel))
+            return describeRefuse(node);
+        if ("Measure".equalsIgnoreCase(localMappingLabel))
+            return describeMeasure(node);
+        if ("Nutrient".equalsIgnoreCase(localMappingLabel))
+            return describeNutrient(node);
+        return null;
+    }
+
+    private NodeMappingDescription[] describeNutrient(Node node) {
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
+        if (node.<String>getProperty("name").length() == 0 &&
+            node.<String>getProperty("name_france").length() == 0){
+            return null;
+        }
+        description.addName(node.getProperty("name"));
+        description.addName(node.getProperty("name_france"));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeMeasure(Node node) {
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
+        if (node.<String>getProperty("name").length() == 0 &&
+            node.<String>getProperty("name_france").length() == 0){
+            return null;
+        }
+        description.addName(node.getProperty("name"));
+        description.addName(node.getProperty("name_france"));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeRefuse(Node node) {
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
+        if (node.<String>getProperty("name").length() == 0 &&
+            node.<String>getProperty("name_france").length() == 0){
+            return null;
+        }
+        description.addName(node.getProperty("name"));
+        description.addName(node.getProperty("name_france"));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeYield(Node node) {
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
+        if (node.<String>getProperty("name").length() == 0 &&
+            node.<String>getProperty("name_france").length() == 0){
+            return null;
+        }
+        description.addName(node.getProperty("name"));
+        description.addName(node.getProperty("name_france"));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeFoodGroup(Node node) {
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
+        if (node.<String>getProperty("name").length() == 0 &&
+            node.<String>getProperty("name_france").length() == 0){
+            return null;
+        }
+        description.addName(node.getProperty("name"));
+        description.addName(node.getProperty("name_france"));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeFood(Node node) {
+        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
+        if (node.<String>getProperty("scientific_name").length() != 0){
+            description.addName(node.getProperty("scientific_name"));
+            return new NodeMappingDescription[]{description};
+        }
+        return null;
     }
 
     @Override
@@ -21,7 +97,7 @@ public class CanadianNutrientFileMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[0];
+        return new String[]{"Food", "FoodGroup", "Yield", "Refuse", "Measure", "Nutrient"};
     }
 
     @Override
