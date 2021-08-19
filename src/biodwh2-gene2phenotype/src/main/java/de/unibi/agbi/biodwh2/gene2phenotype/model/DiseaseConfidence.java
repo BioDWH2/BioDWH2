@@ -5,5 +5,8 @@ public enum DiseaseConfidence {
     CONFIRMED,
     POSSIBLE,
     PROBABLE,
-    CHILD_IF
+    CHILD_IF,
+    DEFINITIVE,
+    STRONG,
+    LIMITED
 }

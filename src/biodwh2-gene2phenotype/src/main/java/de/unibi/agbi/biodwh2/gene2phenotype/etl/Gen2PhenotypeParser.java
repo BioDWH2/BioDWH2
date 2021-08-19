@@ -89,6 +89,15 @@ public class Gen2PhenotypeParser extends Parser<Gen2PhenotypeDataSource> {
                 case "child IF":
                     dc = DiseaseConfidence.CHILD_IF;
                     break;
+                case "definitive":
+                    dc = DiseaseConfidence.DEFINITIVE;
+                    break;
+                case "limited":
+                    dc = DiseaseConfidence.LIMITED;
+                    break;
+                case "strong":
+                    dc = DiseaseConfidence.STRONG;
+                    break;
                 default:
                     LOGGER.warn(String.format("%s, %s error while parsing confidence", splitted[0], splitted[2]));
                     dc = null;
