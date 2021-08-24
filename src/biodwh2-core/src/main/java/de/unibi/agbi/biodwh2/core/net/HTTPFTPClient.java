@@ -1,11 +1,16 @@
 package de.unibi.agbi.biodwh2.core.net;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +26,7 @@ public final class HTTPFTPClient {
         public String size;
     }
 
-    private static final String PRE_TABLE_ENTRY_REGEX = "<a\\s+href=\"[a-zA-Z0-9-_.]+\">([a-zA-Z0-9-_.]+)</a>\\s+([0-9]{4}-[0-9]{2}-[0-9]{2}\\s+[0-9]{2}:[0-9]{2})\\s+([0-9.]+[KMG]?)";
+    private static final String PRE_TABLE_ENTRY_REGEX = "<a\\s+href=\"([a-zA-Z0-9-_.:/]+)\">([a-zA-Z0-9-_.&;]+)</a>\\s+(([0-9]{4}-[0-9]{2}-[0-9]{2}|[0-9]{2}-[A-Z][a-z]+-[0-9]{4})\\s+[0-9]{2}:[0-9]{2})\\s+([0-9.]+[KMG]?)";
 
     private final String url;
     private final Map<String, Entry[]> entryCache;
@@ -78,10 +83,19 @@ public final class HTTPFTPClient {
         final Matcher matcher = entryPattern.matcher(pre.html());
         while (matcher.find()) {
             final Entry entry = new Entry();
-            entry.name = matcher.group(1).trim();
-            entry.modificationDate = matcher.group(2);
-            entry.size = matcher.group(3);
-            entry.fullUrl = (url + "/" + path + "/" + entry.name).replace("//", "/");
+            final String filePath = matcher.group(1).trim();
+            try {
+                entry.name = FilenameUtils.getName(new URL(filePath).getPath());
+            } catch (MalformedURLException ignored) {
+                entry.name = matcher.group(2).trim();
+            }
+            entry.modificationDate = matcher.group(3);
+            entry.size = matcher.group(5);
+            if (filePath.startsWith("http://") || filePath.startsWith("https://"))
+                entry.fullUrl = filePath;
+            else
+                entry.fullUrl = StringUtils.stripEnd(url, "/") + "/" + StringUtils.stripEnd(path, "/") + "/" +
+                                entry.name;
             result.add(entry);
         }
         return result.toArray(new Entry[0]);
