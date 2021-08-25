@@ -87,7 +87,8 @@ public final class HTTPFTPClient {
             try {
                 entry.name = FilenameUtils.getName(new URL(filePath).getPath());
             } catch (MalformedURLException ignored) {
-                entry.name = matcher.group(2).trim();
+                final String[] parts = StringUtils.split(filePath, '/');
+                entry.name = parts[parts.length - 1];
             }
             entry.modificationDate = matcher.group(3);
             entry.size = matcher.group(5);
