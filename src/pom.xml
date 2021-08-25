@@ -42,6 +42,7 @@
         <module>biodwh2-redodb</module>
         <module>biodwh2-redotrialsdb</module>
         <module>biodwh2-gwascatalog</module>
+        <module>biodwh2-opentargets</module>
     </modules>
 
     <packaging>pom</packaging>

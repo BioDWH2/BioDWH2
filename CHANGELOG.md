@@ -1,5 +1,17 @@
 # Changelog
 
+## 📦 Version v0.4.0
+
+Released: 
+
+### 📚 Data Sources
+
+ * ```[OpenTargets]``` #47 Added OpenTargets data source module
+
+### 🔧 Bug fixes and other changes
+
+ * ```[fix]``` HTTPFTPClient is able to handle more formats
+
 ## 📦 Version [v0.3.9](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.9)
 
 Released: 13.08.2021

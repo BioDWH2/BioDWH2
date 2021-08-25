@@ -179,4 +179,13 @@ public final class FileUtils {
         final InputStreamReader reader = new InputStreamReader(stream, charset);
         return new BufferedReader(reader);
     }
+
+    public static BufferedWriter createBufferedWriterFromStream(final OutputStream stream) {
+        return createBufferedWriterFromStream(stream, StandardCharsets.UTF_8);
+    }
+
+    public static BufferedWriter createBufferedWriterFromStream(final OutputStream stream, final Charset charset) {
+        final OutputStreamWriter writer = new OutputStreamWriter(stream, charset);
+        return new BufferedWriter(writer);
+    }
 }
