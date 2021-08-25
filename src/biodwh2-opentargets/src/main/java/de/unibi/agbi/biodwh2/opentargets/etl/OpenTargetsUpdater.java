@@ -120,7 +120,6 @@ public class OpenTargetsUpdater extends Updater<OpenTargetsDataSource> {
             downloadFiles(workspace, client, "drugWarnings");
             downloadFiles(workspace, client, "eco");
             // TODO: evidence
-            // TODO: evidenceFailed
             downloadFiles(workspace, client, "hpo");
             downloadFiles(workspace, client, "indication");
             downloadFiles(workspace, client, "interaction");
