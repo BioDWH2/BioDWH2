@@ -7,6 +7,7 @@ public class Indication {
     public String id;
     @JsonProperty("approvedIndications")
     public String[] approvedIndications;
+    @SuppressWarnings("unused")
     @JsonProperty("indicationCount")
     public Integer indicationCount;
     @JsonProperty("indications")

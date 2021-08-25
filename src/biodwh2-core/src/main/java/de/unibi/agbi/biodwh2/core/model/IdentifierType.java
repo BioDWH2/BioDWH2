@@ -60,6 +60,10 @@ public enum IdentifierType {
     KDCA_KCT("KDCA_KCT"),
     KEGG("KEGG"),
     MESH("MeSH"),
+    /**
+     * Mondo Disease Ontology https://mondo.monarchinitiative.org
+     */
+    MONDO("MONDO"),
     NCBI_TAXON("NCBI_Taxon"),
     NCBI_GENE("NCBI_Gene"),
     /**

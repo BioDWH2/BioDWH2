@@ -52,25 +52,19 @@ public class Disease {
 
     public static class Synonyms {
         @JsonProperty("hasBroadSynonym")
-        @GraphProperty("has_broad_synonym")
         public String[] hasBroadSynonym;
         @JsonProperty("hasExactSynonym")
-        @GraphProperty("has_exact_synonym")
         public String[] hasExactSynonym;
         @JsonProperty("hasNarrowSynonym")
-        @GraphProperty("has_narrow_synonym")
         public String[] hasNarrowSynonym;
         @JsonProperty("hasRelatedSynonym")
-        @GraphProperty("has_related_synonym")
         public String[] hasRelatedSynonym;
     }
 
     public static class Ontology {
         @JsonProperty("isTherapeuticArea")
-        @GraphProperty("is_therapeutic_area")
         public Boolean isTherapeuticArea;
         @JsonProperty("leaf")
-        @GraphProperty("leaf")
         public Boolean leaf;
         @JsonProperty("sources")
         public Source source;
@@ -78,10 +72,8 @@ public class Disease {
 
     public static class Source {
         @JsonProperty("name")
-        @GraphProperty("name")
         public String name;
         @JsonProperty("url")
-        @GraphProperty("url")
         public String url;
     }
 }
