@@ -5,19 +5,22 @@ import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.pharmgkb.etl.*;
 import de.unibi.agbi.biodwh2.pharmgkb.model.*;
+import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.GuidelineAnnotation;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class PharmGKBDataSource extends DataSource {
     public List<Gene> genes;
     public List<Chemical> chemicals;
-    public List<Drug> drugs;
     public List<Phenotype> phenotyps;
     public List<Variant> variants;
     public List<AutomatedAnnotation> automatedAnnotations;
     public List<ClinicalAnnotation> clinicalAnnotations;
-    public List<ClinicalAnnotationMetadata> clinicalAnnotationMetadata;
+    public List<ClinicalAnnotationAllele> clinicalAnnotationAlleles;
+    public List<ClinicalAnnotationEvidence> clinicalAnnotationEvidences;
+    public List<ClinicalAnnotationHistory> clinicalAnnotationHistories;
     public List<ClinicalVariant> clinicalVariants;
     public List<DrugLabel> drugLabels;
     public List<DrugLabelsByGene> drugLabelsByGenes;
@@ -27,6 +30,7 @@ public class PharmGKBDataSource extends DataSource {
     public List<VariantFunctionalAnalysisAnnotation> variantFunctionalAnalysisAnnotations;
     public List<VariantPhenotypeAnnotation> variantPhenotypeAnnotations;
     public HashMap<String, List<Pathway>> pathways = new HashMap<>();
+    public List<GuidelineAnnotation> guidelineAnnotations = new ArrayList<>();
 
     @Override
     public String getId() {
@@ -72,12 +76,13 @@ public class PharmGKBDataSource extends DataSource {
     protected void unloadData() {
         genes = null;
         chemicals = null;
-        drugs = null;
         phenotyps = null;
         variants = null;
         automatedAnnotations = null;
         clinicalAnnotations = null;
-        clinicalAnnotationMetadata = null;
+        clinicalAnnotationAlleles = null;
+        clinicalAnnotationEvidences = null;
+        clinicalAnnotationHistories = null;
         clinicalVariants = null;
         drugLabels = null;
         drugLabelsByGenes = null;
@@ -87,5 +92,6 @@ public class PharmGKBDataSource extends DataSource {
         variantFunctionalAnalysisAnnotations = null;
         variantPhenotypeAnnotations = null;
         pathways = null;
+        guidelineAnnotations = null;
     }
 }

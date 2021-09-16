@@ -12,19 +12,25 @@ public final class Mock2MappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if ("Gene".equals(localMappingLabel)) {
-            NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
-            description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("id").replace("HGNC:", ""));
-            return new NodeMappingDescription[]{description};
-        }
-        if ("Dummy2".equals(localMappingLabel)) {
-            NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DUMMY);
-            description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id"));
-            if (node.hasProperty("id2"))
-                description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id2"));
-            return new NodeMappingDescription[]{description};
-        }
+        if ("Gene".equals(localMappingLabel))
+            return describeGene(node);
+        if ("Dummy2".equals(localMappingLabel))
+            return describeDummy(node);
         return null;
+    }
+
+    private NodeMappingDescription[] describeGene(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("id").replace("HGNC:", ""));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeDummy(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DUMMY);
+        description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id"));
+        if (node.hasProperty("id2"))
+            description.addIdentifier(IdentifierType.DUMMY, node.<String>getProperty("id2"));
+        return new NodeMappingDescription[]{description};
     }
 
     @Override
@@ -38,7 +44,7 @@ public final class Mock2MappingDescriber extends MappingDescriber {
     }
 
     @Override
-    protected String[][] getEdgeMappingPaths() {
-        return new String[0][];
+    protected PathMapping[] getEdgePathMappings() {
+        return new PathMapping[0];
     }
 }

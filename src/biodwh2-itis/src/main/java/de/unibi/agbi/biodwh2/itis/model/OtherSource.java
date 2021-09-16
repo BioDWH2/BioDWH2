@@ -3,14 +3,14 @@ package de.unibi.agbi.biodwh2.itis.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({
         "source_id_prefix", "source_id", "source_type", "source", "version", "acquisition_date", "source_comment",
         "update_date"
 })
-@NodeLabels("Source")
+@GraphNodeLabel("Source")
 public class OtherSource {
     @JsonProperty("source_id_prefix")
     public String idPrefix;

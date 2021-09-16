@@ -2,13 +2,15 @@ package de.unibi.agbi.biodwh2.pharmgkb.model;
 
 import com.univocity.parsers.annotations.Parsed;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
-@NodeLabels("StudyParameters")
+@GraphNodeLabel("StudyParameters")
 public class StudyParameters {
     @Parsed(field = "Study Parameters ID")
     @GraphProperty("id")
     public Integer studyParametersId;
+    @Parsed(field = "Variant Annotation ID")
+    public Integer variantAnnotationId;
     @Parsed(field = "Study Type")
     @GraphProperty("study_type")
     public String studyType;
@@ -36,9 +38,6 @@ public class StudyParameters {
     @Parsed(field = "Allele Of Frequency In Controls")
     @GraphProperty("allele_of_frequency_in_controls")
     public String alleleOfFrequencyInControls;
-    @Parsed(field = "P Value Operator")
-    @GraphProperty("p_value_operator")
-    public String pValueOperator;
     @Parsed(field = "P Value")
     @GraphProperty("p_value")
     public String pValue;

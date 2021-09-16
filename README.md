@@ -13,6 +13,8 @@ Missing a data source important to you? Feel free to open a discussion [here](ht
 ## Download
 The latest release version of BioDWH2 can be downloaded [here](https://github.com/BioDWH2/BioDWH2/releases/latest).
 
+A list of changes for each version can be found in the [Changelog](CHANGELOG.md).
+
 For using generated data warehouses inside Neo4j please see the separate [BioDWH2-Neo4j-Server repository](https://github.com/BioDWH2/BioDWH2-Neo4j-Server).
 
 ## Usage

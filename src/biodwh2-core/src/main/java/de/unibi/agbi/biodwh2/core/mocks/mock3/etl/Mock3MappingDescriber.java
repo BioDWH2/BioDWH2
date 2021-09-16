@@ -27,15 +27,15 @@ public class Mock3MappingDescriber extends MappingDescriber {
 
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
-        if (edges[0].getLabel().endsWith("TARGETS"))
+        if (edges[0].getLabel().endsWith("HAS_PREVIOUS"))
             return new PathMappingDescription(PathMappingDescription.EdgeType.DUMMY);
         return null;
     }
 
     @Override
-    protected String[][] getEdgeMappingPaths() {
-        return new String[][]{
-                {"Test", "HAS_PREVIOUS", "Test"}
+    protected PathMapping[] getEdgePathMappings() {
+        return new PathMapping[]{
+                new PathMapping().add("Test", "HAS_PREVIOUS", "Test", EdgeDirection.FORWARD)
         };
     }
 }

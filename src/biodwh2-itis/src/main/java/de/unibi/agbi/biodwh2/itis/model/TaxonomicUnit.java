@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.itis.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
 @SuppressWarnings({"unused", "SpellCheckingInspection"})
 @JsonPropertyOrder({
@@ -12,7 +12,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
         "currency_rating", "phylo_sort_seq", "initial_time_stamp", "parent_tsn", "taxon_author_id", "hybrid_author_id",
         "kingdom_id", "rank_id", "update_date", "uncertain_prnt_ind", "name_usage", "complete_name"
 })
-@NodeLabels("Taxon")
+@GraphNodeLabel("Taxon")
 public class TaxonomicUnit {
     @JsonProperty("tsn")
     @GraphProperty("id")
@@ -65,8 +65,10 @@ public class TaxonomicUnit {
     @JsonProperty("hybrid_author_id")
     public int hybridAuthorId;
     @JsonProperty("kingdom_id")
+    @GraphProperty("kingdom_id")
     public int kingdomId;
     @JsonProperty("rank_id")
+    @GraphProperty("rank_id")
     public int rankId;
     @JsonProperty("update_date")
     public String updateDate;

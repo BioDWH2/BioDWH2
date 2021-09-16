@@ -36,12 +36,6 @@ public final class Factory {
         return instance;
     }
 
-    private void loadAllClasses() {
-        final ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        for (final String classPath : allClassPaths)
-            loadClassPath(classLoader, classPath);
-    }
-
     private void collectAllClassPaths() {
         final String runtimeClassPath = ManagementFactory.getRuntimeMXBean().getClassPath();
         for (final String classPath : runtimeClassPath.split(File.pathSeparator)) {
@@ -101,7 +95,13 @@ public final class Factory {
     }
 
     private static String getClassPathFromUri(final String uri) {
-        return uri.replace("/", ".").replace(".class", "");
+        return uri.replace('/', '.').replace(".class", "");
+    }
+
+    private void loadAllClasses() {
+        final ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        for (final String classPath : allClassPaths)
+            loadClassPath(classLoader, classPath);
     }
 
     private void loadClassPath(final ClassLoader classLoader, final String classPath) {

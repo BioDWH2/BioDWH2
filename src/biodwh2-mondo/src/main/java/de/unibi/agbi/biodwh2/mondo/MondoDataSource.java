@@ -5,7 +5,6 @@ import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.mondo.etl.MondoGraphExporter;
 import de.unibi.agbi.biodwh2.mondo.etl.MondoMappingDescriber;
-import de.unibi.agbi.biodwh2.mondo.etl.MondoParser;
 import de.unibi.agbi.biodwh2.mondo.etl.MondoUpdater;
 
 public class MondoDataSource extends DataSource {
@@ -26,7 +25,7 @@ public class MondoDataSource extends DataSource {
 
     @Override
     protected Parser<MondoDataSource> getParser() {
-        return new MondoParser(this);
+        return new PassThroughParser<>(this);
     }
 
     @Override

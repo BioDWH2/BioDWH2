@@ -2,9 +2,9 @@ package de.unibi.agbi.biodwh2.drugbank.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
-@NodeLabels({"Patent"})
+@GraphNodeLabel("Patent")
 public final class Patent {
     @GraphProperty("number")
     public String number;

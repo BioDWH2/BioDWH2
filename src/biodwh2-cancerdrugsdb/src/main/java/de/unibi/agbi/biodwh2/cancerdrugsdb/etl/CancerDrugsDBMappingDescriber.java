@@ -24,7 +24,10 @@ public class CancerDrugsDBMappingDescriber extends MappingDescriber {
     private NodeMappingDescription[] describeDrug(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
         description.addName(node.getProperty("name"));
-        description.addIdentifier(IdentifierType.CHEMBL, node.<String>getProperty("chembl_id"));
+        final String[] chemblIds = node.getProperty("chembl_ids");
+        if (chemblIds != null)
+            for (final String chemblId : chemblIds)
+                description.addIdentifier(IdentifierType.CHEMBL, chemblId);
         description.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
         /* TODO
         final String[] atcCodes = node.getProperty("atc");
@@ -63,9 +66,10 @@ public class CancerDrugsDBMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    protected String[][] getEdgeMappingPaths() {
-        return new String[][]{
-                {"Drug", "INDICATES", "Disease"}, {"Drug", "TARGETS", "Gene"}
+    protected PathMapping[] getEdgePathMappings() {
+        return new PathMapping[]{
+                new PathMapping().add("Drug", "INDICATES", "Disease", EdgeDirection.FORWARD),
+                new PathMapping().add("Drug", "TARGETS", "Gene", EdgeDirection.FORWARD)
         };
     }
 }

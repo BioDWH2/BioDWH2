@@ -3,14 +3,14 @@ package de.unibi.agbi.biodwh2.itis.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
 @SuppressWarnings({"unused", "SpellCheckingInspection"})
 @JsonPropertyOrder({
         "pub_id_prefix", "publication_id", "reference_author", "title", "publication_name", "listed_pub_date",
         "actual_pub_date", "publisher", "pub_place", "isbn", "issn", "pages", "pub_comment", "update_date"
 })
-@NodeLabels("Publication")
+@GraphNodeLabel("Publication")
 public class Publication {
     @JsonProperty("pub_id_prefix")
     public String idPrefix;

@@ -20,7 +20,11 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     private static final String DRUG_STRUCTURES_URL_SUFFIX = "/downloads/all-structures";
     private static final String METABOLITE_STRUCTURES_URL_SUFFIX = "/downloads/all-metabolite-structures";
 
-    public DrugBankUpdater(DrugBankDataSource dataSource) {
+    static final String FULL_DATABASE_FILE_NAME = "drugbank_all_full_database.xml.zip";
+    static final String STRUCTURES_SDF_FILE_NAME = "drugbank_all_structures.sdf.zip";
+    static final String METABOLITE_STRUCTURES_SDF_FILE_NAME = "drugbank_all_metabolite-structures.sdf.zip";
+
+    public DrugBankUpdater(final DrugBankDataSource dataSource) {
         super(dataSource);
     }
 
@@ -34,14 +38,14 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     private JsonNode loadReleasesJson() throws UpdaterException {
         final String source;
         try {
-            source = HTTPClient.getWebsiteSource("https://www.drugbank.ca/releases.json");
+            source = HTTPClient.getWebsiteSource("https://go.drugbank.com/releases.json");
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
         return parseJsonSource(source);
     }
 
-    private JsonNode parseJsonSource(String source) throws UpdaterMalformedVersionException {
+    private JsonNode parseJsonSource(final String source) throws UpdaterMalformedVersionException {
         final ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.readTree(source);
@@ -50,14 +54,14 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
         }
     }
 
-    private String getFirstReleaseVersion(JsonNode json) throws UpdaterMalformedVersionException {
+    private String getFirstReleaseVersion(final JsonNode json) throws UpdaterMalformedVersionException {
         final JsonNode firstRelease = json.get(0);
         if (firstRelease == null)
             throw new UpdaterMalformedVersionException(json.toString());
         return firstRelease.get("version").asText();
     }
 
-    private Version parseVersion(String version) throws UpdaterMalformedVersionException {
+    private Version parseVersion(final String version) throws UpdaterMalformedVersionException {
         try {
             return Version.parse(version);
         } catch (NullPointerException | NumberFormatException e) {
@@ -66,7 +70,7 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
+    protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         final Map<String, String> drugBankProperties = dataSource.getProperties(workspace);
         final String username = drugBankProperties.getOrDefault("username", null);
         final String password = drugBankProperties.getOrDefault("password", null);
@@ -75,13 +79,13 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
             final JsonNode latestRelease = releases.get(0);
             final String latestReleaseUrl = latestRelease.get("url").asText();
             try {
-                String filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_full_database.xml.zip");
+                String filePath = dataSource.resolveSourceFilePath(workspace, FULL_DATABASE_FILE_NAME);
                 HTTPClient.downloadFileAsBrowser(latestReleaseUrl + FULL_DATABASE_URL_SUFFIX, filePath, username,
                                                  password);
-                filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_structures.sdf.zip");
+                filePath = dataSource.resolveSourceFilePath(workspace, STRUCTURES_SDF_FILE_NAME);
                 HTTPClient.downloadFileAsBrowser(latestReleaseUrl + DRUG_STRUCTURES_URL_SUFFIX, filePath, username,
                                                  password);
-                filePath = dataSource.resolveSourceFilePath(workspace, "drugbank_all_metabolite-structures.sdf.zip");
+                filePath = dataSource.resolveSourceFilePath(workspace, METABOLITE_STRUCTURES_SDF_FILE_NAME);
                 HTTPClient.downloadFileAsBrowser(latestReleaseUrl + METABOLITE_STRUCTURES_URL_SUFFIX, filePath,
                                                  username, password);
                 return true;
@@ -90,5 +94,10 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
             }
         }
         throw new UpdaterOnlyManuallyException();
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{FULL_DATABASE_FILE_NAME, STRUCTURES_SDF_FILE_NAME, METABOLITE_STRUCTURES_SDF_FILE_NAME};
     }
 }

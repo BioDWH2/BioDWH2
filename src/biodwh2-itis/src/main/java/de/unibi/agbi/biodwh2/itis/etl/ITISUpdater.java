@@ -66,4 +66,9 @@ public class ITISUpdater extends Updater<ITISDataSource> {
         }
         return true;
     }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{FILE_NAME};
+    }
 }

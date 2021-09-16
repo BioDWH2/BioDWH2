@@ -7,19 +7,20 @@ public class WorkspaceException extends RuntimeException {
         super();
     }
 
-    public WorkspaceException(String message) {
+    public WorkspaceException(final String message) {
         super(message);
     }
 
-    public WorkspaceException(String message, Throwable cause) {
+    public WorkspaceException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public WorkspaceException(Throwable cause) {
+    public WorkspaceException(final Throwable cause) {
         super(cause);
     }
 
-    public WorkspaceException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public WorkspaceException(final String message, final Throwable cause, final boolean enableSuppression,
+                              final boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

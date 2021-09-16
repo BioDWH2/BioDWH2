@@ -1,16 +1,15 @@
 package de.unibi.agbi.biodwh2.core.io.graph;
 
 import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreId;
+import de.unibi.agbi.biodwh2.core.lang.Type;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
 
 public final class GraphMLPropertyFormatter {
     private static final String INVALID_XML_CHARS = new String(
-            new char[]{0x01, 0x02, 0x03, 0x04, 0x08, 0x1d, 0x12, 0x14, 0x18});
+            new char[]{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x1d, 0x12, 0x14, 0x18});
     private static final String FORMAT = "%s";
     private static final String ARRAY_START = "[";
     private static final String ARRAY_END = "]";
@@ -23,13 +22,13 @@ public final class GraphMLPropertyFormatter {
     public static PropertyType getPropertyType(final Type type) {
         final PropertyType p = new PropertyType();
         // Allowed types: boolean, int, long, float, double, string
-        if (type.componentType != null) {
-            p.listTypeName = getTypeName(type.componentType);
+        if (type.getComponentType() != null) {
+            p.listTypeName = getTypeName(type.getComponentType());
             p.typeName = "string";
-        } else if (type.type.equals(MVStoreId.class))
+        } else if (type.getType().equals(MVStoreId.class))
             p.typeName = "long";
         else
-            p.typeName = getTypeName(type.type);
+            p.typeName = getTypeName(type.getType());
         return p;
     }
 
@@ -139,22 +138,22 @@ public final class GraphMLPropertyFormatter {
     public static String format(final char[] array) {
         final StringBuilder builder = new StringBuilder(ARRAY_START);
         if (array.length > 0)
-            builder.append("\"").append(array[0]);
+            builder.append('"').append(array[0]);
         for (int i = 1; i < array.length; i++)
             builder.append(STRING_ARRAY_SEPARATOR).append(array[i]);
         if (array.length > 0)
-            builder.append("\"");
+            builder.append('"');
         return builder.append(ARRAY_END).toString();
     }
 
     public static String format(final CharSequence[] array) {
         final StringBuilder builder = new StringBuilder(ARRAY_START);
         if (array.length > 0)
-            builder.append("\"").append(replaceInvalidXmlCharacters(array[0], true));
+            builder.append('"').append(replaceInvalidXmlCharacters(array[0], true));
         for (int i = 1; i < array.length; i++)
             builder.append(STRING_ARRAY_SEPARATOR).append(replaceInvalidXmlCharacters(array[i], true));
         if (array.length > 0)
-            builder.append("\"");
+            builder.append('"');
         return builder.append(ARRAY_END).toString();
     }
 
@@ -164,7 +163,7 @@ public final class GraphMLPropertyFormatter {
             return format((CharSequence[]) array);
         // If type erasure removed CharSequence or Character as the component type, check the elements directly
         if (array.length > 0) {
-            for (Object o : array) {
+            for (final Object o : array) {
                 if (o instanceof CharSequence)
                     return format(convertToStringArray(array));
                 if (o instanceof Character)
@@ -193,69 +192,8 @@ public final class GraphMLPropertyFormatter {
         return charArray;
     }
 
-    private static String formatString(Object value) {
+    private static String formatString(final Object value) {
         return String.format(Locale.US, FORMAT, value);
-    }
-
-    public static class Type {
-        private final Class<?> type;
-        private Class<?> componentType;
-        private boolean isList;
-
-        public Type(Class<?> type) {
-            this.type = type;
-            if (type.isArray()) {
-                isList = true;
-                this.componentType = type.getComponentType();
-            }
-        }
-
-        public Class<?> getType() {
-            return type;
-        }
-
-        public Class<?> getComponentType() {
-            return componentType;
-        }
-
-        public boolean isList() {
-            return isList;
-        }
-
-        @SuppressWarnings("rawtypes")
-        public static Type fromObject(final Object obj) {
-            if (obj == null)
-                return null;
-            final Type result = new Type(obj.getClass());
-            if (Collection.class.isAssignableFrom(result.type)) {
-                result.isList = true;
-                final Set<Class<?>> componentTypeCandidates = new HashSet<>();
-                final Collection collection = (Collection) obj;
-                for (final Object element : collection) {
-                    if (element != null)
-                        componentTypeCandidates.add(element.getClass());
-                }
-                if (componentTypeCandidates.size() > 0) {
-                    Class<?> commonBaseClass = null;
-                    for (final Class<?> candidate : componentTypeCandidates) {
-                        if (commonBaseClass == null || candidate.isAssignableFrom(commonBaseClass))
-                            commonBaseClass = candidate;
-                        else {
-                            // Find the next common parent class which in the worst case would be Object.class
-                            Class<?> parentClass = candidate;
-                            while ((parentClass = parentClass.getSuperclass()) != null) {
-                                if (parentClass.isAssignableFrom(commonBaseClass)) {
-                                    commonBaseClass = parentClass;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    result.componentType = commonBaseClass;
-                }
-            }
-            return result;
-        }
     }
 
     public static class PropertyType {

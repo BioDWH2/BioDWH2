@@ -3,13 +3,13 @@ package de.unibi.agbi.biodwh2.unii.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
 @JsonPropertyOrder({
         "UNII", "PT", "RN", "EC", "NCIT", "RXCUI", "PUBCHEM", "ITIS", "NCBI", "PLANTS", "GRIN", "MPNS", "INN_ID", "MF",
-        "INCHIKEY", "SMILES", "INGREDIENT_TYPE"
+        "INCHIKEY", "SMILES", "UNII_TYPE"
 })
-@NodeLabels("UNII")
+@GraphNodeLabel("UNII")
 public class UNIIDataEntry {
     @JsonProperty("UNII")
     @GraphProperty("id")
@@ -95,7 +95,7 @@ public class UNIIDataEntry {
     @JsonProperty("SMILES")
     @GraphProperty("smiles")
     public String smiles;
-    @JsonProperty("INGREDIENT_TYPE")
-    @GraphProperty("ingredient_Type")
-    public String ingredientType;
+    @JsonProperty("UNII_TYPE")
+    @GraphProperty("unii_type")
+    public String uniiType;
 }

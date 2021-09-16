@@ -7,19 +7,20 @@ public abstract class UpdaterException extends Exception {
         super();
     }
 
-    public UpdaterException(String message) {
+    public UpdaterException(final String message) {
         super(message);
     }
 
-    public UpdaterException(String message, Throwable cause) {
+    public UpdaterException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public UpdaterException(Throwable cause) {
+    public UpdaterException(final Throwable cause) {
         super(cause);
     }
 
-    public UpdaterException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public UpdaterException(final String message, final Throwable cause, final boolean enableSuppression,
+                            final boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

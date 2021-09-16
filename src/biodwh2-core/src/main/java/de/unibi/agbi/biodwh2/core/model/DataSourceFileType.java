@@ -8,7 +8,8 @@ public enum DataSourceFileType {
     PERSISTENT_GRAPH("intermediate." + Graph.EXTENSION),
     INTERMEDIATE_GRAPHML("intermediate." + GraphFileFormat.GRAPH_ML.extension),
     META_GRAPH_IMAGE("meta-graph.png"),
-    META_GRAPH_STATISTICS("meta-graph-statistics.txt");
+    META_GRAPH_STATISTICS("meta-graph-statistics.txt"),
+    META_GRAPH_DYNAMIC_VIS("meta-graph.html");
 
     private final String name;
 

@@ -7,19 +7,20 @@ public class MergerException extends Exception {
         super();
     }
 
-    public MergerException(String message) {
+    public MergerException(final String message) {
         super(message);
     }
 
-    public MergerException(String message, Throwable cause) {
+    public MergerException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public MergerException(Throwable cause) {
+    public MergerException(final Throwable cause) {
         super(cause);
     }
 
-    public MergerException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public MergerException(final String message, final Throwable cause, final boolean enableSuppression,
+                           final boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

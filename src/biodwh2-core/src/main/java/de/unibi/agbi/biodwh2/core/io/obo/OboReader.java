@@ -4,15 +4,17 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * https://owlcollab.github.io/oboformat/doc/obo-syntax.html
+ * OBO file format 1.4 reader
+ * <p/>
+ * http://purl.obolibrary.org/obo/oboformat/spec.html
  */
-@SuppressWarnings("WeakerAccess")
-public final class OboReader implements Iterable<OboEntry> {
+public final class OboReader implements Iterable<OboEntry>, AutoCloseable {
     private static final Pattern QUOTED_STRING_PATTERN = Pattern.compile("\"(\\.|[^\"])*\"");
 
     private final BufferedReader reader;
@@ -21,19 +23,19 @@ public final class OboReader implements Iterable<OboEntry> {
     boolean hasNextEntry;
     private String nextType;
 
-    @SuppressWarnings("unused")
-    public OboReader(final String filePath, final String charsetName) throws IOException {
-        this(FileUtils.openInputStream(new File(filePath)), charsetName);
+    public OboReader(final String filePath, final Charset charset) throws IOException {
+        this(FileUtils.openInputStream(new File(filePath)), charset);
     }
 
-    public OboReader(final InputStream stream, final String charsetName) throws IOException {
+    public OboReader(final InputStream stream, final Charset charset) {
         final InputStream baseStream = new BufferedInputStream(stream);
-        reader = new BufferedReader(new InputStreamReader(baseStream, charsetName));
+        reader = new BufferedReader(new InputStreamReader(baseStream, charset));
         header = (OboHeader) readNextEntry();
+        header.cacheUnreservedTokens();
     }
 
-    OboEntry readNextEntry() {
-        final OboEntry entry = instantiateEntryFromType();
+    OboStructure readNextEntry() {
+        final OboStructure entry = instantiateEntryFromType();
         nextType = null;
         hasNextEntry = false;
         String line;
@@ -51,7 +53,7 @@ public final class OboReader implements Iterable<OboEntry> {
         return entry;
     }
 
-    private OboEntry instantiateEntryFromType() {
+    private OboStructure instantiateEntryFromType() {
         if (nextType == null)
             return new OboHeader();
         switch (nextType) {
@@ -97,7 +99,8 @@ public final class OboReader implements Iterable<OboEntry> {
             @Override
             public boolean hasNext() {
                 final boolean lastHasNextEntry = hasNextEntry;
-                lastEntry = readNextEntry();
+                if (lastHasNextEntry)
+                    lastEntry = (OboEntry) readNextEntry();
                 return lastHasNextEntry;
             }
 
@@ -106,5 +109,11 @@ public final class OboReader implements Iterable<OboEntry> {
                 return lastEntry;
             }
         };
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (reader != null)
+            reader.close();
     }
 }

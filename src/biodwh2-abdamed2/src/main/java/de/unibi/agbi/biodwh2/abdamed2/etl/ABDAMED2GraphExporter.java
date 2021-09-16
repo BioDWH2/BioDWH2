@@ -12,6 +12,11 @@ public class ABDAMED2GraphExporter extends GraphExporter<ABDAMED2DataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         return false;
     }

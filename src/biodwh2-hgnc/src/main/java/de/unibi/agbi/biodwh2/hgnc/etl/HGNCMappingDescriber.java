@@ -15,8 +15,10 @@ public class HGNCMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if ("Gene".equals(localMappingLabel))
+        if (HGNCGraphExporter.GENE_LABEL.equals(localMappingLabel))
             return describeGene(node);
+        if (HGNCGraphExporter.PROTEIN_LABEL.equals(localMappingLabel))
+            return describeProtein(node);
         return null;
     }
 
@@ -39,18 +41,29 @@ public class HGNCMappingDescriber extends MappingDescriber {
         return node.<String>getProperty(HGNC_ID_KEY).replace("HGNC:", "");
     }
 
+    private NodeMappingDescription[] describeProtein(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PROTEIN);
+        description.addIdentifier(IdentifierType.UNIPROT_KB, node.<String>getProperty("uniprot_id"));
+        return new NodeMappingDescription[]{description};
+    }
+
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{"Gene"};
+        return new String[]{HGNCGraphExporter.GENE_LABEL, HGNCGraphExporter.PROTEIN_LABEL};
     }
 
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
+        if (edges.length == 1 && edges[0].getLabel().endsWith(HGNCGraphExporter.CODES_FOR_LABEL))
+            return new PathMappingDescription(PathMappingDescription.EdgeType.CODES_FOR);
         return null;
     }
 
     @Override
-    protected String[][] getEdgeMappingPaths() {
-        return new String[0][];
+    protected PathMapping[] getEdgePathMappings() {
+        return new PathMapping[]{
+                new PathMapping().add(HGNCGraphExporter.GENE_LABEL, HGNCGraphExporter.CODES_FOR_LABEL,
+                                      HGNCGraphExporter.PROTEIN_LABEL, EdgeDirection.FORWARD)
+        };
     }
 }

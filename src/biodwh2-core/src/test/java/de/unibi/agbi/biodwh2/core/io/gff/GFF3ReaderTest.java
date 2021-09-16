@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,7 +13,7 @@ public class GFF3ReaderTest {
     void testReadingFromFileStream() throws IOException {
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try (InputStream stream = classLoader.getResourceAsStream("test_gff3.gff")) {
-            final GFF3Reader reader = new GFF3Reader(stream, "UTF-8");
+            final GFF3Reader reader = new GFF3Reader(stream, StandardCharsets.UTF_8);
             GFF3Entry entry = reader.readNextEntry();
             assertTrue(entry instanceof GFF3PragmaEntry);
             assertEquals("gff-version 3.1.26", ((GFF3PragmaEntry) entry).getValue());
@@ -52,7 +53,7 @@ public class GFF3ReaderTest {
     void testReadingWithFasta() throws IOException {
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try (InputStream stream = classLoader.getResourceAsStream("test_gff3_with_fasta.gff")) {
-            final GFF3Reader reader = new GFF3Reader(stream, "UTF-8");
+            final GFF3Reader reader = new GFF3Reader(stream, StandardCharsets.UTF_8);
             GFF3Entry entry = reader.readNextEntry();
             assertTrue(entry instanceof GFF3PragmaEntry);
             entry = reader.readNextEntry();

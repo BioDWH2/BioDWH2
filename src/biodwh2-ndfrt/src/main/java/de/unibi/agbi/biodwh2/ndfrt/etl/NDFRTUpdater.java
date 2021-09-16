@@ -4,7 +4,9 @@ import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPWebUpdater;
 import de.unibi.agbi.biodwh2.ndfrt.NDFRTDataSource;
 
 public class NDFRTUpdater extends MultiFileFTPWebUpdater<NDFRTDataSource> {
-    public NDFRTUpdater(NDFRTDataSource dataSource) {
+    static final String FILE_NAME = "NDFRT_Public_All 2018-02-05.zip";
+
+    public NDFRTUpdater(final NDFRTDataSource dataSource) {
         super(dataSource);
     }
 
@@ -15,6 +17,11 @@ public class NDFRTUpdater extends MultiFileFTPWebUpdater<NDFRTDataSource> {
 
     @Override
     protected String[] getFilePaths() {
-        return new String[]{"NDFRT_Public_All%202018-02-05.zip"};
+        return new String[]{FILE_NAME};
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{FILE_NAME};
     }
 }

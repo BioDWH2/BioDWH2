@@ -13,27 +13,33 @@ public class SiderMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        switch (localMappingLabel) {
-            case "Drug": {
-                NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
-                String id = StringUtils.stripStart(node.getProperty("id"), "CID");
-                description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, "" + Long.parseLong(id));
-                return new NodeMappingDescription[]{description};
-            }
-            case "Disease": {
-                NodeMappingDescription description = new NodeMappingDescription(
-                        NodeMappingDescription.NodeType.DISEASE);
-                description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
-                return new NodeMappingDescription[]{description};
-            }
-            case "SideEffect": {
-                NodeMappingDescription description = new NodeMappingDescription(
-                        NodeMappingDescription.NodeType.SIDE_EFFECT);
-                description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
-                return new NodeMappingDescription[]{description};
-            }
-        }
+        if ("Drug".equals(localMappingLabel))
+            return describeDrug(node);
+        if ("Disease".equals(localMappingLabel))
+            return describeDisease(node);
+        if ("SideEffect".equals(localMappingLabel))
+            return describeSideEffect(node);
         return null;
+    }
+
+    private NodeMappingDescription[] describeSideEffect(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(
+                NodeMappingDescription.NodeType.ADVERSE_EVENT);
+        description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeDisease(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
+        description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("id"));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeDrug(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
+        final String id = StringUtils.stripStart(node.getProperty("flat_id"), "CID");
+        description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, "" + Long.parseLong(id));
+        return new NodeMappingDescription[]{description};
     }
 
     @Override
@@ -47,7 +53,7 @@ public class SiderMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    protected String[][] getEdgeMappingPaths() {
-        return new String[0][];
+    protected PathMapping[] getEdgePathMappings() {
+        return new PathMapping[0];
     }
 }

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
-final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
+public final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     private final MVMap<K, V> mvMap;
     private final MVStore mvStore;
     private MVStore.TxCounter lock;
@@ -40,12 +40,12 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     }
 
     @Override
-    public boolean containsKey(Object key) {
+    public boolean containsKey(final Object key) {
         return mvMap.containsKey(key);
     }
 
     @Override
-    public boolean containsValue(Object value) {
+    public boolean containsValue(final Object value) {
         return mvMap.containsValue(value);
     }
 
@@ -60,12 +60,12 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
         lock = null;
     }
 
-    V unsafeGet(Object key) {
+    V unsafeGet(final Object key) {
         return mvMap.get(key);
     }
 
     @Override
-    public V get(Object key) {
+    public V get(final Object key) {
         lock();
         try {
             return clone(mvMap.get(key));
@@ -86,12 +86,12 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
         }
     }
 
-    void unsafePut(K key, V value) {
+    void unsafePut(final K key, final V value) {
         mvMap.put(key, value);
     }
 
     @Override
-    public V put(K key, V value) {
+    public V put(final K key, final V value) {
         lock();
         try {
             mvMap.put(key, value);
@@ -101,12 +101,12 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
         }
     }
 
-    void unsafeRemove(Object key) {
+    void unsafeRemove(final Object key) {
         mvMap.remove(key);
     }
 
     @Override
-    public V remove(Object key) {
+    public V remove(final Object key) {
         lock();
         try {
             return mvMap.remove(key);
@@ -116,7 +116,7 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     }
 
     @Override
-    public void putAll(Map<? extends K, ? extends V> m) {
+    public void putAll(final Map<? extends K, ? extends V> m) {
         lock();
         try {
             mvMap.putAll(m);
@@ -172,7 +172,7 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     }
 
     @Override
-    public V putIfAbsent(K key, V value) {
+    public V putIfAbsent(final K key, final V value) {
         lock();
         try {
             return mvMap.putIfAbsent(key, value);
@@ -182,7 +182,7 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     }
 
     @Override
-    public boolean remove(Object key, Object value) {
+    public boolean remove(final Object key, final Object value) {
         lock();
         try {
             return mvMap.remove(key, value);
@@ -192,7 +192,7 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     }
 
     @Override
-    public boolean replace(K key, V oldValue, V newValue) {
+    public boolean replace(final K key, final V oldValue, final V newValue) {
         lock();
         try {
             // TODO: cloned object?
@@ -203,7 +203,7 @@ final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     }
 
     @Override
-    public V replace(K key, V value) {
+    public V replace(final K key, final V value) {
         lock();
         try {
             return mvMap.replace(key, value);

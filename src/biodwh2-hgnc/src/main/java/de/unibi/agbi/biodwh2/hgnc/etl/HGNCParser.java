@@ -8,7 +8,7 @@ import java.util.List;
 
 public class HGNCParser extends SingleFileCsvParser<HGNCDataSource, Gene> {
     public HGNCParser(final HGNCDataSource dataSource) {
-        super(dataSource, Gene.class, true, CsvType.TSV, "hgnc_complete_set.txt");
+        super(dataSource, Gene.class, true, CsvType.TSV, HGNCUpdater.FILE_NAME);
     }
 
     @Override

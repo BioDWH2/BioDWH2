@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.dgidb.DGIdbDataSource;
 import de.unibi.agbi.biodwh2.dgidb.model.Category;
@@ -22,16 +23,22 @@ public class DGIdbGraphExporter extends GraphExporter<DGIdbDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
-        graph.setNodeIndexPropertyKeys("chembl_id", "entrez_id");
+        graph.addIndex(IndexDescription.forNode("Drug", "chembl_id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Gene", "entrez_id", IndexDescription.Type.UNIQUE));
         for (Drug drug : dataSource.drugs.stream().distinct().collect(Collectors.toList()))
-            createNodeFromModel(graph, drug);
+            graph.addNodeFromModel(drug);
         for (Gene gene : dataSource.genes.stream().distinct().collect(Collectors.toList()))
-            createNodeFromModel(graph, gene);
+            graph.addNodeFromModel(gene);
         Map<String, Long> categoryNodeIdMap = new HashMap<>();
         for (Category category : dataSource.categories) {
             if (!categoryNodeIdMap.containsKey(category.category)) {
-                Node categoryNode = createNode(graph, "GeneCategory");
+                Node categoryNode = graph.addNode("GeneCategory");
                 categoryNodeIdMap.put(category.category, categoryNode.getId());
             }
             Node gene = graph.findNode("Gene", "claim_name", category.entrezGeneSymbol);

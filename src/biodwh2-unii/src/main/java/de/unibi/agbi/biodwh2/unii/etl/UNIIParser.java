@@ -16,12 +16,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class UNIIParser extends Parser<UNIIDataSource> {
-    public UNIIParser(UNIIDataSource dataSource) {
+    public UNIIParser(final UNIIDataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    public boolean parse(Workspace workspace) throws ParserException {
+    public boolean parse(final Workspace workspace) throws ParserException {
         parseNamesFile(workspace, dataSource);
         parseDataFile(workspace, dataSource);
         return true;
@@ -29,7 +29,7 @@ public class UNIIParser extends Parser<UNIIDataSource> {
 
     private void parseNamesFile(final Workspace workspace, final UNIIDataSource dataSource) throws ParserException {
         try {
-            ZipInputStream zipInputStream = FileUtils.openZip(workspace, dataSource, UNIIUpdater.UNIIS_FILE_NAME);
+            final ZipInputStream zipInputStream = FileUtils.openZip(workspace, dataSource, UNIIUpdater.UNIIS_FILE_NAME);
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (zipEntry.getName().contains("Names") && zipEntry.getName().endsWith(".txt")) {
@@ -44,13 +44,14 @@ public class UNIIParser extends Parser<UNIIDataSource> {
 
     private void parseDataFile(final Workspace workspace, final UNIIDataSource dataSource) throws ParserException {
         try {
-            ZipInputStream zipInputStream = FileUtils.openZip(workspace, dataSource, UNIIUpdater.UNII_DATA_FILE_NAME);
+            final ZipInputStream zipInputStream = FileUtils.openZip(workspace, dataSource,
+                                                                    UNIIUpdater.UNII_DATA_FILE_NAME);
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (zipEntry.getName().contains("Records") && zipEntry.getName().endsWith(".txt")) {
-                    List<UNIIDataEntry> dataEntries = parseZipStream(zipInputStream, UNIIDataEntry.class);
+                    final List<UNIIDataEntry> dataEntries = parseZipStream(zipInputStream, UNIIDataEntry.class);
                     dataSource.uniiDataEntries = new HashMap<>();
-                    for (UNIIDataEntry entry : dataEntries)
+                    for (final UNIIDataEntry entry : dataEntries)
                         dataSource.uniiDataEntries.put(entry.unii, entry);
                     break;
                 }
@@ -60,7 +61,8 @@ public class UNIIParser extends Parser<UNIIDataSource> {
         }
     }
 
-    private <T> List<T> parseZipStream(final ZipInputStream zipInputStream, Class<T> typeClass) throws IOException {
+    private <T> List<T> parseZipStream(final ZipInputStream zipInputStream,
+                                       final Class<T> typeClass) throws IOException {
         return FileUtils.openSeparatedValuesFile(zipInputStream, typeClass, '\t', true).readAll();
     }
 }

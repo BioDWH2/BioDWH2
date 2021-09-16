@@ -1,18 +1,18 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
 import java.util.HashMap;
-import java.util.Map;
 
-public final class EdgeBuilder {
+public final class EdgeBuilder extends HashMap<String, Object> {
+    private static final long serialVersionUID = 8684453285018926870L;
+
     private final Graph graph;
-    private final Map<String, Object> properties;
     private String label;
     private long fromId;
     private long toId;
 
     EdgeBuilder(final Graph graph) {
+        super();
         this.graph = graph;
-        properties = new HashMap<>();
     }
 
     public EdgeBuilder fromNode(Node node) {
@@ -41,17 +41,17 @@ public final class EdgeBuilder {
     }
 
     public <T> EdgeBuilder withProperty(final String key, final T value) {
-        properties.put(key, value);
+        put(key, value);
         return this;
     }
 
     public <T> EdgeBuilder withPropertyIfNotNull(final String key, final T value) {
         if (value != null)
-            properties.put(key, value);
+            put(key, value);
         return this;
     }
 
     public Edge build() {
-        return graph.addEdge(fromId, toId, label, properties);
+        return graph.addEdge(fromId, toId, label, this);
     }
 }
