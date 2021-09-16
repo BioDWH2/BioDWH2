@@ -27,7 +27,7 @@ public class CanadianNutrientFileMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeNutrient(Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
+        NodeMappingDescription description = new NodeMappingDescription("NUTRIENT");
         if (node.<String>getProperty("name").length() == 0 &&
             node.<String>getProperty("name_france").length() == 0){
             return null;
@@ -38,7 +38,7 @@ public class CanadianNutrientFileMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeMeasure(Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
+        NodeMappingDescription description = new NodeMappingDescription("MEASURE");
         if (node.<String>getProperty("name").length() == 0 &&
             node.<String>getProperty("name_france").length() == 0){
             return null;
@@ -49,7 +49,7 @@ public class CanadianNutrientFileMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeRefuse(Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
+        NodeMappingDescription description = new NodeMappingDescription("REFUSE");
         if (node.<String>getProperty("name").length() == 0 &&
             node.<String>getProperty("name_france").length() == 0){
             return null;
@@ -60,7 +60,7 @@ public class CanadianNutrientFileMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeYield(Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
+        NodeMappingDescription description = new NodeMappingDescription("YIELD");
         if (node.<String>getProperty("name").length() == 0 &&
             node.<String>getProperty("name_france").length() == 0){
             return null;
@@ -71,7 +71,7 @@ public class CanadianNutrientFileMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeFoodGroup(Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
+        NodeMappingDescription description = new NodeMappingDescription("FOODGROUP");
         if (node.<String>getProperty("name").length() == 0 &&
             node.<String>getProperty("name_france").length() == 0){
             return null;
@@ -82,7 +82,7 @@ public class CanadianNutrientFileMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeFood(Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
+        NodeMappingDescription description = new NodeMappingDescription("FOOD");
         if (node.<String>getProperty("scientific_name").length() != 0){
             description.addName(node.getProperty("scientific_name"));
             return new NodeMappingDescription[]{description};
