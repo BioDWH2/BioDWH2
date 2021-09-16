@@ -6,6 +6,7 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.drugcentral.DrugCentralDataSource;
 import de.unibi.agbi.biodwh2.drugcentral.model.*;
@@ -18,9 +19,29 @@ import java.util.stream.Collectors;
 
 public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugCentralGraphExporter.class);
+    static final String DRUG_LABEL_LABEL = "DrugLabel";
+    static final String REFERENCE_LABEL = "Reference";
+    static final String ATTRIBUTE_TYPE_LABEL = "AttributeType";
+    public static final String FAERS_LABEL = "FAERS";
+    static final String INN_STEM_LABEL = "InnStem";
+    static final String ORANGE_BOOK_EXCLUSIVITY_LABEL = "OrangeBookExclusivity";
+    public static final String ORANGE_BOOK_PRODUCT_LABEL = "OrangeBookProduct";
+    static final String STRUCTURE_LABEL = "Structure";
+    static final String GO_TERM_LABEL = "GOTerm";
+    static final String TARGET_KEYWORD_LABEL = "TargetKeyword";
+    static final String ACTION_TYPE_LABEL = "ActionType";
+    public static final String PDB_LABEL = "PDB";
+    public static final String PARENT_DRUG_MOLECULE_LABEL = "ParentDrugMolecule";
+    public static final String OMOP_CONCEPT_LABEL = "OMOPConcept";
+    public static final String ACTIVE_INGREDIENT_LABEL = "ActiveIngredient";
 
     public DrugCentralGraphExporter(final DrugCentralDataSource dataSource) {
         super(dataSource);
+    }
+
+    @Override
+    public long getExportVersion() {
+        return 1;
     }
 
     @Override
@@ -29,7 +50,17 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         final boolean skipLINCSSignatures = "true".equalsIgnoreCase(properties.get("skipLINCSSignatures"));
         final boolean skipFAERSReports = "true".equalsIgnoreCase(properties.get("skipFAERSReports"));
         final boolean skipDrugLabelFullTexts = "true".equalsIgnoreCase(properties.get("skipDrugLabelFullTexts"));
-        g.setNodeIndexPropertyKeys("id", "stem");
+        g.addIndex(IndexDescription.forNode(DRUG_LABEL_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(REFERENCE_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(ATTRIBUTE_TYPE_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(FAERS_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(INN_STEM_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(ORANGE_BOOK_EXCLUSIVITY_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(ORANGE_BOOK_PRODUCT_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(STRUCTURE_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(GO_TERM_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(TARGET_KEYWORD_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(INN_STEM_LABEL, "stem", IndexDescription.Type.UNIQUE));
         // "ddi_risk.tsv", "approval_type.tsv", "target_class.tsv", "ref_type.tsv", "protein_type.tsv"
         // are ignored because no necessary additional info is included
         createNodesFromTsvFile(workspace, g, DataSource.class, "data_source.tsv");
@@ -41,12 +72,12 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         createNodesFromTsvFile(workspace, g, Reference.class, "reference.tsv");
         final Map<Integer, Long> structureIdNodeIdMap = addStructuresWithType(workspace, g);
         for (final Approval approval : parseTsvFile(workspace, Approval.class, "approval.tsv")) {
-            final Node approvalNode = createNodeFromModel(g, approval);
+            final Node approvalNode = g.addNodeFromModel(approval);
             g.addEdge(structureIdNodeIdMap.get(approval.structId), approvalNode, "HAS_APPROVAL");
         }
         addAtcCodeHierarchy(workspace, g, structureIdNodeIdMap);
         for (final Identifier identifier : parseTsvFile(workspace, Identifier.class, "identifier.tsv")) {
-            final Node identifierNode = createNodeFromModel(g, identifier);
+            final Node identifierNode = g.addNodeFromModel(identifier);
             g.addEdge(structureIdNodeIdMap.get(identifier.structId), identifierNode, "HAS_IDENTIFIER");
         }
         addStructureProperties(workspace, g, structureIdNodeIdMap);
@@ -69,7 +100,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     private <T> void createNodesFromTsvFile(final Workspace workspace, final Graph g, final Class<T> dataType,
                                             final String fileName) throws ExporterException {
         for (final T entry : parseTsvFile(workspace, dataType, fileName))
-            createNodeFromModel(g, entry);
+            g.addNodeFromModel(entry);
     }
 
     private <T> Iterable<T> parseTsvFile(final Workspace workspace, final Class<T> typeVariableClass,
@@ -154,7 +185,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
             g.addEdge(structureIdNodeIdMap.get(struct2Atc.structId), atcCodeNodeIdMap.get(struct2Atc.atcCode),
                       "HAS_ATC");
         for (final AtcDdd atcDdd : parseTsvFile(workspace, AtcDdd.class, "atc_ddd.tsv")) {
-            final Node atcDddNode = createNodeFromModel(g, atcDdd);
+            final Node atcDddNode = g.addNodeFromModel(atcDdd);
             g.addEdge(atcCodeNodeIdMap.get(atcDdd.atcCode), atcDddNode, "HAS_DDD");
             g.addEdge(structureIdNodeIdMap.get(atcDdd.structId), atcDddNode, "HAS_DDD");
         }
@@ -170,7 +201,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
             final Node node = g.addNodeFromModel(property, "type_category", type.category, "type_name", type.name,
                                                  "type_units", type.units);
             g.addEdge(structureIdNodeIdMap.get(property.structId), node, "HAS_PROPERTY");
-            g.addEdge(node, g.findNode("Reference", "id", property.referenceId), "HAS_REFERENCE");
+            g.addEdge(node, g.findNode(REFERENCE_LABEL, "id", property.referenceId), "HAS_REFERENCE");
         }
     }
 
@@ -350,11 +381,11 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
             g.addEdge(node, targetIdNodeIdMap.get(bioactivity.targetId), "HAS_TARGET");
             g.addEdge(structureIdNodeIdMap.get(bioactivity.structId), node, "TARGETS");
             if (bioactivity.actionType != null)
-                g.addEdge(node, g.findNode("ActionType", "type", bioactivity.actionType), "OF_TYPE");
+                g.addEdge(node, g.findNode(ACTION_TYPE_LABEL, "type", bioactivity.actionType), "OF_TYPE");
             if (bioactivity.moaRefId != null)
-                g.addEdge(node, g.findNode("Reference", "id", bioactivity.moaRefId), "HAS_MOA_REFERENCE");
+                g.addEdge(node, g.findNode(REFERENCE_LABEL, "id", bioactivity.moaRefId), "HAS_MOA_REFERENCE");
             if (bioactivity.actRefId != null)
-                g.addEdge(node, g.findNode("Reference", "id", bioactivity.actRefId), "HAS_REFERENCE");
+                g.addEdge(node, g.findNode(REFERENCE_LABEL, "id", bioactivity.actRefId), "HAS_REFERENCE");
         }
     }
 
@@ -371,7 +402,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     private void addFAERSEntries(final Workspace workspace, final Graph g,
                                  final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
         for (final Faers faers : parseTsvFile(workspace, Faers.class, "faers.tsv")) {
-            final Node faersNode = createNodeFromModel(g, faers);
+            final Node faersNode = g.addNodeFromModel(faers);
             g.addEdge(faersNode, structureIdNodeIdMap.get(faers.structId), "HAS_STRUCTURE");
         }
         for (final Faers faers : parseTsvFile(workspace, Faers.class, "faers_female.tsv")) {

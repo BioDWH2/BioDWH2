@@ -89,7 +89,7 @@ public final class MetaGraphImage {
      * Force directed layout adapted from https://github.com/Benjoyo/ForceDirectedPlacement/
      */
     private void calculateNodeLocations() {
-        float area = Math.min(width * width, height * height);
+        final float area = Math.min(width * width, height * height);
         k = C * Math.sqrt(area / nodes.size());
         t = width * 0.1;
         final Random rand = new Random();
@@ -122,8 +122,8 @@ public final class MetaGraphImage {
                     continue;
                 double deltaPosX = v.x - u.x;
                 double deltaPosY = v.y - u.y;
-                double length = vectorLength(deltaPosX, deltaPosY);
-                double repulsiveForce = forceRepulsive(length, k);
+                final double length = vectorLength(deltaPosX, deltaPosY);
+                final double repulsiveForce = forceRepulsive(length, k);
                 deltaPosX *= (1 / length) * repulsiveForce;
                 deltaPosY *= (1 / length) * repulsiveForce;
                 v.displacementX += deltaPosX;
@@ -138,8 +138,8 @@ public final class MetaGraphImage {
                 continue;
             double deltaPosX = v.x - u.x;
             double deltaPosY = v.y - u.y;
-            double length = vectorLength(deltaPosX, deltaPosY);
-            double attractiveForce = forceAttractive(length, k);
+            final double length = vectorLength(deltaPosX, deltaPosY);
+            final double attractiveForce = forceAttractive(length, k);
             deltaPosX *= (1 / length) * attractiveForce;
             deltaPosY *= (1 / length) * attractiveForce;
             nodes.get(e.fromLabel).displacementX -= deltaPosX;
@@ -151,7 +151,7 @@ public final class MetaGraphImage {
         for (final MetaNodeLayout v : nodes.values()) {
             double displacementX = v.displacementX;
             double displacementY = v.displacementY;
-            double length = vectorLength(displacementX, displacementY);
+            final double length = vectorLength(displacementX, displacementY);
             if (length > CRITERION)
                 equilibriumReached = false;
             displacementX *= (1 / length) * Math.min(length, t);
@@ -165,15 +165,15 @@ public final class MetaGraphImage {
         return equilibriumReached;
     }
 
-    private double vectorLength(double x, double y) {
+    private double vectorLength(final double x, final double y) {
         return Math.sqrt(x * x + y * y);
     }
 
-    private double forceAttractive(double d, double k) {
+    private double forceAttractive(final double d, final double k) {
         return d < 200 ? 0 : (d * d) / k;
     }
 
-    private double forceRepulsive(double d, double k) {
+    private double forceRepulsive(final double d, final double k) {
         return (k * k) / d;
     }
 
@@ -224,6 +224,7 @@ public final class MetaGraphImage {
             final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             final Graphics2D g = (Graphics2D) image.getGraphics();
             g.setRenderingHints(new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON));
+            g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
             g.setColor(Color.WHITE);
             g.fillRect(0, 0, width, height);
             drawEdgeLines(g);
@@ -303,18 +304,18 @@ public final class MetaGraphImage {
         final TextLayout tl = new TextLayout(text, font, frc);
         final Shape shape = tl.getOutline(null);
         g.setColor(Color.WHITE);
-        g.setStroke(new BasicStroke(2));
+        g.setStroke(new BasicStroke(2.0f));
         g.draw(shape);
         g.setColor(Color.BLACK);
         g.fill(shape);
         g.setTransform(transform);
     }
 
-    private void updateCropRectangle(double x, double y) {
+    private void updateCropRectangle(final double x, final double y) {
         updateCropRectangle((int) x, (int) y);
     }
 
-    private void updateCropRectangle(int x, int y) {
+    private void updateCropRectangle(final int x, final int y) {
         cropRectMinX = Math.min(cropRectMinX, x);
         cropRectMinY = Math.min(cropRectMinY, y);
         cropRectMaxX = Math.max(cropRectMaxX, x);

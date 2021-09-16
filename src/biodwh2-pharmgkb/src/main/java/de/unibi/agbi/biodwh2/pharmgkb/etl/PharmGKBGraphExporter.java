@@ -3,21 +3,25 @@ package de.unibi.agbi.biodwh2.pharmgkb.etl;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
-import de.unibi.agbi.biodwh2.core.model.graph.Graph;
-import de.unibi.agbi.biodwh2.core.model.graph.Node;
+import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.pharmgkb.PharmGKBDataSource;
 import de.unibi.agbi.biodwh2.pharmgkb.model.*;
+import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.Citation;
+import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.CrossReference;
+import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.GuidelineAnnotation;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(PharmGKBGraphExporter.class);
     public static final String QUOTED_ARRAY_DELIMITER = "\",\"";
     private static final String ESCAPED_DOUBLE_QUOTES = "\"";
     private static final String ID_PROPERTY = "id";
+    private static final String NAME_PROPERTY = "name";
     static final String GENE_LABEL = "Gene";
     static final String HAPLOTYPE_LABEL = "Haplotype";
     static final String HAPLOTYPE_SET_LABEL = "HaplotypeSet";
@@ -26,6 +30,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     static final String CHEMICAL_LABEL = "Chemical";
     static final String PHENOTYPE_LABEL = "Phenotype";
     static final String LITERATURE_LABEL = "Literature";
+    static final String WEB_PAGE_LABEL = "WebPage";
     private static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
     private static final String HAS_OCCURRENCE_LABEL = "HAS_OCCURRENCE";
     private static final String[] MERGE_HAPLOTYPE_NAME_PREFIXES = new String[]{
@@ -34,6 +39,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
 
     private final Map<String, Long> accessionNodeIdMap = new HashMap<>();
     private final Map<String, Long> literatureIdNodeIdMap = new HashMap<>();
+    private final Map<String, Long> webUrlNodeIdMap = new HashMap<>();
     private final Map<Integer, Long> variantAnnotationIdNodeIdMap = new HashMap<>();
 
     public PharmGKBGraphExporter(final PharmGKBDataSource dataSource) {
@@ -41,32 +47,148 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 2;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.setNodeIndexPropertyKeys(ID_PROPERTY, "symbol", "name");
+        graph.addIndex(IndexDescription.forNode(LITERATURE_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(VARIANT_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(HAPLOTYPE_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(HAPLOTYPE_SET_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PATHWAY_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(CHEMICAL_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PHENOTYPE_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("StudyParameters", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("GuidelineAnnotation", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("ClinicalAnnotation", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("DrugLabel", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(GENE_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        // TODO: gene symbols appear with duplicates which are data errors!
+        graph.addIndex(IndexDescription.forNode(GENE_LABEL, "symbol", IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode(VARIANT_LABEL, NAME_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(HAPLOTYPE_LABEL, NAME_PROPERTY, IndexDescription.Type.UNIQUE));
+        // TODO: chemical names appear with duplicates which are data errors!
+        graph.addIndex(IndexDescription.forNode(CHEMICAL_LABEL, NAME_PROPERTY, IndexDescription.Type.NON_UNIQUE));
+        // TODO: phenotype names appear with duplicates which are data errors!
+        graph.addIndex(IndexDescription.forNode(PHENOTYPE_LABEL, NAME_PROPERTY, IndexDescription.Type.NON_UNIQUE));
+        addGuidelineAnnotations(graph, dataSource.guidelineAnnotations);
         addGenes(graph, dataSource.genes);
         addChemicals(graph, dataSource.chemicals);
         addPhenotypes(graph, dataSource.phenotyps);
-        addStudyParameters(graph, dataSource.studyParameters);
         final Map<String, List<Occurrence>> pathwayOccurrences = collectPathwayOccurrences(dataSource.occurrences);
         addPathways(graph, dataSource.pathways, pathwayOccurrences);
         addVariants(graph, dataSource.variants);
         addOccurrences(graph, dataSource.occurrences);
         addClinicalAnnotations(graph, dataSource.clinicalAnnotations);
+        addClinicalAnnotationAlleles(graph, dataSource.clinicalAnnotationAlleles);
         addAutomatedAnnotations(graph, dataSource.automatedAnnotations);
         addClinicalVariants(graph, dataSource.clinicalVariants);
-        addVariantDrugAnnotations(graph, dataSource.variantDrugAnnotations);
-        addVariantFunctionalAnalysisAnnotations(graph, dataSource.variantFunctionalAnalysisAnnotations);
-        addVariantPhenotypeAnnotations(graph, dataSource.variantPhenotypeAnnotations);
-        addClinicalAnnotationMetadata(graph, dataSource.clinicalAnnotationMetadata);
+        addVariantAnnotations(graph, dataSource.variantDrugAnnotations);
+        addVariantAnnotations(graph, dataSource.variantFunctionalAnalysisAnnotations);
+        addVariantAnnotations(graph, dataSource.variantPhenotypeAnnotations);
+        addStudyParameters(graph, dataSource.studyParameters);
         addDrugLabels(graph, dataSource.drugLabels);
         addDrugLabelsByGene(graph, dataSource.drugLabelsByGenes);
+        addClinicalAnnotationEvidences(graph, dataSource.clinicalAnnotationEvidences);
         return true;
+    }
+
+    private void addGuidelineAnnotations(final Graph graph, final List<GuidelineAnnotation> guidelineAnnotations) {
+        LOGGER.info("Add GuidelineAnnotations...");
+        for (final GuidelineAnnotation annotation : guidelineAnnotations) {
+            final Node node = graph.addNodeFromModel(annotation.guideline);
+            accessionNodeIdMap.put(annotation.guideline.id, node.getId());
+            final Map<String, Citation> citations = new HashMap<>();
+            if (annotation.citations != null)
+                for (final Citation citation : annotation.citations)
+                    citations.put(citation.resourceId, citation);
+            if (annotation.guideline.literature != null)
+                for (final Citation citation : annotation.guideline.literature)
+                    citations.put(citation.resourceId, citation);
+            for (final Citation citation : citations.values())
+                connectGuidelineAnnotationWithCitation(graph, node, citation);
+        }
+    }
+
+    private void connectGuidelineAnnotationWithCitation(final Graph graph, final Node node, final Citation citation) {
+        Integer pmid = null;
+        String doi = null;
+        String pmcid = null;
+        for (final CrossReference reference : citation.crossReferences) {
+            if ("DOI".equals(reference.resource))
+                doi = reference.resourceId;
+            else if ("PubMed".equals(reference.resource))
+                pmid = Integer.parseInt(reference.resourceId);
+            else if ("PubMed Central".equals(reference.resource))
+                pmcid = reference.resourceId;
+        }
+        final long literatureNode = addLiteratureIfNotExists(graph, citation.resourceId, citation.title, pmid, pmcid,
+                                                             doi, citation.year);
+        graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
+    }
+
+    private long addLiteratureIfNotExists(final Graph graph, final String id, final String title, final Integer pmid,
+                                          final String pmcid, final String doi, final Integer year) {
+        Node node = null;
+        if (id != null && literatureIdNodeIdMap.containsKey(id))
+            node = graph.getNode(literatureIdNodeIdMap.get(id));
+        if (pmid != null && literatureIdNodeIdMap.containsKey("PMID:" + pmid))
+            node = graph.getNode(literatureIdNodeIdMap.get("PMID:" + pmid));
+        if (pmcid != null && literatureIdNodeIdMap.containsKey(pmcid))
+            node = graph.getNode(literatureIdNodeIdMap.get(pmcid));
+        if (node != null) {
+            boolean changed = false;
+            if (id != null && !node.hasProperty(ID_PROPERTY)) {
+                node.setProperty(ID_PROPERTY, id);
+                changed = true;
+            }
+            if (title != null && !node.hasProperty("title")) {
+                node.setProperty("title", title);
+                changed = true;
+            }
+            if (pmid != null && !node.hasProperty("pmid")) {
+                node.setProperty("pmid", pmid);
+                changed = true;
+            }
+            if (pmcid != null && !node.hasProperty("pmcid")) {
+                node.setProperty("pmcid", pmcid);
+                changed = true;
+            }
+            if (doi != null && !node.hasProperty("doi")) {
+                node.setProperty("doi", doi);
+                changed = true;
+            }
+            if (year != null && !node.hasProperty("year")) {
+                node.setProperty("year", year);
+                changed = true;
+            }
+            if (changed)
+                graph.update(node);
+        } else {
+            final NodeBuilder builder = graph.buildNode().withLabel(LITERATURE_LABEL);
+            builder.withPropertyIfNotNull(ID_PROPERTY, id);
+            builder.withPropertyIfNotNull("title", title);
+            builder.withPropertyIfNotNull("pmid", pmid);
+            builder.withPropertyIfNotNull("pmcid", pmcid);
+            builder.withPropertyIfNotNull("doi", doi);
+            builder.withPropertyIfNotNull("year", year);
+            node = builder.build();
+        }
+        if (id != null)
+            literatureIdNodeIdMap.put(id, node.getId());
+        if (pmid != null)
+            literatureIdNodeIdMap.put("PMID:" + pmid, node.getId());
+        if (pmcid != null)
+            literatureIdNodeIdMap.put(pmcid, node.getId());
+        return node.getId();
     }
 
     private void addGenes(final Graph graph, final List<Gene> genes) {
         LOGGER.info("Add Genes...");
         for (final Gene gene : genes) {
-            final Node node = createNodeFromModel(graph, gene);
+            final Node node = graph.addNodeFromModel(gene);
             accessionNodeIdMap.put(gene.pharmgkbAccessionId, node.getId());
         }
     }
@@ -74,7 +196,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     private void addChemicals(final Graph graph, final List<Chemical> chemicals) {
         LOGGER.info("Add Chemicals...");
         for (final Chemical chemical : chemicals) {
-            final Node node = createNodeFromModel(graph, chemical);
+            final Node node = graph.addNodeFromModel(chemical);
             accessionNodeIdMap.put(chemical.pharmgkbAccessionId, node.getId());
         }
     }
@@ -82,7 +204,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     private void addPhenotypes(final Graph graph, final List<Phenotype> phenotypes) {
         LOGGER.info("Add Phenotypes...");
         for (final Phenotype phenotype : phenotypes) {
-            final Node node = createNodeFromModel(graph, phenotype);
+            final Node node = graph.addNodeFromModel(phenotype);
             accessionNodeIdMap.put(phenotype.pharmgkbAccessionId, node.getId());
         }
     }
@@ -90,11 +212,14 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     private void addVariants(final Graph graph, final List<Variant> variants) {
         LOGGER.info("Add Variants...");
         for (final Variant variant : variants) {
-            final Node node = createNodeFromModel(graph, variant);
+            final Node node = graph.addNodeFromModel(variant);
             accessionNodeIdMap.put(variant.variantId, node.getId());
-            if (variant.geneIds != null)
-                for (String geneId : node.<String[]>getProperty("gene_ids"))
-                    graph.addEdge(accessionNodeIdMap.get(geneId), node, "HAS_VARIANT");
+            if (variant.geneIds != null) {
+                final String[] geneIds = node.getProperty("gene_ids");
+                if (geneIds != null)
+                    for (final String geneId : geneIds)
+                        graph.addEdge(accessionNodeIdMap.get(geneId), node, "HAS_VARIANT");
+            }
         }
     }
 
@@ -112,9 +237,10 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                              final Map<String, List<Occurrence>> pathwayOccurrences) {
         LOGGER.info("Add Pathways...");
         for (final String keyName : pathways.keySet()) {
-            final String[] parts = StringUtils.split(keyName, "-");
+            final String[] parts = StringUtils.split(keyName, '-');
             final String pathwayId = parts[0];
-            final Node node = graph.addNode(PATHWAY_LABEL, ID_PROPERTY, pathwayId, "name", parts[1].replace("_", " "));
+            final Node node = graph.addNode(PATHWAY_LABEL, ID_PROPERTY, pathwayId, NAME_PROPERTY,
+                                            parts[1].replace('_', ' '));
             accessionNodeIdMap.put(pathwayId, node.getId());
         }
         for (final String keyName : pathways.keySet())
@@ -123,32 +249,39 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
 
     private void addPathwayReactions(final Graph graph, final String keyName, final List<Pathway> pathways,
                                      final Map<String, List<Occurrence>> pathwayOccurrences) {
-        final String pathwayId = StringUtils.split(keyName, "-")[0];
+        final String pathwayId = StringUtils.split(keyName, '-')[0];
         final List<Occurrence> occurrences = pathwayOccurrences.getOrDefault(pathwayId, Collections.emptyList());
         final Long pathwayNodeId = accessionNodeIdMap.get(pathwayId);
         for (final Pathway pathway : pathways) {
-            final Node stepNode = createNodeFromModel(graph, pathway);
+            final Node stepNode = graph.addNodeFromModel(pathway);
             graph.addEdge(pathwayNodeId, stepNode, "HAS_REACTION");
             if (pathway.from != null) {
-                for (final String from : pathway.from.split(",")) {
+                for (final String from : StringUtils.split(pathway.from, ',')) {
                     final Occurrence fromOccurrence = findOccurrenceFromReactionName(occurrences, from);
                     if (fromOccurrence != null)
                         graph.addEdge(stepNode, accessionNodeIdMap.get(fromOccurrence.objectId), "HAS_INPUT");
                 }
             }
             if (pathway.to != null) {
-                for (final String to : pathway.to.split(",")) {
+                for (final String to : StringUtils.split(pathway.to, ',')) {
                     final Occurrence toOccurrence = findOccurrenceFromReactionName(occurrences, to);
                     if (toOccurrence != null)
                         graph.addEdge(stepNode, accessionNodeIdMap.get(toOccurrence.objectId), "HAS_OUTPUT");
                 }
             }
             if (pathway.controller != null) {
-                for (final String controller : pathway.controller.split(",")) {
+                for (final String controller : StringUtils.split(pathway.controller, ',')) {
                     final Occurrence controllerOccurrence = findOccurrenceFromReactionName(occurrences, controller);
                     if (controllerOccurrence != null)
                         graph.addEdge(stepNode, accessionNodeIdMap.get(controllerOccurrence.objectId),
                                       "HAS_CONTROLLER");
+                }
+            }
+            if (pathway.pmids != null) {
+                for (final String pmidText : StringUtils.split(pathway.pmids, ',')) {
+                    final int pmid = Integer.parseInt(pmidText.trim());
+                    final long literatureNode = addLiteratureIfNotExists(graph, null, null, pmid, null, null, null);
+                    graph.addEdge(stepNode, literatureNode, HAS_OCCURRENCE_LABEL);
                 }
             }
         }
@@ -161,19 +294,20 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         return null;
     }
 
-    private void addStudyParameters(final Graph graph, final List<StudyParameters> studyParameters) {
-        LOGGER.info("Add StudyParameters...");
-        for (final StudyParameters studyParameter : studyParameters)
-            createNodeFromModel(graph, studyParameter);
-    }
-
     private void addOccurrences(final Graph graph, final List<Occurrence> occurrences) {
         LOGGER.info("Add Occurrences...");
         for (final Occurrence occurrence : occurrences) {
             final long nodeId;
-            if (LITERATURE_LABEL.equalsIgnoreCase(occurrence.sourceType))
-                nodeId = addLiteratureIfNotExists(graph, occurrence.sourceId, occurrence.sourceName);
-            else if (PATHWAY_LABEL.equalsIgnoreCase(occurrence.sourceType))
+            if (LITERATURE_LABEL.equalsIgnoreCase(occurrence.sourceType)) {
+                if (occurrence.sourceId.startsWith("PMID:")) {
+                    final int pmid = Integer.parseInt(StringUtils.split(occurrence.sourceId, ":", 2)[1]);
+                    nodeId = addLiteratureIfNotExists(graph, null, occurrence.sourceName, pmid, null, null, null);
+                } else if (occurrence.sourceId.startsWith("PMC")) {
+                    nodeId = addLiteratureIfNotExists(graph, null, occurrence.sourceName, null, occurrence.sourceId,
+                                                      null, null);
+                } else
+                    nodeId = addWebPageIfNotExists(graph, occurrence.sourceId, occurrence.sourceName);
+            } else if (PATHWAY_LABEL.equalsIgnoreCase(occurrence.sourceType))
                 nodeId = addPathwayIfNotExists(graph, occurrence.sourceId, occurrence.sourceName);
             else
                 throw new ExporterException("Unknown occurrence source type found '" + occurrence.sourceType + "'");
@@ -199,24 +333,24 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         }
     }
 
-    private long addLiteratureIfNotExists(final Graph graph, final String id, final String name) {
-        if (literatureIdNodeIdMap.containsKey(id))
-            return literatureIdNodeIdMap.get(id);
+    private long addWebPageIfNotExists(final Graph graph, final String url, final String title) {
+        if (webUrlNodeIdMap.containsKey(url))
+            return webUrlNodeIdMap.get(url);
         final Node node;
-        if (name != null)
-            node = graph.addNode(LITERATURE_LABEL, ID_PROPERTY, id, "name", name);
+        if (title != null)
+            node = graph.addNode(WEB_PAGE_LABEL, "url", url, NAME_PROPERTY, title);
         else
-            node = graph.addNode(LITERATURE_LABEL, ID_PROPERTY, id);
-        literatureIdNodeIdMap.put(id, node.getId());
+            node = graph.addNode(WEB_PAGE_LABEL, "url", url);
+        webUrlNodeIdMap.put(url, node.getId());
         return node.getId();
     }
 
     private long addPathwayIfNotExists(final Graph graph, final String pathwayId, final String pathwayName) {
         if (accessionNodeIdMap.containsKey(pathwayId))
             return accessionNodeIdMap.get(pathwayId);
-        Node node;
+        final Node node;
         if (pathwayName != null)
-            node = graph.addNode(PATHWAY_LABEL, ID_PROPERTY, pathwayId, "name", pathwayName);
+            node = graph.addNode(PATHWAY_LABEL, ID_PROPERTY, pathwayId, NAME_PROPERTY, pathwayName);
         else
             node = graph.addNode(PATHWAY_LABEL, ID_PROPERTY, pathwayId);
         accessionNodeIdMap.put(pathwayId, node.getId());
@@ -227,11 +361,11 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         if (variantId != null && accessionNodeIdMap.containsKey(variantId))
             return accessionNodeIdMap.get(variantId);
         if (variantName != null) {
-            final Node nodeByName = graph.findNode(VARIANT_LABEL, "name", variantName);
+            final Node nodeByName = graph.findNode(VARIANT_LABEL, NAME_PROPERTY, variantName);
             if (nodeByName != null) {
                 if (variantId != null) {
                     accessionNodeIdMap.put(variantId, nodeByName.getId());
-                    nodeByName.setProperty("id", variantId);
+                    nodeByName.setProperty(ID_PROPERTY, variantId);
                     graph.update(nodeByName);
                 }
                 return nodeByName.getId();
@@ -239,11 +373,11 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         }
         final Node node;
         if (variantId != null && variantName != null) {
-            node = graph.addNode(VARIANT_LABEL, ID_PROPERTY, variantId, "name", variantName);
+            node = graph.addNode(VARIANT_LABEL, ID_PROPERTY, variantId, NAME_PROPERTY, variantName);
         } else if (variantId != null) {
             node = graph.addNode(VARIANT_LABEL, ID_PROPERTY, variantId);
         } else if (variantName != null) {
-            node = graph.addNode(VARIANT_LABEL, "name", variantName);
+            node = graph.addNode(VARIANT_LABEL, NAME_PROPERTY, variantName);
         } else
             throw new ExporterException("Failed to get or add variant with both id and name null");
         if (variantId != null)
@@ -255,11 +389,11 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         if (haplotypeId != null && accessionNodeIdMap.containsKey(haplotypeId))
             return accessionNodeIdMap.get(haplotypeId);
         if (haplotypeName != null) {
-            final Node nodeByName = graph.findNode(HAPLOTYPE_LABEL, "name", haplotypeName);
+            final Node nodeByName = graph.findNode(HAPLOTYPE_LABEL, NAME_PROPERTY, haplotypeName);
             if (nodeByName != null) {
                 if (haplotypeId != null) {
                     accessionNodeIdMap.put(haplotypeId, nodeByName.getId());
-                    nodeByName.setProperty("id", haplotypeId);
+                    nodeByName.setProperty(ID_PROPERTY, haplotypeId);
                     graph.update(nodeByName);
                 }
                 return nodeByName.getId();
@@ -267,11 +401,11 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         }
         final Node node;
         if (haplotypeId != null && haplotypeName != null) {
-            node = graph.addNode(HAPLOTYPE_LABEL, ID_PROPERTY, haplotypeId, "name", haplotypeName);
+            node = graph.addNode(HAPLOTYPE_LABEL, ID_PROPERTY, haplotypeId, NAME_PROPERTY, haplotypeName);
         } else if (haplotypeId != null) {
             node = graph.addNode(HAPLOTYPE_LABEL, ID_PROPERTY, haplotypeId);
         } else if (haplotypeName != null) {
-            node = graph.addNode(HAPLOTYPE_LABEL, "name", haplotypeName);
+            node = graph.addNode(HAPLOTYPE_LABEL, NAME_PROPERTY, haplotypeName);
         } else
             throw new ExporterException("Failed to get or add haplotype with both id and name null");
         if (haplotypeId != null)
@@ -282,9 +416,9 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     private long addHaplotypeSetIfNotExists(final Graph graph, final String haplotypeId, final String haplotypeName) {
         if (accessionNodeIdMap.containsKey(haplotypeId))
             return accessionNodeIdMap.get(haplotypeId);
-        Node node;
+        final Node node;
         if (haplotypeName != null)
-            node = graph.addNode(HAPLOTYPE_SET_LABEL, ID_PROPERTY, haplotypeId, "name", haplotypeName);
+            node = graph.addNode(HAPLOTYPE_SET_LABEL, ID_PROPERTY, haplotypeId, NAME_PROPERTY, haplotypeName);
         else
             node = graph.addNode(HAPLOTYPE_SET_LABEL, ID_PROPERTY, haplotypeId);
         accessionNodeIdMap.put(haplotypeId, node.getId());
@@ -293,16 +427,44 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
 
     private void addClinicalAnnotations(final Graph graph, final List<ClinicalAnnotation> annotations) {
         LOGGER.info("Add ClinicalAnnotations...");
-        for (final ClinicalAnnotation annotation : annotations)
-            createNodeFromModel(graph, annotation);
+        for (final ClinicalAnnotation annotation : annotations) {
+            final Node node = graph.addNodeFromModel(annotation);
+            final String historyTsvText = dataSource.clinicalAnnotationHistories.stream().filter(
+                    h -> h.clinicalAnnotationId.equals(annotation.clinicalAnnotationId)).map(
+                    h -> h.date + '\t' + h.type + '\t' + h.comment).collect(Collectors.joining("\n"));
+            if (StringUtils.isNotEmpty(historyTsvText)) {
+                node.setProperty("history", historyTsvText);
+                graph.update(node);
+            }
+            addVariantOrHaplotypeAssociations(graph, annotation.variantHaplotypes, node);
+            if (annotation.gene != null)
+                for (final String gene : StringUtils.split(annotation.gene, ';'))
+                    graph.addEdge(node, graph.findNode(GENE_LABEL, "symbol", gene), ASSOCIATED_WITH_LABEL);
+            if (annotation.drugs != null)
+                for (final String drug : StringUtils.split(annotation.drugs, ';'))
+                    graph.addEdge(node, graph.findNode(CHEMICAL_LABEL, NAME_PROPERTY, drug), ASSOCIATED_WITH_LABEL);
+            if (annotation.phenotypes != null)
+                for (final String phenotype : StringUtils.split(annotation.phenotypes, ';'))
+                    graph.addEdge(node, graph.findNode(PHENOTYPE_LABEL, NAME_PROPERTY, phenotype),
+                                  ASSOCIATED_WITH_LABEL);
+        }
+    }
+
+    private void addClinicalAnnotationAlleles(final Graph graph, final List<ClinicalAnnotationAllele> alleles) {
+        LOGGER.info("Add ClinicalAnnotationAlleles...");
+        for (final ClinicalAnnotationAllele allele : alleles) {
+            final Node node = graph.addNodeFromModel(allele);
+            final Node annotationNode = graph.findNode("ClinicalAnnotation", ID_PROPERTY, allele.clinicalAnnotationId);
+            graph.addEdge(annotationNode, node, "HAS_ALLELE");
+        }
     }
 
     private void addAutomatedAnnotations(final Graph graph, final List<AutomatedAnnotation> annotations) {
         LOGGER.info("Add AutomatedAnnotations...");
         for (final AutomatedAnnotation annotation : annotations) {
-            final Node node = createNodeFromModel(graph, annotation);
+            final Node node = graph.addNodeFromModel(annotation);
             if (annotation.geneIds != null)
-                for (String geneId : StringUtils.split(annotation.geneIds, ","))
+                for (String geneId : StringUtils.split(annotation.geneIds, ','))
                     graph.addEdge(node, accessionNodeIdMap.get(geneId), ASSOCIATED_WITH_LABEL);
             if (annotation.chemicalId != null) {
                 long chemicalNodeId = addChemicalIfNotExists(graph, annotation.chemicalId, annotation.chemicalName);
@@ -318,6 +480,13 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                 }
                 graph.addEdge(node, targetNodeId, ASSOCIATED_WITH_LABEL);
             }
+            if (annotation.literatureId != null) {
+                final Integer pmid = annotation.pmid != null ? Integer.parseInt(annotation.pmid.trim()) : null;
+                final long literatureNode = addLiteratureIfNotExists(graph, annotation.literatureId,
+                                                                     annotation.literatureTitle, pmid, null, null,
+                                                                     annotation.publicationYear);
+                graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
+            }
         }
     }
 
@@ -325,11 +494,11 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         if (chemicalId != null && accessionNodeIdMap.containsKey(chemicalId))
             return accessionNodeIdMap.get(chemicalId);
         if (chemicalName != null) {
-            final Node nodeByName = graph.findNode(CHEMICAL_LABEL, "name", chemicalName);
+            final Node nodeByName = graph.findNode(CHEMICAL_LABEL, NAME_PROPERTY, chemicalName);
             if (nodeByName != null) {
                 if (chemicalId != null) {
                     accessionNodeIdMap.put(chemicalId, nodeByName.getId());
-                    nodeByName.setProperty("id", chemicalId);
+                    nodeByName.setProperty(ID_PROPERTY, chemicalId);
                     graph.update(nodeByName);
                 }
                 return nodeByName.getId();
@@ -337,11 +506,11 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         }
         final Node node;
         if (chemicalId != null && chemicalName != null) {
-            node = graph.addNode(CHEMICAL_LABEL, ID_PROPERTY, chemicalId, "name", chemicalName);
+            node = graph.addNode(CHEMICAL_LABEL, ID_PROPERTY, chemicalId, NAME_PROPERTY, chemicalName);
         } else if (chemicalId != null) {
             node = graph.addNode(CHEMICAL_LABEL, ID_PROPERTY, chemicalId);
         } else if (chemicalName != null) {
-            node = graph.addNode(CHEMICAL_LABEL, "name", chemicalName);
+            node = graph.addNode(CHEMICAL_LABEL, NAME_PROPERTY, chemicalName);
         } else
             throw new ExporterException("Failed to get or add chemical with both id and name null");
         if (chemicalId != null)
@@ -352,9 +521,9 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     private void addClinicalVariants(final Graph graph, final List<ClinicalVariant> clinicalVariants) {
         LOGGER.info("Add ClinicalVariants...");
         for (final ClinicalVariant clinicalVariant : clinicalVariants) {
-            final Node node = createNodeFromModel(graph, clinicalVariant);
+            final Node node = graph.addNodeFromModel(clinicalVariant);
             if (clinicalVariant.gene != null)
-                for (final String geneId : StringUtils.split(clinicalVariant.gene, ",")) {
+                for (final String geneId : StringUtils.split(clinicalVariant.gene, ',')) {
                     final Node geneNode = graph.findNode(GENE_LABEL, "symbol", geneId);
                     graph.addEdge(node, geneNode, ASSOCIATED_WITH_LABEL);
                 }
@@ -363,7 +532,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                 graph.addEdge(node, chemicalNodeId, ASSOCIATED_WITH_LABEL);
             }
             for (final String phenotype : parseStringArray(clinicalVariant.phenotypes)) {
-                final Node phenotypeNode = graph.findNode(PHENOTYPE_LABEL, "name", phenotype);
+                final Node phenotypeNode = graph.findNode(PHENOTYPE_LABEL, NAME_PROPERTY, phenotype);
                 graph.addEdge(node, phenotypeNode, ASSOCIATED_WITH_LABEL);
             }
             addVariantOrHaplotypeAssociations(graph, clinicalVariant.variant, node);
@@ -404,36 +573,29 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         return arrayString != null ? StringUtils.splitByWholeSeparator(arrayString, ", ") : new String[0];
     }
 
-    private void addVariantDrugAnnotations(final Graph graph, final List<VariantDrugAnnotation> annotations) {
-        LOGGER.info("Add VariantDrugAnnotations...");
-        for (final VariantDrugAnnotation annotation : annotations) {
-            final Node node = createNodeFromModel(graph, annotation);
+    private <T extends VariantAnnotation> void addVariantAnnotations(final Graph graph, final List<T> annotations) {
+        LOGGER.info("Add " + annotations.get(0).getClass().getSimpleName() + "...");
+        for (final T annotation : annotations) {
+            final Node node = graph.addNodeFromModel(annotation);
             variantAnnotationIdNodeIdMap.put(annotation.annotationId, node.getId());
             if (annotation.gene != null) {
                 for (final String gene : parseQuotedStringArray(annotation.gene)) {
-                    final long geneNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(gene));
-                    graph.addEdge(node, geneNodeId, ASSOCIATED_WITH_LABEL);
+                    final Node geneNode = graph.findNode(GENE_LABEL, "symbol", gene);
+                    graph.addEdge(node, geneNode, ASSOCIATED_WITH_LABEL);
                 }
             }
-            if (annotation.chemical != null) {
-                for (final String chemical : parseQuotedStringArray(annotation.chemical)) {
-                    final long chemicalNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(chemical));
-                    graph.addEdge(node, chemicalNodeId, ASSOCIATED_WITH_LABEL);
-                }
-            }
-            if (annotation.studyParameters != null) {
-                for (final String studyParametersId : parseQuotedStringArray(annotation.studyParameters)) {
-                    final Integer studyParametersIdInteger = Integer.parseInt(studyParametersId);
-                    final Node studyParametersNode = graph.findNode("StudyParameters", ID_PROPERTY,
-                                                                    studyParametersIdInteger);
-                    graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
+            if (annotation.drugs != null) {
+                for (final String drug : parseQuotedStringArray(annotation.drugs)) {
+                    final Node drugNode = graph.findNode(CHEMICAL_LABEL, NAME_PROPERTY, drug);
+                    graph.addEdge(node, drugNode, ASSOCIATED_WITH_LABEL);
                 }
             }
             if (annotation.pmid != null) {
-                final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + annotation.pmid, null);
+                final int pmid = Integer.parseInt(annotation.pmid.trim());
+                final long literatureNode = addLiteratureIfNotExists(graph, null, null, pmid, null, null, null);
                 graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
             }
-            addVariantOrHaplotypeAssociations(graph, annotation.variant, node);
+            addVariantOrHaplotypeAssociations(graph, annotation.variantHaplotypes, node);
         }
     }
 
@@ -446,160 +608,20 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         return result.toArray(new String[0]);
     }
 
-    private static String getIdFromNameIdPair(final String pair) {
-        final String[] parts = StringUtils.split(pair, "(");
-        return parts[parts.length - 1].replace(")", "").trim();
-    }
-
-    private void addVariantFunctionalAnalysisAnnotations(final Graph graph,
-                                                         final List<VariantFunctionalAnalysisAnnotation> annotations) {
-        LOGGER.info("Add VariantFunctionalAnalysisAnnotations...");
-        for (final VariantFunctionalAnalysisAnnotation annotation : annotations) {
-            final Node node = createNodeFromModel(graph, annotation);
-            variantAnnotationIdNodeIdMap.put(annotation.annotationId, node.getId());
-            if (annotation.gene != null) {
-                for (final String gene : parseQuotedStringArray(annotation.gene)) {
-                    final long geneNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(gene));
-                    graph.addEdge(node, geneNodeId, ASSOCIATED_WITH_LABEL);
-                }
-            }
-            if (annotation.chemical != null) {
-                for (final String chemical : parseQuotedStringArray(annotation.chemical)) {
-                    final long chemicalNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(chemical));
-                    graph.addEdge(node, chemicalNodeId, ASSOCIATED_WITH_LABEL);
-                }
-            }
-            if (annotation.studyParameters != null) {
-                for (final String studyParametersId : parseQuotedStringArray(annotation.studyParameters)) {
-                    final Integer studyParametersIdInteger = Integer.parseInt(studyParametersId);
-                    final Node studyParametersNode = graph.findNode("StudyParameters", ID_PROPERTY,
-                                                                    studyParametersIdInteger);
-                    graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
-                }
-            }
-            if (annotation.pmid != null) {
-                final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + annotation.pmid, null);
-                graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
-            }
-            addVariantOrHaplotypeAssociations(graph, annotation.variant, node);
-        }
-    }
-
-    private void addVariantPhenotypeAnnotations(final Graph graph, final List<VariantPhenotypeAnnotation> annotations) {
-        LOGGER.info("Add VariantPhenotypeAnnotations...");
-        for (final VariantPhenotypeAnnotation annotation : annotations) {
-            final Node node = createNodeFromModel(graph, annotation);
-            variantAnnotationIdNodeIdMap.put(annotation.annotationId, node.getId());
-            if (annotation.gene != null) {
-                for (final String gene : parseQuotedStringArray(annotation.gene)) {
-                    final long geneNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(gene));
-                    graph.addEdge(node, geneNodeId, ASSOCIATED_WITH_LABEL);
-                }
-            }
-            if (annotation.chemical != null) {
-                for (final String chemical : parseQuotedStringArray(annotation.chemical)) {
-                    final long chemicalNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(chemical));
-                    graph.addEdge(node, chemicalNodeId, ASSOCIATED_WITH_LABEL);
-                }
-            }
-            if (annotation.studyParameters != null) {
-                for (final String studyParametersId : parseQuotedStringArray(annotation.studyParameters)) {
-                    final Integer studyParametersIdInteger = Integer.parseInt(studyParametersId);
-                    final Node studyParametersNode = graph.findNode("StudyParameters", ID_PROPERTY,
-                                                                    studyParametersIdInteger);
-                    graph.addEdge(node, studyParametersNode, "WITH_PARAMETERS");
-                }
-            }
-            if (annotation.pmid != null) {
-                final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + annotation.pmid, null);
-                graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
-            }
-            addVariantOrHaplotypeAssociations(graph, annotation.variant, node);
-        }
-    }
-
-    private void addClinicalAnnotationMetadata(final Graph graph,
-                                               final List<ClinicalAnnotationMetadata> clinicalAnnotationMetadata) {
-        LOGGER.info("Add ClinicalAnnotationMetadata...");
-        for (final ClinicalAnnotationMetadata metadata : clinicalAnnotationMetadata) {
-            final Node node = createNodeFromModel(graph, metadata);
-            if (metadata.location != null) {
-                for (final String location : parseVariantHaplotypeCommaSpaceStringArray(metadata.location)) {
-                    final long targetNodeId = location.contains("rs") ? addVariantIfNotExists(graph, null, location) :
-                                              addHaplotypeIfNotExists(graph, null, location);
-                    graph.addEdge(node, targetNodeId, "HAS_LOCATION");
-                }
-            }
-            if (metadata.gene != null) {
-                for (final String gene : StringUtils.split(metadata.gene, ";")) {
-                    final Long geneNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(gene));
-                    if (geneNodeId != null)
-                        graph.addEdge(node, geneNodeId, ASSOCIATED_WITH_LABEL);
-                    else if (LOGGER.isWarnEnabled())
-                        LOGGER.warn("Could not find gene '" + gene + "' from clinical annotation metadata");
-                }
-            }
-            if (metadata.relatedChemicals != null) {
-                for (final String chemical : StringUtils.split(metadata.relatedChemicals, ";")) {
-                    final Long chemicalNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(chemical));
-                    if (chemicalNodeId != null)
-                        graph.addEdge(node, chemicalNodeId, ASSOCIATED_WITH_LABEL);
-                    else if (LOGGER.isWarnEnabled())
-                        LOGGER.warn("Could not find chemical '" + chemical + "' from clinical annotation metadata");
-                }
-            }
-            if (metadata.relatedDiseases != null) {
-                for (final String disease : StringUtils.split(metadata.relatedDiseases, ";")) {
-                    final Long phenotypeNodeId = accessionNodeIdMap.get(getIdFromNameIdPair(disease));
-                    if (phenotypeNodeId != null)
-                        graph.addEdge(node, phenotypeNodeId, ASSOCIATED_WITH_LABEL);
-                    else if (LOGGER.isWarnEnabled())
-                        LOGGER.warn("Could not find disease '" + disease + "' from clinical annotation metadata");
-                }
-            }
-            if (metadata.pmids != null) {
-                for (final String pmid : metadata.pmids.split(";")) {
-                    final long literatureNode = addLiteratureIfNotExists(graph, "PMID:" + pmid, null);
-                    graph.addEdge(node, literatureNode, HAS_OCCURRENCE_LABEL);
-                }
-            }
-            if (metadata.genotypePhenotypesId != null) {
-                for (final String genotypePhenotypeId : StringUtils.split(metadata.genotypePhenotypesId, ";")) {
-                    final Integer genotypePhenotypeIdInteger = Integer.parseInt(genotypePhenotypeId);
-                    final Node annotationNode = graph.findNode("ClinicalAnnotation", ID_PROPERTY,
-                                                               genotypePhenotypeIdInteger);
-                    if (annotationNode != null)
-                        graph.addEdge(node, annotationNode, ASSOCIATED_WITH_LABEL);
-                    else if (LOGGER.isWarnEnabled())
-                        LOGGER.warn("Could not find ClinicalAnnotation '" + genotypePhenotypeId +
-                                    "' from clinical annotation metadata");
-                }
-            }
-            if (metadata.variantAnnotationsId != null) {
-                final String[] ids = StringUtils.split(metadata.variantAnnotationsId, ";");
-                String[] texts = StringUtils.split(metadata.variantAnnotation, ";");
-                if (ids.length != texts.length) {
-                    if (LOGGER.isWarnEnabled())
-                        LOGGER.warn("Skipping invalid variant annotation links for ClinicalAnnotationMetadata '" +
-                                    metadata.clinicalAnnotationId + "'.");
-                    return;
-                }
-                for (int i = 0; i < ids.length; i++) {
-                    final Long annotationNodeId = variantAnnotationIdNodeIdMap.get(Integer.parseInt(ids[i]));
-                    if (annotationNodeId != null)
-                        graph.addEdge(node, annotationNodeId, ASSOCIATED_WITH_LABEL, "annotation", texts[i]);
-                    else if (LOGGER.isWarnEnabled())
-                        LOGGER.warn(
-                                "Could not find VariantAnnotation '" + ids[i] + "' from clinical annotation metadata");
-                }
-            }
+    private void addStudyParameters(final Graph graph, final List<StudyParameters> studyParameters) {
+        LOGGER.info("Add StudyParameters...");
+        for (final StudyParameters studyParameter : studyParameters) {
+            final Node studyParameterNode = graph.addNodeFromModel(studyParameter);
+            final Long variantAnnotationNodeId = variantAnnotationIdNodeIdMap.get(studyParameter.variantAnnotationId);
+            graph.addEdge(variantAnnotationNodeId, studyParameterNode, "WITH_PARAMETERS");
         }
     }
 
     private void addDrugLabels(final Graph graph, final List<DrugLabel> drugLabels) {
         LOGGER.info("Add DrugLabels...");
         for (final DrugLabel drugLabel : drugLabels) {
-            final Node node = createNodeFromModel(graph, drugLabel);
+            final Node node = graph.addNodeFromModel(drugLabel);
+            accessionNodeIdMap.put(drugLabel.pharmgkbAccessionId, node.getId());
             if (drugLabel.variantsHaplotypes != null) {
                 for (final String variant : StringUtils.splitByWholeSeparator(drugLabel.variantsHaplotypes, "; ")) {
                     final long targetNodeId = variant.contains("rs") ? addVariantIfNotExists(graph, null, variant) :
@@ -619,10 +641,42 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     private void addDrugLabelsByGene(final Graph graph, final List<DrugLabelsByGene> drugLabelsByGenes) {
         LOGGER.info("Add DrugLabelsByGene...");
         for (final DrugLabelsByGene drugLabelsByGene : drugLabelsByGenes) {
-            for (final String labelId : drugLabelsByGene.labelIds.split(";")) {
+            for (final String labelId : StringUtils.split(drugLabelsByGene.labelIds, ';')) {
                 final Node labelNode = graph.findNode("DrugLabel", ID_PROPERTY, labelId);
                 final Node geneNode = graph.findNode(GENE_LABEL, ID_PROPERTY, drugLabelsByGene.geneId);
                 graph.addEdge(labelNode, geneNode, ASSOCIATED_WITH_LABEL);
+            }
+        }
+    }
+
+    private void addClinicalAnnotationEvidences(final Graph graph, final List<ClinicalAnnotationEvidence> evidences) {
+        LOGGER.info("Add ClinicalAnnotationEvidence...");
+        for (final ClinicalAnnotationEvidence evidence : evidences) {
+            final Node annotationNode = graph.findNode("ClinicalAnnotation", ID_PROPERTY,
+                                                       evidence.clinicalAnnotationId);
+            if (annotationNode == null) {
+                LOGGER.warn("Failed to find clinical annotation node for id '" + evidence.clinicalAnnotationId + "'");
+                continue;
+            }
+            Long evidenceNodeId = accessionNodeIdMap.get(evidence.evidenceId);
+            if (evidenceNodeId == null) {
+                try {
+                    final int evidenceId = Integer.parseInt(evidence.evidenceId);
+                    evidenceNodeId = variantAnnotationIdNodeIdMap.get(evidenceId);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            if (evidenceNodeId != null) {
+                final EdgeBuilder builder = graph.buildEdge().fromNode(annotationNode).toNode(evidenceNodeId).withLabel(
+                        "HAS_EVIDENCE");
+                builder.withPropertyIfNotNull("evidence_url", evidence.evidenceUrl);
+                builder.withPropertyIfNotNull("pmid", evidence.pmid);
+                builder.withPropertyIfNotNull("summary", evidence.summary);
+                builder.withPropertyIfNotNull("score", evidence.score);
+                builder.build();
+            } else if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("Failed to add clinical annotation evidence for evidence id '" + evidence.evidenceId +
+                            "' and evidence type '" + evidence.evidenceType + "'");
             }
         }
     }

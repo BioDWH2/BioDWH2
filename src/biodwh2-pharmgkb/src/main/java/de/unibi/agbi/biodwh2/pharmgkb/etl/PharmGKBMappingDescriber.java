@@ -24,6 +24,8 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
             return describeVariant(node);
         if (PharmGKBGraphExporter.PATHWAY_LABEL.equals(localMappingLabel))
             return describePathway(node);
+        if (PharmGKBGraphExporter.LITERATURE_LABEL.equals(localMappingLabel))
+            return describeLiterature(node);
         return null;
     }
 
@@ -154,12 +156,23 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
         return new NodeMappingDescription[]{description};
     }
 
+    private NodeMappingDescription[] describeLiterature(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(
+                NodeMappingDescription.NodeType.PUBLICATION);
+        description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
+        description.addIdentifier(IdentifierType.PUBMED_ID, node.<Integer>getProperty("pmid"));
+        description.addIdentifier(IdentifierType.PUBMED_CENTRAL_ID, node.<String>getProperty("pmcid"));
+        description.addIdentifier(IdentifierType.DOI, node.<String>getProperty("doi"));
+        return new NodeMappingDescription[]{description};
+    }
+
     @Override
     protected String[] getNodeMappingLabels() {
         return new String[]{
                 PharmGKBGraphExporter.CHEMICAL_LABEL, PharmGKBGraphExporter.HAPLOTYPE_LABEL,
                 PharmGKBGraphExporter.HAPLOTYPE_SET_LABEL, PharmGKBGraphExporter.GENE_LABEL,
-                PharmGKBGraphExporter.VARIANT_LABEL, PharmGKBGraphExporter.PATHWAY_LABEL
+                PharmGKBGraphExporter.VARIANT_LABEL, PharmGKBGraphExporter.PATHWAY_LABEL,
+                PharmGKBGraphExporter.LITERATURE_LABEL
         };
     }
 
@@ -169,7 +182,7 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    protected String[][] getEdgeMappingPaths() {
-        return new String[0][];
+    protected PathMapping[] getEdgePathMappings() {
+        return new PathMapping[0];
     }
 }

@@ -5,12 +5,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public abstract class MVStoreModel implements Serializable {
     private static final long serialVersionUID = 3622312710000754490L;
     public static final String ID_FIELD = "__id";
-    private HashMap<String, Object> properties;
+    private Map<String, Object> properties;
 
     protected MVStoreModel() {
         properties = new HashMap<>();

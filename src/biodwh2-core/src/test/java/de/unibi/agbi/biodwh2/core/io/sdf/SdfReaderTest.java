@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.sdf;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -14,7 +15,7 @@ class SdfReaderTest {
     void testReadingFromFileStream() throws IOException {
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try (InputStream stream = classLoader.getResourceAsStream("test_pubchem.sdf")) {
-            final SdfReader reader = new SdfReader(stream, "UTF-8");
+            final SdfReader reader = new SdfReader(stream, StandardCharsets.UTF_8);
             final Iterator<SdfEntry> entryIterator = reader.iterator();
             assertTrue(entryIterator.hasNext());
             SdfEntry entry = entryIterator.next();

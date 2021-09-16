@@ -10,12 +10,13 @@ import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class AnonymousFTPClient {
+public final class AnonymousFTPClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(AnonymousFTPClient.class);
     private FTPClient client;
 
-    public boolean connect(String url) throws IOException {
+    public boolean connect(final String url) throws IOException {
         client = new FTPClient();
+        client.setConnectTimeout(10000);
         client.connect(url, 21);
         final boolean loginSuccess = client.login("anonymous", "anonymous");
         if (!loginSuccess) {
@@ -44,7 +45,7 @@ public class AnonymousFTPClient {
         client = null;
     }
 
-    public LocalDateTime getModificationTimeFromServer(String filePath) {
+    public LocalDateTime getModificationTimeFromServer(final String filePath) {
         try {
             if (client != null)
                 return parseFtpDateTime(client.getModificationTime(filePath));
@@ -55,7 +56,7 @@ public class AnonymousFTPClient {
         return null;
     }
 
-    private static LocalDateTime parseFtpDateTime(String dateTimeString) {
+    private static LocalDateTime parseFtpDateTime(final String dateTimeString) {
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         return LocalDateTime.parse(dateTimeString, formatter);
     }
@@ -70,7 +71,7 @@ public class AnonymousFTPClient {
         }
     }
 
-    public boolean downloadFile(String url, String outputFilepath) throws IOException {
+    public boolean downloadFile(final String url, final String outputFilepath) throws IOException {
         try (OutputStream outputStream = FileUtils.openOutput(outputFilepath)) {
             return client.retrieveFile(url, outputStream);
         }

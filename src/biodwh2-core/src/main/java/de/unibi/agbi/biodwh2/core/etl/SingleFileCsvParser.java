@@ -27,8 +27,7 @@ public abstract class SingleFileCsvParser<D extends DataSource, T> extends Parse
 
     @Override
     public final boolean parse(final Workspace workspace) throws ParserException {
-        try {
-            final MappingIterator<T> iterator = getMappingIterator(workspace, dataSource);
+        try (MappingIterator<T> iterator = getMappingIterator(workspace, dataSource)) {
             if (hasHeader)
                 iterator.next();
             storeResults(dataSource, iterator.readAll());
@@ -43,7 +42,7 @@ public abstract class SingleFileCsvParser<D extends DataSource, T> extends Parse
                FileUtils.openTsv(workspace, dataSource, fileName, typeVariableClass);
     }
 
-    protected abstract void storeResults(D dataSource, List<T> results);
+    protected abstract void storeResults(final D dataSource, final List<T> results);
 
     protected enum CsvType {
         CSV,

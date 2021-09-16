@@ -6,22 +6,35 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 
 public final class NodeMappingDescription {
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "SpellCheckingInspection"})
     public enum NodeType {
-        DUMMY,
-        UNKNOWN,
-        GENE,
-        DRUG,
+        ADVERSE_EVENT,
+        ANATOMY,
+        CLINICAL_TRIAL,
         COMPOUND,
+        DIPLOTYPE,
         DISEASE,
-        SIDE_EFFECT,
-        VARIANT,
-        HAPLOTYPE,
-        PATHWAY,
-        TAXON,
-        PUBLICATION,
+        DRUG,
         DRUG_LABEL,
-        PROTEIN
+        DUMMY,
+        GENE,
+        GENE_VARIANT,
+        GENOTYPE,
+        HAPLOTYPE,
+        METABOLITE,
+        PATHWAY,
+        PHENOTYPE,
+        PHYTOCHEMICAL,
+        PRODRUG,
+        PROTEIN,
+        PUBLICATION,
+        RNA,
+        //SIDE_EFFECT, //-------
+        SYMPTOM,
+        TARGET,
+        TAXON,
+        UNKNOWN,
+        VARIANT
     }
 
     private final String type;
@@ -96,7 +109,7 @@ public final class NodeMappingDescription {
         identifierCache = new HashSet<>();
         for (final String identifierType : identifier.keySet())
             for (final String id : identifier.get(identifierType))
-                identifierCache.add(identifierType + ":" + id);
+                identifierCache.add(identifierType + ':' + id);
         return identifierCache;
     }
 

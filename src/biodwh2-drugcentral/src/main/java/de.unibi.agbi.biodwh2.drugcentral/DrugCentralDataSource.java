@@ -12,8 +12,19 @@ public class DrugCentralDataSource extends DataSource {
     }
 
     @Override
+    public String getFullName() {
+        return "DrugCentral";
+    }
+
+    @Override
+    public String getDescription() {
+        return "DrugCentral is online drug information resource created and maintained by Division of Translational " +
+               "Informatics at University of New Mexico in collaboration with the IDG.";
+    }
+
+    @Override
     public DevelopmentState getDevelopmentState() {
-        return DevelopmentState.InDevelopment;
+        return DevelopmentState.Usable;
     }
 
     @Override
@@ -23,7 +34,7 @@ public class DrugCentralDataSource extends DataSource {
 
     @Override
     public Parser<DrugCentralDataSource> getParser() {
-        return new DrugCentralParser(this);
+        return new PassThroughParser<>(this);
     }
 
     @Override

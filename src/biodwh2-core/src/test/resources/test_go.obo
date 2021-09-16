@@ -59,3 +59,4 @@ synonym: "reproductive physiological process" EXACT []
 xref: Wikipedia:Reproduction
 is_a: GO:0008150 ! biological_process
 disjoint_from: GO:0044848 ! biological phase
+

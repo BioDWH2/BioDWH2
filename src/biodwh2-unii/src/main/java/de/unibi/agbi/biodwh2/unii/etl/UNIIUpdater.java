@@ -72,4 +72,9 @@ public class UNIIUpdater extends Updater<UNIIDataSource> {
             throw new UpdaterConnectionException(e);
         }
     }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{UNIIS_FILE_NAME, UNII_DATA_FILE_NAME};
+    }
 }

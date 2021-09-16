@@ -11,6 +11,7 @@ import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.WorkspaceFileType;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
+import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,7 @@ public class GraphMerger {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMerger.class);
 
     public final boolean merge(final Workspace workspace, final DataSource[] dataSources) throws MergerException {
-        try (final Graph mergedGraph = new Graph(workspace.getFilePath(WorkspaceFileType.MERGED_PERSISTENT_GRAPH))) {
+        try (Graph mergedGraph = new Graph(workspace.getFilePath(WorkspaceFileType.MERGED_PERSISTENT_GRAPH))) {
             for (final DataSource dataSource : dataSources)
                 mergeDataSource(workspace, dataSource, mergedGraph);
             saveMergedGraph(workspace, mergedGraph);
@@ -37,12 +38,14 @@ public class GraphMerger {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Merging data source " + dataSource.getId());
         final Path intermediateGraphFilePath = dataSource.getFilePath(workspace, DataSourceFileType.PERSISTENT_GRAPH);
+        if (!intermediateGraphFilePath.toFile().exists())
+            throw new MergerException(
+                    "Failed to merge data source " + dataSource.getId() + " because the exported graph is missing");
         try (Graph databaseToMerge = new Graph(intermediateGraphFilePath, true, true)) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Adding " + databaseToMerge.getNumberOfNodes() + " nodes and " +
                             databaseToMerge.getNumberOfEdges() + " edges");
             mergedGraph.mergeDatabase(dataSource.getId(), databaseToMerge);
-            dataSource.getMetadata().mergeSuccessful = true;
         } catch (GraphCacheException e) {
             throw new MergerException("Failed to merge data source " + dataSource.getId(), e);
         }
@@ -50,7 +53,7 @@ public class GraphMerger {
 
     private void saveMergedGraph(final Workspace workspace, final Graph mergedGraph) {
         final Path outputGraphFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_GRAPHML);
-        if (workspace.getConfiguration().getSkipGraphMLExport()) {
+        if (workspace.getConfiguration().shouldSkipGraphMLExport()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Skipping merged graph GraphML export as per configuration");
             FileUtils.safeDelete(outputGraphFilePath);
@@ -64,11 +67,13 @@ public class GraphMerger {
     private void generateMetaGraphStatistics(final Graph graph, final Workspace workspace) {
         final Path metaGraphImageFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_META_GRAPH_IMAGE);
         final Path metaGraphStatsFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_META_GRAPH_STATISTICS);
-        if (workspace.getConfiguration().getSkipMetaGraphGeneration()) {
+        final Path metaGraphDynamicVisFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_META_GRAPH_DYNAMIC_VIS);
+        if (workspace.getConfiguration().shouldSkipMetaGraphGeneration()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Skipping merged graph meta graph generation as per configuration");
             FileUtils.safeDelete(metaGraphImageFilePath);
             FileUtils.safeDelete(metaGraphStatsFilePath);
+            FileUtils.safeDelete(metaGraphDynamicVisFilePath);
             return;
         }
         if (LOGGER.isInfoEnabled())
@@ -87,5 +92,7 @@ public class GraphMerger {
         final MetaGraphImage image = new MetaGraphImage(metaGraph, 2048, 2048);
         image.drawAndSaveImage(metaGraphImageFilePath);
         FileUtils.writeTextToUTF8File(metaGraphStatsFilePath, statistics);
+        final MetaGraphDynamicVisWriter visWriter = new MetaGraphDynamicVisWriter(metaGraph);
+        visWriter.write(metaGraphDynamicVisFilePath);
     }
 }

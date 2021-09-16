@@ -7,20 +7,20 @@ public class UpdaterConnectionException extends UpdaterException {
         super();
     }
 
-    public UpdaterConnectionException(String message) {
+    public UpdaterConnectionException(final String message) {
         super(message);
     }
 
-    public UpdaterConnectionException(String message, Throwable cause) {
+    public UpdaterConnectionException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public UpdaterConnectionException(Throwable cause) {
+    public UpdaterConnectionException(final Throwable cause) {
         super(cause);
     }
 
-    public UpdaterConnectionException(String message, Throwable cause, boolean enableSuppression,
-                                      boolean writableStackTrace) {
+    public UpdaterConnectionException(final String message, final Throwable cause, final boolean enableSuppression,
+                                      final boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

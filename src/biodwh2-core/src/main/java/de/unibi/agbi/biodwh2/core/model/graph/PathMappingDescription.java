@@ -1,6 +1,6 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
-public class PathMappingDescription {
+public final class PathMappingDescription {
     @SuppressWarnings("unused")
     public enum EdgeType {
         UNKNOWN,
@@ -9,7 +9,9 @@ public class PathMappingDescription {
         INDICATES,
         CONTRAINDICATES,
         INDUCES,
-        INTERACTS
+        INTERACTS,
+        CODES_FOR,
+        INVESTIGATES
     }
 
     private final String type;

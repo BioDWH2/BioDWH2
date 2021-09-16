@@ -1,10 +1,10 @@
 package de.unibi.agbi.biodwh2.medrt.model;
 
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
 @SuppressWarnings("unused")
-@NodeLabels("PropertyDefinition")
+@GraphNodeLabel("PropertyDefinition")
 public final class PropertyType {
     @GraphProperty("type")
     public String type;

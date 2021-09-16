@@ -5,7 +5,7 @@
 
     <groupId>de.unibi.agbi.biodwh2</groupId>
     <artifactId>biodwh2</artifactId>
-    <version>0.2.1</version> <!-- BioDWH2 version -->
+    <version>0.3.9</version> <!-- BioDWH2 version -->
 
     <distributionManagement>
         <repository>
@@ -30,7 +30,6 @@
         <module>biodwh2-mondo</module>
         <module>biodwh2-geneontology</module>
         <module>biodwh2-hpo</module>
-        <module>biodwh2-disgenet</module>
         <module>biodwh2-unii</module>
         <module>biodwh2-ncbi</module>
         <module>biodwh2-itis</module>
@@ -39,6 +38,13 @@
         <module>biodwh2-cancerdrugsdb</module>
         <module>biodwh2-gene2phenotype</module>
         <module>biodwh2-canadiannutrientfile</module>
+        <module>biodwh2-uniprot</module>
+        <module>biodwh2-ema</module>
+        <module>biodwh2-pathwaycommons</module>
+        <module>biodwh2-redodb</module>
+        <module>biodwh2-redotrialsdb</module>
+        <module>biodwh2-gwascatalog</module>
+        <module>biodwh2-opentargets</module>
     </modules>
 
     <packaging>pom</packaging>

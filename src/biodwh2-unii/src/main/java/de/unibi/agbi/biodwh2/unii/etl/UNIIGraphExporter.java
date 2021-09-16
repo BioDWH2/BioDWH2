@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.unii.etl;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.unii.UNIIDataSource;
 import de.unibi.agbi.biodwh2.unii.model.UNIIDataEntry;
@@ -26,11 +27,16 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 2;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
         itisIdNodeIdMap = new HashMap<>();
         ncbiTaxonomyIdNodeIdMap = new HashMap<>();
         usdaPlantsSymbolNodeIdMap = new HashMap<>();
-        graph.setNodeIndexPropertyKeys("id");
+        graph.addIndex(IndexDescription.forNode(UNII_LABEL, "id", IndexDescription.Type.UNIQUE));
         Map<String, List<UNIIEntry>> uniiEntriesMap = new HashMap<>();
         for (UNIIEntry entry : dataSource.uniiEntries) {
             if (!uniiEntriesMap.containsKey(entry.unii))
@@ -47,7 +53,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
         if (dataEntry == null)
             uniiNode = graph.addNode(UNII_LABEL, "id", entries.get(0).unii);
         else
-            uniiNode = createNodeFromModel(graph, dataEntry);
+            uniiNode = graph.addNodeFromModel(dataEntry);
         uniiNode.setProperty("name", entries.get(0).displayName);
         uniiNode.setProperty("official_names", getNameArrayOfTypeFromEntries(entries, "of"));
         uniiNode.setProperty("systematic_names", getNameArrayOfTypeFromEntries(entries, "sys"));
@@ -55,9 +61,11 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
         uniiNode.setProperty("codes", getNameArrayOfTypeFromEntries(entries, "cd"));
         uniiNode.setProperty("brand_names", getNameArrayOfTypeFromEntries(entries, "bn"));
         graph.update(uniiNode);
-        if (dataEntry.itis != null || dataEntry.ncbi != null || dataEntry.plants != null) {
-            final Node speciesNode = getOrCreateTaxonomyNode(graph, dataEntry);
-            graph.addEdge(uniiNode, speciesNode, "PART_OF_SPECIES");
+        if (dataEntry != null) {
+            if (dataEntry.itis != null || dataEntry.ncbi != null || dataEntry.plants != null) {
+                final Node speciesNode = getOrCreateTaxonomyNode(graph, dataEntry);
+                graph.addEdge(uniiNode, speciesNode, "PART_OF_SPECIES");
+            }
         }
     }
 

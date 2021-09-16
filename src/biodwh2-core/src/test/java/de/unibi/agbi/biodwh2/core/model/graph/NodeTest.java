@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NodeTest {
-    @NodeLabels("TestModel")
+    @GraphNodeLabel("TestModel")
     private static class TestModel {
         @GraphProperty("text")
         String text;

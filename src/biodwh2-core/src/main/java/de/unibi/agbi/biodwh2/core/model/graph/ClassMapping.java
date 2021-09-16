@@ -5,9 +5,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-class ClassMapping {
+final class ClassMapping {
     static class ClassMappingField {
         final Field field;
         final String propertyName;
@@ -20,7 +21,7 @@ class ClassMapping {
         }
     }
 
-    static class ClassMappingArrayField extends ClassMappingField {
+    static final class ClassMappingArrayField extends ClassMappingField {
         final String arrayDelimiter;
         final String quotedArrayDelimiter;
         final boolean quotedArrayElements;
@@ -34,7 +35,7 @@ class ClassMapping {
         }
     }
 
-    static class ClassMappingBooleanField extends ClassMappingField {
+    static final class ClassMappingBooleanField extends ClassMappingField {
         final String truthValue;
 
         ClassMappingBooleanField(final Field field, final String propertyName, final String truthValue) {
@@ -43,13 +44,13 @@ class ClassMapping {
         }
     }
 
-    final String[] labels;
+    final String label;
     final ClassMappingField[] fields;
     final ClassMappingArrayField[] arrayFields;
     final ClassMappingBooleanField[] booleanFields;
 
     ClassMapping(final Class<?> type) {
-        labels = type.getAnnotation(NodeLabels.class).value();
+        label = type.getAnnotation(GraphNodeLabel.class).value();
         fields = loadClassMappingFields(type);
         arrayFields = loadClassMappingArrayFields(type);
         booleanFields = loadClassMappingBooleanFields(type);
@@ -57,10 +58,17 @@ class ClassMapping {
 
     private ClassMappingField[] loadClassMappingFields(final Class<?> type) {
         final List<ClassMappingField> fieldsList = new ArrayList<>();
-        for (final Field field : type.getDeclaredFields())
+        for (final Field field : getAllFieldsRecursive(new ArrayList<>(), type))
             if (field.isAnnotationPresent(GraphProperty.class))
                 fieldsList.add(loadClassMappingField(field));
         return fieldsList.toArray(new ClassMappingField[0]);
+    }
+
+    private List<Field> getAllFieldsRecursive(final List<Field> fields, final Class<?> type) {
+        fields.addAll(Arrays.asList(type.getDeclaredFields()));
+        if (type.getSuperclass() != null)
+            getAllFieldsRecursive(fields, type.getSuperclass());
+        return fields;
     }
 
     private ClassMappingField loadClassMappingField(final Field field) {
@@ -71,7 +79,7 @@ class ClassMapping {
 
     private ClassMappingArrayField[] loadClassMappingArrayFields(final Class<?> type) {
         final List<ClassMappingArrayField> fieldsList = new ArrayList<>();
-        for (final Field field : type.getDeclaredFields())
+        for (final Field field : getAllFieldsRecursive(new ArrayList<>(), type))
             if (field.isAnnotationPresent(GraphArrayProperty.class))
                 fieldsList.add(loadClassMappingArrayField(field));
         return fieldsList.toArray(new ClassMappingArrayField[0]);
@@ -86,7 +94,7 @@ class ClassMapping {
 
     private ClassMappingBooleanField[] loadClassMappingBooleanFields(final Class<?> type) {
         final List<ClassMappingBooleanField> fieldsList = new ArrayList<>();
-        for (final Field field : type.getDeclaredFields())
+        for (final Field field : getAllFieldsRecursive(new ArrayList<>(), type))
             if (field.isAnnotationPresent(GraphBooleanProperty.class))
                 fieldsList.add(loadClassMappingBooleanField(field));
         return fieldsList.toArray(new ClassMappingBooleanField[0]);
@@ -109,39 +117,51 @@ class ClassMapping {
     }
 
     private void setNodePropertiesFromFields(final Node node, final Object obj) throws IllegalAccessException {
-        for (final ClassMapping.ClassMappingField field : fields) {
-            final Object value = field.field.get(obj);
-            if (value != null) {
-                if (value instanceof String) {
-                    final String stringValue = (String) value;
-                    if (!field.ignoreEmpty || stringValue.length() > 0)
-                        node.setProperty(field.propertyName, stringValue);
-                } else
-                    node.setProperty(field.propertyName, value);
-            }
+        for (final ClassMappingField field : fields)
+            setNodePropertyFromField(node, obj, field);
+    }
+
+    private void setNodePropertyFromField(final Node node, final Object obj,
+                                          final ClassMappingField field) throws IllegalAccessException {
+        final Object value = field.field.get(obj);
+        if (value != null) {
+            if (value instanceof String) {
+                final String stringValue = (String) value;
+                if (!field.ignoreEmpty || stringValue.length() > 0)
+                    node.setProperty(field.propertyName, stringValue);
+            } else
+                node.setProperty(field.propertyName, value);
         }
     }
 
     private void setNodePropertiesFromArrayFields(final Node node, final Object obj) throws IllegalAccessException {
-        for (final ClassMapping.ClassMappingArrayField field : arrayFields) {
-            final Object value = field.field.get(obj);
-            if (value != null) {
-                final String delimiter = field.quotedArrayElements ? field.quotedArrayDelimiter : field.arrayDelimiter;
-                final String[] elements = StringUtils.splitByWholeSeparator(value.toString(), delimiter);
-                if (field.quotedArrayElements && elements.length > 0) {
-                    elements[0] = StringUtils.stripStart(elements[0], "\"");
-                    elements[elements.length - 1] = StringUtils.stripEnd(elements[elements.length - 1], "\"");
-                }
-                node.setProperty(field.propertyName, elements);
+        for (final ClassMappingArrayField field : arrayFields)
+            setNodePropertyFromArrayField(node, obj, field);
+    }
+
+    private void setNodePropertyFromArrayField(final Node node, final Object obj,
+                                               final ClassMappingArrayField field) throws IllegalAccessException {
+        final Object value = field.field.get(obj);
+        if (value != null) {
+            final String delimiter = field.quotedArrayElements ? field.quotedArrayDelimiter : field.arrayDelimiter;
+            final String[] elements = StringUtils.splitByWholeSeparator(value.toString(), delimiter);
+            if (field.quotedArrayElements && elements.length > 0) {
+                elements[0] = StringUtils.stripStart(elements[0], "\"");
+                elements[elements.length - 1] = StringUtils.stripEnd(elements[elements.length - 1], "\"");
             }
+            node.setProperty(field.propertyName, elements);
         }
     }
 
     private void setNodePropertiesFromBooleanFields(final Node node, final Object obj) throws IllegalAccessException {
-        for (final ClassMapping.ClassMappingBooleanField field : booleanFields) {
-            final Object value = field.field.get(obj);
-            if (value != null)
-                node.setProperty(field.propertyName, field.truthValue.equalsIgnoreCase(value.toString()));
-        }
+        for (final ClassMappingBooleanField field : booleanFields)
+            setNodePropertyFromBooleanField(node, obj, field);
+    }
+
+    private void setNodePropertyFromBooleanField(final Node node, final Object obj,
+                                                 final ClassMappingBooleanField field) throws IllegalAccessException {
+        final Object value = field.field.get(obj);
+        if (value != null)
+            node.setProperty(field.propertyName, field.truthValue.equalsIgnoreCase(value.toString()));
     }
 }

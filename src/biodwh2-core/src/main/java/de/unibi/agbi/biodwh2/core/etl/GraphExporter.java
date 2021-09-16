@@ -9,6 +9,7 @@ import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
+import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,18 +26,17 @@ public abstract class GraphExporter<D extends DataSource> {
         this.dataSource = dataSource;
     }
 
+    public abstract long getExportVersion();
+
     public final boolean export(final Workspace workspace) throws ExporterException {
-        final Graph g = new Graph(dataSource.getFilePath(workspace, DataSourceFileType.PERSISTENT_GRAPH));
         boolean exportSuccessful;
-        try {
+        try (Graph g = new Graph(dataSource.getFilePath(workspace, DataSourceFileType.PERSISTENT_GRAPH))) {
             exportSuccessful = exportGraph(workspace, g);
             if (exportSuccessful) {
                 exportSuccessful = trySaveGraphToFile(workspace, g);
                 if (exportSuccessful)
                     generateMetaGraphStatistics(workspace, g);
             }
-        } finally {
-            g.close();
         }
         return exportSuccessful;
     }
@@ -45,7 +45,7 @@ public abstract class GraphExporter<D extends DataSource> {
 
     private boolean trySaveGraphToFile(final Workspace workspace, final Graph g) {
         final GraphMLGraphWriter writer = new GraphMLGraphWriter();
-        if (workspace.getConfiguration().getSkipGraphMLExport()) {
+        if (workspace.getConfiguration().shouldSkipGraphMLExport()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Skipping '" + dataSource.getId() + "' GraphML export as per configuration");
             writer.removeOldExport(workspace, dataSource);
@@ -59,11 +59,13 @@ public abstract class GraphExporter<D extends DataSource> {
     private void generateMetaGraphStatistics(final Workspace workspace, final Graph g) {
         final Path metaGraphImageFilePath = dataSource.getFilePath(workspace, DataSourceFileType.META_GRAPH_IMAGE);
         final Path metaGraphStatsFilePath = dataSource.getFilePath(workspace, DataSourceFileType.META_GRAPH_STATISTICS);
-        if (workspace.getConfiguration().getSkipMetaGraphGeneration()) {
+        final Path metaGraphDynamicVisFilePath = dataSource.getFilePath(workspace, DataSourceFileType.META_GRAPH_DYNAMIC_VIS);
+        if (workspace.getConfiguration().shouldSkipMetaGraphGeneration()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Skipping '" + dataSource.getId() + "' meta graph generation as per configuration");
             FileUtils.safeDelete(metaGraphImageFilePath);
             FileUtils.safeDelete(metaGraphStatsFilePath);
+            FileUtils.safeDelete(metaGraphDynamicVisFilePath);
             return;
         }
         if (LOGGER.isInfoEnabled())
@@ -82,18 +84,12 @@ public abstract class GraphExporter<D extends DataSource> {
         final MetaGraphImage image = new MetaGraphImage(metaGraph, 1024, 1024);
         image.drawAndSaveImage(metaGraphImageFilePath);
         FileUtils.writeTextToUTF8File(metaGraphStatsFilePath, statistics);
+        final MetaGraphDynamicVisWriter visWriter = new MetaGraphDynamicVisWriter(metaGraph);
+        visWriter.write(metaGraphDynamicVisFilePath);
     }
 
     protected final <T> void createNodesFromModels(final Graph g, final Iterable<T> models) {
-        for (T obj : models)
+        for (final T obj : models)
             g.addNodeFromModel(obj);
-    }
-
-    protected final <T> Node createNodeFromModel(final Graph g, final T obj) {
-        return g.addNodeFromModel(obj);
-    }
-
-    protected final Node createNode(final Graph g, final String label) {
-        return g.addNode(label);
     }
 }

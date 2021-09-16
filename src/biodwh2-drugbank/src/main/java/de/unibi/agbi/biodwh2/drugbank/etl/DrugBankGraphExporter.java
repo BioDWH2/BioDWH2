@@ -1,18 +1,27 @@
 package de.unibi.agbi.biodwh2.drugbank.etl;
 
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.model.graph.Edge;
-import de.unibi.agbi.biodwh2.core.model.graph.Graph;
-import de.unibi.agbi.biodwh2.core.model.graph.Node;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
+import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.drugbank.DrugBankDataSource;
 import de.unibi.agbi.biodwh2.drugbank.model.*;
 import de.unibi.agbi.biodwh2.drugbank.model.MetaboliteStructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private static class DrugInteractionTriple {
@@ -23,6 +32,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugBankGraphExporter.class);
     private static final String DRUGBANK_ID_KEY = "drugbank_id";
+    private static final String DRUGBANK_IDS_KEY = "drugbank_ids";
     private static final String SMPDB_ID_KEY = "smpdb_id";
     private static final String ID_KEY = "id";
     private static final String NAME_KEY = "name";
@@ -170,71 +180,59 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private static final String TARGET_METADATA_LABEL = "TargetMetadata";
     private static final String TRANSPORTER_LABEL = "Transporter";
 
+    private Map<String, Long> drugLookUp;
+    private Map<String, Long> referenceLookUp;
+    private Map<String, Long> foodInteractionLookUp;
+    private Map<String, Long> calculatedPropertyLookUp;
+    private Map<String, Long> experimentalPropertyLookUp;
+    private Map<String, Long> externalIdentifierLookUp;
+    private Map<Integer, Long> mixtureLookUp;
+    private Map<String, Map<String, Long>> dosageLookUp;
+    private Map<String, List<DrugInteractionTriple>> drugInteractionCache;
+    private Map<Long, Set<String>> pathwayEnzymeCache;
+    private Map<Long, Set<String>> pathwayDrugCache;
+    private List<Reaction> reactionCache;
+
     public DrugBankGraphExporter(final DrugBankDataSource dataSource) {
         super(dataSource);
     }
 
     @Override
+    public long getExportVersion() {
+        return 3;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
-        graph.setNodeIndexPropertyKeys(ID_KEY, DRUGBANK_ID_KEY, SMPDB_ID_KEY, NAME_KEY);
-        final Map<String, Long> drugLookUp = new HashMap<>();
-        final Map<String, Long> referenceLookUp = new HashMap<>();
-        final Map<String, Long> meshTermLookUp = new HashMap<>();
-        final Map<String, Long> foodInteractionLookUp = new HashMap<>();
-        final Map<String, Long> calculatedPropertyLookUp = new HashMap<>();
-        final Map<String, Long> experimentalPropertyLookUp = new HashMap<>();
-        final Map<String, Long> externalIdentifierLookUp = new HashMap<>();
-        final Map<Integer, Long> mixtureLookUp = new HashMap<>();
-        final Map<String, Map<String, Long>> dosageLookUp = new HashMap<>();
-        final List<DrugInteractionTriple> drugInteractionCache = new LinkedList<>();
-        final Map<Long, Set<String>> pathwayEnzymeCache = new HashMap<>();
-        final Map<Long, Set<String>> pathwayDrugCache = new HashMap<>();
-        final List<Reaction> reactionCache = new LinkedList<>();
+        drugLookUp = new HashMap<>();
+        referenceLookUp = new HashMap<>();
+        foodInteractionLookUp = new HashMap<>();
+        calculatedPropertyLookUp = new HashMap<>();
+        experimentalPropertyLookUp = new HashMap<>();
+        externalIdentifierLookUp = new HashMap<>();
+        mixtureLookUp = new HashMap<>();
+        dosageLookUp = new HashMap<>();
+        drugInteractionCache = new HashMap<>();
+        pathwayEnzymeCache = new HashMap<>();
+        pathwayDrugCache = new HashMap<>();
+        reactionCache = new LinkedList<>();
+        graph.addIndex(IndexDescription.forNode(MESH_TERM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(POLYPEPTIDE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(ENZYME_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TARGET_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(CARRIER_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TRANSPORTER_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(ORGANISM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(ORGANISM_LABEL, NAME_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PFAM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PACKAGER_LABEL, NAME_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(MANUFACTURER_LABEL, NAME_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PATHWAY_LABEL, SMPDB_ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Metabolite", DRUGBANK_ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DRUG_LABEL, DRUGBANK_ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(SALT_LABEL, DRUGBANK_ID_KEY, IndexDescription.Type.UNIQUE));
         createMetaboliteStructures(graph, dataSource.metaboliteStructures);
-        int counter = 1;
-        final int totalDrugs = dataSource.drugBankData.drugs.size();
-        for (int drugIndex = dataSource.drugBankData.drugs.size() - 1; drugIndex >= 0; drugIndex--) {
-            final Drug drug = dataSource.drugBankData.drugs.get(drugIndex);
-            dataSource.drugBankData.drugs.remove(drugIndex);
-            if (counter % 250 == 0 && LOGGER.isInfoEnabled())
-                LOGGER.info("Exporting drug " + counter + " of " + totalDrugs);
-            counter++;
-            final Node drugNode = createDrugNode(graph, drug, drugLookUp);
-            addDrugSalts(graph, drug, drugNode);
-            addDrugExternalIdentifiers(graph, drug, drugNode, externalIdentifierLookUp);
-            addDrugExternalLinks(graph, drug, drugNode);
-            createReferenceListNode(graph, referenceLookUp, drugNode, drug.generalReferences);
-            addDrugSynonyms(graph, drug, drugNode);
-            addDrugBrands(graph, drug, drugNode);
-            addDrugMixtures(graph, drug, drugNode, mixtureLookUp);
-            addDrugSnpEffects(graph, drug, drugNode);
-            addDrugSnpAdverseDrugReactions(graph, drug, drugNode);
-            addDrugFoodInteractions(graph, drug, drugNode, foodInteractionLookUp);
-            addDrugSequences(graph, drug, drugNode);
-            addDrugExperimentalProperties(graph, drug, drugNode, experimentalPropertyLookUp);
-            addDrugCalculatedProperties(graph, drug, drugNode, calculatedPropertyLookUp);
-            addDrugAffectedOrganisms(graph, drug, drugNode);
-            addDrugCategories(graph, drug, drugNode, meshTermLookUp);
-            addDrugInteractants(graph, drug, drugNode, referenceLookUp, externalIdentifierLookUp);
-            addDrugClassification(graph, drug, drugNode);
-            addPharmacology(graph, drug, drugNode);
-            addPharmacoeconomics(graph, drug, drugNode, dosageLookUp);
-            addOrCacheDrugInteractions(graph, drug, drugNode, drugLookUp, drugInteractionCache);
-            addOrCacheDrugPathways(graph, drug, drugNode, pathwayEnzymeCache, pathwayDrugCache);
-            if (drug.reactions != null)
-                reactionCache.addAll(drug.reactions);
-        }
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Export remaining " + drugInteractionCache.size() + " drug interactions...");
-        for (final DrugInteractionTriple triple : drugInteractionCache) {
-            if (drugLookUp.containsKey(triple.drugBankIdTarget)) {
-                final Long target = drugLookUp.get(triple.drugBankIdTarget);
-                graph.addEdge(triple.drugNodeId, target, INTERACTS_WITH_DRUG_LABEL, DESCRIPTION_KEY,
-                              triple.description);
-            } else {
-                LOGGER.warn("Missing drug with id '" + triple.drugBankIdTarget + "' for interaction will be ignored");
-            }
-        }
+        exportDrugs(workspace, graph);
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export remaining " + pathwayEnzymeCache.size() + " pathway relationships...");
         for (final Long pathwayNodeId : pathwayEnzymeCache.keySet()) {
@@ -303,12 +301,90 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
 
     private void createMetaboliteStructures(final Graph graph, final List<MetaboliteStructure> metabolites) {
         for (MetaboliteStructure metabolite : metabolites)
-            createNodeFromModel(graph, metabolite);
+            graph.addNodeFromModel(metabolite);
+    }
+
+    private void exportDrugs(final Workspace workspace, final Graph graph) {
+        final String filePath = dataSource.resolveSourceFilePath(workspace, DrugBankUpdater.FULL_DATABASE_FILE_NAME);
+        final File zipFile = new File(filePath);
+        if (!zipFile.exists())
+            throw new ExporterException("Failed to find file '" + DrugBankUpdater.FULL_DATABASE_FILE_NAME + "'");
+        try {
+            final ZipInputStream zipInputStream = openZipInputStream(zipFile);
+            int counter = 1;
+            ZipEntry zipEntry;
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                if (isZipEntryCoreXml(zipEntry.getName())) {
+                    final XmlMapper xmlMapper = new XmlMapper();
+                    final FromXmlParser parser = createXmlParser(zipInputStream, xmlMapper);
+                    // Skip the first structure token which is the root DrugBank node
+                    //noinspection UnusedAssignment
+                    JsonToken token = parser.nextToken();
+                    while ((token = parser.nextToken()) != null)
+                        if (token.isStructStart()) {
+                            if (counter % 250 == 0 && LOGGER.isInfoEnabled())
+                                LOGGER.info("Exporting drug progress " + counter);
+                            counter++;
+                            exportDrug(graph, xmlMapper.readValue(parser, Drug.class));
+                        }
+                }
+            }
+        } catch (IOException | XMLStreamException e) {
+            throw new ExporterFormatException(
+                    "Failed to parse the file '" + DrugBankUpdater.FULL_DATABASE_FILE_NAME + "'", e);
+        }
+    }
+
+    private static ZipInputStream openZipInputStream(final File file) throws FileNotFoundException {
+        final FileInputStream inputStream = new FileInputStream(file);
+        final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+        return new ZipInputStream(bufferedInputStream);
+    }
+
+    private static boolean isZipEntryCoreXml(final String name) {
+        return name.startsWith("full") && name.endsWith(".xml");
+    }
+
+    private FromXmlParser createXmlParser(final InputStream stream,
+                                          final XmlMapper xmlMapper) throws IOException, XMLStreamException {
+        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        final XMLStreamReader streamReader = xmlInputFactory.createXMLStreamReader(stream,
+                                                                                   StandardCharsets.UTF_8.name());
+        return xmlMapper.getFactory().createParser(streamReader);
+    }
+
+    private void exportDrug(final Graph graph, final Drug drug) {
+        final Node drugNode = createDrugNode(graph, drug, drugLookUp);
+        addDrugSalts(graph, drug, drugNode);
+        addDrugExternalIdentifiers(graph, drug, drugNode);
+        addDrugExternalLinks(graph, drug, drugNode);
+        createReferenceListNode(graph, drugNode, drug.generalReferences);
+        addDrugSynonyms(graph, drug, drugNode);
+        addDrugBrands(graph, drug, drugNode);
+        addDrugMixtures(graph, drug, drugNode);
+        addDrugSnpEffects(graph, drug, drugNode);
+        addDrugSnpAdverseDrugReactions(graph, drug, drugNode);
+        addDrugFoodInteractions(graph, drug, drugNode);
+        addDrugSequences(graph, drug, drugNode);
+        addDrugExperimentalProperties(graph, drug, drugNode);
+        addDrugCalculatedProperties(graph, drug, drugNode);
+        addDrugAffectedOrganisms(graph, drug, drugNode);
+        addDrugCategories(graph, drug, drugNode);
+        addDrugInteractants(graph, drug, drugNode);
+        addDrugClassification(graph, drug, drugNode);
+        addPharmacology(graph, drug, drugNode);
+        addPharmacoeconomics(graph, drug, drugNode);
+        addOrCacheDrugInteractions(graph, drug, drugNode);
+        addOrCacheDrugPathways(graph, drug, drugNode);
+        if (drug.reactions != null)
+            reactionCache.addAll(drug.reactions);
     }
 
     private Node createDrugNode(final Graph graph, final Drug drug, final Map<String, Long> drugLookUp) {
         final NodeBuilder drugBuilder = graph.buildNode().withLabel(DRUG_LABEL);
         drugBuilder.withProperty(DRUGBANK_ID_KEY, getPrimaryOrFirstDrugBankId(drug).value);
+        drugBuilder.withProperty(DRUGBANK_IDS_KEY,
+                                 drug.drugbankIds.stream().map(id -> id.value).toArray(String[]::new));
         drugBuilder.withProperty(NAME_KEY, drug.name);
         drugBuilder.withProperty(DESCRIPTION_KEY, drug.description);
         drugBuilder.withProperty(GROUP_KEY, drug.groups.stream().map(Group::toValue).toArray(String[]::new));
@@ -361,18 +437,16 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         graph.addEdge(drugNode, saltNode, HAS_SALT_LABEL);
     }
 
-    private void addDrugExternalIdentifiers(final Graph graph, final Drug drug, final Node drugNode,
-                                            final Map<String, Long> externalIdentifierLookUp) {
+    private void addDrugExternalIdentifiers(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.externalIdentifiers != null)
             for (final ExternalIdentifier identifier : drug.externalIdentifiers) {
                 final Long nodeId = getOrCreateExternalIdentifierNode(graph, identifier.resource.value,
-                                                                      identifier.identifier, externalIdentifierLookUp);
+                                                                      identifier.identifier);
                 graph.addEdge(drugNode, nodeId, HAS_EXTERNAL_IDENTIFIER_LABEL);
             }
     }
 
-    private Long getOrCreateExternalIdentifierNode(final Graph graph, final String resource, final String identifier,
-                                                   final Map<String, Long> externalIdentifierLookUp) {
+    private Long getOrCreateExternalIdentifierNode(final Graph graph, final String resource, final String identifier) {
         final String key = resource + ":" + identifier;
         Long nodeId = externalIdentifierLookUp.get(key);
         if (nodeId == null) {
@@ -394,7 +468,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private void addDrugSynonyms(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.synonyms != null)
             for (final Synonym synonym : drug.synonyms) {
-                final Node node = createNodeFromModel(graph, synonym);
+                final Node node = graph.addNodeFromModel(synonym);
                 graph.addEdge(drugNode, node, HAS_SYNONYM_LABEL);
             }
     }
@@ -402,19 +476,18 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private void addDrugBrands(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.internationalBrands != null)
             for (final InternationalBrand brand : drug.internationalBrands) {
-                final Node node = createNodeFromModel(graph, brand);
+                final Node node = graph.addNodeFromModel(brand);
                 graph.addEdge(drugNode, node, HAS_BRAND_LABEL);
             }
     }
 
-    private void addDrugMixtures(final Graph graph, final Drug drug, final Node drugNode,
-                                 final Map<Integer, Long> mixtureLookUp) {
+    private void addDrugMixtures(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.mixtures != null)
             for (final Mixture mixture : drug.mixtures) {
                 final int hash = mixture.hashCode();
                 Long nodeId = mixtureLookUp.get(hash);
                 if (nodeId == null) {
-                    nodeId = createNodeFromModel(graph, mixture).getId();
+                    nodeId = graph.addNodeFromModel(mixture).getId();
                     mixtureLookUp.put(hash, nodeId);
                 }
                 graph.addEdge(drugNode, nodeId, IS_IN_MIXTURE_LABEL);
@@ -424,7 +497,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private void addDrugSnpEffects(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.snpEffects != null)
             for (final SnpEffect snpEffect : drug.snpEffects) {
-                final Node node = createNodeFromModel(graph, snpEffect);
+                final Node node = graph.addNodeFromModel(snpEffect);
                 graph.addEdge(drugNode, node, HAS_SNP_EFFECT_LABEL);
             }
     }
@@ -432,13 +505,12 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private void addDrugSnpAdverseDrugReactions(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.snpAdverseDrugReactions != null)
             for (final SnpAdverseDrugReaction snpAdverseDrugReaction : drug.snpAdverseDrugReactions) {
-                final Node node = createNodeFromModel(graph, snpAdverseDrugReaction);
+                final Node node = graph.addNodeFromModel(snpAdverseDrugReaction);
                 graph.addEdge(drugNode, node, HAS_SNP_ADVERSE_DRUG_REACTION_LABEL);
             }
     }
 
-    private void addDrugFoodInteractions(final Graph graph, final Drug drug, final Node drugNode,
-                                         final Map<String, Long> foodInteractionLookUp) {
+    private void addDrugFoodInteractions(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.foodInteractions != null)
             for (final String interaction : drug.foodInteractions) {
                 if (!foodInteractionLookUp.containsKey(interaction)) {
@@ -457,8 +529,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
             }
     }
 
-    private void addDrugExperimentalProperties(final Graph graph, final Drug drug, final Node drugNode,
-                                               final Map<String, Long> experimentalPropertyLookUp) {
+    private void addDrugExperimentalProperties(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.experimentalProperties != null)
             for (final ExperimentalProperty property : drug.experimentalProperties) {
                 final String key = property.kind + ";" + property.value;
@@ -475,8 +546,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
             }
     }
 
-    private void addDrugCalculatedProperties(final Graph graph, final Drug drug, final Node drugNode,
-                                             final Map<String, Long> calculatedPropertyLookUp) {
+    private void addDrugCalculatedProperties(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.calculatedProperties != null)
             for (final CalculatedProperty property : drug.calculatedProperties) {
                 final String key = property.kind + ";" + property.value;
@@ -530,54 +600,50 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         return foundNode.getId();
     }
 
-    private void addDrugCategories(final Graph graph, final Drug drug, final Node drugNode,
-                                   final Map<String, Long> meshTermLookUp) {
+    private void addDrugCategories(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.categories != null)
-            for (final Category category : drug.categories) {
-                if (!meshTermLookUp.containsKey(category.meshId)) {
-                    final Node node = graph.addNode(MESH_TERM_LABEL, ID_KEY, category.meshId, NAME_KEY,
-                                                    category.category);
-                    meshTermLookUp.put(category.meshId, node.getId());
-                }
-                graph.addEdge(drugNode, meshTermLookUp.get(category.meshId), HAS_CATEGORY_LABEL);
-            }
+            for (final Category category : drug.categories)
+                addDrugCategory(graph, drugNode, category);
     }
 
-    private void addDrugInteractants(final Graph graph, final Drug drug, final Node drugNode,
-                                     final Map<String, Long> referenceLookUp,
-                                     final Map<String, Long> externalIdentifierLookUp) {
+    private void addDrugCategory(final Graph graph, final Node drugNode, final Category category) {
+        Node meshTermNode = graph.findNode(MESH_TERM_LABEL, ID_KEY, category.meshId);
+        if (meshTermNode == null)
+            meshTermNode = graph.addNode(MESH_TERM_LABEL, ID_KEY, category.meshId, NAME_KEY, category.category);
+        graph.addEdge(drugNode, meshTermNode, HAS_CATEGORY_LABEL);
+    }
+
+    private void addDrugInteractants(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.targets != null)
             for (final Target target : drug.targets) {
-                final Node node = getOrCreateInteractantNode(graph, target, TARGET_LABEL, externalIdentifierLookUp);
-                connectInteractant(graph, drugNode, target, node, referenceLookUp);
+                final Node node = getOrCreateInteractantNode(graph, target, TARGET_LABEL);
+                connectInteractant(graph, drugNode, target, node);
             }
         if (drug.enzymes != null)
             for (final Enzyme enzyme : drug.enzymes) {
-                final Node node = getOrCreateInteractantNode(graph, enzyme, ENZYME_LABEL, externalIdentifierLookUp);
-                connectInteractant(graph, drugNode, enzyme, node, referenceLookUp);
+                final Node node = getOrCreateInteractantNode(graph, enzyme, ENZYME_LABEL);
+                connectInteractant(graph, drugNode, enzyme, node);
             }
         if (drug.carriers != null)
             for (final Carrier carrier : drug.carriers) {
-                final Node node = getOrCreateInteractantNode(graph, carrier, CARRIER_LABEL, externalIdentifierLookUp);
-                connectInteractant(graph, drugNode, carrier, node, referenceLookUp);
+                final Node node = getOrCreateInteractantNode(graph, carrier, CARRIER_LABEL);
+                connectInteractant(graph, drugNode, carrier, node);
             }
         if (drug.transporters != null)
             for (final Transporter transporter : drug.transporters) {
-                final Node node = getOrCreateInteractantNode(graph, transporter, TRANSPORTER_LABEL,
-                                                             externalIdentifierLookUp);
-                connectInteractant(graph, drugNode, transporter, node, referenceLookUp);
+                final Node node = getOrCreateInteractantNode(graph, transporter, TRANSPORTER_LABEL);
+                connectInteractant(graph, drugNode, transporter, node);
             }
     }
 
-    private Node getOrCreateInteractantNode(final Graph graph, final Interactant interactant, final String label,
-                                            final Map<String, Long> externalIdentifierLookUp) {
+    private Node getOrCreateInteractantNode(final Graph graph, final Interactant interactant, final String label) {
         Node node = graph.findNode(label, ID_KEY, interactant.id);
         if (node == null) {
             node = graph.addNode(label, ID_KEY, interactant.id, NAME_KEY, interactant.name);
             if (interactant.polypeptide != null) {
                 Node polypeptideNode = graph.findNode(POLYPEPTIDE_LABEL, ID_KEY, interactant.polypeptide.id);
                 if (polypeptideNode == null)
-                    polypeptideNode = createPolypeptideNode(graph, interactant.polypeptide, externalIdentifierLookUp);
+                    polypeptideNode = createPolypeptideNode(graph, interactant.polypeptide);
                 graph.addEdge(node, polypeptideNode, IS_POLYPEPTIDE_LABEL);
             }
             if (interactant.organism != null) {
@@ -588,8 +654,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         return node;
     }
 
-    private Node createPolypeptideNode(final Graph graph, final Polypeptide polypeptide,
-                                       final Map<String, Long> externalIdentifierLookUp) {
+    private Node createPolypeptideNode(final Graph graph, final Polypeptide polypeptide) {
         final NodeBuilder builder = graph.buildNode().withLabel(POLYPEPTIDE_LABEL);
         builder.withPropertyIfNotNull(ID_KEY, polypeptide.id);
         builder.withPropertyIfNotNull(NAME_KEY, polypeptide.name);
@@ -613,7 +678,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         if (polypeptide.externalIdentifiers != null) {
             for (final PolypeptideExternalIdentifier identifier : polypeptide.externalIdentifiers) {
                 final Long nodeId = getOrCreateExternalIdentifierNode(graph, identifier.resource.value,
-                                                                      identifier.identifier, externalIdentifierLookUp);
+                                                                      identifier.identifier);
                 graph.addEdge(polypeptideNode, nodeId, HAS_EXTERNAL_IDENTIFIER_LABEL);
             }
         }
@@ -641,7 +706,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     }
 
     private void connectInteractant(final Graph graph, final Node drugNode, final Interactant interactant,
-                                    final Node interactantNode, final Map<String, Long> referenceLookUp) {
+                                    final Node interactantNode) {
         final NodeBuilder builder = graph.buildNode().withLabel(TARGET_METADATA_LABEL);
         builder.withPropertyIfNotNull(KNOWN_ACTION_KEY, interactant.knownAction.value);
         builder.withPropertyIfNotNull(ACTIONS_KEY, interactant.actions);
@@ -651,7 +716,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
             builder.withPropertyIfNotNull(INDUCTION_STRENGTH_KEY, ((Enzyme) interactant).inductionStrength);
         }
         final Node metadataNode = builder.build();
-        createReferenceListNode(graph, referenceLookUp, metadataNode, interactant.references);
+        createReferenceListNode(graph, metadataNode, interactant.references);
         graph.addEdge(drugNode, metadataNode, TARGETS_LABEL);
         graph.addEdge(metadataNode, interactantNode, HAS_TARGET_LABEL);
     }
@@ -689,61 +754,56 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
             graph.addEdge(drugNode, builder.build(), HAS_PHARMACOLOGY_LABEL);
     }
 
-    private void createReferenceListNode(final Graph g, final Map<String, Long> referenceLookUp, final Node parent,
-                                         final ReferenceList references) {
+    private void createReferenceListNode(final Graph graph, final Node parent, final ReferenceList references) {
         if (references == null)
-            return;
-        if (isListNullOrEmpty(references.textbooks) && isListNullOrEmpty(references.articles) && isListNullOrEmpty(
-                references.attachments) && isListNullOrEmpty(references.links))
             return;
         if (isListNotEmpty(references.textbooks)) {
             for (final Textbook reference : references.textbooks) {
-                if (!referenceLookUp.containsKey(reference.refId)) {
-                    final Node node = createNodeFromModel(g, reference);
-                    referenceLookUp.put(reference.refId, node.getId());
+                Long nodeId = referenceLookUp.get(reference.refId);
+                if (nodeId == null) {
+                    nodeId = graph.addNodeFromModel(reference).getId();
+                    referenceLookUp.put(reference.refId, nodeId);
                 }
-                g.addEdge(parent, referenceLookUp.get(reference.refId), HAS_TEXTBOOK_LABEL);
+                graph.addEdge(parent, nodeId, HAS_TEXTBOOK_LABEL);
             }
         }
         if (isListNotEmpty(references.articles)) {
             for (final Article reference : references.articles) {
-                if (!referenceLookUp.containsKey(reference.refId)) {
-                    final Node node = createNodeFromModel(g, reference);
-                    referenceLookUp.put(reference.refId, node.getId());
+                Long nodeId = referenceLookUp.get(reference.refId);
+                if (nodeId == null) {
+                    nodeId = graph.addNodeFromModel(reference).getId();
+                    referenceLookUp.put(reference.refId, nodeId);
                 }
-                g.addEdge(parent, referenceLookUp.get(reference.refId), HAS_ARTICLE_LABEL);
+                graph.addEdge(parent, nodeId, HAS_ARTICLE_LABEL);
             }
         }
         if (isListNotEmpty(references.links)) {
             for (final Link reference : references.links) {
-                if (!referenceLookUp.containsKey(reference.refId)) {
-                    final Node node = createNodeFromModel(g, reference);
-                    referenceLookUp.put(reference.refId, node.getId());
+                Long nodeId = referenceLookUp.get(reference.refId);
+                if (nodeId == null) {
+                    nodeId = graph.addNodeFromModel(reference).getId();
+                    referenceLookUp.put(reference.refId, nodeId);
                 }
-                g.addEdge(parent, referenceLookUp.get(reference.refId), HAS_LINK_LABEL);
+                graph.addEdge(parent, nodeId, HAS_LINK_LABEL);
             }
         }
         if (isListNotEmpty(references.attachments)) {
             for (final Attachment reference : references.attachments) {
-                if (!referenceLookUp.containsKey(reference.refId)) {
-                    final Node node = createNodeFromModel(g, reference);
-                    referenceLookUp.put(reference.refId, node.getId());
+                Long nodeId = referenceLookUp.get(reference.refId);
+                if (nodeId == null) {
+                    nodeId = graph.addNodeFromModel(reference).getId();
+                    referenceLookUp.put(reference.refId, nodeId);
                 }
-                g.addEdge(parent, referenceLookUp.get(reference.refId), HAS_ATTACHMENT_LABEL);
+                graph.addEdge(parent, nodeId, HAS_ATTACHMENT_LABEL);
             }
         }
-    }
-
-    private boolean isListNullOrEmpty(final List<?> list) {
-        return list == null || list.size() == 0;
     }
 
     private boolean isListNotEmpty(final List<?> list) {
         return list != null && list.size() > 0;
     }
 
-    private void addPharmacoeconomics(final Graph graph, final Drug drug, final Node drugNode,
-                                      final Map<String, Map<String, Long>> dosageLookUp) {
+    private void addPharmacoeconomics(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.products != null) {
             for (final Product product : drug.products) {
                 final NodeBuilder productBuilder = graph.buildNode().withLabel(PRODUCT_LABEL);
@@ -765,7 +825,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
                 final Node productNode = productBuilder.build();
                 graph.addEdge(drugNode, productNode, IS_PRODUCT_LABEL);
                 final Long dosageNodeId = getOrCreateDosageNode(graph, product.dosageForm, product.route,
-                                                                product.strength, dosageLookUp);
+                                                                product.strength);
                 graph.addEdge(productNode, dosageNodeId, HAS_DOSAGE_LABEL);
             }
         }
@@ -796,19 +856,18 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
             }
         if (drug.dosages != null)
             for (final Dosage dosage : drug.dosages) {
-                final Long dosageNodeId = getOrCreateDosageNode(graph, dosage.form, dosage.route, dosage.strength,
-                                                                dosageLookUp);
+                final Long dosageNodeId = getOrCreateDosageNode(graph, dosage.form, dosage.route, dosage.strength);
                 graph.addEdge(drugNode, dosageNodeId, HAS_DOSAGE_LABEL);
             }
         if (drug.patents != null)
             for (final Patent patent : drug.patents) {
-                final Node node = createNodeFromModel(graph, patent);
+                final Node node = graph.addNodeFromModel(patent);
                 graph.addEdge(drugNode, node, HAS_PATENT_LABEL);
             }
     }
 
-    private Long getOrCreateDosageNode(final Graph graph, final String form, final String route, final String strength,
-                                       final Map<String, Map<String, Long>> dosageLookUp) {
+    private Long getOrCreateDosageNode(final Graph graph, final String form, final String route,
+                                       final String strength) {
         final String formRouteKey = (form != null ? form : "") + "|" + (route != null ? route : "");
         final Map<String, Long> strengthNodeIdMap = dosageLookUp.computeIfAbsent(formRouteKey, k -> new HashMap<>());
         final String strengthKey = strength != null ? strength : "";
@@ -819,28 +878,37 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
                 ROUTE_KEY, route).withPropertyIfNotNull(STRENGTH_KEY, strength).build().getId();
     }
 
-    private void addOrCacheDrugInteractions(final Graph graph, final Drug drug, final Node drugNode,
-                                            final Map<String, Long> drugLookUp,
-                                            final List<DrugInteractionTriple> drugInteractionCache) {
-        if (drug.drugInteractions == null)
-            return;
-        for (final DrugInteraction interaction : drug.drugInteractions) {
-            if (drugLookUp.containsKey(interaction.drugbankId.value)) {
-                final Long target = drugLookUp.get(interaction.drugbankId.value);
-                graph.addEdge(drugNode, target, INTERACTS_WITH_DRUG_LABEL, DESCRIPTION_KEY, interaction.description);
-            } else {
-                final DrugInteractionTriple triple = new DrugInteractionTriple();
-                triple.drugNodeId = drugNode.getId();
-                triple.drugBankIdTarget = interaction.drugbankId.value;
-                triple.description = interaction.description;
-                drugInteractionCache.add(triple);
+    private void addOrCacheDrugInteractions(final Graph graph, final Drug drug, final Node drugNode) {
+        if (drug.drugInteractions != null) {
+            for (final DrugInteraction interaction : drug.drugInteractions) {
+                final String targetId = interaction.drugbankId.value;
+                if (drugLookUp.containsKey(targetId)) {
+                    final Long target = drugLookUp.get(targetId);
+                    graph.addEdge(drugNode, target, INTERACTS_WITH_DRUG_LABEL, DESCRIPTION_KEY,
+                                  interaction.description);
+                } else {
+                    final DrugInteractionTriple triple = new DrugInteractionTriple();
+                    triple.drugNodeId = drugNode.getId();
+                    triple.drugBankIdTarget = targetId;
+                    triple.description = interaction.description;
+                    drugInteractionCache.putIfAbsent(targetId, new LinkedList<>());
+                    drugInteractionCache.get(targetId).add(triple);
+                }
+            }
+        }
+        // Add all previously cached interactions to this drug entry
+        for (final DrugbankDrugSaltId id : drug.drugbankIds) {
+            if (drugInteractionCache.containsKey(id.value)) {
+                for (final DrugInteractionTriple triple : drugInteractionCache.get(id.value)) {
+                    graph.addEdge(triple.drugNodeId, drugNode, INTERACTS_WITH_DRUG_LABEL, DESCRIPTION_KEY,
+                                  triple.description);
+                }
+                drugInteractionCache.remove(id.value);
             }
         }
     }
 
-    private void addOrCacheDrugPathways(final Graph graph, final Drug drug, final Node drugNode,
-                                        final Map<Long, Set<String>> pathwayEnzymeCache,
-                                        final Map<Long, Set<String>> pathwayDrugCache) {
+    private void addOrCacheDrugPathways(final Graph graph, final Drug drug, final Node drugNode) {
         if (drug.pathways == null)
             return;
         for (final Pathway pathway : drug.pathways) {

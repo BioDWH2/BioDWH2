@@ -4,10 +4,9 @@ import com.univocity.parsers.annotations.Parsed;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphBooleanProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
-import de.unibi.agbi.biodwh2.pharmgkb.etl.PharmGKBGraphExporter;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
-@NodeLabels("Gene")
+@GraphNodeLabel("Gene")
 public class Gene {
     @Parsed(field = "PharmGKB Accession Id")
     @GraphProperty("id")
@@ -48,16 +47,16 @@ public class Gene {
     @Parsed(field = "Chromosome")
     @GraphProperty("chromosome")
     public String chromosome;
-    @Parsed(field = "Chromosomal Start - GRCh37.p13")
-    @GraphProperty("chromosomal_start_GRCh37_p13")
-    public String chromosomalStartGrch37P13;
-    @Parsed(field = "Chromosomal Stop - GRCh37.p13")
-    @GraphProperty("chromosomal_stop_GRCh37_p13")
-    public String chromosomalStopGrch37P13;
-    @Parsed(field = "Chromosomal Start - GRCh38.p7")
-    @GraphProperty("chromosomal_start_GRCh38_p7")
-    public String chromosomalStartGrch38P7;
-    @Parsed(field = "Chromosomal Stop - GRCh38.p7")
-    @GraphProperty("chromosomal_stop_GRCh38_p7")
-    public String chromosomalStopGrch38P7;
+    @Parsed(field = "Chromosomal Start - GRCh37")
+    @GraphProperty("chromosomal_start_GRCh37")
+    public String chromosomalStartGrch37;
+    @Parsed(field = "Chromosomal Stop - GRCh37")
+    @GraphProperty("chromosomal_stop_GRCh37")
+    public String chromosomalStopGrch37;
+    @Parsed(field = "Chromosomal Start - GRCh38")
+    @GraphProperty("chromosomal_start_GRCh38")
+    public String chromosomalStartGrch38;
+    @Parsed(field = "Chromosomal Stop - GRCh38")
+    @GraphProperty("chromosomal_stop_GRCh38")
+    public String chromosomalStopGrch38;
 }

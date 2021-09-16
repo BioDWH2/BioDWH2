@@ -1,238 +1,395 @@
 package de.unibi.agbi.biodwh2.kegg.etl;
 
+import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.model.graph.Edge;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.kegg.KeggDataSource;
 import de.unibi.agbi.biodwh2.kegg.model.*;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 
 public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
-    private final Map<String, String> idPrefixLabelMap = new HashMap<>();
-    private final Map<String, Node> referenceLookup = new HashMap<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(KeggGraphExporter.class);
+    static final String DRUG_LABEL = "Drug";
+    static final String VARIANT_LABEL = "Variant";
+    static final String REFERENCE_LABEL = "Reference";
+    static final String DISEASE_LABEL = "Disease";
+    static final String NETWORK_LABEL = "Network";
+    static final String DRUG_GROUP_LABEL = "DrugGroup";
+    static final String GENE_LABEL = "Gene";
+    static final String COMPOUND_LABEL = "Compound";
+    static final String ORGANISM_LABEL = "Organism";
+    static final String TARGETS_LABEL = "TARGETS";
 
     public KeggGraphExporter(final KeggDataSource dataSource) {
         super(dataSource);
-        idPrefixLabelMap.put("CPD", "Compound");
-        idPrefixLabelMap.put("DR", "Drug");
-        idPrefixLabelMap.put("ED", "EnvFactor");
-        idPrefixLabelMap.put("GN", "Genome");
-        idPrefixLabelMap.put("HSA", "Gene");
-        idPrefixLabelMap.put("KO", "Orthology");
-        idPrefixLabelMap.put("VG", "Virus");
-        idPrefixLabelMap.put("TAX", "Taxonomy");
+    }
+
+    @Override
+    public long getExportVersion() {
+        return 3;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
-        graph.setNodeIndexPropertyKeys("id", "pmid", "doi", "name");
-        for (Drug drug : dataSource.drugs) {
-            Node drugNode = createNodeForKeggEntry(graph, drug);
-            drugNode.setProperty("formula", drug.formula);
-            drugNode.setProperty("exact_mass", drug.exactMass);
-            drugNode.setProperty("molecular_weight", drug.molecularWeight);
-            drugNode.setProperty("atoms", drug.atoms);
-            drugNode.setProperty("bonds", drug.bonds);
-            drugNode.setProperty("efficacy", drug.efficacy);
-            if (drug.bracket != null) {
-                drugNode.setProperty("bracket_value", drug.bracket.value);
-                drugNode.setProperty("bracket_original", drug.bracket.original);
-                drugNode.setProperty("bracket_repeat", drug.bracket.repeat);
-            }
-            graph.update(drugNode);
-            for (Sequence sequence : drug.sequences) {
-                Node sequenceNode = createNodeFromModel(graph, sequence);
-                graph.addEdge(drugNode, sequenceNode, "HAS_SEQUENCE");
-            }
-            for (NameIdsPair source : drug.sources) {
-                Node taxonomyNode = getOrCreateNodeForNameIdsPair(graph, source, "Taxonomy");
-                graph.addEdge(drugNode, taxonomyNode, "HAS_SOURCE");
-            }
-            for (Interaction interaction : drug.interactions) {
-                Node targetNode = getOrCreateNodeForNameIdsPair(graph, interaction.target, "Gene");
-                Edge edge = graph.addEdge(drugNode, targetNode, "INTERACTS_WITH");
-                edge.setProperty("type", interaction.type);
-                graph.update(edge);
-            }
-            /*
-            List<Metabolism> metabolisms
-            List<NameIdsPair> targets
-            List<NameIdsPair> efficacyDiseases
-            */
-        }
-        for (DrugGroup drugGroup : dataSource.drugGroups) {
-            Node drugGroupNode = createNodeForKeggEntry(graph, drugGroup);
-            drugGroupNode.setProperty("name_stems", drugGroup.nameStems.toArray(new String[0]));
-            graph.update(drugGroupNode);
-        }
-        for (Variant variant : dataSource.variants) {
-            Node variantNode = createNodeForKeggEntry(graph, variant);
-            variantNode.setProperty("organism", variant.organism);
-            graph.update(variantNode);
-            /*
-            Map<String, NameIdsPair> genes
-            List<NetworkLink> networks
-            List<NameIdsPair> variations
-            */
-        }
-        for (Network network : dataSource.networks) {
-            Node networkNode = createNodeForKeggEntry(graph, network);
-            networkNode.setProperty("type", network.type);
-            graph.update(networkNode);
-            /*
-            String definition
-            String expandedDefinition
-            List<NameIdsPair> genes
-            List<NameIdsPair> variants
-            List<NameIdsPair> diseases
-            List<NameIdsPair> members
-            List<NameIdsPair> perturbants
-            List<NameIdsPair> classes
-            List<NameIdsPair> metabolites
-            */
-        }
-        for (Disease disease : dataSource.diseases) {
-            Node diseaseNode = createNodeForKeggEntry(graph, disease);
-            diseaseNode.setProperty("description", disease.description);
-            graph.update(diseaseNode);
-            for (NameIdsPair pathogen : disease.pathogens) {
-                Node pathogenNode = getOrCreateNodeForNameIdsPair(graph, pathogen, "Pathogen");
-                graph.addEdge(diseaseNode, pathogenNode, "HAS_PATHOGEN");
-            }
-            for (NameIdsPair carcinogen : disease.carcinogens) {
-                Node carcinogenNode = getOrCreateNodeForNameIdsPair(graph, carcinogen, "Carcinogen");
-                graph.addEdge(diseaseNode, carcinogenNode, "HAS_CARCINOGEN");
-            }
-            for (NameIdsPair envFactor : disease.envFactors) {
-                Node envFactorNode = getOrCreateNodeForNameIdsPair(graph, envFactor, "EnvFactor");
-                graph.addEdge(diseaseNode, envFactorNode, "HAS_ENV_FACTOR");
-            }
-            for (NetworkLink network : disease.networks) {
-                if (network.network != null)
-                    graph.addEdge(diseaseNode, graph.findNode("Network", "id", network.network.ids.get(0)),
-                                  "ASSOCIATED_WITH");
-                for (NameIdsPair element : network.elements)
-                    graph.addEdge(diseaseNode, graph.findNode("Network", "id", element.ids.get(0)), "ASSOCIATED_WITH");
-            }
-            /*
-            List<NameIdsPair> pathogenSignatureModules
-            List<NameIdsPair> drugs
-            List<NameIdsPair> genes
-            List<String> categories
-            List<String> superGroups
-            List<String> subGroups
-            */
-        }
-        for (Network network : dataSource.networks) {
-            Node networkNode = graph.findNode("Network", "id", network.id);
-            for (NameIdsPair member : network.members)
-                graph.addEdge(networkNode, graph.findNode("Network", "id", member.ids.get(0)), "HAS_MEMBER");
-        }
-        Map<Long, Set<Long>> hierarchyRelations = new HashMap<>();
-        for (Drug drug : dataSource.drugs) {
-            Node drugNode = graph.findNode("Drug", "id", drug.id);
-            for (List<NameIdsPair> mixture : drug.mixtures) {
-                Node mixtureNode = createNode(graph, "MixtureComponents");
-                graph.addEdge(drugNode, mixtureNode, "HAS_MIXTURE_COMPONENTS");
-                for (NameIdsPair component : mixture) {
-                    Node compoundNode = getOrCreateNodeForNameIdsPair(graph, component);
-                    graph.addEdge(mixtureNode, compoundNode, "HAS_COMPOUND");
-                }
-            }
-            for (NameIdsPair networkTarget : drug.networkTargets)
-                graph.addEdge(drugNode, graph.findNode("Network", "id", networkTarget.ids.get(0)), "TARGETS");
-            /*
-            for (KeggHierarchicalEntry.ParentChildRelation entry : drug.classes) {
-                Long parentNodeId = null;
-                if (entry.parent.ids.size() > 0)
-                    parentNodeId = graph.findNodeId("DGroup", "id", entry.parent.ids.get(0));
-                if (parentNodeId == null && entry.parent.name != null)
-                    parentNodeId = graph.findNodeId("DGroup", "name", entry.parent.name, true);
-
-                Long childNodeId = null;
-                if (entry.child.ids.size() > 0)
-                    childNodeId = graph.findNodeId("DGroup", "id", entry.child.ids.get(0));
-                if (childNodeId == null && entry.child.name != null)
-                    childNodeId = graph.findNodeId("DGroup", "name", entry.child.name, true);
-                System.out.println(parentNodeId + " -> " + childNodeId);
-            }
-            */
-        }
-        for (DrugGroup drugGroup : dataSource.drugGroups) {
-        }
-        referenceLookup.clear();
+        graph.addIndex(IndexDescription.forNode(GENE_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DRUG_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(VARIANT_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(NETWORK_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DRUG_GROUP_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(COMPOUND_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(ORGANISM_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(REFERENCE_LABEL, "pmid", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(REFERENCE_LABEL, "doi", IndexDescription.Type.UNIQUE));
+        exportHumanGenesList(workspace, graph);
+        exportCompoundsList(workspace, graph);
+        exportOrganismsList(workspace, graph);
+        exportDrugs(graph);
+        exportVariants(graph);
+        exportDiseases(graph);
+        exportNetworks(graph);
+        exportDrugGroups(graph);
         return true;
     }
 
-    private Node createNodeForKeggEntry(final Graph graph, final KeggEntry entry) {
-        Node node = createNode(graph, entry.tags.get(0));
-        node.setProperty("id", entry.id);
-        node.setProperty("tags", entry.tags.toArray(new String[0]));
-        if (entry.names.size() > 0)
-            node.setProperty("names", entry.names.toArray(new String[0]));
+    private void exportHumanGenesList(final Workspace workspace, final Graph graph) {
+        for (final String[] row : openTSV(workspace, KeggUpdater.HUMAN_GENES_LIST_FILE_NAME))
+            if (row != null && row.length == 2)
+                exportHumanGene(graph, row);
+    }
+
+    private Iterable<String[]> openTSV(final Workspace workspace, final String fileName) {
+        try {
+            final MappingIterator<String[]> iterator = FileUtils.openTsv(workspace, dataSource, fileName,
+                                                                         String[].class);
+            return () -> iterator;
+        } catch (IOException e) {
+            throw new ExporterFormatException(e);
+        }
+    }
+
+    private void exportHumanGene(final Graph graph, final String[] row) {
+        final String id = row[0].trim();
+        if (row[1].contains(";")) {
+            final String[] symbolsAndName = StringUtils.split(row[1], ";", 2);
+            final String[] symbols = Arrays.stream(StringUtils.split(symbolsAndName[0], ",")).map(String::trim).toArray(
+                    String[]::new);
+            graph.addNode(GENE_LABEL, "id", id, "name", symbolsAndName[1].trim(), "symbols", symbols);
+        } else
+            graph.addNode(GENE_LABEL, "id", id, "name", row[1].trim());
+    }
+
+    private void exportCompoundsList(Workspace workspace, Graph graph) {
+        for (final String[] row : openTSV(workspace, KeggUpdater.COMPOUNDS_LIST_FILE_NAME))
+            if (row != null && row.length == 2)
+                graph.addNode(COMPOUND_LABEL, "id", StringUtils.split(row[0], ":", 2)[1], "names",
+                              StringUtils.splitByWholeSeparator(row[1], "; "));
+    }
+
+    private void exportOrganismsList(Workspace workspace, Graph graph) {
+        for (final String[] row : openTSV(workspace, KeggUpdater.ORGANISMS_LIST_FILE_NAME))
+            if (row != null && row.length == 4)
+                graph.addNode(ORGANISM_LABEL, "id", row[0], "symbol", row[1], "name", row[2], "taxonomy", row[3]);
+    }
+
+    private void exportDrugs(final Graph graph) {
+        for (final Drug drug : dataSource.drugs)
+            exportDrug(graph, drug);
+    }
+
+    private void exportDrug(final Graph graph, final Drug drug) {
+        final NodeBuilder builder = getNodeBuilderForKeggEntry(graph, drug, DRUG_LABEL);
+        builder.withPropertyIfNotNull("formula", drug.formula);
+        builder.withPropertyIfNotNull("exact_mass", drug.exactMass);
+        builder.withPropertyIfNotNull("molecular_weight", drug.molecularWeight);
+        builder.withPropertyIfNotNull("atoms", drug.atoms);
+        builder.withPropertyIfNotNull("bonds", drug.bonds);
+        builder.withPropertyIfNotNull("bracket", drug.bracket);
+        builder.withPropertyIfNotNull("name_abbreviation", drug.nameAbbreviation);
+        final Node node = builder.build();
+        addAllReferencesForEntry(graph, drug, node);
+        for (final Sequence sequence : drug.sequences)
+            graph.addEdge(node, graph.addNodeFromModel(sequence), "HAS_SEQUENCE");
+        exportDrugGeneRelations(graph, drug, node);
+        // TODO: efficacy
+        // TODO: efficacyDiseases
+        // TODO: classes
+        // TODO: networkTargets
+        // TODO: sources
+        // TODO: mixtures
+    }
+
+    private NodeBuilder getNodeBuilderForKeggEntry(final Graph graph, final KeggEntry entry, final String label) {
+        final NodeBuilder builder = graph.buildNode().withLabel(label);
+        builder.withProperty("id", entry.id);
+        if (entry.tags.size() > 1)
+            builder.withProperty("tags", entry.tags.toArray(new String[0]));
+        if (entry.names.size() == 1)
+            builder.withProperty("name", entry.names.get(0));
+        if (entry.names.size() > 1)
+            builder.withProperty("names", entry.names.toArray(new String[0]));
         if (entry.externalIds.size() > 0)
-            node.setProperty("external_identifiers", entry.externalIds.toArray(new String[0]));
+            builder.withProperty("external_identifier", entry.externalIds.toArray(new String[0]));
         if (entry.remarks.size() > 0)
-            node.setProperty("remarks", entry.remarks.toArray(new String[0]));
+            builder.withProperty("remarks", entry.remarks.toArray(new String[0]));
         if (entry.comments.size() > 0)
-            node.setProperty("comments", entry.comments.toArray(new String[0]));
-        graph.update(node);
-        addAllReferencesForNode(graph, entry, node);
-        return node;
+            builder.withProperty("comments", entry.comments.toArray(new String[0]));
+        return builder;
     }
 
-    private void addAllReferencesForNode(final Graph graph, final KeggEntry entry, final Node node) {
-        for (Reference reference : entry.references) {
-            Node referenceNode;
-            boolean doiAvailable = reference.doi != null && reference.doi.length() > 0;
-            boolean pmidAvailable = reference.pmid != null && reference.pmid.length() > 0;
-            if (doiAvailable && referenceLookup.containsKey(reference.doi)) {
-                referenceNode = referenceLookup.get(reference.doi);
-            } else if (pmidAvailable && referenceLookup.containsKey(reference.pmid)) {
-                referenceNode = referenceLookup.get(reference.pmid);
-            } else {
-                referenceNode = createNodeFromModel(graph, reference);
-                if (pmidAvailable)
-                    referenceLookup.put(reference.pmid, referenceNode);
-                if (doiAvailable)
-                    referenceLookup.put(reference.doi, referenceNode);
-            }
-            Edge edge = graph.addEdge(node, referenceNode, "HAS_REFERENCE");
-            edge.setProperty("remarks", reference.remarks);
-            graph.update(edge);
-        }
-    }
-
-    private Node getOrCreateNodeForNameIdsPair(final Graph graph, final NameIdsPair pair) {
-        return getOrCreateNodeForNameIdsPair(graph, pair, null);
-    }
-
-    private Node getOrCreateNodeForNameIdsPair(final Graph graph, final NameIdsPair pair, String nodeLabel) {
-        Node node = null;
-        String id = null;
-        if (pair.ids.size() > 0) {
-            String[] idParts = pair.ids.get(0).split(":");
-            idParts[0] = idParts[0].toUpperCase(Locale.US);
-            id = idParts[1];
-            node = graph.findNode(null, "id", id);
-            if (idPrefixLabelMap.containsKey(idParts[0]))
-                nodeLabel = idPrefixLabelMap.get(idParts[0]);
+    private void addAllReferencesForEntry(final Graph graph, final KeggEntry entry, final Node node) {
+        for (final Reference reference : entry.references) {
+            final Node referenceNode = getOrCreateReference(graph, reference);
+            if (reference.remarks != null)
+                graph.addEdge(node, referenceNode, "HAS_REFERENCE", "remarks", reference.remarks);
             else
-                System.out.println("Unmapped id prefix: " + pair.ids.get(0));
+                graph.addEdge(node, referenceNode, "HAS_REFERENCE");
         }
-        if (node == null && pair.name != null)
-            node = graph.findNode(null, "name", pair.name);
-        if (node == null) {
-            node = createNode(graph, nodeLabel != null ? nodeLabel : "UNKNOWN");
-            node.setProperty("id", id);
-            node.setProperty("name", pair.name);
-            if (pair.ids.size() > 1)
-                node.setProperty("ids", pair.ids.toArray(new String[0]));
-            graph.update(node);
-        }
+    }
+
+    private Node getOrCreateReference(final Graph graph, final Reference reference) {
+        Node node = null;
+        if (StringUtils.isNotEmpty(reference.doi))
+            node = graph.findNode("Reference", "doi", reference.doi);
+        if (node == null)
+            node = graph.findNode("Reference", "pmid", reference.pmid);
+        if (node == null)
+            node = graph.addNodeFromModel(reference);
         return node;
+    }
+
+    private void exportDrugGeneRelations(final Graph graph, final Drug drug, final Node node) {
+        for (final NameIdsPair target : drug.targets) {
+            final Node geneNode = findEntry(graph, target.ids);
+            if (geneNode != null)
+                graph.addEdge(node, geneNode, TARGETS_LABEL);
+            else
+                LOGGER.warn("Failed to add targets relation for drug " + drug.id + " and target " + target);
+        }
+        for (final Metabolism metabolism : drug.metabolisms) {
+            final Node geneNode = findEntry(graph, metabolism.target.ids);
+            if (geneNode != null)
+                graph.addEdge(node, geneNode, TARGETS_LABEL, "type", "substrate", "target_type",
+                              metabolism.type.toLowerCase(Locale.ROOT));
+            else
+                LOGGER.warn(
+                        "Failed to add metabolism relation for drug " + drug.id + " and target " + metabolism.target);
+        }
+        for (final Interaction interaction : drug.interactions) {
+            final Node geneNode = findEntry(graph, interaction.target.ids);
+            if (geneNode == null) {
+                LOGGER.warn(
+                        "Failed to add interaction relation for drug " + drug.id + " and target " + interaction.target);
+                continue;
+            }
+            switch (interaction.type.toLowerCase(Locale.ROOT)) {
+                case "cyp inhibition":
+                    graph.addEdge(node, geneNode, TARGETS_LABEL, "type", "inhibitor", "target_type", "cyp");
+                    break;
+                case "cyp induction":
+                    graph.addEdge(node, geneNode, TARGETS_LABEL, "type", "inducer", "target_type", "cyp");
+                    break;
+                case "transporter inhibition":
+                    graph.addEdge(node, geneNode, TARGETS_LABEL, "type", "inhibitor", "target_type", "transporter");
+                    break;
+                case "transporter induction":
+                    graph.addEdge(node, geneNode, TARGETS_LABEL, "type", "inducer", "target_type", "transporter");
+                    break;
+                case "enzyme inhibition":
+                    graph.addEdge(node, geneNode, TARGETS_LABEL, "type", "inhibitor", "target_type", "enzyme");
+                    break;
+                default:
+                    if (LOGGER.isWarnEnabled())
+                        LOGGER.warn("Unhandled interaction type " + interaction.type);
+                    graph.addEdge(node, geneNode, TARGETS_LABEL, "type", interaction.type);
+                    break;
+            }
+        }
+    }
+
+    private Node findEntry(final Graph graph, final String id) {
+        if (id.startsWith("HSA"))
+            return graph.findNode(GENE_LABEL, "id", id.toLowerCase(Locale.ROOT));
+        if (id.startsWith("DG"))
+            return graph.findNode(DRUG_GROUP_LABEL, "id", id);
+        if (id.startsWith("D"))
+            return graph.findNode(DRUG_LABEL, "id", id);
+        if (id.startsWith("C"))
+            return graph.findNode(COMPOUND_LABEL, "id", id);
+        return null;
+    }
+
+    private void exportVariants(final Graph graph) {
+        for (final Variant variant : dataSource.variants)
+            exportVariant(graph, variant);
+    }
+
+    private void exportVariant(final Graph graph, final Variant variant) {
+        final NodeBuilder builder = getNodeBuilderForKeggEntry(graph, variant, VARIANT_LABEL);
+        builder.withPropertyIfNotNull("organism", variant.organism);
+        // TODO: genes
+        // TODO: networks
+        // TODO: variations
+        final Node node = builder.build();
+        addAllReferencesForEntry(graph, variant, node);
+    }
+
+    private void exportDiseases(final Graph graph) {
+        for (final Disease disease : dataSource.diseases)
+            exportDisease(graph, disease);
+        final Map<Long, Set<Long>> addedHierarchyRelationsCache = new HashMap<>();
+        for (final Disease disease : dataSource.diseases)
+            exportDiseaseHierarchy(graph, addedHierarchyRelationsCache, disease);
+    }
+
+    private void exportDisease(final Graph graph, final Disease disease) {
+        final NodeBuilder builder = getNodeBuilderForKeggEntry(graph, disease, DISEASE_LABEL);
+        builder.withPropertyIfNotNull("description", disease.description);
+        if (disease.categories.size() > 0)
+            builder.withProperty("categories", disease.categories.toArray(new String[0]));
+        if (disease.envFactors.size() > 0)
+            builder.withProperty("env_factors",
+                                 disease.envFactors.stream().map(Object::toString).toArray(String[]::new));
+        if (disease.carcinogens.size() > 0)
+            builder.withProperty("carcinogens",
+                                 disease.carcinogens.stream().map(Object::toString).toArray(String[]::new));
+        if (disease.pathogens.size() > 0)
+            builder.withProperty("pathogens", disease.pathogens.stream().map(Object::toString).toArray(String[]::new));
+        if (disease.pathogenModules.size() > 0)
+            builder.withProperty("pathogen_modules",
+                                 disease.pathogenModules.stream().map(Object::toString).toArray(String[]::new));
+        // TODO: networks
+        // TODO: drugs
+        // TODO: genes
+        final Node node = builder.build();
+        addAllReferencesForEntry(graph, disease, node);
+    }
+
+    private void exportDiseaseHierarchy(final Graph graph, final Map<Long, Set<Long>> addedHierarchyRelationsCache,
+                                        final Disease disease) {
+        final Node node = graph.findNode(DISEASE_LABEL, "id", disease.id);
+        if (!addedHierarchyRelationsCache.containsKey(node.getId()))
+            addedHierarchyRelationsCache.put(node.getId(), new HashSet<>());
+        for (final NameIdsPair group : disease.subGroups) {
+            if (group.ids.size() == 0) {
+                LOGGER.warn(
+                        "Failed to add disease hierarchy relation with parent " + disease.id + " and child " + group);
+                continue;
+            }
+            final String childId = StringUtils.split(group.ids.get(0), ":", 2)[1];
+            final Node child = graph.findNode(DISEASE_LABEL, "id", childId);
+            if (child == null) {
+                LOGGER.warn(
+                        "Failed to add disease hierarchy relation with parent " + disease.id + " and child " + group);
+                continue;
+            }
+            final Set<Long> childIds = addedHierarchyRelationsCache.get(node.getId());
+            if (!childIds.contains(child.getId())) {
+                graph.addEdge(node, child, "HAS_MEMBER");
+                childIds.add(child.getId());
+            }
+        }
+        for (final NameIdsPair group : disease.superGroups) {
+            if (group.ids.size() == 0) {
+                LOGGER.warn(
+                        "Failed to add disease hierarchy relation with parent " + group + " and child " + disease.id);
+                continue;
+            }
+            final String parentId = StringUtils.split(group.ids.get(0), ":", 2)[1];
+            final Node parent = graph.findNode(DISEASE_LABEL, "id", parentId);
+            if (parent == null) {
+                LOGGER.warn(
+                        "Failed to add disease hierarchy relation with parent " + group + " and child " + disease.id);
+                continue;
+            }
+            if (!addedHierarchyRelationsCache.containsKey(parent.getId()))
+                addedHierarchyRelationsCache.put(parent.getId(), new HashSet<>());
+            final Set<Long> childIds = addedHierarchyRelationsCache.get(parent.getId());
+            if (!childIds.contains(node.getId())) {
+                graph.addEdge(parent, node, "HAS_MEMBER");
+                childIds.add(node.getId());
+            }
+        }
+    }
+
+    private void exportNetworks(final Graph graph) {
+        for (final Network network : dataSource.networks)
+            exportNetwork(graph, network);
+    }
+
+    private void exportNetwork(final Graph graph, final Network network) {
+        final NodeBuilder builder = getNodeBuilderForKeggEntry(graph, network, NETWORK_LABEL);
+        builder.withPropertyIfNotNull("type", network.type);
+        // TODO: definition
+        // TODO: expandedDefinition
+        // TODO: genes
+        // TODO: variants
+        // TODO: diseases
+        // TODO: members
+        // TODO: perturbants
+        // TODO: classes
+        // TODO: metabolites
+        final Node node = builder.build();
+        addAllReferencesForEntry(graph, network, node);
+    }
+
+    private void exportDrugGroups(final Graph graph) {
+        for (final DrugGroup drugGroup : dataSource.drugGroups)
+            exportDrugGroup(graph, drugGroup);
+        final Map<Long, Set<Long>> addedHierarchyRelationsCache = new HashMap<>();
+        for (final DrugGroup drugGroup : dataSource.drugGroups)
+            exportDrugGroupHierarchy(graph, addedHierarchyRelationsCache, drugGroup);
+    }
+
+    private void exportDrugGroup(final Graph graph, final DrugGroup drugGroup) {
+        final NodeBuilder builder = getNodeBuilderForKeggEntry(graph, drugGroup, DRUG_GROUP_LABEL);
+        if (drugGroup.nameStems.size() > 0)
+            builder.withProperty("name_stems", drugGroup.nameStems.toArray(new String[0]));
+        builder.withPropertyIfNotNull("name_abbreviation", drugGroup.nameAbbreviation);
+        final Node node = builder.build();
+        addAllReferencesForEntry(graph, drugGroup, node);
+    }
+
+    private void exportDrugGroupHierarchy(final Graph graph, final Map<Long, Set<Long>> addedHierarchyRelationsCache,
+                                          final DrugGroup drugGroup) {
+        // TODO: classes
+        for (final ParentChildRelation relation : drugGroup.members) {
+            final Node parent = relation.parent == null ? graph.findNode(DRUG_GROUP_LABEL, "id", drugGroup.id) :
+                                findEntry(graph, relation.parent.ids);
+            final Node child = findEntry(graph, relation.child.ids);
+            if (parent != null && child != null) {
+                if (!addedHierarchyRelationsCache.containsKey(parent.getId()))
+                    addedHierarchyRelationsCache.put(parent.getId(), new HashSet<>());
+                final Set<Long> childIds = addedHierarchyRelationsCache.get(parent.getId());
+                if (!childIds.contains(child.getId())) {
+                    graph.addEdge(parent, child, "HAS_MEMBER");
+                    childIds.add(child.getId());
+                }
+            } else {
+                final String parentInfo = relation.parent == null ? drugGroup.id : relation.parent.toString();
+                LOGGER.warn("Failed to add drug hierarchy relation with parent " + parentInfo + " and child " +
+                            relation.child);
+            }
+        }
+    }
+
+    private Node findEntry(final Graph graph, final Iterable<String> ids) {
+        for (final String id : ids) {
+            final Node node = findEntry(graph, id);
+            if (node != null)
+                return node;
+        }
+        return null;
     }
 }

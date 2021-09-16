@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 public abstract class MultiFileFTPUpdater<D extends DataSource> extends Updater<D> {
-    public MultiFileFTPUpdater(D dataSource) {
+    public MultiFileFTPUpdater(final D dataSource) {
         super(dataSource);
     }
 

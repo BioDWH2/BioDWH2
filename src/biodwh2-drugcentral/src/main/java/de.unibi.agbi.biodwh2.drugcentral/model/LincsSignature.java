@@ -3,14 +3,14 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({
         "id", "struct_id1", "struct_id2", "is_parent1", "is_parent2", "cell_id", "rmsd", "rmsd_norm", "pearson",
         "euclid"
 })
-@NodeLabels("LINCSSignature")
+@GraphNodeLabel("LINCSSignature")
 public final class LincsSignature {
     @JsonProperty("id")
     public String id;

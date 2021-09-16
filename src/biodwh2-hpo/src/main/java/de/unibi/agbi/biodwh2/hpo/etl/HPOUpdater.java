@@ -11,10 +11,17 @@ import de.unibi.agbi.biodwh2.hpo.HPODataSource;
 import java.io.IOException;
 
 public class HPOUpdater extends OBOOntologyUpdater<HPODataSource> {
-    private static final String CURRENT_VERSION_URL = "https://raw.githubusercontent.com/obophenotype/human-phenotype-ontology/master/hp.obo";
-    private static final String ANNOTATIONS_URL = "http://purl.obolibrary.org/obo/hp/hpoa/phenotype.hpoa";
-    private static final String GENES_TO_PHENOTYPES_URL = "http://purl.obolibrary.org/obo/hp/hpoa/genes_to_phenotype.txt";
-    private static final String PHENOTYPES_TO_GENES_URL = "http://purl.obolibrary.org/obo/hp/hpoa/phenotype_to_genes.txt";
+    public static final String ANNOTATIONS_FILE_NAME = "phenotype.hpoa";
+    public static final String GENES_TO_PHENOTYPE_FILE_NAME = "genes_to_phenotype.txt";
+    public static final String PHENOTYPE_TO_GENES_FILE_NAME = "phenotype_to_genes.txt";
+    public static final String PHENOTYPES_FILE_NAME = "hp.obo";
+    private static final String CURRENT_VERSION_URL =
+            "https://raw.githubusercontent.com/obophenotype/human-phenotype-ontology/master/" + PHENOTYPES_FILE_NAME;
+    private static final String ANNOTATIONS_URL = "http://purl.obolibrary.org/obo/hp/hpoa/" + ANNOTATIONS_FILE_NAME;
+    private static final String GENES_TO_PHENOTYPES_URL =
+            "http://purl.obolibrary.org/obo/hp/hpoa/" + GENES_TO_PHENOTYPE_FILE_NAME;
+    private static final String PHENOTYPES_TO_GENES_URL =
+            "http://purl.obolibrary.org/obo/hp/hpoa/" + PHENOTYPE_TO_GENES_FILE_NAME;
 
     public HPOUpdater(final HPODataSource dataSource) {
         super(dataSource);
@@ -40,9 +47,9 @@ public class HPOUpdater extends OBOOntologyUpdater<HPODataSource> {
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         try {
-            updateFile(workspace, ANNOTATIONS_URL, "phenotype.hpoa");
-            updateFile(workspace, GENES_TO_PHENOTYPES_URL, "genes_to_phenotype.txt");
-            updateFile(workspace, PHENOTYPES_TO_GENES_URL, "phenotype_to_genes.txt");
+            updateFile(workspace, ANNOTATIONS_URL, ANNOTATIONS_FILE_NAME);
+            updateFile(workspace, GENES_TO_PHENOTYPES_URL, GENES_TO_PHENOTYPE_FILE_NAME);
+            updateFile(workspace, PHENOTYPES_TO_GENES_URL, PHENOTYPE_TO_GENES_FILE_NAME);
         } catch (IOException e) {
             throw new UpdaterConnectionException("Failed to download HPO annotations", e);
         }
@@ -52,5 +59,12 @@ public class HPOUpdater extends OBOOntologyUpdater<HPODataSource> {
     private void updateFile(final Workspace workspace, final String url, final String fileName) throws IOException {
         final String targetFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
         HTTPClient.downloadFileAsBrowser(url, targetFilePath);
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{
+                ANNOTATIONS_FILE_NAME, GENES_TO_PHENOTYPE_FILE_NAME, PHENOTYPE_TO_GENES_FILE_NAME, PHENOTYPES_FILE_NAME
+        };
     }
 }

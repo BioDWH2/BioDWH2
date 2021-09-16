@@ -56,7 +56,7 @@ BioDWH2 requires the Java Runtime Environment version 8 to be installed. The JRE
 
 ## Creating a workspace
 
-> :warning: **Please note**: The following commands refer to the BioDWH2 executable as `BioDWH2.jar` for simplicity. The file name of the release downloads is versioned such as `BioDWH2-v0.1.7.jar`.
+> :warning: **Please note**: The following commands refer to the BioDWH2 executable as `BioDWH2.jar` for simplicity. The file name of the release downloads is versioned such as `BioDWH2-v0.3.9.jar`.
 
 The first step is to create a blank workspace in a new location using the `-c` or `--create` command line parameter.
 
@@ -86,6 +86,8 @@ Alternatively open the `config.json` in your workspace with any text editor and 
   "version" : 1,
   "creationDateTime" : "2019-09-26T09:30:36.568",
   "dataSourceIds" : ["HGNC", "MED-RT"],
+  "skipGraphMLExport": false,
+  "skipMetaGraphGeneration": false,
   "dataSourceProperties": {}
 }
 ```
@@ -112,16 +114,17 @@ After creating and processing the workspace, the resulting graph can be analyzed
 
 ## Task command line parameters
 
-| Short parameter | Long parameter        | Values                           | Description                                 |
-| --------------- | --------------------- | -------------------------------- | ------------------------------------------- |
-| -h              | --help                | -                                | Print the help message                      |
-| -c              | --create              | \<workspacePath>                 | Create a new empty workspace                |
-|                 | --data-sources        | -                                | List all available data sources             |
-|                 | --add-data-sources    | \<workspacePath> \<dataSourceId> | Add a data source to the configuration      |
-|                 | --remove-data-sources | \<workspacePath> \<dataSourceId> | Remove a data source from the configuration |
-| -u              | --update              | \<workspacePath>                 | Update all data sources of a workspace      |
-| -s              | --status              | \<workspacePath>                 | Check and output the state of a workspace   |
-|                 |                       |                                  |                                             |
+| Short parameter | Long parameter        | Values                           | Description                                     |
+| --------------- | --------------------- | -------------------------------- | ----------------------------------------------- |
+| -h              | --help                | -                                | Print the help message                          |
+|                 | --version             | -                                | Print the BioDWH2 version and check for updates |
+| -c              | --create              | \<workspacePath>                 | Create a new empty workspace                    |
+|                 | --data-sources        | -                                | List all available data sources                 |
+|                 | --add-data-sources    | \<workspacePath> \<dataSourceId> | Add a data source to the configuration          |
+|                 | --remove-data-sources | \<workspacePath> \<dataSourceId> | Remove a data source from the configuration     |
+| -u              | --update              | \<workspacePath>                 | Update all data sources of a workspace          |
+| -s              | --status              | \<workspacePath>                 | Check and output the state of a workspace       |
+|                 |                       |                                  |                                                 |
 
 ## Additional command line parameters
 
@@ -150,6 +153,10 @@ After creating and processing the workspace, the resulting graph can be analyzed
       "skipDrugLabelFullTexts": boolean,
       "skipLINCSSignatures": boolean,
       "skipFAERSReports": boolean
+    },
+    "HPO": {
+      "forceExport": boolean,
+      "omimLicensed": boolean
     },
     "...": {
       "forceExport": boolean

@@ -16,13 +16,14 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
-    private static final String[] FileNames = {
-            "genes.zip", "drugs.zip", "chemicals.zip", "variants.zip", "phenotypes.zip", "annotations.zip",
-            "relationships.zip", "dosingGuidelines.json.zip", "drugLabels.zip", "pathways-tsv.zip",
-            "clinicalVariants.zip", "occurrences.zip", "automated_annotations.zip", "occurrences.zip"
+    static final String[] FILE_NAMES = {
+            "genes.zip", "drugs.zip", "chemicals.zip", "variants.zip", "phenotypes.zip", "clinicalAnnotations.zip",
+            "variantAnnotations.zip", "relationships.zip", "dosingGuidelines.json.zip", "drugLabels.zip",
+            "pathways-tsv.zip", "clinicalVariants.zip", "occurrences.zip", "automated_annotations.zip",
+            "occurrences.zip"
     };
 
-    public PharmGKBUpdater(PharmGKBDataSource dataSource) {
+    public PharmGKBUpdater(final PharmGKBDataSource dataSource) {
         super(dataSource);
     }
 
@@ -54,7 +55,7 @@ public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         boolean success = true;
-        for (String name : FileNames)
+        for (String name : FILE_NAMES)
             success = success && downloadFile(name, workspace, dataSource);
         return success;
     }
@@ -68,5 +69,10 @@ public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
             throw new UpdaterConnectionException("Failed to download '" + fileName + "'", e);
         }
         return true;
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return FILE_NAMES;
     }
 }

@@ -84,10 +84,13 @@ public class NDFRTMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    protected String[][] getEdgeMappingPaths() {
-        return new String[][]{
-                {"Drug", "INDUCES", "Disease"}, {"Drug", "CI_WITH", "Disease"}, {"Drug", "MAY_TREAT", "Disease"},
-                {"Drug", "EFFECT_MAY_BE_INHIBITED_BY", "Drug"}, {"Drug", "CI_CHEMCLASS", "Ingredient"}
+    protected PathMapping[] getEdgePathMappings() {
+        return new PathMapping[]{
+                new PathMapping().add("Drug", "INDUCES", "Disease", EdgeDirection.FORWARD),
+                new PathMapping().add("Drug", "CI_WITH", "Disease", EdgeDirection.FORWARD),
+                new PathMapping().add("Drug", "MAY_TREAT", "Disease", EdgeDirection.FORWARD),
+                new PathMapping().add("Drug", "EFFECT_MAY_BE_INHIBITED_BY", "Drug", EdgeDirection.FORWARD),
+                new PathMapping().add("Drug", "CI_CHEMCLASS", "Ingredient", EdgeDirection.FORWARD)
         };
     }
 }

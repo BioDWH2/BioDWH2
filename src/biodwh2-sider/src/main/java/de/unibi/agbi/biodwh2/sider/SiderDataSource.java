@@ -5,7 +5,6 @@ import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.sider.etl.SiderGraphExporter;
 import de.unibi.agbi.biodwh2.sider.etl.SiderMappingDescriber;
-import de.unibi.agbi.biodwh2.sider.etl.SiderParser;
 import de.unibi.agbi.biodwh2.sider.etl.SiderUpdater;
 
 public class SiderDataSource extends DataSource {
@@ -26,7 +25,7 @@ public class SiderDataSource extends DataSource {
 
     @Override
     protected Parser<SiderDataSource> getParser() {
-        return new SiderParser(this);
+        return new PassThroughParser<>(this);
     }
 
     @Override

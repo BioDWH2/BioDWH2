@@ -5,7 +5,7 @@
     <parent>
         <artifactId>biodwh2</artifactId>
         <groupId>de.unibi.agbi.biodwh2</groupId>
-        <version>0.2.1</version> <!-- BioDWH2 version -->
+        <version>0.3.9</version> <!-- BioDWH2 version -->
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -129,11 +129,6 @@
         </dependency>
         <dependency>
             <groupId>de.unibi.agbi.biodwh2</groupId>
-            <artifactId>biodwh2-disgenet</artifactId>
-            <version>0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>de.unibi.agbi.biodwh2</groupId>
             <artifactId>biodwh2-sider</artifactId>
             <version>0.1</version>
         </dependency>
@@ -179,7 +174,43 @@
         </dependency>
         <dependency>
             <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-uniprot</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
             <artifactId>biodwh2-canadiannutrientfile</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-ema</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-pathwaycommons</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-redodb</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-redotrialsdb</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-gwascatalog</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-opentargets</artifactId>
+>>>>>>> f80ed1f0eb1560b83676ec415dae7dd9e3904024
             <version>0.1</version>
         </dependency>
         <dependency>

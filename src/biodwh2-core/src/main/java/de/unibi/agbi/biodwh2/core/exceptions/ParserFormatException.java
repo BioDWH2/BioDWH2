@@ -7,20 +7,20 @@ public class ParserFormatException extends ParserException {
         super();
     }
 
-    public ParserFormatException(String message) {
+    public ParserFormatException(final String message) {
         super(message);
     }
 
-    public ParserFormatException(String message, Throwable cause) {
+    public ParserFormatException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public ParserFormatException(Throwable cause) {
+    public ParserFormatException(final Throwable cause) {
         super(cause);
     }
 
-    public ParserFormatException(String message, Throwable cause, boolean enableSuppression,
-                                 boolean writableStackTrace) {
+    public ParserFormatException(final String message, final Throwable cause, final boolean enableSuppression,
+                                 final boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

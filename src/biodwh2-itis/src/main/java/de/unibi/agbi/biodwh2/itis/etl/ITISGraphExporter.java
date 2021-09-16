@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.itis.ITISDataSource;
 import de.unibi.agbi.biodwh2.itis.model.*;
@@ -33,8 +34,23 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
-        graph.setNodeIndexPropertyKeys(ID_KEY);
+        graph.addIndex(IndexDescription.forNode(COMMENT_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(EXPERT_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(SOURCE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PUBLICATION_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(KINGDOM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("TaxonAuthor", ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(RANK_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TAXON_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(GEOGRAPHIC_DIVISION_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(JURISDICTION_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Vernacular", ID_KEY, IndexDescription.Type.UNIQUE));
         LOGGER.info("Exporting comments...");
         createNodesFromModels(graph, dataSource.comments);
         LOGGER.info("Exporting experts...");
@@ -73,22 +89,24 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
 
     private void createTaxonAuthorNodes(final Graph graph) {
         for (final TaxonAuthorLkp author : dataSource.taxonAuthorsLkps) {
-            Node node = createNodeFromModel(graph, author);
+            Node node = graph.addNodeFromModel(author);
             graph.addEdge(node, graph.findNode(KINGDOM_LABEL, ID_KEY, author.kingdomId), "ASSOCIATED_WITH");
         }
     }
 
     private void createTaxonUnitTypeNodes(final Graph graph) {
-        final Map<Integer, Long> rankNodeIdLookup = new HashMap<>();
+        final Map<String, Long> rankNodeIdLookup = new HashMap<>();
         for (final TaxonUnitType rank : dataSource.taxonUnitTypes) {
-            final Node node = graph.addNode(RANK_LABEL, ID_KEY, rank.id, "name", rank.name);
-            rankNodeIdLookup.put(rank.id, node.getId());
+            final String id = rank.kingdomId + "_" + rank.id;
+            final Node node = graph.addNode(RANK_LABEL, ID_KEY, id, "rank_id", rank.id, "name", rank.name);
+            rankNodeIdLookup.put(id, node.getId());
             graph.addEdge(graph.findNode(KINGDOM_LABEL, ID_KEY, rank.kingdomId), node, "HAS_RANK");
         }
         for (final TaxonUnitType rank : dataSource.taxonUnitTypes) {
-            final long nodeId = rankNodeIdLookup.get(rank.id);
-            graph.addEdge(nodeId, rankNodeIdLookup.get(rank.dirParentRankId), "HAS_PARENT");
-            graph.addEdge(nodeId, rankNodeIdLookup.get(rank.reqParentRankId), "HAS_REQ_PARENT");
+            final String id = rank.kingdomId + "_" + rank.id;
+            final long nodeId = rankNodeIdLookup.get(id);
+            graph.addEdge(nodeId, rankNodeIdLookup.get(rank.kingdomId + "_" + rank.dirParentRankId), "HAS_PARENT");
+            graph.addEdge(nodeId, rankNodeIdLookup.get(rank.kingdomId + "_" + rank.reqParentRankId), "HAS_REQ_PARENT");
         }
     }
 
@@ -187,7 +205,7 @@ public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
     private Map<Integer, Long> createVernacularNodes(final Graph graph, final Map<Integer, Long> taxonTsnNodeIdMap) {
         final Map<Integer, Long> vernacularIdNodeIdMap = new HashMap<>();
         for (final Vernacular vernacular : dataSource.vernaculars) {
-            final Node node = createNodeFromModel(graph, vernacular);
+            final Node node = graph.addNodeFromModel(vernacular);
             vernacularIdNodeIdMap.put(vernacular.vernacularId, node.getId());
             graph.addEdge(taxonTsnNodeIdMap.get(vernacular.tsn), node, "HAS_VERNACULAR");
         }

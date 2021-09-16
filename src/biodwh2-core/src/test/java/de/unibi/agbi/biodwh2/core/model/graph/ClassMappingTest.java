@@ -11,7 +11,7 @@ class ClassMappingTest {
         assertEquals(2, mapping.fields.length);
         assertEquals(1, mapping.booleanFields.length);
         assertEquals(3, mapping.arrayFields.length);
-        assertArrayEquals(new String[]{"A", "B"}, mapping.labels);
+        assertEquals("A", mapping.label);
         assertEquals("id", mapping.fields[0].propertyName);
         assertFalse(mapping.fields[0].ignoreEmpty);
         assertEquals("ignore_empty_string", mapping.fields[1].propertyName);
@@ -25,7 +25,7 @@ class ClassMappingTest {
         instance.id = "A1234";
         instance.enabled = true;
         instance.array = "test;abc;efg";
-        final Node node = Node.newNode(mapping.labels);
+        final Node node = Node.newNode(mapping.label);
         mapping.setNodeProperties(node, instance);
         assertEquals(instance.id, node.getProperty("id"));
         assertEquals(instance.enabled, node.getProperty("enabled"));
@@ -38,7 +38,7 @@ class ClassMappingTest {
         final TestClass instance = new TestClass();
         instance.arrayWithCustomDelimiter = "test|abc|efg";
         instance.quotedArray = "\"test\";\"abc\";\"efg\"";
-        final Node node = Node.newNode(mapping.labels);
+        final Node node = Node.newNode(mapping.label);
         mapping.setNodeProperties(node, instance);
         assertArrayEquals(new String[]{"test", "abc", "efg"}, node.getProperty("array_with_custom_delimiter"));
         assertArrayEquals(new String[]{"test", "abc", "efg"}, node.getProperty("quoted_array"));
@@ -48,7 +48,7 @@ class ClassMappingTest {
     void setNodePropertiesIgnoreNull() {
         final ClassMapping mapping = new ClassMapping(TestClass.class);
         final TestClass instance = new TestClass();
-        final Node node = Node.newNode(mapping.labels);
+        final Node node = Node.newNode(mapping.label);
         mapping.setNodeProperties(node, instance);
         assertFalse(node.hasProperty("id"));
     }
@@ -58,7 +58,7 @@ class ClassMappingTest {
         final ClassMapping mapping = new ClassMapping(TestClass.class);
         final TestClass instance = new TestClass();
         instance.ignoreEmptyString = "";
-        final Node node = Node.newNode(mapping.labels);
+        final Node node = Node.newNode(mapping.label);
         mapping.setNodeProperties(node, instance);
         assertFalse(node.hasProperty("ignore_empty_string"));
         instance.ignoreEmptyString = "t";
@@ -66,7 +66,7 @@ class ClassMappingTest {
         assertTrue(node.hasProperty("ignore_empty_string"));
     }
 
-    @NodeLabels({"A", "B"})
+    @GraphNodeLabel("A")
     private static class TestClass {
         @GraphProperty("id")
         public String id;

@@ -62,15 +62,15 @@ public final class Configuration {
     }
 
     public Map<String, String> getDataSourceProperties(final String dataSourceId) {
-        Map<String, String> properties = dataSourceProperties.get(dataSourceId);
+        final Map<String, String> properties = dataSourceProperties.get(dataSourceId);
         return properties == null ? new HashMap<>() : properties;
     }
 
-    public boolean getSkipGraphMLExport() {
+    public boolean shouldSkipGraphMLExport() {
         return Boolean.TRUE.equals(skipGraphMLExport);
     }
 
-    public boolean getSkipMetaGraphGeneration() {
+    public boolean shouldSkipMetaGraphGeneration() {
         return Boolean.TRUE.equals(skipMetaGraphGeneration);
     }
 }

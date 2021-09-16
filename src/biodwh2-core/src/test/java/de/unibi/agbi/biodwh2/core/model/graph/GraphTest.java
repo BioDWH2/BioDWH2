@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,9 +21,28 @@ class GraphTest {
         g.update(node);
         node = g.findNode("Gene", "test", "Hello");
         assertNotNull(node);
-        assertEquals("Gene", node.getLabels()[0]);
+        assertEquals("Gene", node.getLabel());
         assertTrue(node.hasProperty("test"));
         assertEquals("Hello", node.getProperty("test"));
+    }
+
+    @Test
+    void testFindNodeWithDifferingTypes() throws Exception {
+        final Graph g = Graph.createTempGraph();
+        g.addNode("A", "test1", 1234, "test2", 56789L, "test3", -12, "test4", (byte) 42);
+        assertNotNull(g.findNode("A", "test1", (short) 1234));
+        assertNotNull(g.findNode("A", "test1", 1234));
+        assertNotNull(g.findNode("A", "test1", 1234L));
+        assertNotNull(g.findNode("A", "test2", 56789));
+        assertNotNull(g.findNode("A", "test2", 56789L));
+        assertNotNull(g.findNode("A", "test3", (byte) -12));
+        assertNotNull(g.findNode("A", "test3", (short) -12));
+        assertNotNull(g.findNode("A", "test3", -12));
+        assertNotNull(g.findNode("A", "test3", -12L));
+        assertNotNull(g.findNode("A", "test4", (byte) 42));
+        assertNotNull(g.findNode("A", "test4", (short) 42));
+        assertNotNull(g.findNode("A", "test4", 42));
+        assertNotNull(g.findNode("A", "test4", 42L));
     }
 
     @Test
@@ -105,5 +125,53 @@ class GraphTest {
         final Edge foundEdge = g.findEdge("LABEL1", Edge.FROM_ID_FIELD, n1.getId());
         assertNotNull(foundEdge);
         assertEquals(e1.getId(), foundEdge.getId());
+    }
+
+    @Test
+    void indexDescriptionsTest() throws IOException {
+        final Graph g = Graph.createTempGraph();
+        assertEquals(0, g.indexDescriptions().length);
+        g.addIndex(IndexDescription.forNode("Test", "id", false, IndexDescription.Type.UNIQUE));
+        assertEquals(1, g.indexDescriptions().length);
+        final IndexDescription description = g.indexDescriptions()[0];
+        assertEquals("Test", description.getLabel());
+        assertEquals(IndexDescription.Target.NODE, description.getTarget());
+        assertEquals("id", description.getProperty());
+        assertFalse(description.isArrayProperty());
+        assertEquals(IndexDescription.Type.UNIQUE, description.getType());
+    }
+
+    @Test
+    void indexDescriptionsAfterReopenTest() throws IOException {
+        final Graph g = Graph.createTempGraph();
+        g.addIndex(IndexDescription.forNode("Test", "id", false, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode("Test", "names", true, IndexDescription.Type.NON_UNIQUE));
+        g.addIndex(IndexDescription.forEdge("ASSOCIATED_WITH", "source", false, IndexDescription.Type.NON_UNIQUE));
+        assertEquals(3, g.indexDescriptions().length);
+        g.close();
+        final Graph reopenedGraph = new Graph(g.getFilePath(), true, true);
+        final IndexDescription[] descriptions = reopenedGraph.indexDescriptions();
+        assertEquals(3, descriptions.length);
+        // Description 1
+        Optional<IndexDescription> description = Arrays.stream(descriptions).filter(
+                d -> d.getLabel().equals("Test") && d.getProperty().equals("id")).findFirst();
+        assertTrue(description.isPresent());
+        assertEquals(IndexDescription.Target.NODE, description.get().getTarget());
+        assertFalse(description.get().isArrayProperty());
+        assertEquals(IndexDescription.Type.UNIQUE, description.get().getType());
+        // Description 2
+        description = Arrays.stream(descriptions).filter(
+                d -> d.getLabel().equals("Test") && d.getProperty().equals("names")).findFirst();
+        assertTrue(description.isPresent());
+        assertEquals(IndexDescription.Target.NODE, description.get().getTarget());
+        assertTrue(description.get().isArrayProperty());
+        assertEquals(IndexDescription.Type.NON_UNIQUE, description.get().getType());
+        // Description 3
+        description = Arrays.stream(descriptions).filter(
+                d -> d.getLabel().equals("ASSOCIATED_WITH") && d.getProperty().equals("source")).findFirst();
+        assertTrue(description.isPresent());
+        assertEquals(IndexDescription.Target.EDGE, description.get().getTarget());
+        assertFalse(description.get().isArrayProperty());
+        assertEquals(IndexDescription.Type.NON_UNIQUE, description.get().getType());
     }
 }

@@ -16,7 +16,8 @@ import java.util.regex.Pattern;
 public class CancerDrugsDBUpdater extends Updater<CancerDrugsDBDataSource> {
     private static final Pattern VERSION_PATTERN = Pattern.compile(
             "Database build date:\\s+([0-9]{2}/[0-9]{2}/[0-9]{2})", Pattern.CASE_INSENSITIVE);
-    private static final String DOWNLOAD_URL = "https://acfdata.coworks.be/cancerdrugsdb.txt";
+    static final String FILE_NAME = "cancerdrugsdb.txt";
+    private static final String DOWNLOAD_URL = "https://acfdata.coworks.be/" + FILE_NAME;
 
     public CancerDrugsDBUpdater(final CancerDrugsDBDataSource dataSource) {
         super(dataSource);
@@ -39,12 +40,17 @@ public class CancerDrugsDBUpdater extends Updater<CancerDrugsDBDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        final String outputFilePath = dataSource.resolveSourceFilePath(workspace, "cancerdrugsdb.txt");
+        final String outputFilePath = dataSource.resolveSourceFilePath(workspace, FILE_NAME);
         try {
             HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL, outputFilePath);
         } catch (IOException e) {
             throw new UpdaterConnectionException("Failed to download '" + DOWNLOAD_URL + "'", e);
         }
         return true;
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{FILE_NAME};
     }
 }

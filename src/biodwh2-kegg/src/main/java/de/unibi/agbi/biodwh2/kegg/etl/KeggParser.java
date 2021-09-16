@@ -20,14 +20,27 @@ import java.util.regex.Pattern;
 
 public class KeggParser extends Parser<KeggDataSource> {
     private static class ChunkLine {
-        String keyword;
+        final String keyword;
         String value;
+
+        public ChunkLine(final String keyword, final String value) {
+            this.keyword = keyword;
+            this.value = value;
+        }
+    }
+
+    private static class ParsedReference {
+        Reference reference;
+        int lookAheadPosition;
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KeggParser.class);
     private static final Pattern REFERENCE_PATTERN = Pattern.compile(
             "PMID:([0-9]+)(([ \n\r]+\\(\\(?[a-zA-Z0-9/\n\r. ,_\\-]+\\)?\\))*)");
     private static final Pattern TARGET_IDS_PATTERN = Pattern.compile("\\[([A-Za-z]+:)([0-9A-Za-z]+( [0-9A-Za-z]+)*)]");
+    private static final String END_OF_CHUNK = "///";
+
+    private final List<String> loggedUnknownKeywords = new ArrayList<>();
 
     public KeggParser(final KeggDataSource dataSource) {
         super(dataSource);
@@ -35,42 +48,36 @@ public class KeggParser extends Parser<KeggDataSource> {
 
     @Override
     public boolean parse(final Workspace workspace) throws ParserException {
-        dataSource.variants = parseKeggFile(workspace, dataSource, Variant.class, "variant");
-        dataSource.drugGroups = parseKeggFile(workspace, dataSource, DrugGroup.class, "dgroup");
-        dataSource.drugs = parseKeggFile(workspace, dataSource, Drug.class, "drug");
-        dataSource.diseases = parseKeggFile(workspace, dataSource, Disease.class, "disease");
-        dataSource.networks = parseKeggFile(workspace, dataSource, Network.class, "network");
+        dataSource.variants = parseKeggFile(workspace, dataSource, Variant.class, KeggUpdater.VARIANT_FILE_NAME);
+        dataSource.drugGroups = parseKeggFile(workspace, dataSource, DrugGroup.class, KeggUpdater.DGROUP_FILE_NAME);
+        dataSource.drugs = parseKeggFile(workspace, dataSource, Drug.class, KeggUpdater.DRUG_FILE_NAME);
+        dataSource.diseases = parseKeggFile(workspace, dataSource, Disease.class, KeggUpdater.DISEASE_FILE_NAME);
+        dataSource.networks = parseKeggFile(workspace, dataSource, Network.class, KeggUpdater.NETWORK_FILE_NAME);
         return true;
     }
 
     private <T extends KeggEntry> List<T> parseKeggFile(final Workspace workspace, final DataSource dataSource,
                                                         final Class<T> entryClass,
                                                         final String fileName) throws ParserFormatException {
-        List<T> result = new ArrayList<>();
-        String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        final List<T> result = new ArrayList<>();
+        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(filePath));
-            List<ChunkLine> chunk = new ArrayList<>();
+            final BufferedReader reader = new BufferedReader(new FileReader(filePath));
+            final List<ChunkLine> chunk = new ArrayList<>();
             String line;
             while ((line = reader.readLine()) != null) {
                 line = StringUtils.stripEnd(line, null);
-                if (line.startsWith("///")) {
+                if (line.startsWith(END_OF_CHUNK)) {
                     result.add(processChunk(entryClass, chunk.toArray(new ChunkLine[0])));
                     chunk.clear();
                     continue;
                 }
-                String keyword = StringUtils.stripEnd(line.substring(0, Math.min(12, line.length())), null);
-                String value = line.length() > 12 ? StringUtils.stripEnd(line.substring(12), null) : "";
-
-                if (keyword.length() > 0) {
-                    ChunkLine chunkLine = new ChunkLine();
-                    chunkLine.keyword = keyword;
-                    chunkLine.value = value;
-                    chunk.add(chunkLine);
-                } else {
-                    //noinspection StringConcatenationInLoop
-                    chunk.get(chunk.size() - 1).value += "\n" + value;
-                }
+                final String keyword = StringUtils.stripEnd(line.substring(0, Math.min(12, line.length())), null);
+                final String value = line.length() > 12 ? StringUtils.stripEnd(line.substring(12), null) : "";
+                if (keyword.length() > 0)
+                    chunk.add(new ChunkLine(keyword, value));
+                else
+                    chunk.get(chunk.size() - 1).value += '\n' + value;
             }
             reader.close();
         } catch (IOException e) {
@@ -80,37 +87,34 @@ public class KeggParser extends Parser<KeggDataSource> {
     }
 
     private <T extends KeggEntry> T processChunk(final Class<T> entryClass, final ChunkLine[] chunk) {
-        T entry = createInstance(entryClass);
+        final T entry = createInstance(entryClass);
         if (entry == null)
             return null;
         for (int i = 0; i < chunk.length; i++) {
-            ChunkLine line = chunk[i];
+            final ChunkLine line = chunk[i];
             final boolean lineNotEmpty = line.value.trim().length() > 0;
             switch (line.keyword) {
                 case "ENTRY":
-                    String[] parts = StringUtils.split(line.value, " ");
+                    final String[] parts = StringUtils.split(line.value, ' ');
                     entry.id = parts[0];
                     entry.tags.addAll(Arrays.asList(parts).subList(1, parts.length));
                     break;
                 case "REFERENCE":
-                    Reference reference = parseReference(chunk, i, line);
-                    entry.references.add(reference);
+                    final ParsedReference reference = parseReference(chunk, i, line);
+                    entry.references.add(reference.reference);
                     i = reference.lookAheadPosition;
                     break;
                 case "DBLINKS":
-                    for (String link : StringUtils.split(line.value, "\n")) {
-                        String[] linkParts = StringUtils.split(link, ": ", 2);
-                        for (String id : StringUtils.split(linkParts[1], " "))
-                            entry.externalIds.add(linkParts[0] + ":" + id);
-                    }
+                    if (lineNotEmpty)
+                        processEntryDBLinks(entry, line.value);
                     break;
                 case "COMMENT":
                     if (lineNotEmpty)
-                        entry.comments.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                        entry.comments.addAll(Arrays.asList(StringUtils.split(line.value, '\n')));
                     break;
                 case "REMARK":
                     if (lineNotEmpty)
-                        entry.remarks.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                        entry.remarks.addAll(Arrays.asList(StringUtils.split(line.value, '\n')));
                     break;
                 default:
                     if (entryClass == Drug.class)
@@ -126,15 +130,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                     break;
             }
         }
-        for (int i = entry.remarks.size() - 1; i >= 0; i--) {
-            String remark = entry.remarks.get(i);
-            if (remark.startsWith("ATC code:")) {
-                String codes = StringUtils.split(remark, ":")[1].trim();
-                for (String code : StringUtils.split(codes, " "))
-                    entry.externalIds.add("ATC:" + code);
-                entry.remarks.remove(i);
-            }
-        }
+        moveATCRemarksToExternalIds(entry);
         return entry;
     }
 
@@ -142,16 +138,44 @@ public class KeggParser extends Parser<KeggDataSource> {
         try {
             return entryClass.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
+            LOGGER.error("Failed to create instance of " + entryClass.getSimpleName() + " for parsing", e);
         }
         return null;
+    }
+
+    private <T extends KeggEntry> void processEntryDBLinks(final T entry, final String links) {
+        for (final String link : StringUtils.split(links, "\n")) {
+            final String[] linkParts = StringUtils.splitByWholeSeparator(link, ": ", 2);
+            for (final String id : StringUtils.split(linkParts[1], ' '))
+                entry.externalIds.add(linkParts[0] + ':' + id);
+        }
+    }
+
+    private <T extends KeggEntry> void moveATCRemarksToExternalIds(final T entry) {
+        for (int i = entry.remarks.size() - 1; i >= 0; i--) {
+            final String remark = entry.remarks.get(i);
+            if (remark.startsWith("ATC code:")) {
+                final String codes = StringUtils.split(remark, ':')[1].trim();
+                for (final String code : StringUtils.split(codes, ' '))
+                    entry.externalIds.add("ATC:" + code);
+                entry.remarks.remove(i);
+            }
+        }
     }
 
     private int processDrugLine(final ChunkLine[] chunk, final ChunkLine line, int i, final Drug entry) {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
-                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                for (String name : StringUtils.split(line.value, '\n'))
+                    entry.names.add(StringUtils.stripEnd(name, ";"));
+                for (int j = i + 1; j < chunk.length; j++) {
+                    if (chunk[j].keyword.equals("  ABBR")) {
+                        entry.nameAbbreviation = chunk[j].value.trim();
+                        i++;
+                    } else
+                        break;
+                }
                 break;
             case "FORMULA":
                 if (lineNotEmpty)
@@ -204,7 +228,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                     entry.classes.addAll(parseMemberClassHierarchy(line));
                 break;
             case "SEQUENCE":
-                Sequence sequence = new Sequence();
+                final Sequence sequence = new Sequence();
                 sequence.sequence = line.value;
                 if (chunk[i + 1].keyword.equals("  TYPE")) {
                     sequence.type = chunk[i + 1].value;
@@ -213,19 +237,20 @@ public class KeggParser extends Parser<KeggDataSource> {
                 entry.sequences.add(sequence);
                 break;
             case "BRACKET":
-                Bracket bracket = new Bracket();
-                bracket.value = line.value;
+                // TODO: as bracket structures are not that easy to parse and low priority just store the FLAT-FILE info
+                final StringBuilder bracket = new StringBuilder("BRACKET     ").append(
+                        line.value.replace("\n", "\n            "));
                 for (int j = i + 1; j < chunk.length; j++) {
                     if (chunk[j].keyword.equals("  ORIGINAL")) {
-                        bracket.original = line.value;
+                        bracket.append("\n  ORIGINAL  ").append(chunk[j].value.replace("\n", "\n            "));
                         i++;
                     } else if (chunk[j].keyword.equals("  REPEAT")) {
-                        bracket.repeat = line.value;
+                        bracket.append("\n  REPEAT    ").append(chunk[j].value.replace("\n", "\n            "));
                         i++;
                     } else
                         break;
                 }
-                entry.bracket = bracket;
+                entry.bracket = bracket.toString();
                 break;
             case "METABOLISM":
                 if (lineNotEmpty)
@@ -236,17 +261,24 @@ public class KeggParser extends Parser<KeggDataSource> {
                     entry.sources.addAll(parseNameIdsPairs(line.value));
                 break;
             default:
-                System.out.println("Drug> " + line.keyword);
+                logUnknownKeyword("Drug", line.keyword);
                 break;
         }
         return i;
+    }
+
+    private void logUnknownKeyword(final String type, final String keyword) {
+        if (LOGGER.isInfoEnabled() && !loggedUnknownKeywords.contains(type + ":" + keyword)) {
+            LOGGER.info("Skipping unknown keyword '" + keyword + "' for " + type + " entry");
+            loggedUnknownKeywords.add(type + ":" + keyword);
+        }
     }
 
     private int processVariantLine(final ChunkLine[] chunk, final ChunkLine line, int i, final Variant entry) {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
-                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, '\n')));
                 break;
             case "GENE":
                 String[] geneRestParts = StringUtils.splitByWholeSeparator(line.value, "  ", 2);
@@ -257,7 +289,8 @@ public class KeggParser extends Parser<KeggDataSource> {
                     entry.organism = line.value;
                 break;
             case "NETWORK":
-                NetworkLink network = new NetworkLink();
+                // TODO: validate
+                final NetworkLink network = new NetworkLink();
                 entry.networks.add(network);
                 if (lineNotEmpty)
                     network.network = parseIdNamePair(line.value);
@@ -269,18 +302,23 @@ public class KeggParser extends Parser<KeggDataSource> {
                         break;
                 break;
             case "VARIATION":
-                NameIdsPair variation = new NameIdsPair();
-                String[] lines = StringUtils.split(line.value, "\n");
+                final NameIdsPair variation = new NameIdsPair();
+                final String[] lines = StringUtils.split(line.value, '\n');
                 variation.name = lines[0];
                 for (int j = 1; j < lines.length; j++) {
-                    String[] idParts = StringUtils.split(lines[j], " ");
+                    final String[] idParts = StringUtils.split(lines[j], ' ');
                     for (int k = 1; k < idParts.length; k++)
                         variation.ids.add(idParts[0] + idParts[k]);
                 }
                 entry.variations.add(variation);
                 break;
+            case "DRUG_TARGET":
+                // TODO: drug targets
+                // DRUG_TARGET Gilteritinib (DG01948): D10800<JP/US>
+                //             Midostaurin: D05029<US>
+                break;
             default:
-                System.out.println("Variant> " + line.keyword);
+                logUnknownKeyword("Variant", line.keyword);
                 break;
         }
         return i;
@@ -290,13 +328,17 @@ public class KeggParser extends Parser<KeggDataSource> {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
-                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
-                for (int j = i + 1; j < chunk.length; j++)
+                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, '\n')));
+                for (int j = i + 1; j < chunk.length; j++) {
                     if (chunk[j].keyword.equals("  STEM")) {
                         entry.nameStems.addAll(Arrays.asList(StringUtils.splitByWholeSeparator(chunk[j].value, ", ")));
                         i++;
+                    } else if (chunk[j].keyword.equals("  ABBR")) {
+                        entry.nameAbbreviation = chunk[j].value.trim();
+                        i++;
                     } else
                         break;
+                }
                 break;
             case "CLASS":
                 if (lineNotEmpty)
@@ -307,7 +349,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                     entry.members.addAll(parseMemberClassHierarchy(line));
                 break;
             default:
-                System.out.println("DrugGroup> " + line.keyword);
+                logUnknownKeyword("DrugGroup", line.keyword);
                 break;
         }
         return i;
@@ -317,13 +359,13 @@ public class KeggParser extends Parser<KeggDataSource> {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
-                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, '\n')));
                 for (int j = i + 1; j < chunk.length; j++)
                     if (chunk[j].keyword.equals("  SUPERGRP")) {
-                        entry.superGroups.add(chunk[j].value);
+                        entry.superGroups.addAll(parseMultilineNameIdsPairs(chunk[j]));
                         i++;
                     } else if (chunk[j].keyword.equals("  SUBGROUP")) {
-                        entry.subGroups.add(chunk[j].value);
+                        entry.subGroups.addAll(parseMultilineNameIdsPairs(chunk[j]));
                         i++;
                     } else
                         break;
@@ -349,7 +391,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                     entry.pathogens.addAll(parseMultilineNameIdsPairs(line));
                 for (int j = i + 1; j < chunk.length; j++)
                     if (chunk[j].keyword.equals("  MODULE")) {
-                        entry.pathogenSignatureModules.addAll(parseMultilineIdNamePairs(chunk[j]));
+                        entry.pathogenModules.addAll(parseMultilineIdNamePairs(chunk[j]));
                         i++;
                     } else
                         break;
@@ -366,9 +408,12 @@ public class KeggParser extends Parser<KeggDataSource> {
                     } else
                         break;
                 break;
+            case "REL_PATHWAY":
+                entry.relPathways.addAll(parseMultilineIdNamePairs(line));
+                break;
             case "CATEGORY":
                 if (lineNotEmpty)
-                    for (String category : StringUtils.split(line.value, ";"))
+                    for (String category : StringUtils.split(line.value, ';'))
                         entry.categories.add(category.trim());
                 break;
             case "GENE":
@@ -376,7 +421,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                     entry.genes.addAll(parseMultilineNameIdsPairs(line));
                 break;
             default:
-                System.out.println("Disease> " + line.keyword);
+                logUnknownKeyword("Disease", line.keyword);
                 break;
         }
         return i;
@@ -386,7 +431,7 @@ public class KeggParser extends Parser<KeggDataSource> {
         final boolean lineNotEmpty = line.value.trim().length() > 0;
         switch (line.keyword) {
             case "NAME":
-                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, "\n")));
+                entry.names.addAll(Arrays.asList(StringUtils.split(line.value, '\n')));
                 break;
             case "TYPE":
                 entry.type = line.value;
@@ -433,19 +478,20 @@ public class KeggParser extends Parser<KeggDataSource> {
                 // TODO: always referencing itself
                 break;
             default:
-                System.out.println("Network> " + line.keyword);
+                logUnknownKeyword("Network", line.keyword);
                 break;
         }
         return i;
     }
 
-    private static Reference parseReference(final ChunkLine[] chunk, final int i, final ChunkLine line) {
-        Reference reference = new Reference();
+    private static ParsedReference parseReference(final ChunkLine[] chunk, final int i, final ChunkLine line) {
+        final ParsedReference parsedReference = new ParsedReference();
+        final Reference reference = new Reference();
         if (line.value.trim().length() > 0) {
-            Matcher matcher = REFERENCE_PATTERN.matcher(line.value);
+            final Matcher matcher = REFERENCE_PATTERN.matcher(line.value);
             if (matcher.matches()) {
-                reference.pmid = matcher.group(1);
-                String remarks = matcher.group(2).trim().replace("\n", " ");
+                reference.pmid = Integer.parseInt(matcher.group(1));
+                final String remarks = matcher.group(2).trim().replace('\n', ' ');
                 if (remarks.length() > 0) {
                     reference.remarks = remarks;
                 }
@@ -453,10 +499,10 @@ public class KeggParser extends Parser<KeggDataSource> {
                 reference.remarks = line.value;
         }
         for (int j = i + 1; j < chunk.length; j++) {
-            ChunkLine nextLine = chunk[j];
+            final ChunkLine nextLine = chunk[j];
             if (!nextLine.keyword.startsWith("  "))
                 break;
-            reference.lookAheadPosition = j;
+            parsedReference.lookAheadPosition = j;
             switch (nextLine.keyword) {
                 case "  AUTHORS":
                     reference.authors = nextLine.value;
@@ -465,12 +511,12 @@ public class KeggParser extends Parser<KeggDataSource> {
                     reference.title = nextLine.value;
                     break;
                 case "  JOURNAL":
-                    String[] parts = StringUtils.split(nextLine.value, "\n");
+                    final String[] parts = StringUtils.split(nextLine.value, '\n');
                     reference.journal = parts[0];
                     if (parts.length > 1) {
                         for (int k = 1; k < parts.length; k++) {
                             if (parts[k].startsWith("DOI:"))
-                                reference.doi = parts[k].substring(4);
+                                reference.doi = parts[k].substring(4).trim();
                             else
                                 LOGGER.warn("Unknown journal line in: " + nextLine.value);
                         }
@@ -478,80 +524,78 @@ public class KeggParser extends Parser<KeggDataSource> {
                     break;
             }
         }
-        return reference;
+        parsedReference.reference = reference;
+        return parsedReference;
     }
 
     private static List<Interaction> parseInteractions(final ChunkLine line) {
-        List<Interaction> result = new ArrayList<>();
-        for (String subLine : StringUtils.split(line.value.trim(), "\n")) {
-            String[] typeRestParts = StringUtils.split(subLine, ":", 2);
-            for (NameIdsPair target : parseNameIdsPairs(typeRestParts[1])) {
-                Interaction interaction = new Interaction();
-                interaction.type = typeRestParts[0];
-                interaction.target = target;
-                result.add(interaction);
-            }
+        final List<Interaction> result = new ArrayList<>();
+        for (final String subLine : StringUtils.split(line.value.trim(), '\n')) {
+            final String[] typeRestParts = StringUtils.split(subLine, ":", 2);
+            for (final NameIdsPair target : parseNameIdsPairs(typeRestParts[1]))
+                result.add(new Interaction(typeRestParts[0], target));
         }
         return result;
     }
 
     private static List<NameIdsPair> parseNameIdsPairs(final String line) {
-        List<NameIdsPair> result = new ArrayList<>();
-        String[] parts = StringUtils.split(line, ";,");
-        for (String pair : parts)
+        final List<NameIdsPair> result = new ArrayList<>();
+        final String[] parts = StringUtils.split(line, ";,");
+        for (final String pair : parts)
             result.add(parseNameIdsPair(pair));
         return result;
     }
 
     private static NameIdsPair parseNameIdsPair(final String line) {
-        NameIdsPair pair = new NameIdsPair();
+        final NameIdsPair pair = new NameIdsPair();
         pair.name = line;
         int replaceOffset = 0;
-        Matcher matcher = TARGET_IDS_PATTERN.matcher(line);
+        final Matcher matcher = TARGET_IDS_PATTERN.matcher(line);
         while (matcher.find()) {
             pair.name = pair.name.substring(0, matcher.start() - replaceOffset) + pair.name.substring(
                     matcher.end() - replaceOffset);
             replaceOffset += matcher.end() - matcher.start();
-            String prefix = matcher.group(1);
-            String[] ids = StringUtils.split(matcher.group(2), " ");
-            for (String id : ids)
+            final String prefix = matcher.group(1);
+            final String[] ids = StringUtils.split(matcher.group(2), ' ');
+            for (final String id : ids)
                 pair.ids.add(prefix + id);
         }
         pair.name = pair.name.trim().replace("  ", " ");
+        // Fix for data error in gene id
+        if (pair.ids.size() == 0 && pair.name.equals("GST [K00799]")) {
+            pair.name = "GST";
+            pair.ids.add("KO:K00799");
+        }
         return pair;
     }
 
     private static List<NameIdsPair> parseTargets(final ChunkLine line) {
-        List<NameIdsPair> result = new ArrayList<>();
-        for (String subLine : StringUtils.split(line.value.trim(), "\n"))
+        final List<NameIdsPair> result = new ArrayList<>();
+        for (final String subLine : StringUtils.split(line.value.trim(), '\n'))
             result.add(parseNameIdsPair(subLine));
         return result;
     }
 
     private static List<Metabolism> parseMetabolisms(final ChunkLine line) {
-        List<Metabolism> result = new ArrayList<>();
-        for (String subLine : StringUtils.split(line.value.trim(), "\n")) {
-            String[] typeRestParts = StringUtils.split(subLine, ":", 2);
-            for (NameIdsPair target : parseNameIdsPairs(typeRestParts[1])) {
-                Metabolism metabolism = new Metabolism();
-                metabolism.type = typeRestParts[0];
-                metabolism.target = target;
-                result.add(metabolism);
-            }
+        final List<Metabolism> result = new ArrayList<>();
+        for (final String subLine : StringUtils.split(line.value.trim(), '\n')) {
+            final String[] typeRestParts = StringUtils.split(subLine, ":", 2);
+            for (final NameIdsPair target : parseNameIdsPairs(typeRestParts[1]))
+                result.add(new Metabolism(typeRestParts[0], target));
         }
         return result;
     }
 
     private static List<NameIdsPair> parseMultilineNameIdsPairs(final ChunkLine line) {
-        List<NameIdsPair> result = new ArrayList<>();
-        for (String subLine : StringUtils.split(line.value.trim(), "\n"))
+        final List<NameIdsPair> result = new ArrayList<>();
+        for (final String subLine : StringUtils.split(line.value.trim(), '\n'))
             result.add(parseNameIdsPair(subLine));
         return result;
     }
 
     private static List<NameIdsPair> parseMultilineIdNamePairs(final ChunkLine line) {
-        List<NameIdsPair> result = new ArrayList<>();
-        for (String subLine : StringUtils.split(line.value.trim(), "\n"))
+        final List<NameIdsPair> result = new ArrayList<>();
+        for (final String subLine : StringUtils.split(line.value.trim(), '\n'))
             result.add((parseIdNamePair(subLine)));
         return result;
     }
@@ -560,22 +604,22 @@ public class KeggParser extends Parser<KeggDataSource> {
         String[] idRestParts = StringUtils.splitByWholeSeparator(line, "  ", 2);
         if (idRestParts.length == 1)
             idRestParts = StringUtils.split(line, " ", 2);
-        NameIdsPair pair = new NameIdsPair();
+        final NameIdsPair pair = new NameIdsPair();
         pair.ids.add(idRestParts[0]);
         if (idRestParts.length > 1)
             pair.name = idRestParts[1];
         return pair;
     }
 
-    private static List<KeggHierarchicalEntry.ParentChildRelation> parseMemberClassHierarchy(final ChunkLine line) {
-        List<KeggHierarchicalEntry.ParentChildRelation> result = new ArrayList<>();
-        Stack<NameIdsPair> depthStack = new Stack<>();
+    private static List<ParentChildRelation> parseMemberClassHierarchy(final ChunkLine line) {
+        final List<ParentChildRelation> result = new ArrayList<>();
+        final Stack<NameIdsPair> depthStack = new Stack<>();
         int lastDepth = -1;
-        for (String branch : StringUtils.split(line.value, "\n")) {
-            int depth = branch.length() - StringUtils.stripStart(branch, null).length();
+        for (String branch : StringUtils.split(line.value, '\n')) {
+            final int depth = branch.length() - StringUtils.stripStart(branch, null).length();
             branch = branch.trim();
-            String[] idRestParts = StringUtils.splitByWholeSeparator(branch, "  ", 2);
-            NameIdsPair pair = new NameIdsPair();
+            final String[] idRestParts = StringUtils.splitByWholeSeparator(branch, "  ", 2);
+            final NameIdsPair pair = new NameIdsPair();
             if (idRestParts.length > 1) {
                 pair.name = idRestParts[1];
                 pair.ids.add(idRestParts[0]);
@@ -588,26 +632,26 @@ public class KeggParser extends Parser<KeggDataSource> {
                     depthStack.pop();
             lastDepth = depth;
             depthStack.set(depthStack.size() - 1, pair);
+            final ParentChildRelation relation = new ParentChildRelation();
             if (depthStack.size() > 1) {
-                KeggHierarchicalEntry.ParentChildRelation relation = new KeggHierarchicalEntry.ParentChildRelation();
                 relation.parent = depthStack.get(depthStack.size() - 2);
-                relation.child = pair;
-                result.add(relation);
             }
+            relation.child = pair;
+            result.add(relation);
         }
         return result;
     }
 
     private static List<List<NameIdsPair>> parseDrugComponents(final ChunkLine line) {
-        List<List<NameIdsPair>> result = new ArrayList<>();
-        List<String[]> parts = new ArrayList<>();
-        for (String andPart : StringUtils.splitByWholeSeparator(line.value, ", "))
+        final List<List<NameIdsPair>> result = new ArrayList<>();
+        final List<String[]> parts = new ArrayList<>();
+        for (final String andPart : StringUtils.splitByWholeSeparator(line.value, ", "))
             parts.add(StringUtils.splitByWholeSeparator(StringUtils.strip(andPart, "()"), " | "));
         while (parts.size() > 1) {
-            String[] newPart = new String[parts.get(0).length * parts.get(1).length];
+            final String[] newPart = new String[parts.get(0).length * parts.get(1).length];
             int index = 0;
-            for (String a : parts.get(0)) {
-                for (String b : parts.get(1)) {
+            for (final String a : parts.get(0)) {
+                for (final String b : parts.get(1)) {
                     newPart[index] = a + ", " + b;
                     index++;
                 }
@@ -615,9 +659,9 @@ public class KeggParser extends Parser<KeggDataSource> {
             parts.remove(1);
             parts.set(0, newPart);
         }
-        for (String mixture : parts.get(0)) {
-            List<NameIdsPair> components = new ArrayList<>();
-            for (String andPart : StringUtils.splitByWholeSeparator(mixture, ", "))
+        for (final String mixture : parts.get(0)) {
+            final List<NameIdsPair> components = new ArrayList<>();
+            for (final String andPart : StringUtils.splitByWholeSeparator(mixture, ", "))
                 components.add(parseNameIdsPair(andPart));
             result.add(components);
         }

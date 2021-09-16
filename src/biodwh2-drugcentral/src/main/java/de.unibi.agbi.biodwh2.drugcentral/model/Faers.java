@@ -3,14 +3,15 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeLabels;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.drugcentral.etl.DrugCentralGraphExporter;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({
         "id", "struct_id", "meddra_name", "meddra_code", "level", "llr", "llr_threshold", "drug_ae", "drug_no_ae",
         "no_drug_ae", "no_drug_no_ae"
 })
-@NodeLabels("FAERS")
+@GraphNodeLabel(DrugCentralGraphExporter.FAERS_LABEL)
 public final class Faers {
     @JsonProperty("id")
     @GraphProperty("id")

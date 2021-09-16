@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.medrt.etl;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.medrt.MEDRTDataSource;
 import de.unibi.agbi.biodwh2.medrt.model.*;
@@ -34,16 +35,27 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     }
 
     @Override
-    protected boolean exportGraph(final Workspace workspace, final Graph g) {
-        g.setNodeIndexPropertyKeys("code", "namespace");
-        addTerminology(g);
+    public long getExportVersion() {
+        return 2;
+    }
+
+    @Override
+    protected boolean exportGraph(final Workspace workspace, final Graph graph) {
+        graph.addIndex(IndexDescription.forNode("Drug", "code", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Disease", "code", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Concept", "code", IndexDescription.Type.UNIQUE));
+        for (final String label : conceptLabelMap.values())
+            graph.addIndex(IndexDescription.forNode(label, "code", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TERM_LABEL, "name", IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TERM_LABEL, "namespace", IndexDescription.Type.NON_UNIQUE));
+        addTerminology(graph);
         return true;
     }
 
     private void addTerminology(final Graph g) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export terminology...");
-        final Node node = createNode(g, "Terminology");
+        final Node node = g.addNode("Terminology");
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export namespaces...");
         addTerminologyNamespace(g, node, dataSource.terminology.namespace);
@@ -65,20 +77,20 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     }
 
     private void addTerminologyNamespace(final Graph g, final Node terminologyNode, final Namespace namespace) {
-        final Node node = createNodeFromModel(g, namespace);
+        final Node node = g.addNodeFromModel(namespace);
         g.addEdge(terminologyNode, node, "IN_NAMESPACE");
     }
 
     private void addReferencedNamespaces(final Graph g, final Node terminologyNode) {
         for (final Namespace namespace : dataSource.terminology.referencedNamespaces) {
-            final Node node = createNodeFromModel(g, namespace);
+            final Node node = g.addNodeFromModel(namespace);
             g.addEdge(terminologyNode, node, "REFERENCES_NAMESPACE");
         }
     }
 
     private void addPropertyDefinitions(final Graph g) {
         for (final PropertyType propertyType : dataSource.terminology.propertyTypes) {
-            final Node node = createNodeFromModel(g, propertyType);
+            final Node node = g.addNodeFromModel(propertyType);
             g.addEdge(node, g.findNode("Namespace", "name", propertyType.namespace), "IN_NAMESPACE");
         }
     }
@@ -98,14 +110,14 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
 
     private void addQualitativeDefinitions(final Graph g) {
         for (final QualitativeType qualitativeType : dataSource.terminology.qualitativeTypes) {
-            final Node node = createNodeFromModel(g, qualitativeType);
+            final Node node = g.addNodeFromModel(qualitativeType);
             g.addEdge(node, g.findNode("Namespace", "name", qualitativeType.namespace), "IN_NAMESPACE");
         }
     }
 
     private void addTerms(final Graph g) {
         for (final Term term : dataSource.terminology.terms)
-            createNodeFromModel(g, term);
+            g.addNodeFromModel(term);
     }
 
     private void addConcepts(final Graph g) {
@@ -149,11 +161,41 @@ public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
     }
 
     private Node findAssociationNode(final Graph g, final String code, String name, final String namespace) {
-        if ("RxNorm".equals(namespace)) {
-            final Node source = g.findNode("Drug", "code", code);
-            return source == null ? g.addNode("Drug", "code", code, "namespace", namespace, "name", name) : source;
+        Node node = g.findNode("Drug", "code", code);
+        if (node == null)
+            node = g.findNode("Disease", "code", code);
+        if (node == null)
+            node = g.findNode("Concept", "code", code);
+        if (node == null) {
+            if ("RxNorm".equals(namespace)) {
+                node = g.addNode("Drug", "code", code, "namespace", namespace, "name", name);
+            } else {
+                if (isConceptSynonymOfDrug(code))
+                    node = g.addNode("Drug", "code", code, "namespace", namespace, "name", name);
+                else if (isConceptDisease(code))
+                    node = g.addNode("Disease", "code", code, "namespace", namespace, "name", name);
+                else
+                    node = g.addNode("Concept", "code", code, "namespace", namespace, "name", name);
+            }
         }
-        final Node source = g.findNode("code", code);
-        return source == null ? g.addNode("Concept", "code", code, "namespace", namespace, "name", name) : source;
+        return node;
+    }
+
+    private boolean isConceptSynonymOfDrug(final String code) {
+        return dataSource.terminology.associations.stream().anyMatch(
+                a -> "RxNorm".equals(a.fromNamespace) && "synonym of".equalsIgnoreCase(a.name) &&
+                     a.toCode.equals(code));
+    }
+
+    private boolean isConceptDisease(final String code) {
+        return dataSource.terminology.associations.stream().anyMatch(
+                a -> "RxNorm".equals(a.fromNamespace) && isAssociationFromDrugToDisease(a) && a.toCode.equals(code));
+    }
+
+    private boolean isAssociationFromDrugToDisease(final Association association) {
+        if (association.name == null)
+            return false;
+        return "CI_with".equals(association.name) || "may_treat".equals(association.name) || "may_prevent".equals(
+                association.name) || "may_diagnose".equals(association.name) || "induces".equals(association.name);
     }
 }

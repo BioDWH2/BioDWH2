@@ -7,6 +7,8 @@ import de.unibi.agbi.biodwh2.core.etl.GraphMerger;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.*;
+import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.migration.GraphMigrator;
 import de.unibi.agbi.biodwh2.core.text.TableFormatter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -55,7 +57,7 @@ public final class Workspace {
 
     private Configuration createOrLoadConfiguration() {
         try {
-            Configuration configuration = loadConfiguration();
+            final Configuration configuration = loadConfiguration();
             return configuration == null ? createConfiguration() : configuration;
         } catch (IOException e) {
             throw new WorkspaceException("Failed to load or create workspace configuration", e);
@@ -81,13 +83,9 @@ public final class Workspace {
     }
 
     private DataSource[] getUsedDataSources() {
-        if (configuration.getDataSourceIds().length == 0)
-            throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
-                                         "have been added to the workspace config.json either directly or via " +
-                                         "command line.");
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Using data sources " + StringUtils.join(configuration.getDataSourceIds(), ", "));
-        DataSource[] result = new DataSourceLoader().getDataSources(configuration.getDataSourceIds());
+        final DataSource[] result = new DataSourceLoader().getDataSources(configuration.getDataSourceIds());
         if (result.length != configuration.getNumberOfDataSources())
             throw new WorkspaceException("Failed to load all data sources. Please ensure the configured data source " +
                                          "IDs are valid and all data source modules are available in the classpath.");
@@ -145,7 +143,7 @@ public final class Workspace {
         final List<String> row = new ArrayList<>();
         final DataSourceMetadata metadata = dataSource.getMetadata();
         final Version latestVersion = dataSource.getNewestVersion();
-        LocalDateTime updateDateTime = metadata.getLocalUpdateDateTime();
+        final LocalDateTime updateDateTime = metadata.getLocalUpdateDateTime();
         Collections.addAll(row, dataSource.getId(), dataSource.isUpToDate() ? "true" : "-",
                            metadata.version == null ? "-" : metadata.version.toString(),
                            latestVersion == null ? "-" : latestVersion.toString(),
@@ -158,6 +156,10 @@ public final class Workspace {
     }
 
     public void processDataSources(final String dataSourceId, final String version, final boolean skipUpdate) {
+        if (configuration.getDataSourceIds().length == 0)
+            throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
+                                         "have been added to the workspace config.json either directly or via " +
+                                         "command line.");
         if (prepareDataSources()) {
             for (final DataSource dataSource : dataSources)
                 if (dataSourceId == null || dataSource.getId().equals(dataSourceId))
@@ -184,26 +186,27 @@ public final class Workspace {
                 LOGGER.info("Running updater");
             updateState = version == null ? dataSource.updateAutomatic(this) : dataSource.updateManually(this, version);
         }
-        if (isExportNeeded(updateState, dataSource)) {
+        if (isDataSourceExportNeeded(updateState, dataSource)) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Running parser");
-            dataSource.parse(this);
-            if (LOGGER.isInfoEnabled())
-                LOGGER.info("Running exporter");
-            dataSource.export(this);
+            if (dataSource.parse(this)) {
+                if (LOGGER.isInfoEnabled())
+                    LOGGER.info("Running exporter");
+                dataSource.export(this);
+            }
         } else if (LOGGER.isInfoEnabled())
             LOGGER.info("Skipping export of data source '" + dataSource.getId() + "' because nothing changed");
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Processing of data source '" + dataSource.getId() + "' finished");
     }
 
-    private boolean isExportNeeded(final Updater.UpdateState updateState, final DataSource dataSource) {
+    private boolean isDataSourceExportNeeded(final Updater.UpdateState updateState, final DataSource dataSource) {
         if (updateState == Updater.UpdateState.UPDATED || isDataSourceExportForced(dataSource))
             return true;
         final DataSourceMetadata metadata = dataSource.getMetadata();
-        return metadata.exportSuccessful == null || !metadata.exportSuccessful || fileDoesNotExist(
-                dataSource.getFilePath(this, DataSourceFileType.INTERMEDIATE_GRAPHML)) || fileDoesNotExist(
-                dataSource.getFilePath(this, DataSourceFileType.PERSISTENT_GRAPH));
+        return metadata.exportSuccessful == null || !metadata.exportSuccessful || areDataSourceExportsMissing(
+                dataSource) || isDataSourceExportOutdated(dataSource, metadata) || isExportedGraphVersionOutdated(
+                dataSource);
     }
 
     private boolean isDataSourceExportForced(final DataSource dataSource) {
@@ -212,8 +215,27 @@ public final class Workspace {
                 configuration.getDataSourceProperties(id).getOrDefault("forceExport", ""));
     }
 
+    private boolean areDataSourceExportsMissing(final DataSource dataSource) {
+        return fileDoesNotExist(dataSource.getFilePath(this, DataSourceFileType.PERSISTENT_GRAPH)) ||
+               (!configuration.shouldSkipGraphMLExport() && fileDoesNotExist(
+                       dataSource.getFilePath(this, DataSourceFileType.INTERMEDIATE_GRAPHML)));
+    }
+
     private boolean fileDoesNotExist(final Path filePath) {
         return Files.notExists(filePath);
+    }
+
+    private boolean isDataSourceExportOutdated(final DataSource dataSource, final DataSourceMetadata metadata) {
+        return metadata.exportVersion == null ||
+               metadata.exportVersion < dataSource.getGraphExporter().getExportVersion();
+    }
+
+    private boolean isExportedGraphVersionOutdated(final DataSource dataSource) {
+        final Path filePath = dataSource.getFilePath(this, DataSourceFileType.PERSISTENT_GRAPH);
+        if (!filePath.toFile().exists())
+            return true;
+        final Integer exportedVersion = GraphMigrator.peekVersion(filePath);
+        return exportedVersion == null || Graph.VERSION > exportedVersion;
     }
 
     private void mergeDataSources() {
@@ -225,11 +247,11 @@ public final class Workspace {
                 LOGGER.info("Merging of data sources finished");
         } catch (MergerException e) {
             if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to merge GraphML data sources", e);
+                LOGGER.error("Merging of data sources failed", e);
         }
     }
 
-    public final Path getFilePath(final WorkspaceFileType type) {
+    public Path getFilePath(final WorkspaceFileType type) {
         return Paths.get(getSourcesDirectory(), type.getName());
     }
 

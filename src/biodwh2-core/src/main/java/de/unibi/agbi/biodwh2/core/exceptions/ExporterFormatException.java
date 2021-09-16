@@ -7,20 +7,20 @@ public class ExporterFormatException extends ExporterException {
         super();
     }
 
-    public ExporterFormatException(String message) {
+    public ExporterFormatException(final String message) {
         super(message);
     }
 
-    public ExporterFormatException(String message, Throwable cause) {
+    public ExporterFormatException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public ExporterFormatException(Throwable cause) {
+    public ExporterFormatException(final Throwable cause) {
         super(cause);
     }
 
-    public ExporterFormatException(String message, Throwable cause, boolean enableSuppression,
-                                   boolean writableStackTrace) {
+    public ExporterFormatException(final String message, final Throwable cause, final boolean enableSuppression,
+                                   final boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

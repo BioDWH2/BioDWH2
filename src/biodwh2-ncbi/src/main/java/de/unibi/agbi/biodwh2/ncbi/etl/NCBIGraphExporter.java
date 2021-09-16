@@ -11,6 +11,7 @@ import de.unibi.agbi.biodwh2.core.io.sdf.SdfEntry;
 import de.unibi.agbi.biodwh2.core.io.sdf.SdfReader;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.ncbi.NCBIDataSource;
 import de.unibi.agbi.biodwh2.ncbi.model.GeneAccession;
@@ -22,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -36,8 +38,14 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.setNodeIndexPropertyKeys("id");
+        graph.addIndex(IndexDescription.forNode("Gene", "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Compound", "id", IndexDescription.Type.UNIQUE));
         geneIdNodeIdMap = new HashMap<>();
         try {
             exportGeneDatabase(workspace, dataSource, graph);
@@ -62,7 +70,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             if (!geneInfo.taxonomyId.equals("9606"))
                 continue;
             long geneId = Long.parseLong(geneInfo.geneId);
-            Node geneNode = createNode(graph, "Gene");
+            Node geneNode = graph.addNode("Gene");
             geneNode.setProperty("id", geneId);
             setPropertyIfNotDash(geneNode, "symbol", geneInfo.symbol);
             setPropertyIfNotDash(geneNode, "chromosome", geneInfo.chromosome);
@@ -98,7 +106,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
             long geneId = Long.parseLong(go.geneId);
             Node goTermNode = graph.findNode("GoTerm", "id", go.goId);
             if (goTermNode == null) {
-                goTermNode = createNode(graph, "GoTerm");
+                goTermNode = graph.addNode("GoTerm");
                 goTermNode.setProperty("id", go.goId);
                 goTermNode.setProperty("category", go.category);
                 goTermNode.setProperty("term", go.goTerm);
@@ -165,7 +173,7 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
     }
 
     private Node createAccessionNode(final Graph graph, final GeneAccession accession) {
-        Node accessionNode = createNode(graph, "Accession");
+        Node accessionNode = graph.addNode("Accession");
         setPropertyIfNotDash(accessionNode, "status", accession.status);
         setLongPropertyIfNotDash(accessionNode, "rna_nucleotide_gi", accession.rnaNucleotideGi);
         setPropertyIfNotDash(accessionNode, "rna_nucleotide_accession.version",
@@ -205,17 +213,18 @@ public class NCBIGraphExporter extends GraphExporter<NCBIDataSource> {
 
     private void exportPubChemDatabase(final Workspace workspace, final DataSource dataSource,
                                        final Graph graph) throws IOException {
-        String[] fileNames = dataSource.listSourceFiles(workspace);
-        for (String fileName : fileNames)
+        final String[] fileNames = dataSource.listSourceFiles(workspace);
+        for (final String fileName : fileNames)
             if (fileName.startsWith("Compound_") && fileName.endsWith(".sdf.gz")) {
-                SdfReader reader = new SdfReader(FileUtils.openGzip(workspace, dataSource, fileName), "UTF-8");
-                for (SdfEntry entry : reader)
+                final SdfReader reader = new SdfReader(FileUtils.openGzip(workspace, dataSource, fileName),
+                                                       StandardCharsets.UTF_8);
+                for (final SdfEntry entry : reader)
                     createPubChemCompoundNode(graph, entry);
             }
     }
 
     private void createPubChemCompoundNode(final Graph graph, final SdfEntry entry) {
-        Node node = createNode(graph, "Compound");
+        Node node = graph.addNode("Compound");
         node.setProperty("id", Long.parseLong(entry.properties.get("PUBCHEM_COMPOUND_CID")));
         node.setProperty("IUPAC_openeye_name", entry.properties.get("PUBCHEM_IUPAC_OPENEYE_NAME"));
         node.setProperty("IUPAC_cas_name", entry.properties.get("PUBCHEM_IUPAC_CAS_NAME"));

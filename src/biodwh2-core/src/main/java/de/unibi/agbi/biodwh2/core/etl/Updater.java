@@ -8,6 +8,7 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -40,17 +41,28 @@ public abstract class Updater<D extends DataSource> {
 
     public abstract Version getNewestVersion() throws UpdaterException;
 
-    public final UpdateState update(Workspace workspace) throws UpdaterException {
+    public final UpdateState update(final Workspace workspace) throws UpdaterException {
         final Version newestVersion = getNewestVersion();
         final Version workspaceVersion = dataSource.getMetadata().version;
-        if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
+        final boolean expectedFilesPresent = areExpectedFilesPresent(workspace);
+        final boolean isUpToDate = isDataSourceUpToDate(newestVersion, workspaceVersion);
+        if (isUpToDate && expectedFilesPresent) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
             return UpdateState.ALREADY_UP_TO_DATE;
         }
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("New version of data source '" + dataSource.getId() + "' found (old: " +
-                        (workspaceVersion == null ? "none" : workspaceVersion) + ", new: " + newestVersion + ")");
+        if (LOGGER.isInfoEnabled()) {
+            if (isUpToDate) {
+                final String versionInfo =
+                        versionNotAvailable() ? "" : (" (updating to version " + newestVersion + ")");
+                LOGGER.info("Some files of data source '" + dataSource.getId() + "' are missing" + versionInfo);
+            } else {
+                final String versionInfo = versionNotAvailable() ? "" :
+                                           (" (old: " + (workspaceVersion == null ? "none" : workspaceVersion) +
+                                            ", new: " + newestVersion + ")");
+                LOGGER.info("New version of data source '" + dataSource.getId() + "' found" + versionInfo);
+            }
+        }
         if (tryUpdateFiles(workspace)) {
             updateDataSourceMetadata(workspace, newestVersion);
             return UpdateState.UPDATED;
@@ -58,30 +70,30 @@ public abstract class Updater<D extends DataSource> {
         return UpdateState.FAILED;
     }
 
-    public final UpdateState updateManually(Workspace workspace, String version) {
-        final Version workspaceVersion = dataSource.getMetadata().version;
-        final Version newestVersion = Version.tryParse(version);
-        if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
-            if (LOGGER.isInfoEnabled())
-                LOGGER.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
-            return UpdateState.ALREADY_UP_TO_DATE;
-        }
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("New version of data source '" + dataSource.getId() + "' found (old: " +
-                        (workspaceVersion == null ? "none" : workspaceVersion) + ", new: " + newestVersion + ")");
-        updateDataSourceMetadata(workspace, newestVersion);
-        return UpdateState.UPDATED;
+    private boolean areExpectedFilesPresent(final Workspace workspace) {
+        for (final String fileName : expectedFileNames())
+            if (!Paths.get(dataSource.resolveSourceFilePath(workspace, fileName)).toFile().exists())
+                return false;
+        return true;
     }
 
-    private boolean isDataSourceUpToDate(Version newestVersion, Version workspaceVersion) {
+    protected String[] expectedFileNames() {
+        return new String[0];
+    }
+
+    private boolean isDataSourceUpToDate(final Version newestVersion, final Version workspaceVersion) {
         if (versionNotAvailable())
             return false;
         return workspaceVersion != null && newestVersion.compareTo(workspaceVersion) == 0;
     }
 
-    protected abstract boolean tryUpdateFiles(Workspace workspace) throws UpdaterException;
+    protected boolean versionNotAvailable() {
+        return false;
+    }
 
-    private void updateDataSourceMetadata(Workspace workspace, Version version) {
+    protected abstract boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException;
+
+    private void updateDataSourceMetadata(final Workspace workspace, final Version version) {
         final DataSourceMetadata metadata = dataSource.getMetadata();
         metadata.version = version;
         metadata.setUpdateDateTimeNow();
@@ -89,18 +101,32 @@ public abstract class Updater<D extends DataSource> {
         Collections.addAll(metadata.sourceFileNames, dataSource.listSourceFiles(workspace));
     }
 
+    public final UpdateState updateManually(final Workspace workspace, final String version) {
+        final Version workspaceVersion = dataSource.getMetadata().version;
+        final Version newestVersion = Version.tryParse(version);
+        if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
+            return UpdateState.ALREADY_UP_TO_DATE;
+        }
+        if (LOGGER.isInfoEnabled()) {
+            final String versionInfo = versionNotAvailable() ? "" :
+                                       (" (old: " + (workspaceVersion == null ? "none" : workspaceVersion) + ", new: " +
+                                        newestVersion + ")");
+            LOGGER.info("New version of data source '" + dataSource.getId() + "' found" + versionInfo);
+        }
+        updateDataSourceMetadata(workspace, newestVersion);
+        return UpdateState.UPDATED;
+    }
+
     public final boolean isDataSourceUpToDate() {
-        Version newestVersion = tryGetNewestVersion();
+        final Version newestVersion = tryGetNewestVersion();
         final Version workspaceVersion = dataSource.getMetadata().version;
         return isDataSourceUpToDate(newestVersion, workspaceVersion);
     }
 
-    protected static Version convertDateTimeToVersion(LocalDateTime dateTime) {
+    protected static Version convertDateTimeToVersion(final LocalDateTime dateTime) {
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd.HHmmss");
         return Version.parse(dateTime.format(formatter));
-    }
-
-    protected boolean versionNotAvailable() {
-        return false;
     }
 }
