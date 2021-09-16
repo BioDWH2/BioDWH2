@@ -22,11 +22,20 @@ public class Gen2PhenotypeMappingDescriber extends MappingDescriber {
             return describePublication(node);
         if ("Phenotype".equalsIgnoreCase(localMappingLabel))
             return describePhenotype(node);
+        if ("GeneDiseasePair".equalsIgnoreCase(localMappingLabel))
+            return describeGeneDiseasePair(node);
         return null;
     }
 
+    private NodeMappingDescription[] describeGeneDiseasePair(Node node) {
+        NodeMappingDescription description = new NodeMappingDescription("GENDISEASEPAIR");
+        description.addIdentifier("ID", (String) node.getProperty("id"));
+
+        return new NodeMappingDescription[]{description};
+    }
+
     private NodeMappingDescription[] describePhenotype(Node node) {
-        NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.UNKNOWN);
+        NodeMappingDescription description = new NodeMappingDescription("PHENOTYPE");
         description.addIdentifier("HPO_ID", (String) node.getProperty("hpo_id"));
 
         return new NodeMappingDescription[]{description};
@@ -72,11 +81,16 @@ public class Gen2PhenotypeMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{"Gene", "Disease", "Publication", "Phenotype"};
+        return new String[]{"Gene", "Disease", "Publication", "Phenotype", "GeneDiseasePair"};
     }
 
     @Override
     protected String[][] getEdgeMappingPaths() {
-        return new String[0][];
+        return new String[][]{
+                {"Gene", "MUTATES", "GeneDiseasePair"},
+                {"GeneDiseasePair", "CAUSES", "Disease"},
+                {"GeneDiseasePair", "SHOWS", "Phenotype"},
+                {"GeneDiseasePair", "PUBLISHED_IN", "Publication"}
+        };
     }
 }
