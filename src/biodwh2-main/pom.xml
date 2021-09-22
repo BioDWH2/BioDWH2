@@ -179,11 +179,6 @@
         </dependency>
         <dependency>
             <groupId>de.unibi.agbi.biodwh2</groupId>
-            <artifactId>biodwh2-canadiannutrientfile</artifactId>
-            <version>0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>de.unibi.agbi.biodwh2</groupId>
             <artifactId>biodwh2-ema</artifactId>
             <version>0.1</version>
         </dependency>
@@ -210,7 +205,6 @@
         <dependency>
             <groupId>de.unibi.agbi.biodwh2</groupId>
             <artifactId>biodwh2-opentargets</artifactId>
->>>>>>> f80ed1f0eb1560b83676ec415dae7dd9e3904024
             <version>0.1</version>
         </dependency>
         <dependency>
