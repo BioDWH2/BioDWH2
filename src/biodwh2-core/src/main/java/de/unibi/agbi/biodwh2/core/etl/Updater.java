@@ -101,24 +101,6 @@ public abstract class Updater<D extends DataSource> {
         Collections.addAll(metadata.sourceFileNames, dataSource.listSourceFiles(workspace));
     }
 
-    public final UpdateState updateManually(final Workspace workspace, final String version) {
-        final Version workspaceVersion = dataSource.getMetadata().version;
-        final Version newestVersion = Version.tryParse(version);
-        if (isDataSourceUpToDate(newestVersion, workspaceVersion)) {
-            if (LOGGER.isInfoEnabled())
-                LOGGER.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
-            return UpdateState.ALREADY_UP_TO_DATE;
-        }
-        if (LOGGER.isInfoEnabled()) {
-            final String versionInfo = versionNotAvailable() ? "" :
-                                       (" (old: " + (workspaceVersion == null ? "none" : workspaceVersion) + ", new: " +
-                                        newestVersion + ")");
-            LOGGER.info("New version of data source '" + dataSource.getId() + "' found" + versionInfo);
-        }
-        updateDataSourceMetadata(workspace, newestVersion);
-        return UpdateState.UPDATED;
-    }
-
     public final boolean isDataSourceUpToDate() {
         final Version newestVersion = tryGetNewestVersion();
         final Version workspaceVersion = dataSource.getMetadata().version;

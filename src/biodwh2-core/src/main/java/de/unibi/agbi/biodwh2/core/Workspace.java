@@ -155,21 +155,20 @@ public final class Workspace {
         return row;
     }
 
-    public void processDataSources(final String dataSourceId, final String version, final boolean skipUpdate) {
+    public void processDataSources(final boolean skipUpdate) {
         if (configuration.getDataSourceIds().length == 0)
             throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
                                          "have been added to the workspace config.json either directly or via " +
                                          "command line.");
         if (prepareDataSources()) {
             for (final DataSource dataSource : dataSources)
-                if (dataSourceId == null || dataSource.getId().equals(dataSourceId))
-                    processDataSource(dataSource, version, skipUpdate);
+                processDataSource(dataSource, skipUpdate);
             mergeDataSources();
             mapDataSources();
         }
     }
 
-    private void processDataSource(final DataSource dataSource, final String version, final boolean skipUpdate) {
+    private void processDataSource(final DataSource dataSource, final boolean skipUpdate) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Processing of data source '" + dataSource.getId() + "' started");
         Updater.UpdateState updateState;
@@ -184,7 +183,7 @@ public final class Workspace {
         } else {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Running updater");
-            updateState = version == null ? dataSource.updateAutomatic(this) : dataSource.updateManually(this, version);
+            updateState = dataSource.updateAutomatic(this);
         }
         if (isDataSourceExportNeeded(updateState, dataSource)) {
             if (LOGGER.isInfoEnabled())
@@ -269,6 +268,27 @@ public final class Workspace {
 
     public void removeDataSource(final String dataSourceId) {
         configuration.removeDataSource(dataSourceId);
+    }
+
+    public void setDataSourceVersion(final String dataSourceId, final String dataSourceVersion) {
+        final Version version = Version.tryParse(dataSourceVersion);
+        if (version == null) {
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error("Failed to set data source '" + dataSourceId + "' version to '" + dataSourceVersion +
+                             "', as the provided version did not match the format 'w.x[.y[.z]]'.");
+            return;
+        }
+        final Optional<DataSource> dataSourceMatch = Arrays.stream(dataSources).filter(
+                d -> d.getId().equals(dataSourceId)).findFirst();
+        if (dataSourceMatch.isPresent()) {
+            final DataSource dataSource = dataSourceMatch.get();
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Setting data source '" + dataSource.getId() + "' version to '" + dataSourceVersion + "'.");
+            prepareDataSource(dataSource);
+            dataSource.setVersion(this, version);
+        } else if (LOGGER.isErrorEnabled())
+            LOGGER.error("Failed to set data source '" + dataSourceId + "' version to '" + dataSourceVersion +
+                         "', as the data source module could not be found. Is the data source ID correct?");
     }
 
     public void saveConfiguration() throws IOException {

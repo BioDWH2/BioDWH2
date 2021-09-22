@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 
 public abstract class DataSource {
@@ -112,10 +114,8 @@ public abstract class DataSource {
 
     private void logUpdaterOnlyManuallyException() {
         if (LOGGER.isErrorEnabled())
-            LOGGER.error("Data source '" + getId() + "' can only be updated manually. Download the new version of " +
-                         getId() + " and use the command line parameter -u or --update with the parameters " +
-                         "<workspacePath> \"" + getId() + "\" <version>.\n" +
-                         "Help: https://github.com/AstrorEnales/BioDWH2/blob/develop/doc/usage.md");
+            LOGGER.error("Data source '" + getId() + "' can only be updated manually. For help visit " +
+                         "https://github.com/BioDWH2/BioDWH2/blob/master/doc/usage.md");
     }
 
     private void handleUpdateAutomaticFailed(final UpdaterException e) {
@@ -131,13 +131,6 @@ public abstract class DataSource {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("Failed to save metadata for data source '" + getId() + "'", e);
         }
-    }
-
-    final Updater.UpdateState updateManually(final Workspace workspace, final String version) {
-        final Updater.UpdateState state = getUpdater().updateManually(workspace, version);
-        metadata.updateSuccessful = state != Updater.UpdateState.FAILED;
-        trySaveMetadata(workspace);
-        return state;
     }
 
     final boolean parse(final Workspace workspace) {
@@ -205,5 +198,14 @@ public abstract class DataSource {
 
     public final Map<String, String> getProperties(final Workspace workspace) {
         return workspace.getConfiguration().getDataSourceProperties(getId());
+    }
+
+    void setVersion(final Workspace workspace, final Version version) {
+        metadata.version = version;
+        metadata.setUpdateDateTimeNow();
+        metadata.sourceFileNames = new ArrayList<>();
+        Collections.addAll(metadata.sourceFileNames, listSourceFiles(workspace));
+        metadata.updateSuccessful = true;
+        trySaveMetadata(workspace);
     }
 }

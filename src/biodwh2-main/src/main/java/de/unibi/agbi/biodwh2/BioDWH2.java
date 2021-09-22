@@ -44,11 +44,13 @@ public final class BioDWH2 {
         else if (commandLine.removeDataSource != null)
             removeDataSource(commandLine);
         else if (commandLine.create != null)
-            createWorkspace(commandLine);
+            createWorkspace(commandLine.create);
         else if (commandLine.status != null)
-            checkWorkspaceState(commandLine);
+            checkWorkspaceState(commandLine.status, commandLine.verbose);
         else if (commandLine.update != null)
             updateWorkspace(commandLine.update, commandLine.skipUpdate);
+        else if (commandLine.setDataSourceVersion != null)
+            setDataSourceVersion(commandLine);
         else if (commandLine.version)
             printVersion();
         else
@@ -115,23 +117,26 @@ public final class BioDWH2 {
         }
     }
 
-    private void createWorkspace(final CmdArgs commandLine) {
-        final String workspacePath = commandLine.create;
+    private void createWorkspace(final String workspacePath) {
         new Workspace(workspacePath);
     }
 
-    private void checkWorkspaceState(final CmdArgs commandLine) {
-        final String workspacePath = commandLine.status;
+    private void checkWorkspaceState(final String workspacePath, final boolean verbose) {
         final Workspace workspace = new Workspace(workspacePath);
-        workspace.checkState(commandLine.verbose);
+        workspace.checkState(verbose);
     }
 
-    private void updateWorkspace(final List<String> updateParameters, final boolean skipUpdate) {
-        final String workspacePath = updateParameters.get(0);
-        final String dataSourceId = updateParameters.size() > 1 ? updateParameters.get(1) : null;
-        final String version = updateParameters.size() > 2 ? updateParameters.get(2) : null;
+    private void updateWorkspace(final String workspacePath, final boolean skipUpdate) {
         final Workspace workspace = new Workspace(workspacePath);
-        workspace.processDataSources(dataSourceId, version, skipUpdate);
+        workspace.processDataSources(skipUpdate);
+    }
+
+    private void setDataSourceVersion(final CmdArgs commandLine) {
+        final String workspacePath = commandLine.setDataSourceVersion.get(0);
+        final String dataSourceId = commandLine.setDataSourceVersion.get(1);
+        final String version = commandLine.setDataSourceVersion.get(2);
+        final Workspace workspace = new Workspace(workspacePath);
+        workspace.setDataSourceVersion(dataSourceId, version);
     }
 
     private void printVersion() {
