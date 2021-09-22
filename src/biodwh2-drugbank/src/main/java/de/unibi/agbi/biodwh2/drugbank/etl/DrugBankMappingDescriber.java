@@ -2,17 +2,11 @@ package de.unibi.agbi.biodwh2.drugbank.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.mapping.IdentifierUtils;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class DrugBankMappingDescriber extends MappingDescriber {
-    // https://www.crossref.org/blog/dois-and-matching-regular-expressions/
-    private static final Pattern DOI_PATTERN = Pattern.compile("doi: (10\\.\\d{4,9}/[-._;()/:A-Z0-9]+)\\.",
-                                                               Pattern.CASE_INSENSITIVE);
-
     public DrugBankMappingDescriber(final DataSource dataSource) {
         super(dataSource);
     }
@@ -102,10 +96,10 @@ public class DrugBankMappingDescriber extends MappingDescriber {
         description.addIdentifier(IdentifierType.PUBMED_ID, node.<String>getProperty("pubmed_id"));
         final String citation = node.getProperty("citation");
         if (citation != null) {
-            final Matcher matcher = DOI_PATTERN.matcher(citation);
-            while (matcher.find()) {
-                description.addIdentifier(IdentifierType.DOI, matcher.group(1));
-            }
+            final String[] dois = IdentifierUtils.extractDois(citation);
+            if (dois != null)
+                for (final String doi : dois)
+                    description.addIdentifier(IdentifierType.DOI, doi);
             description.addName(citation);
         }
         return new NodeMappingDescription[]{description};
