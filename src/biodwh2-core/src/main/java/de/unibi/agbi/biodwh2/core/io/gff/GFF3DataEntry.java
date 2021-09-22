@@ -117,8 +117,8 @@ public class GFF3DataEntry implements GFF3Entry {
 
     @Override
     public String toString() {
-        return "GFF3DataEntry{" + "seqId='" + seqId + '\'' + ", source='" + source + '\'' + ", typeSOId='" + typeSOId +
-               '\'' + ", typeSOName='" + typeSOName + '\'' + ", start=" + start + ", end=" + end + ", score=" + score +
+        return "GFF3DataEntry{" + "seqId='" + seqId + "', source='" + source + "', typeSOId='" + typeSOId +
+               "', typeSOName='" + typeSOName + "', start=" + start + ", end=" + end + ", score=" + score +
                ", strand=" + strand + ", phase=" + phase + ", attributes=" + attributes + '}';
     }
 }

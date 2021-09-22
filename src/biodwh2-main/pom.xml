@@ -209,6 +209,11 @@
         </dependency>
         <dependency>
             <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-canadiannutrientfile</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
             <artifactId>biodwh2-aact</artifactId>
             <version>0.1</version>
         </dependency>

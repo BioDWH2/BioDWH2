@@ -9,10 +9,12 @@ Released:
  * ```[OpenTargets]``` #47 Added OpenTargets data source module
  * ```[AACT]``` #50 Added AACT data source module
  * ```[Gene2Phenotype]``` #51 Added Gene2Phenotype data source module
+ * ```[CanadianNutrientFile]``` #52 Added CanadianNutrientFile (CNF) data source module
 
 ### 🔧 Bug fixes and other changes
 
  * ```[fix]``` HTTPFTPClient is able to handle more formats
+ * ```[feature]``` Improve manual update behaviour
 
 ## 📦 Version [v0.3.9](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.9)
 

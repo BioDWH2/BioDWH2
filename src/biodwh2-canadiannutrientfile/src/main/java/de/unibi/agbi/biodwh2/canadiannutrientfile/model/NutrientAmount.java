@@ -1,52 +1,25 @@
 package de.unibi.agbi.biodwh2.canadiannutrientfile.model;
 
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+@JsonPropertyOrder({
+        "FoodID", "NutrientID", "NutrientValue", "StandardError", "NumberofObservations", "NutrientSourceID",
+        "NutrientDateOfEntry"
+})
 public class NutrientAmount {
-    private final String foodID;
-    private final String nutrientID;
-    private final String nutrientSourceID;
-    private final double value;
-    private final double standardError;
-    private final int numberOfObservations;
-    private final LocalDateTime DateOfEntry;
-
-    public NutrientAmount(String foodID, String nutrientID, String nutrientSourceID, double value, double standardError,
-                          int numberOfObservations, LocalDateTime dateOfEntry) {
-        this.foodID = foodID;
-        this.nutrientID = nutrientID;
-        this.nutrientSourceID = nutrientSourceID;
-        this.value = value;
-        this.standardError = standardError;
-        this.numberOfObservations = numberOfObservations;
-        DateOfEntry = dateOfEntry;
-    }
-
-    public String getFoodID() {
-        return foodID;
-    }
-
-    public String getNutrientID() {
-        return nutrientID;
-    }
-
-    public String getNutrientSourceID() {
-        return nutrientSourceID;
-    }
-
-    public double getValue() {
-        return value;
-    }
-
-    public double getStandardError() {
-        return standardError;
-    }
-
-    public int getNumberOfObservations() {
-        return numberOfObservations;
-    }
-
-    public LocalDateTime getDateOfEntry() {
-        return DateOfEntry;
-    }
+    @JsonProperty("FoodID")
+    public String foodID;
+    @JsonProperty("NutrientID")
+    public String nutrientID;
+    @JsonProperty("NutrientValue")
+    public String value;
+    @JsonProperty("StandardError")
+    public String standardError;
+    @JsonProperty("NumberofObservations")
+    public Integer numberOfObservations;
+    @JsonProperty("NutrientSourceID")
+    public String nutrientSourceID;
+    @JsonProperty("NutrientDateOfEntry")
+    public String dateOfEntry;
 }

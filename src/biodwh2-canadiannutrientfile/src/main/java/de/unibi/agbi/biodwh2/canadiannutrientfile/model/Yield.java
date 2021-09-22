@@ -1,25 +1,14 @@
 package de.unibi.agbi.biodwh2.canadiannutrientfile.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({"YieldID", "YieldDescription", "YieldDescriptionF"})
 public class Yield {
-    private final String id;
-    private final String name;
-    private final String nameF;
-
-    public Yield(String id, String name, String nameF) {
-        this.id = id;
-        this.name = name;
-        this.nameF = nameF;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getNameF() {
-        return nameF;
-    }
+    @JsonProperty("YieldID")
+    public String id;
+    @JsonProperty("YieldDescription")
+    public String description;
+    @JsonProperty("YieldDescriptionF")
+    public String descriptionFrench;
 }

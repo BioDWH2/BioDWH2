@@ -1,31 +1,18 @@
 package de.unibi.agbi.biodwh2.canadiannutrientfile.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({
+        "NutrientSourceID", "NutrientSourceCode", "NutrientSourceDescription", "NutrientSourc DescriptionF"
+})
 public class NutrientSource {
-    private final String id;
-    private final String code;
-    private final String description;
-    private final String descriptionF;
-
-    public NutrientSource(String id, String code, String description, String descriptionF) {
-        this.id = id;
-        this.code = code;
-        this.description = description;
-        this.descriptionF = descriptionF;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getDescriptionF() {
-        return descriptionF;
-    }
+    @JsonProperty("NutrientSourceID")
+    public String id;
+    @JsonProperty("NutrientSourceCode")
+    public String code;
+    @JsonProperty("NutrientSourceDescription")
+    public String description;
+    @JsonProperty("NutrientSourc DescriptionF")
+    public String descriptionFrench;
 }

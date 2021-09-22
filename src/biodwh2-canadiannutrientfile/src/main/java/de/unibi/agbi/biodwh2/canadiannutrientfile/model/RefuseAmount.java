@@ -1,33 +1,16 @@
 package de.unibi.agbi.biodwh2.canadiannutrientfile.model;
 
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+@JsonPropertyOrder({"FoodID", "RefuseID", "RefuseAmount", "RefuseDateOfEntry"})
 public class RefuseAmount {
-    private final String foodID;
-    private final String refuseID;
-    private final double amount;
-    private final LocalDateTime DateOfEntry;
-
-    public RefuseAmount(String foodID, String refuseID, double amount, LocalDateTime dateOfEntry) {
-        this.foodID = foodID;
-        this.refuseID = refuseID;
-        this.amount = amount;
-        DateOfEntry = dateOfEntry;
-    }
-
-    public String getFoodID() {
-        return foodID;
-    }
-
-    public String getRefuseID() {
-        return refuseID;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public LocalDateTime getDateOfEntry() {
-        return DateOfEntry;
-    }
+    @JsonProperty("FoodID")
+    public String foodID;
+    @JsonProperty("RefuseID")
+    public String refuseID;
+    @JsonProperty("RefuseAmount")
+    public String amount;
+    @JsonProperty("RefuseDateOfEntry")
+    public String dateOfEntry;
 }

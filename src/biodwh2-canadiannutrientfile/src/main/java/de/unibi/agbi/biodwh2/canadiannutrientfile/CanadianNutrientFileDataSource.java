@@ -13,25 +13,22 @@ import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class CanadianNutrientFileDataSource extends DataSource {
-    public Map<String, Yield> yields = new HashMap<>(79);
-    public Map<String, Refuse> refuses = new HashMap<>(150);
-    public Map<String, Measure> measures = new HashMap<>(1162);
-    public Map<String, Nutrient> nutrients = new HashMap<>(152);
-    public Map<String, FoodGroup> foodGroups = new HashMap<>(23);
-    public Map<String, FoodSource> foodSources = new HashMap<>(16);
-    public Map<String, NutrientSource> nutrientSources = new HashMap<>(20);
+    public List<Yield> yields = new ArrayList<>();
+    public List<Refuse> refuses = new ArrayList<>();
+    public List<Measure> measures = new ArrayList<>();
+    public List<Nutrient> nutrients = new ArrayList<>();
+    public List<FoodGroup> foodGroups = new ArrayList<>();
+    public List<FoodSource> foodSources = new ArrayList<>();
+    public List<NutrientSource> nutrientSources = new ArrayList<>();
+    public List<YieldAmount> yieldAmounts = new ArrayList<>();
+    public List<RefuseAmount> refuseAmounts = new ArrayList<>();
+    public List<ConversionFactor> conversionFactors = new ArrayList<>();
+    public List<NutrientAmount> nutrientAmounts = new ArrayList<>();
 
-    public List<YieldAmount> yieldAmounts = new ArrayList<>(1427);
-    public List<RefuseAmount> refuseAmounts = new ArrayList<>(6898);
-    public List<ConversionFactor> conversionFactors = new ArrayList<>(19506);
-    public List<NutrientAmount> nutrientAmounts = new ArrayList<>(524675);
-
-    public Map<String, Food> foods = new HashMap<>(5693);
+    public List<Food> foods = new ArrayList<>();
 
     @Override
     public String getId() {

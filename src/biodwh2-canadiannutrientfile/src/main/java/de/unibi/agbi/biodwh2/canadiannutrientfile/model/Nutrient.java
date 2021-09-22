@@ -1,56 +1,27 @@
 package de.unibi.agbi.biodwh2.canadiannutrientfile.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({
+        "NutrientID", "NutrientCode", "NutrientSymbol", "NutrientUnit", "NutrientName", "NutrientNameF", "Tagname",
+        "NutrientDecimals"
+})
 public class Nutrient {
-    private final String id;
-    private final String name;
-    private final String nameF;
-    private final String code;
-    private final String symbol;
-    private final String unit;
-    private final String tagName;
-    private final String decimals;
-
-    public Nutrient(String id, String name, String nameF, String code, String symbol, String unit, String tagName,
-                    String decimals) {
-        this.id = id;
-        this.name = name;
-        this.nameF = nameF;
-        this.code = code;
-        this.symbol = symbol;
-        this.unit = unit;
-        this.tagName = tagName;
-        this.decimals = decimals;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getNameF() {
-        return nameF;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public String getSymbol() {
-        return symbol;
-    }
-
-    public String getUnit() {
-        return unit;
-    }
-
-    public String getTagName() {
-        return tagName;
-    }
-
-    public String getDecimals() {
-        return decimals;
-    }
+    @JsonProperty("NutrientID")
+    public String id;
+    @JsonProperty("NutrientCode")
+    public String code;
+    @JsonProperty("NutrientSymbol")
+    public String symbol;
+    @JsonProperty("NutrientUnit")
+    public String unit;
+    @JsonProperty("NutrientName")
+    public String name;
+    @JsonProperty("NutrientNameF")
+    public String nameFrench;
+    @JsonProperty("Tagname")
+    public String tagName;
+    @JsonProperty("NutrientDecimals")
+    public Integer decimals;
 }

@@ -1,33 +1,16 @@
 package de.unibi.agbi.biodwh2.canadiannutrientfile.model;
 
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+@JsonPropertyOrder({"FoodID", "MeasureID", "ConversionFactorValue", "ConvFactorDateOfEntry"})
 public class ConversionFactor {
-    private final String foodID;
-    private final String measureID;
-    private final double conversionValue;
-    private final LocalDateTime DateOfEntry;
-
-    public ConversionFactor(String foodID, String measureID, double conversionValue, LocalDateTime dateOfEntry) {
-        this.foodID = foodID;
-        this.measureID = measureID;
-        this.conversionValue = conversionValue;
-        DateOfEntry = dateOfEntry;
-    }
-
-    public String getFoodID() {
-        return foodID;
-    }
-
-    public String getMeasureID() {
-        return measureID;
-    }
-
-    public double getConversionValue() {
-        return conversionValue;
-    }
-
-    public LocalDateTime getDateOfEntry() {
-        return DateOfEntry;
-    }
+    @JsonProperty("FoodID")
+    public String foodID;
+    @JsonProperty("MeasureID")
+    public String measureID;
+    @JsonProperty("ConversionFactorValue")
+    public String conversionFactorValue;
+    @JsonProperty("ConvFactorDateOfEntry")
+    public String dateOfEntry;
 }

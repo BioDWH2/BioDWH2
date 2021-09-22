@@ -77,6 +77,13 @@ public final class FileUtils {
         return getFormatReader(typeClass, separator, withHeader, true).readValues(reader);
     }
 
+    public static <T> MappingIterator<T> openSeparatedValuesFile(final InputStream stream, final Charset charset,
+                                                                 final Class<T> typeClass, final char separator,
+                                                                 final boolean withHeader) throws IOException {
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(stream, charset));
+        return getFormatReader(typeClass, separator, withHeader, true).readValues(reader);
+    }
+
     private static <T> ObjectReader getFormatReader(final Class<T> typeClass, final char separator,
                                                     final boolean withHeader, final boolean withQuoting) {
         final CsvMapper csvMapper = new CsvMapper();
