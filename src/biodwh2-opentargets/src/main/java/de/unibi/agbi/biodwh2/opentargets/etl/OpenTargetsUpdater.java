@@ -145,7 +145,7 @@ public class OpenTargetsUpdater extends Updater<OpenTargetsDataSource> {
                 Integer::compareTo);
         if (LOGGER.isInfoEnabled()) {
             if (maxPartNumber.isPresent())
-                LOGGER.info("Downloading " + directoryName + " in " + maxPartNumber.get() + " parts...");
+                LOGGER.info("Downloading " + directoryName + " in " + (maxPartNumber.get() + 1) + " parts...");
             else
                 LOGGER.info("Downloading " + directoryName + "...");
         }
