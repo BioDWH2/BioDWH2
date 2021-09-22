@@ -29,6 +29,12 @@ public final class NodeBuilder extends HashMap<String, Object> {
         return this;
     }
 
+    public NodeBuilder withModel(final Object obj) {
+        final ClassMapping mapping = ClassMapping.get(obj);
+        mapping.setNodeProperties(this, obj);
+        return this;
+    }
+
     public int getPropertyCount() {
         return size();
     }

@@ -4,9 +4,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 final class ClassMapping {
     static class ClassMappingField {
@@ -44,16 +42,23 @@ final class ClassMapping {
         }
     }
 
+    private static final Map<Class<?>, ClassMapping> cache = new HashMap<>();
+
     final String label;
     final ClassMappingField[] fields;
     final ClassMappingArrayField[] arrayFields;
     final ClassMappingBooleanField[] booleanFields;
 
     ClassMapping(final Class<?> type) {
-        label = type.getAnnotation(GraphNodeLabel.class).value();
+        label = loadLabel(type);
         fields = loadClassMappingFields(type);
         arrayFields = loadClassMappingArrayFields(type);
         booleanFields = loadClassMappingBooleanFields(type);
+    }
+
+    private String loadLabel(final Class<?> type) {
+        final GraphNodeLabel label = type.getAnnotation(GraphNodeLabel.class);
+        return label != null ? label.value() : null;
     }
 
     private ClassMappingField[] loadClassMappingFields(final Class<?> type) {
@@ -123,15 +128,22 @@ final class ClassMapping {
 
     private void setNodePropertyFromField(final Node node, final Object obj,
                                           final ClassMappingField field) throws IllegalAccessException {
+        final Object value = getFieldValue(obj, field);
+        if (value != null)
+            node.setProperty(field.propertyName, value);
+    }
+
+    private Object getFieldValue(final Object obj, final ClassMappingField field) throws IllegalAccessException {
         final Object value = field.field.get(obj);
         if (value != null) {
             if (value instanceof String) {
                 final String stringValue = (String) value;
                 if (!field.ignoreEmpty || stringValue.length() > 0)
-                    node.setProperty(field.propertyName, stringValue);
+                    return value;
             } else
-                node.setProperty(field.propertyName, value);
+                return value;
         }
+        return null;
     }
 
     private void setNodePropertiesFromArrayFields(final Node node, final Object obj) throws IllegalAccessException {
@@ -141,6 +153,13 @@ final class ClassMapping {
 
     private void setNodePropertyFromArrayField(final Node node, final Object obj,
                                                final ClassMappingArrayField field) throws IllegalAccessException {
+        final String[] elements = getArrayFieldValue(obj, field);
+        if (elements != null)
+            node.setProperty(field.propertyName, elements);
+    }
+
+    private String[] getArrayFieldValue(final Object obj,
+                                        final ClassMappingArrayField field) throws IllegalAccessException {
         final Object value = field.field.get(obj);
         if (value != null) {
             final String delimiter = field.quotedArrayElements ? field.quotedArrayDelimiter : field.arrayDelimiter;
@@ -149,8 +168,9 @@ final class ClassMapping {
                 elements[0] = StringUtils.stripStart(elements[0], "\"");
                 elements[elements.length - 1] = StringUtils.stripEnd(elements[elements.length - 1], "\"");
             }
-            node.setProperty(field.propertyName, elements);
+            return elements;
         }
+        return null;
     }
 
     private void setNodePropertiesFromBooleanFields(final Node node, final Object obj) throws IllegalAccessException {
@@ -163,5 +183,64 @@ final class ClassMapping {
         final Object value = field.field.get(obj);
         if (value != null)
             node.setProperty(field.propertyName, field.truthValue.equalsIgnoreCase(value.toString()));
+    }
+
+    void setNodeProperties(final NodeBuilder builder, final Object obj) {
+        try {
+            setNodePropertiesFromFields(builder, obj);
+            setNodePropertiesFromArrayFields(builder, obj);
+            setNodePropertiesFromBooleanFields(builder, obj);
+        } catch (IllegalAccessException e) {
+            throw new GraphCacheException(e);
+        }
+    }
+
+    private void setNodePropertiesFromFields(final NodeBuilder builder,
+                                             final Object obj) throws IllegalAccessException {
+        for (final ClassMappingField field : fields)
+            setNodePropertyFromField(builder, obj, field);
+    }
+
+    private void setNodePropertyFromField(final NodeBuilder builder, final Object obj,
+                                          final ClassMappingField field) throws IllegalAccessException {
+        final Object value = getFieldValue(obj, field);
+        if (value != null)
+            builder.withProperty(field.propertyName, value);
+    }
+
+    private void setNodePropertiesFromArrayFields(final NodeBuilder builder,
+                                                  final Object obj) throws IllegalAccessException {
+        for (final ClassMappingArrayField field : arrayFields)
+            setNodePropertyFromArrayField(builder, obj, field);
+    }
+
+    private void setNodePropertyFromArrayField(final NodeBuilder builder, final Object obj,
+                                               final ClassMappingArrayField field) throws IllegalAccessException {
+        final String[] elements = getArrayFieldValue(obj, field);
+        if (elements != null)
+            builder.withProperty(field.propertyName, elements);
+    }
+
+    private void setNodePropertiesFromBooleanFields(final NodeBuilder builder,
+                                                    final Object obj) throws IllegalAccessException {
+        for (final ClassMappingBooleanField field : booleanFields)
+            setNodePropertyFromBooleanField(builder, obj, field);
+    }
+
+    private void setNodePropertyFromBooleanField(final NodeBuilder builder, final Object obj,
+                                                 final ClassMappingBooleanField field) throws IllegalAccessException {
+        final Object value = field.field.get(obj);
+        if (value != null)
+            builder.withProperty(field.propertyName, field.truthValue.equalsIgnoreCase(value.toString()));
+    }
+
+    public static ClassMapping get(final Object obj) {
+        return get(obj.getClass());
+    }
+
+    public static ClassMapping get(final Class<?> type) {
+        if (!cache.containsKey(type))
+            cache.put(type, new ClassMapping(type));
+        return cache.get(type);
     }
 }

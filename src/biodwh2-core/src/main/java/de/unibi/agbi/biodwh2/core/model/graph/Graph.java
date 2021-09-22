@@ -10,8 +10,6 @@ import java.util.*;
 
 @SuppressWarnings("unused")
 public final class Graph extends BaseGraph {
-    private final Map<Class<?>, ClassMapping> classMappingsCache = new HashMap<>();
-
     public Graph(final String filePath) {
         this(Paths.get(filePath), false, false);
     }
@@ -86,21 +84,15 @@ public final class Graph extends BaseGraph {
     }
 
     public <T> Node addNodeFromModel(final T obj) {
-        final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
+        final ClassMapping mapping = ClassMapping.get(obj);
         final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
         update(n);
         return n;
     }
 
-    private ClassMapping getClassMappingFromCache(final Class<?> type) {
-        if (!classMappingsCache.containsKey(type))
-            classMappingsCache.put(type, new ClassMapping(type));
-        return classMappingsCache.get(type);
-    }
-
     public <T> Node addNodeFromModel(final T obj, final String propertyKey, final Object propertyValue) {
-        final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
+        final ClassMapping mapping = ClassMapping.get(obj);
         final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey, propertyValue);
@@ -110,7 +102,7 @@ public final class Graph extends BaseGraph {
 
     public <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
                                      final String propertyKey2, final Object propertyValue2) {
-        final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
+        final ClassMapping mapping = ClassMapping.get(obj);
         final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey1, propertyValue1);
@@ -122,7 +114,7 @@ public final class Graph extends BaseGraph {
     public <T> Node addNodeFromModel(final T obj, final String propertyKey1, final Object propertyValue1,
                                      final String propertyKey2, final Object propertyValue2, final String propertyKey3,
                                      final Object propertyValue3) {
-        final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
+        final ClassMapping mapping = ClassMapping.get(obj);
         final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey1, propertyValue1);
@@ -136,7 +128,7 @@ public final class Graph extends BaseGraph {
                                      final String propertyKey2, final Object propertyValue2, final String propertyKey3,
                                      final Object propertyValue3, final String propertyKey4,
                                      final Object propertyValue4) {
-        final ClassMapping mapping = getClassMappingFromCache(obj.getClass());
+        final ClassMapping mapping = ClassMapping.get(obj);
         final Node n = Node.newNode(mapping.label);
         mapping.setNodeProperties(n, obj);
         n.setProperty(propertyKey1, propertyValue1);
