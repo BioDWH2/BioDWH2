@@ -53,7 +53,7 @@ public final class HTTPClient {
                 getUrlInputStream(url, username, password))) {
             String inputLine = reader.readLine();
             while (inputLine != null) {
-                result.append(inputLine);
+                result.append(inputLine).append('\n');
                 inputLine = reader.readLine();
             }
         }
