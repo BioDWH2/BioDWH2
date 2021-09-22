@@ -4,7 +4,7 @@ G2P is a publicly-accessible online system designed to facilitate the developmen
 
 ## Website
 
-[ebi.ac.uk/gene2phenotype](https://www.ebi.ac.uk/gene2phenotype)
+[https://www.ebi.ac.uk/gene2phenotype](https://www.ebi.ac.uk/gene2phenotype)
 
 ## License
 
@@ -17,5 +17,9 @@ Apache License 2.0
   * ```EyeG2P.csv.gz```
   * ```SkinG2P.csv.gz```
 
-## Current Graph
-![Graph](./graph.png "G2P graph")
+## Configuration properties
+
+| Property       | Values     | Description |
+| -------------- | ---------- | ----------- |
+| forceExport    | true/false | Force graph export even if nothing changed |
+|                |            |             |

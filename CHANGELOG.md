@@ -8,6 +8,7 @@ Released:
 
  * ```[OpenTargets]``` #47 Added OpenTargets data source module
  * ```[AACT]``` #50 Added AACT data source module
+ * ```[Gene2Phenotype]``` #51 Added Gene2Phenotype data source module
 
 ### 🔧 Bug fixes and other changes
 

@@ -36,7 +36,7 @@ public class GeneDiseasePair {
     @JsonProperty("prev symbols")
     public String prevSymbols;
     @JsonProperty("hgnc id")
-    public int hgncId;
+    public Integer hgncId;
     @JsonProperty("gene disease pair entry date")
     public String entryDate;
 }

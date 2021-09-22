@@ -11,6 +11,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | [CancerDrugsDB](sources/CancerDrugsDB/README.md) | A curated listing of licensed cancer drugs by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/cancerdrugs-db) |
 | [DrugCentral](sources/DrugCentral/README.md) | DrugCentral | [Link](http://drugcentral.org) |
 | [EMA](sources/EMA/README.md) | European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC] | [Link](https://www.ema.europa.eu/en/medicines/download-medicine-data) |
+| [Gene2Phenotype](sources/Gene2Phenotype/README.md) | Datasets for use in diagnostic variant filtering | [Link](https://www.ebi.ac.uk/gene2phenotype) |
 | [HGNC](sources/HGNC/README.md) | HUGO Gene Nomenclature Committee | [Link](https://www.genenames.org) |
 | [HPO](sources/HPO/README.md) | Human Phenotype Ontology | [Link](https://hpo.jax.org) |
 | [MED-RT](sources/MED-RT/README.md) | Medication Reference Terminology (MED-RT™) | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/) |
