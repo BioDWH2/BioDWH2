@@ -26,6 +26,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 
 | ID            | Name | Website |
 | ------------- | ---- | ------- |
+| [AACT](sources/AACT/README.md) | AACT Clinical Trials Database | [Link](https://aact.ctti-clinicaltrials.org) |
 | [ABDAMED2](sources/ABDAMED2/README.md) | ABDATA ABDAMED Drug Database | [Link](https://abdata.de/datenangebot/abdamed/) |
 | [DGIdb](sources/DGIdb/README.md) | The Drug Gene Interaction Database | [Link](http://dgidb.org) |
 | [DrugBank](sources/DrugBank/README.md) | DrugBank | [Link](http://drugbank.ca) |

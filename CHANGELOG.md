@@ -7,6 +7,7 @@ Released:
 ### 📚 Data Sources
 
  * ```[OpenTargets]``` #47 Added OpenTargets data source module
+ * ```[AACT]``` #50 Added AACT data source module
 
 ### 🔧 Bug fixes and other changes
 
