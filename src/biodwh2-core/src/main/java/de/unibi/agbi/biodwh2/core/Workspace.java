@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class Workspace {
     private static final Logger LOGGER = LoggerFactory.getLogger(Workspace.class);
@@ -161,9 +162,40 @@ public final class Workspace {
                                          "have been added to the workspace config.json either directly or via " +
                                          "command line.");
         if (prepareDataSources()) {
+
+            long start = System.currentTimeMillis();
             for (final DataSource dataSource : dataSources)
                 if (dataSourceId == null || dataSource.getId().equals(dataSourceId))
                     processDataSource(dataSource, version, skipUpdate);
+            long stop = System.currentTimeMillis();
+            long elapsed = stop - start;
+            System.out.println("=> SEQUENTIAL TIME TAKEN: " + elapsed + " MS " + (elapsed/1000) + " SECONDS");
+
+            mergeDataSources();
+            mapDataSources();
+
+        }
+    }
+
+    public void processDataSourcesInParallel(final String dataSourceId, final String version, final boolean skipUpdate) {
+        if (configuration.getDataSourceIds().length == 0)
+            throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
+                                         "have been added to the workspace config.json either directly or via " +
+                                         "command line.");
+        if (prepareDataSources()) {
+
+            long start = System.currentTimeMillis();
+            Stream.of(dataSources).parallel().forEach(
+                    dataSource -> {
+                        if(dataSourceId == null || dataSource.getId().equals(dataSourceId)) {
+                            processDataSource(dataSource, version, skipUpdate);
+                        }
+                    }
+            );
+            long stop = System.currentTimeMillis();
+            long elapsed = stop - start;
+            System.out.println("=> PRALLEL TIME TAKEN: " + elapsed + " MS " + (elapsed/1000) + " SECONDS");
+
             mergeDataSources();
             mapDataSources();
         }
