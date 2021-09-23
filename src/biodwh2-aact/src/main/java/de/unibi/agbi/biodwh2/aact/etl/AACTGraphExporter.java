@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -46,10 +48,10 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
         final File zipFile = new File(filePath);
         if (!zipFile.exists())
             throw new ExporterFormatException("Failed to parse the file '" + AACTUpdater.DUMP_FILE_NAME + "'");
-        /*exportStudies(workspace, graph);
+        exportStudies(workspace, graph);
         exportCountries(workspace, graph);
         exportBriefSummaries(workspace, graph);
-        exportDetailedDescriptions(workspace, graph);*/
+        exportDetailedDescriptions(workspace, graph);
         exportStudyReferences(workspace, graph);
         exportLinks(workspace, graph);
         return true;
@@ -152,8 +154,8 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
             final String[] dois = IdentifierUtils.extractDois(reference.citation);
             final Node node = getOrCreateReference(graph, reference.citation, dois != null ? dois[0] : null,
                                                    reference.pmid);
-            //graph.addEdge(graph.findNode(STUDY_LABEL, "nct_id", reference.nctId), node, "HAS_REFERENCE", "type",
-            //              reference.referenceType);
+            graph.addEdge(graph.findNode(STUDY_LABEL, "nct_id", reference.nctId), node, "HAS_REFERENCE", "type",
+                          reference.referenceType);
         }
     }
 
@@ -176,29 +178,34 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
     private void exportLinks(final Workspace workspace, final Graph graph) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting links...");
+        final Pattern pubmedIdPattern = Pattern.compile("PubMed (ID:|Identifier)\\s*([0-9]+)",
+                                                        Pattern.CASE_INSENSITIVE);
         final Map<String, Set<String>> linksPerStudy = new HashMap<>();
         final MappingIterator<Link> links = parseZipPsvFile(workspace, "links.txt", Link.class);
         while (links.hasNext()) {
             final Link link = links.next();
             final String doi = getDoiFromUrl(link.url);
-            final Integer pmid = getPubMedIdFromUrl(link.url);
-            if (doi != null || pmid != null || link.description.contains("PubMed ID")) {
-                System.out.println(">>> " + link.url + "|" + link.description);
+            Integer pmid = getPubMedIdFromUrl(link.url);
+            if (link.description != null && pmid == null) {
+                final Matcher pmidMatcher = pubmedIdPattern.matcher(link.description);
+                if (pmidMatcher.find())
+                    pmid = Integer.parseInt(pmidMatcher.group(2));
+            }
+            if (doi != null || pmid != null) {
                 final Node node = getOrCreateReference(graph, null, doi, pmid);
-                //graph.addEdge(graph.findNode(STUDY_LABEL, "nct_id", link.nctId), node, "HAS_REFERENCE", "type", "link", "description", link.description);
+                graph.addEdge(graph.findNode(STUDY_LABEL, "nct_id", link.nctId), node, "HAS_REFERENCE", "type", "link",
+                              "description", link.description);
             } else {
                 if (!linksPerStudy.containsKey(link.nctId))
                     linksPerStudy.put(link.nctId, new HashSet<>());
                 linksPerStudy.get(link.nctId).add(link.url + "|" + link.description);
             }
         }
-        /*
         for (final String nctId : linksPerStudy.keySet()) {
             final Node node = graph.findNode(STUDY_LABEL, "nct_id", nctId);
             node.setProperty("links", linksPerStudy.get(nctId).toArray(new String[0]));
             graph.update(node);
         }
-         */
     }
 
     private String getDoiFromUrl(final String url) {
@@ -210,7 +217,7 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
         final String[] parts = StringUtils.splitByWholeSeparator(lowerUrl, "doi.org/");
         if (parts.length <= 1)
             return null;
-        return parts[1].trim();
+        return parts[parts.length - 1].trim();
     }
 
     private Integer getPubMedIdFromUrl(final String url) {
