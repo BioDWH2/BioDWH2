@@ -54,6 +54,7 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
         exportDetailedDescriptions(workspace, graph);
         exportStudyReferences(workspace, graph);
         exportLinks(workspace, graph);
+        exportContacts(workspace, graph);
         return true;
     }
 
@@ -236,5 +237,52 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
         if (endIndex == 0)
             return null;
         return Integer.parseInt(parts[1].substring(0, endIndex));
+    }
+
+    private void exportContacts(final Workspace workspace, final Graph graph) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting contacts...");
+        final Map<Integer, Long> contactHashToNodeIdMap = new HashMap<>();
+        final MappingIterator<ResultContact> resultContacts = parseZipPsvFile(workspace, "result_contacts.txt",
+                                                                              ResultContact.class);
+        while (resultContacts.hasNext()) {
+            final ResultContact contact = resultContacts.next();
+            final long nodeId = getOrCreateContact(graph, contactHashToNodeIdMap, contact.organization, contact.name,
+                                                   contact.phone, contact.email);
+            graph.addEdge(graph.findNode(STUDY_LABEL, "nct_id", contact.nctId), nodeId, "HAS", "type", "result");
+        }
+        final MappingIterator<FacilityContact> facilityContacts = parseZipPsvFile(workspace, "facility_contacts.txt",
+                                                                                  FacilityContact.class);
+        while (facilityContacts.hasNext()) {
+            final FacilityContact contact = facilityContacts.next();
+            getOrCreateContact(graph, contactHashToNodeIdMap, null, contact.name, contact.phone, contact.email);
+            // TODO: edges with contact_type and facility_id
+        }
+        final MappingIterator<CentralContact> centralContacts = parseZipPsvFile(workspace, "central_contacts.txt",
+                                                                                CentralContact.class);
+        while (centralContacts.hasNext()) {
+            final CentralContact contact = centralContacts.next();
+            final long nodeId = getOrCreateContact(graph, contactHashToNodeIdMap, null, contact.name, contact.phone,
+                                                   contact.email);
+            graph.addEdge(graph.findNode(STUDY_LABEL, "nct_id", contact.nctId), nodeId, "HAS", "type",
+                          contact.contactType);
+        }
+    }
+
+    private Long getOrCreateContact(final Graph graph, final Map<Integer, Long> contactHashToNodeIdMap,
+                                    final String organization, final String name, final String phone,
+                                    final String email) {
+        final int hash = Objects.hash(organization, name, phone, email);
+        Long nodeId = contactHashToNodeIdMap.get(hash);
+        if (nodeId == null) {
+            final NodeBuilder builder = graph.buildNode().withLabel("Contact");
+            builder.withPropertyIfNotNull("organization", organization);
+            builder.withPropertyIfNotNull("name", name);
+            builder.withPropertyIfNotNull("phone", phone);
+            builder.withPropertyIfNotNull("email", email);
+            nodeId = builder.build().getId();
+            contactHashToNodeIdMap.put(hash, nodeId);
+        }
+        return nodeId;
     }
 }
