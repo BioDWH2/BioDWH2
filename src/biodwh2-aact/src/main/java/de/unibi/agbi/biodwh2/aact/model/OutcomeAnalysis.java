@@ -14,5 +14,44 @@ public class OutcomeAnalysis {
     public Long id;
     @JsonProperty("nct_id")
     public String nctId;
-    // TODO
+    @JsonProperty("outcome_id")
+    public Long outcomeId;
+    @JsonProperty("non_inferiority_type")
+    public String nonInferiorityType;
+    @JsonProperty("non_inferiority_description")
+    public String nonInferiorityDescription;
+    @JsonProperty("param_type")
+    public String paramType;
+    @JsonProperty("param_value")
+    public String paramValue;
+    @JsonProperty("dispersion_type")
+    public String dispersionType;
+    @JsonProperty("dispersion_value")
+    public String dispersionValue;
+    @JsonProperty("p_value_modifier")
+    public String pValueModifier;
+    @JsonProperty("p_value")
+    public String pValue;
+    @JsonProperty("ci_n_sides")
+    public String ciNSides;
+    @JsonProperty("ci_percent")
+    public String ciPercent;
+    @JsonProperty("ci_lower_limit")
+    public String ciLowerLimit;
+    @JsonProperty("ci_upper_limit")
+    public String ciUpperLimit;
+    @JsonProperty("ci_upper_limit_na_comment")
+    public String ciUpperLimitNaComment;
+    @JsonProperty("p_value_description")
+    public String pValueDescription;
+    @JsonProperty("method")
+    public String method;
+    @JsonProperty("method_description")
+    public String methodDescription;
+    @JsonProperty("estimate_description")
+    public String estimateDescription;
+    @JsonProperty("groups_description")
+    public String groupsDescription;
+    @JsonProperty("other_analysis_description")
+    public String otherAnalysisDescription;
 }
