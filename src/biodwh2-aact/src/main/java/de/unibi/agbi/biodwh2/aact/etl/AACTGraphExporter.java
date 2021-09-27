@@ -62,6 +62,9 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting studies...");
         final Map<String, Set<String>> keywordsPerStudy = collectKeywordsPerStudy(workspace);
+        final Map<String, Set<String>> meshConditionsPerStudy = collectMeshConditionsPerStudy(workspace);
+        final Map<String, Set<String>> conditionsPerStudy = collectConditionsPerStudy(workspace);
+        final Map<String, Set<String>> meshInterventionsPerStudy = collectMeshInterventionsPerStudy(workspace);
         final MappingIterator<Study> studies = parseZipPsvFile(workspace, "studies.txt", Study.class);
         while (studies.hasNext()) {
             final Study study = studies.next();
@@ -69,6 +72,13 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
             builder.withModel(study);
             if (keywordsPerStudy.containsKey(study.nctId))
                 builder.withProperty("keywords", keywordsPerStudy.get(study.nctId).toArray(new String[0]));
+            if (meshConditionsPerStudy.containsKey(study.nctId))
+                builder.withProperty("mesh_conditions", meshConditionsPerStudy.get(study.nctId).toArray(new String[0]));
+            if (conditionsPerStudy.containsKey(study.nctId))
+                builder.withProperty("conditions", conditionsPerStudy.get(study.nctId).toArray(new String[0]));
+            if (meshInterventionsPerStudy.containsKey(study.nctId))
+                builder.withProperty("mesh_interventions",
+                                     meshInterventionsPerStudy.get(study.nctId).toArray(new String[0]));
             builder.build();
         }
     }
@@ -81,6 +91,44 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
             if (!result.containsKey(keyword.nctId))
                 result.put(keyword.nctId, new HashSet<>());
             result.get(keyword.nctId).add(keyword.name);
+        }
+        return result;
+    }
+
+    private Map<String, Set<String>> collectMeshConditionsPerStudy(final Workspace workspace) {
+        final Map<String, Set<String>> result = new HashMap<>();
+        final MappingIterator<BrowseCondition> conditions = parseZipPsvFile(workspace, "browse_conditions.txt",
+                                                                            BrowseCondition.class);
+        while (conditions.hasNext()) {
+            final BrowseCondition condition = conditions.next();
+            if (!result.containsKey(condition.nctId))
+                result.put(condition.nctId, new HashSet<>());
+            result.get(condition.nctId).add(condition.meshTerm);
+        }
+        return result;
+    }
+
+    private Map<String, Set<String>> collectConditionsPerStudy(final Workspace workspace) {
+        final Map<String, Set<String>> result = new HashMap<>();
+        final MappingIterator<Condition> conditions = parseZipPsvFile(workspace, "conditions.txt", Condition.class);
+        while (conditions.hasNext()) {
+            final Condition condition = conditions.next();
+            if (!result.containsKey(condition.nctId))
+                result.put(condition.nctId, new HashSet<>());
+            result.get(condition.nctId).add(condition.name);
+        }
+        return result;
+    }
+
+    private Map<String, Set<String>> collectMeshInterventionsPerStudy(final Workspace workspace) {
+        final Map<String, Set<String>> result = new HashMap<>();
+        final MappingIterator<BrowseIntervention> interventions = parseZipPsvFile(workspace, "browse_interventions.txt",
+                                                                                  BrowseIntervention.class);
+        while (interventions.hasNext()) {
+            final BrowseIntervention intervention = interventions.next();
+            if (!result.containsKey(intervention.nctId))
+                result.put(intervention.nctId, new HashSet<>());
+            result.get(intervention.nctId).add(intervention.meshTerm);
         }
         return result;
     }
