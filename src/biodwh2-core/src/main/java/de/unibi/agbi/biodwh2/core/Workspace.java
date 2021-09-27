@@ -176,7 +176,7 @@ public final class Workspace {
         }
     }
 
-    public void processDataSourcesInParallel(final String dataSourceId, final String version, final boolean skipUpdate) {
+    public void processDataSourcesInParallel(final boolean skipUpdate, final boolean runInParallel) {
         if (configuration.getDataSourceIds().length == 0)
             throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
                                          "have been added to the workspace config.json either directly or via " +

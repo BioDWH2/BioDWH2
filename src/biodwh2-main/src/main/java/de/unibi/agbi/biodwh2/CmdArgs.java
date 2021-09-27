@@ -45,4 +45,8 @@ public class CmdArgs {
             "-v", "--verbose"
     }, description = "Output detailed information about the state of the workspace", order = 101)
     public boolean verbose;
+
+    @CommandLine.Option(names = {"-p", "--parallel"}, description = "Run parallelizable pipeline steps in parallel", order = 2)
+    public boolean runsInParallel;
+
 }
