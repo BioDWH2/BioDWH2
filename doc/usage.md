@@ -134,6 +134,32 @@ After creating and processing the workspace, the resulting graph can be analyzed
 | -v              | --verbose             | -                                | Enable additional logging output            |
 |                 |                       |                                  |                                             |
 
+## Parallelism
+
+It is possible to execute certain steps of the data source processing pipeline in a multithreaded environment. Parallelism is so far supported in the 
+following procedures:
+
+* Parsing
+* Export 
+
+The usage of multiple threads has to be explicitly specified when executing the workflow: 
+
+
+~~~BASH
+$ java -jar BioDWH2.jar -u /path/to/workspace -p 
+~~~
+
+
+| Short parameter | Long parameter        | Values                           | Description                                  |
+| --------------- | --------------------- | -------------------------------- | ---------------------------------------------|
+| -p              | --parallel            | -                                | Enable multithreading during supported steps |                                    
+| -t              | --threads             | numThreads                       | Number of threads used for processing        |                                     
+|                 |                       |                                  |                                              |
+
+
+**Note:** Per default, the thread pool's size is equal to the number of cores available on the user's CPU. You may want to consider adjusting it
+according to your needs if not all cores are available for execution at all times.
+ 
 ## Complete configuration file schema
 ```
 {
