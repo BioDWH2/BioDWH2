@@ -49,4 +49,7 @@ public class CmdArgs {
     @CommandLine.Option(names = {"-p", "--parallel"}, description = "Run parallelizable pipeline steps in parallel", order = 2)
     public boolean runsInParallel;
 
+    @CommandLine.Option(names = {"-t", "--threads"}, description = "Number of threads used for parallelism", order = 2)
+    public int numThreads = Runtime.getRuntime().availableProcessors();
+
 }
