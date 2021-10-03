@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -177,24 +178,59 @@ public final class Workspace {
         }
     }
 
-    public void processDataSourcesInParallel(final String dataSourceId, final String version, final boolean skipUpdate) {
+    public void processDataSourcesInParallel(final String dataSourceId, final String version, final boolean skipUpdate, final int numThreads) {
         if (configuration.getDataSourceIds().length == 0)
             throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
                                          "have been added to the workspace config.json either directly or via " +
                                          "command line.");
         if (prepareDataSources()) {
 
-            long start = System.currentTimeMillis();
-            Stream.of(dataSources).parallel().forEach(
-                    dataSource -> {
+            if(numThreads < Runtime.getRuntime().availableProcessors()) {
+
+                ForkJoinPool customPool = null;
+
+                try {
+
+                    // init new custom thread pool
+                    System.out.println("Creating new custom thread pool with " + numThreads + " threads ... ");
+                    customPool = new ForkJoinPool(numThreads);
+                    long start = System.currentTimeMillis();
+                    customPool.submit(() -> Stream.of(dataSources).parallel().forEach(dataSource -> {
+
                         if(dataSourceId == null || dataSource.getId().equals(dataSourceId)) {
                             processDataSource(dataSource, version, skipUpdate);
                         }
+
+                    })).get();
+
+                    long stop = System.currentTimeMillis();
+                    long elapsed = stop - start;
+                    System.out.println("=> TIME TAKEN " + (elapsed) + " MS (" + (elapsed/1000) + " SECONDS), " + numThreads + " THREADS");
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (customPool != null) {
+                        System.out.println("Shutting down custom pool ...");
+                        customPool.shutdown();
                     }
-            );
-            long stop = System.currentTimeMillis();
-            long elapsed = stop - start;
-            System.out.println("=> PRALLEL TIME TAKEN: " + elapsed + " MS " + (elapsed/1000) + " SECONDS");
+                }
+
+            } else {
+
+                // run in default thread pool
+                long start = System.currentTimeMillis();
+                Stream.of(dataSources).parallel().forEach(
+                        dataSource -> {
+                            if(dataSourceId == null || dataSource.getId().equals(dataSourceId)) {
+                                processDataSource(dataSource, version, skipUpdate);
+                            }
+                        }
+                );
+                long stop = System.currentTimeMillis();
+                long elapsed = stop - start;
+                System.out.println("=> PRALLEL TIME TAKEN: " + elapsed + " MS " + (elapsed/1000) + " SECONDS");
+            }
 
             mergeDataSources();
             mapDataSources();
