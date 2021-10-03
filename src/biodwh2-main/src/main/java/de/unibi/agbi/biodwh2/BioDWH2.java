@@ -48,7 +48,7 @@ public final class BioDWH2 {
         else if (commandLine.status != null)
             checkWorkspaceState(commandLine.status, commandLine.verbose);
         else if (commandLine.update != null)
-            updateWorkspace(commandLine.update, commandLine.skipUpdate, commandLine.runsInParallel);
+            updateWorkspace(commandLine.update, commandLine.skipUpdate, commandLine.runsInParallel, commandLine.numThreads);
         else if (commandLine.setDataSourceVersion != null)
             setDataSourceVersion(commandLine);
         else if (commandLine.version)
@@ -126,14 +126,14 @@ public final class BioDWH2 {
         workspace.checkState(verbose);
     }
 
-    private void updateWorkspace(final String workspacePath, final boolean skipUpdate, final boolean runInParallel) {
+    private void updateWorkspace(final String workspacePath, final boolean skipUpdate, final boolean runInParallel, final int numThreads) {
+
         final Workspace workspace = new Workspace(workspacePath);
         workspace.processDataSources(skipUpdate);
 
         if(runInParallel) {
-            workspace.processDataSourcesInParallel(skipUpdate, runInParallel);
+            workspace.processDataSourcesInParallel(skipUpdate, numThreads);
         } else {
-
             workspace.processDataSources(skipUpdate);
         }
     }
