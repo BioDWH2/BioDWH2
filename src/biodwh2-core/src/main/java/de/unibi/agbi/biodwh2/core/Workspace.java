@@ -169,7 +169,7 @@ public final class Workspace {
                 processDataSource(dataSource, skipUpdate);
             long stop = System.currentTimeMillis();
             long elapsed = stop - start;
-            System.out.println("=> SEQUENTIAL TIME TAKEN: " + elapsed + " MS " + (elapsed / 1000) + " SECONDS");
+            LOGGER.info("[SEQUENTIAL MODE] Finished update and export of data sources within " + elapsed + " ms (" + elapsed/1000 + "s)");
 
             mergeDataSources();
             mapDataSources();
