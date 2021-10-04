@@ -170,7 +170,7 @@ public final class Workspace {
                     processDataSource(dataSource, version, skipUpdate);
             long stop = System.currentTimeMillis();
             long elapsed = stop - start;
-            System.out.println("=> SEQUENTIAL TIME TAKEN: " + elapsed + " MS " + (elapsed/1000) + " SECONDS");
+            LOGGER.info("[SEQUENTIAL MODE] Finished update and export of data sources within " + elapsed + " ms (" + elapsed/1000 + "s)");
 
             mergeDataSources();
             mapDataSources();
@@ -178,58 +178,43 @@ public final class Workspace {
         }
     }
 
-    public void processDataSourcesInParallel(final String dataSourceId, final String version, final boolean skipUpdate, final int numThreads) {
+    public void processDataSourcesInParallel(final String dataSourceId, final String version, final boolean skipUpdate,
+                                             final int numThreads) {
         if (configuration.getDataSourceIds().length == 0)
             throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
                                          "have been added to the workspace config.json either directly or via " +
                                          "command line.");
         if (prepareDataSources()) {
 
-            if(numThreads < Runtime.getRuntime().availableProcessors()) {
+            ForkJoinPool threadPool = null;
 
-                ForkJoinPool customPool = null;
+            try {
 
-                try {
-
-                    // init new custom thread pool
-                    System.out.println("Creating new custom thread pool with " + numThreads + " threads ... ");
-                    customPool = new ForkJoinPool(numThreads);
-                    long start = System.currentTimeMillis();
-                    customPool.submit(() -> Stream.of(dataSources).parallel().forEach(dataSource -> {
-
-                        if(dataSourceId == null || dataSource.getId().equals(dataSourceId)) {
-                            processDataSource(dataSource, version, skipUpdate);
-                        }
-
-                    })).get();
-
-                    long stop = System.currentTimeMillis();
-                    long elapsed = stop - start;
-                    System.out.println("=> TIME TAKEN " + (elapsed) + " MS (" + (elapsed/1000) + " SECONDS), " + numThreads + " THREADS");
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (customPool != null) {
-                        System.out.println("Shutting down custom pool ...");
-                        customPool.shutdown();
-                    }
-                }
-
-            } else {
-
-                // run in default thread pool
+                // init new thread pool for processing
+                LOGGER.info("[PARALLEL MODE] Creating new thread pool with " + numThreads + " threads ... ");
+                threadPool = new ForkJoinPool(numThreads);
                 long start = System.currentTimeMillis();
-                Stream.of(dataSources).parallel().forEach(
-                        dataSource -> {
-                            if(dataSourceId == null || dataSource.getId().equals(dataSourceId)) {
-                                processDataSource(dataSource, version, skipUpdate);
-                            }
-                        }
-                );
+                threadPool.submit(() -> Stream.of(dataSources).parallel().forEach(dataSource -> {
+
+                    // submit task to pool
+                    if (dataSourceId == null || dataSource.getId().equals(dataSourceId)) {
+                        processDataSource(dataSource, version, skipUpdate);
+                    }
+
+                })).get();
+
                 long stop = System.currentTimeMillis();
                 long elapsed = stop - start;
-                System.out.println("=> PRALLEL TIME TAKEN: " + elapsed + " MS " + (elapsed/1000) + " SECONDS");
+                LOGGER.info("[PARALLEL MODE] Finished update and export of data sources within " + elapsed + " ms (" + elapsed/1000 + "s) with " + numThreads + " threads");
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                // shutting down thread pool (execution continued in common pool)
+                if (threadPool != null) {
+                    LOGGER.info("[PARALLEL MODE] Shutting down thread pool ...");
+                    threadPool.shutdown();
+                }
             }
 
             mergeDataSources();
