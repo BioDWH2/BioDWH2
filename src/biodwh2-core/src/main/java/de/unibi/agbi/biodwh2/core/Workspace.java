@@ -163,7 +163,7 @@ public final class Workspace {
                                          "have been added to the workspace config.json either directly or via " +
                                          "command line.");
         if (prepareDataSources()) {
-
+            LOGGER.info("[SEQUENTIAL MODE] Starting sequential updates and exports ... ");
             long start = System.currentTimeMillis();
             for (final DataSource dataSource : dataSources)
                 processDataSource(dataSource, skipUpdate);
