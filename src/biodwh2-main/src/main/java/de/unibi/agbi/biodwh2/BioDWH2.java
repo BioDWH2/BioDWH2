@@ -126,12 +126,11 @@ public final class BioDWH2 {
         workspace.checkState(verbose);
     }
 
-    private void updateWorkspace(final String workspacePath, final boolean skipUpdate, final boolean runInParallel, final int numThreads) {
+    private void updateWorkspace(final String workspacePath, final boolean skipUpdate, final boolean runsInParallel, final int numThreads) {
 
         final Workspace workspace = new Workspace(workspacePath);
-        workspace.processDataSources(skipUpdate);
 
-        if(runInParallel) {
+        if(runsInParallel) {
             workspace.processDataSourcesInParallel(skipUpdate, numThreads);
         } else {
             workspace.processDataSources(skipUpdate);
