@@ -65,6 +65,7 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
         final Map<String, Set<String>> meshConditionsPerStudy = collectMeshConditionsPerStudy(workspace);
         final Map<String, Set<String>> conditionsPerStudy = collectConditionsPerStudy(workspace);
         final Map<String, Set<String>> meshInterventionsPerStudy = collectMeshInterventionsPerStudy(workspace);
+        final Map<String, Map<String, Set<String>>> idsPerStudy = collectIdInformationPerStudy(workspace);
         final MappingIterator<Study> studies = parseZipPsvFile(workspace, "studies.txt", Study.class);
         while (studies.hasNext()) {
             final Study study = studies.next();
@@ -79,6 +80,14 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
             if (meshInterventionsPerStudy.containsKey(study.nctId))
                 builder.withProperty("mesh_interventions",
                                      meshInterventionsPerStudy.get(study.nctId).toArray(new String[0]));
+            final Map<String, Set<String>> ids = idsPerStudy.get(study.nctId);
+            if (ids != null)
+                for (final String key : ids.keySet()) {
+                    if (key.equalsIgnoreCase("nct_alias"))
+                        builder.withProperty("nct_aliases", ids.get(key).toArray(new String[0]));
+                    else
+                        builder.withProperty(key + 's', ids.get(key).toArray(new String[0]));
+                }
             builder.build();
         }
     }
@@ -93,6 +102,22 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
             result.get(keyword.nctId).add(keyword.name);
         }
         return result;
+    }
+
+    private <T> MappingIterator<T> parseZipPsvFile(final Workspace workspace, final String fileName,
+                                                   final Class<T> type) {
+        try {
+            final ZipInputStream zipInputStream = FileUtils.openZip(workspace, dataSource, AACTUpdater.DUMP_FILE_NAME);
+            ZipEntry zipEntry;
+            while ((zipEntry = zipInputStream.getNextEntry()) != null)
+                if (fileName.equals(zipEntry.getName()))
+                    return FileUtils.openSeparatedValuesFile(zipInputStream, type, '|', true);
+        } catch (IOException e) {
+            throw new ExporterFormatException(
+                    "Failed to parse the file '" + fileName + "' in '" + AACTUpdater.DUMP_FILE_NAME + "'", e);
+        }
+        throw new ExporterFormatException(
+                "Failed to parse the file '" + fileName + "' missing in '" + AACTUpdater.DUMP_FILE_NAME + "'");
     }
 
     private Map<String, Set<String>> collectMeshConditionsPerStudy(final Workspace workspace) {
@@ -133,20 +158,19 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
         return result;
     }
 
-    private <T> MappingIterator<T> parseZipPsvFile(final Workspace workspace, final String fileName,
-                                                   final Class<T> type) {
-        try {
-            final ZipInputStream zipInputStream = FileUtils.openZip(workspace, dataSource, AACTUpdater.DUMP_FILE_NAME);
-            ZipEntry zipEntry;
-            while ((zipEntry = zipInputStream.getNextEntry()) != null)
-                if (fileName.equals(zipEntry.getName()))
-                    return FileUtils.openSeparatedValuesFile(zipInputStream, type, '|', true);
-        } catch (IOException e) {
-            throw new ExporterFormatException(
-                    "Failed to parse the file '" + fileName + "' in '" + AACTUpdater.DUMP_FILE_NAME + "'", e);
+    private Map<String, Map<String, Set<String>>> collectIdInformationPerStudy(final Workspace workspace) {
+        final Map<String, Map<String, Set<String>>> result = new HashMap<>();
+        final MappingIterator<IDInformation> ids = parseZipPsvFile(workspace, "id_information.txt",
+                                                                   IDInformation.class);
+        while (ids.hasNext()) {
+            final IDInformation id = ids.next();
+            if (!result.containsKey(id.nctId))
+                result.put(id.nctId, new HashMap<>());
+            if (!result.get(id.nctId).containsKey(id.idType))
+                result.get(id.nctId).put(id.idType, new HashSet<>());
+            result.get(id.nctId).get(id.idType).add(id.idValue);
         }
-        throw new ExporterFormatException(
-                "Failed to parse the file '" + fileName + "' missing in '" + AACTUpdater.DUMP_FILE_NAME + "'");
+        return result;
     }
 
     private void exportCountries(final Workspace workspace, final Graph graph) {
