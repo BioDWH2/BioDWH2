@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.unii.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({"Name", "TYPE", "UNII", "Display Name", "Status"})
+@JsonPropertyOrder({"Name", "TYPE", "UNII", "Display Name"})
 public class UNIIEntry {
     @JsonProperty("Name")
     public String name;
@@ -25,6 +25,4 @@ public class UNIIEntry {
     public String unii;
     @JsonProperty("Display Name")
     public String displayName;
-    @JsonProperty("Status")
-    public String status;
 }
