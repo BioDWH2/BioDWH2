@@ -11,6 +11,7 @@ Released:
  * ```[Gene2Phenotype]``` #51 Added Gene2Phenotype data source module
  * ```[CanadianNutrientFile]``` #52 Added CanadianNutrientFile (CNF) data source module
  * ```[UNII]``` #29 Fixed table columns
+ * ```[PharmGKB]``` #8 Fixed occurrence export
 
 ### 🔧 Bug fixes and other changes
 
