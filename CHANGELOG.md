@@ -10,6 +10,7 @@ Released:
  * ```[AACT]``` #50 Added AACT data source module
  * ```[Gene2Phenotype]``` #51 Added Gene2Phenotype data source module
  * ```[CanadianNutrientFile]``` #52 Added CanadianNutrientFile (CNF) data source module
+ * ```[UNII]``` #29 Fixed table columns
 
 ### 🔧 Bug fixes and other changes
 
