@@ -158,10 +158,11 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
                                          umlsConceptId, "meddra_name", meddraConceptName, "umls_name", umlsConceptName);
             }
         } else {
-            final Iterable<Node> umlsTermNodes = graph.findNodes(MEDDRA_TERM_LABEL, UMLS_ID_KEY, umlsConceptId);
-            for (final Node candidate : umlsTermNodes)
-                if (candidate.getProperty(MEDDRA_ID_KEY) == null)
+            for (final Node candidate : graph.findNodes(MEDDRA_TERM_LABEL, UMLS_ID_KEY, umlsConceptId))
+                if (candidate.getProperty(MEDDRA_ID_KEY) == null) {
                     termNode = candidate;
+                    break;
+                }
             if (termNode == null)
                 termNode = graph.addNode(MEDDRA_TERM_LABEL, UMLS_ID_KEY, umlsConceptId, "umls_name", umlsConceptName);
         }
@@ -192,7 +193,7 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
                                                    frequency.stereoCompoundId);
             final Node termNode = getOrAddTermNode(graph, frequency.umlsConceptId, null, frequency.meddraUmlsConceptId,
                                                    frequency.sideEffectName);
-            EdgeBuilder builder = graph.buildEdge().fromNode(drugNode).toNode(termNode);
+            final EdgeBuilder builder = graph.buildEdge().fromNode(drugNode).toNode(termNode);
             builder.withLabel("HAS_SIDE_EFFECT_FREQUENCY");
             builder.withProperty("frequency", frequency.frequency);
             builder.withProperty("frequency_lower_bound", frequency.frequencyLowerBound);
