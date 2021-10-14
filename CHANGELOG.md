@@ -12,6 +12,7 @@ Released:
  * ```[CanadianNutrientFile]``` #52 Added CanadianNutrientFile (CNF) data source module
  * ```[UNII]``` #29 Fixed table columns
  * ```[PharmGKB]``` #8 Fixed occurrence export
+ * ```[DrugCentral]``` #18 Fixed updater
 
 ### 🔧 Bug fixes and other changes
 
