@@ -20,7 +20,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class Workspace {
     private static final Logger LOGGER = LoggerFactory.getLogger(Workspace.class);
@@ -161,11 +163,60 @@ public final class Workspace {
                                          "have been added to the workspace config.json either directly or via " +
                                          "command line.");
         if (prepareDataSources()) {
+            LOGGER.info("[SEQUENTIAL MODE] Starting sequential updates and exports ... ");
+            long start = System.currentTimeMillis();
             for (final DataSource dataSource : dataSources)
                 processDataSource(dataSource, skipUpdate);
+            long stop = System.currentTimeMillis();
+            long elapsed = stop - start;
+            LOGGER.info("[SEQUENTIAL MODE] Finished update and export of data sources within " + elapsed + " ms (" + elapsed/1000 + "s)");
+
+            mergeDataSources();
+            mapDataSources();
+
+        }
+    }
+
+    public void processDataSourcesInParallel(final boolean skipUpdate, final int numThreads) {
+
+        if (configuration.getDataSourceIds().length == 0)
+            throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
+                                         "have been added to the workspace config.json either directly or via " +
+                                         "command line.");
+
+        if (prepareDataSources()) {
+
+            ForkJoinPool threadPool = null;
+
+            try {
+                // init new thread pool for processing
+                LOGGER.info("[PARALLEL MODE] Creating new thread pool with " + numThreads + " threads ... ");
+                threadPool = new ForkJoinPool(numThreads);
+                long start = System.currentTimeMillis();
+                threadPool.submit(() -> Stream.of(dataSources).parallel().forEach(dataSource -> {
+                    // submit task to pool
+                    processDataSource(dataSource, skipUpdate);
+                })).get();
+
+                long stop = System.currentTimeMillis();
+                long elapsed = stop - start;
+                LOGGER.info("[PARALLEL MODE] Finished update and export of data sources within " + elapsed + " ms (" +
+                            elapsed / 1000 + "s) with " + numThreads + " threads");
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                // shutting down thread pool (execution continued in common pool)
+                if (threadPool != null) {
+                    LOGGER.info("[PARALLEL MODE] Shutting down thread pool ...");
+                    threadPool.shutdown();
+                }
+            }
+
             mergeDataSources();
             mapDataSources();
         }
+
     }
 
     private void processDataSource(final DataSource dataSource, final boolean skipUpdate) {

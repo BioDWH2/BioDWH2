@@ -2,12 +2,17 @@ package de.unibi.agbi.biodwh2.core.mocks.mock1;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
-import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
+import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.etl.Parser;
+import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.mocks.MockParser;
 import de.unibi.agbi.biodwh2.core.mocks.MockUpdater;
-import de.unibi.agbi.biodwh2.core.mocks.mock1.etl.*;
+import de.unibi.agbi.biodwh2.core.mocks.mock1.etl.Mock1GraphExporter;
+import de.unibi.agbi.biodwh2.core.mocks.mock1.etl.Mock1MappingDescriber;
 
 public final class Mock1DataSource extends DataSource {
+	
     @Override
     public String getId() {
         return "Mock1";
@@ -41,4 +46,4 @@ public final class Mock1DataSource extends DataSource {
     @Override
     protected void unloadData() {
     }
-}
+    }
