@@ -1,9 +1,12 @@
 package de.unibi.agbi.biodwh2.drugcentral;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DataSourcePropertyType;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.drugcentral.etl.*;
+
+import java.util.Map;
 
 public class DrugCentralDataSource extends DataSource {
     @Override
@@ -49,5 +52,14 @@ public class DrugCentralDataSource extends DataSource {
 
     @Override
     protected void unloadData() {
+    }
+
+    @Override
+    public Map<String, DataSourcePropertyType> getAvailableProperties() {
+        final Map<String, DataSourcePropertyType> result = super.getAvailableProperties();
+        result.put("skipLINCSSignatures", DataSourcePropertyType.BOOLEAN);
+        result.put("skipFAERSReports", DataSourcePropertyType.BOOLEAN);
+        result.put("skipDrugLabelFullTexts", DataSourcePropertyType.BOOLEAN);
+        return result;
     }
 }

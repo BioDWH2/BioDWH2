@@ -1,6 +1,6 @@
 package de.unibi.agbi.biodwh2.core.etl;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.OntologyDataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-public abstract class OntologyGraphExporter<D extends DataSource> extends GraphExporter<D> {
+public abstract class OntologyGraphExporter<D extends OntologyDataSource> extends GraphExporter<D> {
     private static class EdgeCacheEntry {
         public long sourceNodeId;
         public String propertyKey;
@@ -311,7 +311,6 @@ public abstract class OntologyGraphExporter<D extends DataSource> extends GraphE
     protected abstract String getOntologyFileName();
 
     protected final boolean ignoreObsolete(final Workspace workspace) {
-        final Map<String, String> properties = dataSource.getProperties(workspace);
-        return "true".equalsIgnoreCase(properties.get("ignoreObsolete"));
+        return dataSource.getBooleanProperty(workspace, "ignoreObsolete");
     }
 }

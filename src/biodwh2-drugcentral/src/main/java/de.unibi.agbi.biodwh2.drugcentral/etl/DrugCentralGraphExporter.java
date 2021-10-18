@@ -46,10 +46,9 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph g) throws ExporterException {
-        final Map<String, String> properties = dataSource.getProperties(workspace);
-        final boolean skipLINCSSignatures = "true".equalsIgnoreCase(properties.get("skipLINCSSignatures"));
-        final boolean skipFAERSReports = "true".equalsIgnoreCase(properties.get("skipFAERSReports"));
-        final boolean skipDrugLabelFullTexts = "true".equalsIgnoreCase(properties.get("skipDrugLabelFullTexts"));
+        final boolean skipLINCSSignatures = dataSource.getBooleanProperty(workspace, "skipLINCSSignatures");
+        final boolean skipFAERSReports = dataSource.getBooleanProperty(workspace, "skipFAERSReports");
+        final boolean skipDrugLabelFullTexts = dataSource.getBooleanProperty(workspace, "skipDrugLabelFullTexts");
         g.addIndex(IndexDescription.forNode(DRUG_LABEL_LABEL, "id", IndexDescription.Type.UNIQUE));
         g.addIndex(IndexDescription.forNode(REFERENCE_LABEL, "id", IndexDescription.Type.UNIQUE));
         g.addIndex(IndexDescription.forNode(ATTRIBUTE_TYPE_LABEL, "id", IndexDescription.Type.UNIQUE));

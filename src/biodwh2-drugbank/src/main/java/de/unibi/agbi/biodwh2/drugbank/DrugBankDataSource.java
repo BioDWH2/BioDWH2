@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.drugbank;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DataSourcePropertyType;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.drugbank.etl.*;
@@ -8,6 +9,7 @@ import de.unibi.agbi.biodwh2.drugbank.model.DrugStructure;
 import de.unibi.agbi.biodwh2.drugbank.model.MetaboliteStructure;
 
 import java.util.List;
+import java.util.Map;
 
 public class DrugBankDataSource extends DataSource {
     public List<DrugStructure> drugStructures;
@@ -16,6 +18,17 @@ public class DrugBankDataSource extends DataSource {
     @Override
     public String getId() {
         return "DrugBank";
+    }
+
+    @Override
+    public String getFullName() {
+        return "DrugBank";
+    }
+
+    @Override
+    public String getDescription() {
+        return "DrugBank Online is a comprehensive, free-to-access, online database containing information on " +
+               "drugs and drug targets.";
     }
 
     @Override
@@ -47,5 +60,13 @@ public class DrugBankDataSource extends DataSource {
     protected void unloadData() {
         drugStructures = null;
         metaboliteStructures = null;
+    }
+
+    @Override
+    public Map<String, DataSourcePropertyType> getAvailableProperties() {
+        final Map<String, DataSourcePropertyType> result = super.getAvailableProperties();
+        result.put("username", DataSourcePropertyType.STRING);
+        result.put("password", DataSourcePropertyType.STRING);
+        return result;
     }
 }

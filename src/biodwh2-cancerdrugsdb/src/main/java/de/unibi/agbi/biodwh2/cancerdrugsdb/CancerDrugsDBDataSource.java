@@ -24,7 +24,7 @@ public class CancerDrugsDBDataSource extends DataSource {
 
     @Override
     public String getFullName() {
-        return "A curated listing of licensed cancer drugs by the Anticancer Fund";
+        return "CancerDrugs_DB";
     }
 
     @Override

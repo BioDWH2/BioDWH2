@@ -24,8 +24,7 @@ public class ReDODBDataSource extends DataSource {
 
     @Override
     public String getFullName() {
-        return "A curated listing of non-cancer drugs which have shown some evidence of anticancer activity by " +
-               "the Anticancer Fund";
+        return "ReDO_DB";
     }
 
     @Override
