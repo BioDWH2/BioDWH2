@@ -18,6 +18,7 @@ Released:
 
  * ```[fix]``` HTTPFTPClient is able to handle more formats
  * ```[feature]``` Improve manual update behaviour
+ * ```[feature]``` Allow data sources to be processed in parallel (experimental)
 
 ## 📦 Version [v0.3.9](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.9)
 
