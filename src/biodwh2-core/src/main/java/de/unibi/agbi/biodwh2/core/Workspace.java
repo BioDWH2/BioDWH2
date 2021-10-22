@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import de.unibi.agbi.biodwh2.core.cache.OnlineVersionCache;
 import de.unibi.agbi.biodwh2.core.etl.GraphMapper;
 import de.unibi.agbi.biodwh2.core.etl.GraphMerger;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
@@ -34,12 +35,14 @@ public final class Workspace {
 
     private final String workingDirectory;
     private final Configuration configuration;
+    private final OnlineVersionCache onlineVersionCache;
     private final DataSource[] dataSources;
 
     public Workspace(final String workingDirectory) {
         this.workingDirectory = workingDirectory;
         createWorkingDirectoryIfNotExists();
         configuration = createOrLoadConfiguration();
+        onlineVersionCache = new OnlineVersionCache();
         dataSources = getUsedDataSources();
     }
 
