@@ -1,8 +1,8 @@
 # Changelog
 
-## 📦 Version v0.4.0
+## 📦 Version [v0.4.0](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.0)
 
-Released: 
+Released: 22.10.2021
 
 ### 📚 Data Sources
 
