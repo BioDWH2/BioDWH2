@@ -15,9 +15,11 @@ public final class OnlineVersionCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(OnlineVersionCache.class);
     private static final String VERSIONS_URL = "https://raw.githubusercontent.com/BioDWH2/DataSource-Status/main/result.min.json";
 
+    private static OnlineVersionCache instance;
+
     private final Map<String, List<DataSourceVersion>> dataSourceVersions;
 
-    public OnlineVersionCache() {
+    private OnlineVersionCache() {
         dataSourceVersions = new HashMap<>();
         try {
             loadVersions(parseJsonSource(HTTPClient.getWebsiteSource(VERSIONS_URL)));
@@ -56,6 +58,12 @@ public final class OnlineVersionCache {
             files.put(file.getKey(), file.getValue().asText());
         }
         dataSourceVersions.get(dataSourceId).add(new DataSourceVersion(Version.tryParse(version), latest, files));
+    }
+
+    public static synchronized OnlineVersionCache getInstance() {
+        if (instance == null)
+            instance = new OnlineVersionCache();
+        return instance;
     }
 
     public boolean hasDataSource(final String dataSourceId) {

@@ -2,6 +2,8 @@ package de.unibi.agbi.biodwh2.core.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.cache.DataSourceVersion;
+import de.unibi.agbi.biodwh2.core.cache.OnlineVersionCache;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
@@ -33,16 +35,25 @@ public abstract class Updater<D extends DataSource> {
         try {
             return getNewestVersion();
         } catch (UpdaterException e) {
-            if (LOGGER.isWarnEnabled())
-                LOGGER.warn("Failed to get newest version for data source '" + dataSource.getId() + "'", e);
+            final DataSourceVersion latest = OnlineVersionCache.getInstance().getLatest(dataSource.getId());
+            if (latest == null || latest.getVersion() == null) {
+                if (LOGGER.isWarnEnabled())
+                    LOGGER.warn("Failed to get newest version for data source '" + dataSource.getId() +
+                                "' directly or from online version cache.", e);
+            } else {
+                if (LOGGER.isWarnEnabled())
+                    LOGGER.warn("Failed to get newest version for data source '" + dataSource.getId() +
+                                "' directly. Using online version cache instead.", e.getMessage());
+                return latest.getVersion();
+            }
         }
         return null;
     }
 
-    public abstract Version getNewestVersion() throws UpdaterException;
+    protected abstract Version getNewestVersion() throws UpdaterException;
 
     public final UpdateState update(final Workspace workspace) throws UpdaterException {
-        final Version newestVersion = getNewestVersion();
+        final Version newestVersion = tryGetNewestVersion();
         final Version workspaceVersion = dataSource.getMetadata().version;
         final boolean expectedFilesPresent = areExpectedFilesPresent(workspace);
         final boolean isUpToDate = isDataSourceUpToDate(newestVersion, workspaceVersion);
