@@ -47,6 +47,13 @@ public class GraphMerger {
         } catch (GraphCacheException e) {
             throw new MergerException("Failed to merge data source " + dataSource.getId(), e);
         }
+        addDataSourceMetadataNode(dataSource, mergedGraph);
+    }
+
+    private void addDataSourceMetadataNode(final DataSource dataSource, final Graph graph) {
+        graph.addNode("metadata", "type", "datasource", "datasource_id", dataSource.getId(), "version",
+                      dataSource.getMetadata().version.toString(), "export_version",
+                      dataSource.getMetadata().exportVersion);
     }
 
     private void saveMergedGraph(final Workspace workspace, final Graph mergedGraph) {
