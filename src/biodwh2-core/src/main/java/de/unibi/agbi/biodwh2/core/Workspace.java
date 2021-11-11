@@ -247,10 +247,13 @@ public final class Workspace {
                 dataSource);
     }
 
-    private boolean isDataSourceExportForced(final DataSource dataSource) {
-        final String id = dataSource.getId();
-        return configuration.hasPropertiesForDataSource(id) && "true".equalsIgnoreCase(
-                configuration.getDataSourceProperties(id).getOrDefault("forceExport", ""));
+    public boolean isDataSourceExportForced(final DataSource dataSource) {
+        return isDataSourceExportForced(dataSource.getId());
+    }
+
+    public boolean isDataSourceExportForced(final String dataSourceId) {
+        return configuration.hasPropertiesForDataSource(dataSourceId) && "true".equalsIgnoreCase(
+                configuration.getDataSourceProperties(dataSourceId).getOrDefault("forceExport", ""));
     }
 
     private boolean areDataSourceExportsMissing(final DataSource dataSource) {

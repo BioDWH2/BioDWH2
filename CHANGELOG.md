@@ -11,6 +11,8 @@ Released: upcoming
 ### 🔧 Bug fixes and other changes
 
  * ```[feature]``` Generate metadata nodes in merged graph for data source version information
+ * ```[feature]``` Use metadata nodes to determine whether the merged graph can be extended or needs to be recreated
+ * ```[feature]``` Use online version cache if live update failed
 
 ## 📦 Version [v0.4.0](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.0)
 
