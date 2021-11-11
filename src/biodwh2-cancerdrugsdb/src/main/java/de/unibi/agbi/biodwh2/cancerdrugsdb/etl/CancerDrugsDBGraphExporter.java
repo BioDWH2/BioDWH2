@@ -25,7 +25,7 @@ public class CancerDrugsDBGraphExporter extends GraphExporter<CancerDrugsDBDataS
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -52,6 +52,7 @@ public class CancerDrugsDBGraphExporter extends GraphExporter<CancerDrugsDBDataS
         if (StringUtils.isNotEmpty(entry.firstApprovalYear))
             builder.withPropertyIfNotNull("first_approval_year", Integer.parseInt(entry.firstApprovalYear));
         builder.withPropertyIfNotNull("in_who_eml", "Y".equalsIgnoreCase(entry.inWHOEML));
+        builder.withPropertyIfNotNull("generic", "Y".equalsIgnoreCase(entry.generic));
         builder.withPropertyIfNotNull("other_approval", entry.otherApproval);
         builder.withPropertyIfNotNull("ema_approval", "Y".equalsIgnoreCase(entry.emaApproval));
         builder.withPropertyIfNotNull("fda_approval", "Y".equalsIgnoreCase(entry.fdaApproval));

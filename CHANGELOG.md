@@ -1,5 +1,17 @@
 # Changelog
 
+## 📦 Version v0.4.1
+
+Released: upcoming
+
+### 📚 Data Sources
+
+ * ```[CancerDrugsDB]``` #40 Add generic field to entry model and graph exporter
+
+### 🔧 Bug fixes and other changes
+
+ * ```[feature]``` Generate metadata nodes in merged graph for data source version information
+
 ## 📦 Version [v0.4.0](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.0)
 
 Released: 22.10.2021
