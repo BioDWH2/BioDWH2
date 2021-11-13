@@ -24,8 +24,7 @@ public class ReDOTrialsDBDataSource extends DataSource {
 
     @Override
     public String getFullName() {
-        return "A curated database, produced by the Anticancer Fund, of active clinical trials investigating " +
-               "the use of non-cancer drugs as potential cancer treatments";
+        return "ReDO_Trials Database";
     }
 
     @Override

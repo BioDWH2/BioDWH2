@@ -12,7 +12,7 @@ import de.unibi.agbi.biodwh2.core.mocks.mock1.etl.Mock1GraphExporter;
 import de.unibi.agbi.biodwh2.core.mocks.mock1.etl.Mock1MappingDescriber;
 
 public final class Mock1DataSource extends DataSource {
-	
+
     @Override
     public String getId() {
         return "Mock1";

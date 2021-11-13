@@ -325,9 +325,18 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                     long variantNodeId = addVariantIfNotExists(graph, occurrence.objectId, occurrence.objectName);
                     graph.addEdge(variantNodeId, nodeId, HAS_OCCURRENCE_LABEL);
                     break;
+                case PATHWAY_LABEL:
+                    long pathwayNodeId = addPathwayIfNotExists(graph, occurrence.objectId, occurrence.objectName);
+                    graph.addEdge(pathwayNodeId, nodeId, HAS_OCCURRENCE_LABEL);
+                    break;
                 default:
                     Long objectNodeId = accessionNodeIdMap.get(occurrence.objectId);
-                    graph.addEdge(objectNodeId, nodeId, HAS_OCCURRENCE_LABEL);
+                    if (objectNodeId != null)
+                        graph.addEdge(objectNodeId, nodeId, HAS_OCCURRENCE_LABEL);
+                    else if (LOGGER.isWarnEnabled())
+                        LOGGER.warn(
+                                "Failed to add occurrence for missing source object '" + occurrence.objectName + "' (" +
+                                occurrence.objectId + ") of type '" + occurrence.objectType + "'");
                     break;
             }
         }

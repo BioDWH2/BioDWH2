@@ -46,10 +46,12 @@ public class CmdArgs {
     }, description = "Output detailed information about the state of the workspace", order = 101)
     public boolean verbose;
 
-    @CommandLine.Option(names = {"-p", "--parallel"}, description = "Run parallelizable pipeline steps in parallel", order = 2)
+    @CommandLine.Option(names = {
+            "-p", "--parallel"
+    }, description = "Run parallelizable pipeline steps in parallel", order = 102)
     public boolean runsInParallel;
-
-    @CommandLine.Option(names = {"-t", "--threads"}, description = "Number of threads used for parallelism", order = 2)
+    @CommandLine.Option(names = {
+            "-t", "--threads"
+    }, arity = "1", description = "Number of threads used for parallelism", order = 103)
     public int numThreads = Runtime.getRuntime().availableProcessors();
-
 }

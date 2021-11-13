@@ -7,7 +7,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 
 @JsonPropertyOrder({
         "UNII", "PT", "RN", "EC", "NCIT", "RXCUI", "PUBCHEM", "ITIS", "NCBI", "PLANTS", "GRIN", "MPNS", "INN_ID", "MF",
-        "INCHIKEY", "SMILES", "UNII_TYPE"
+        "INCHIKEY", "SMILES", "INGREDIENT_TYPE"
 })
 @GraphNodeLabel("UNII")
 public class UNIIDataEntry {
@@ -43,7 +43,7 @@ public class UNIIDataEntry {
     public String rxCui;
     @JsonProperty("PUBCHEM")
     @GraphProperty("pubchem_cid")
-    public Long pubchem;
+    public String pubchem;
     /*
      * Integrated Taxonomic Information System Taxonomic Serial Number (ITIS TSN)
      * https://www.itis.gov/
@@ -95,7 +95,7 @@ public class UNIIDataEntry {
     @JsonProperty("SMILES")
     @GraphProperty("smiles")
     public String smiles;
-    @JsonProperty("UNII_TYPE")
-    @GraphProperty("unii_type")
-    public String uniiType;
+    @JsonProperty("INGREDIENT_TYPE")
+    @GraphProperty("ingredient_type")
+    public String ingredientType;
 }

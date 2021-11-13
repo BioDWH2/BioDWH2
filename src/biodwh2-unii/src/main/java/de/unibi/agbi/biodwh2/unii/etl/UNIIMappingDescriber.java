@@ -28,12 +28,22 @@ public class UNIIMappingDescriber extends MappingDescriber {
         description.addNames(node.<String[]>getProperty("official_names"));
         description.addIdentifier(IdentifierType.UNII, node.<String>getProperty("id"));
         description.addIdentifier(IdentifierType.CAS, node.<String>getProperty("cas"));
-        description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, node.<Long>getProperty("pubchem_cid"));
+        final Long pubchemCid = tryParseLong(node.getProperty("pubchem_cid"));
+        if (pubchemCid != null)
+            description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, pubchemCid);
         description.addIdentifier(IdentifierType.EUROPEAN_CHEMICALS_AGENCY_EC, node.<String>getProperty("ec"));
         description.addIdentifier(IdentifierType.RX_NORM_CUI, node.<String>getProperty("rx_cui"));
         description.addIdentifier(IdentifierType.INTERNATIONAL_NONPROPRIETARY_NAMES,
                                   node.<String>getProperty("inn_id"));
         return new NodeMappingDescription[]{description};
+    }
+
+    public Long tryParseLong(final String value) {
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private NodeMappingDescription[] describeSpecies(final Node node) {

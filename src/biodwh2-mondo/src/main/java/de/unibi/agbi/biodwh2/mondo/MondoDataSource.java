@@ -1,13 +1,13 @@
 package de.unibi.agbi.biodwh2.mondo;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
+import de.unibi.agbi.biodwh2.core.OntologyDataSource;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.mondo.etl.MondoGraphExporter;
 import de.unibi.agbi.biodwh2.mondo.etl.MondoMappingDescriber;
 import de.unibi.agbi.biodwh2.mondo.etl.MondoUpdater;
 
-public class MondoDataSource extends DataSource {
+public class MondoDataSource extends OntologyDataSource {
     @Override
     public String getId() {
         return "Mondo";

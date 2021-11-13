@@ -48,7 +48,7 @@ public final class BioDWH2 {
         else if (commandLine.status != null)
             checkWorkspaceState(commandLine.status, commandLine.verbose);
         else if (commandLine.update != null)
-            updateWorkspace(commandLine.update, commandLine.skipUpdate, commandLine.runsInParallel, commandLine.numThreads);
+            updateWorkspace(commandLine);
         else if (commandLine.setDataSourceVersion != null)
             setDataSourceVersion(commandLine);
         else if (commandLine.version)
@@ -64,13 +64,17 @@ public final class BioDWH2 {
         if (commandLine.verbose) {
             final DataSource[] dataSources = loader.getDataSources(dataSourceIds);
             final List<List<String>> rows = new ArrayList<>();
-            for (final DataSource dataSource : dataSources)
+            for (final DataSource dataSource : dataSources) {
+                final String availableProperties = String.join(", ", dataSource.getAvailableProperties().keySet()
+                                                                               .toArray(new String[0]));
                 rows.add(Arrays.asList(dataSource.getId(), dataSource.getDevelopmentState().toString(),
-                                       dataSource.getFullName(), dataSource.getDescription()));
+                                       dataSource.getFullName(), availableProperties, dataSource.getDescription()));
+            }
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Available data sources:");
             final TableFormatter formatter = new TableFormatter(false);
-            System.out.println(formatter.format(Arrays.asList("ID", "State", "Name", "Description"), rows));
+            System.out.println(
+                    formatter.format(Arrays.asList("ID", "State", "Name", "Properties", "Description"), rows));
         } else if (LOGGER.isInfoEnabled())
             LOGGER.info("Available data source IDs: " + StringUtils.join(dataSourceIds, ", "));
     }
@@ -126,15 +130,12 @@ public final class BioDWH2 {
         workspace.checkState(verbose);
     }
 
-    private void updateWorkspace(final String workspacePath, final boolean skipUpdate, final boolean runsInParallel, final int numThreads) {
-
-        final Workspace workspace = new Workspace(workspacePath);
-
-        if(runsInParallel) {
-            workspace.processDataSourcesInParallel(skipUpdate, numThreads);
-        } else {
-            workspace.processDataSources(skipUpdate);
-        }
+    private void updateWorkspace(final CmdArgs commandLine) {
+        final Workspace workspace = new Workspace(commandLine.update);
+        if (commandLine.runsInParallel)
+            workspace.processDataSourcesInParallel(commandLine.skipUpdate, commandLine.numThreads);
+        else
+            workspace.processDataSources(commandLine.skipUpdate);
     }
 
     private void setDataSourceVersion(final CmdArgs commandLine) {

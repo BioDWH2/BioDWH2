@@ -120,8 +120,8 @@ After creating and processing the workspace, the resulting graph can be analyzed
 |                 | --version             | -                                | Print the BioDWH2 version and check for updates |
 | -c              | --create              | \<workspacePath>                 | Create a new empty workspace                    |
 |                 | --data-sources        | -                                | List all available data sources                 |
-|                 | --add-data-sources    | \<workspacePath> \<dataSourceId> | Add a data source to the configuration          |
-|                 | --remove-data-sources | \<workspacePath> \<dataSourceId> | Remove a data source from the configuration     |
+|                 | --add-data-source     | \<workspacePath> \<dataSourceId> | Add a data source to the configuration          |
+|                 | --remove-data-source  | \<workspacePath> \<dataSourceId> | Remove a data source from the configuration     |
 | -u              | --update              | \<workspacePath>                 | Update all data sources of a workspace          |
 | -s              | --status              | \<workspacePath>                 | Check and output the state of a workspace       |
 |                 |                       |                                  |                                                 |

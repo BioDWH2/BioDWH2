@@ -19,7 +19,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource> {
@@ -47,8 +46,7 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.addIndex(IndexDescription.forNode(GENE_LABEL, "id", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, "id", IndexDescription.Type.UNIQUE));
-        final Map<String, String> properties = dataSource.getProperties(workspace);
-        omimLicensed = "true".equalsIgnoreCase(properties.get("omimLicensed"));
+        omimLicensed = dataSource.getBooleanProperty(workspace, "omimLicensed");
         return super.exportGraph(workspace, graph) && exportAnnotations(workspace, graph);
     }
 

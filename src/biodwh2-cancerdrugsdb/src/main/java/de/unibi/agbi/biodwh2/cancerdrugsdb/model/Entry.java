@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({
-        "Product", "EMA", "FDA", "EN", "Other", "WHO", "Year", "DrugBank ID", "ATC", "ChEMBL", "Indications", "Targets",
-        "Last Update"
+        "Product", "EMA", "FDA", "EN", "Other", "WHO", "Year", "Generic", "DrugBank ID", "ATC", "ChEMBL", "Indications",
+        "Targets", "Last Update"
 })
 public class Entry {
     @JsonProperty("Product")
@@ -25,6 +25,8 @@ public class Entry {
     public String inWHOEML;
     @JsonProperty("Year")
     public String firstApprovalYear;
+    @JsonProperty("Generic")
+    public String generic;
     @JsonProperty("DrugBank ID")
     public String drugBankId;
     @JsonProperty("ATC")

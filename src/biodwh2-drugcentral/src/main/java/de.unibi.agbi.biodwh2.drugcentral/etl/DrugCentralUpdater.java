@@ -20,7 +20,7 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
     private static final String SQL_DUMP_FILE_PATH = "rawDrugCentral.sql.gz";
     private static final String DOWNLOAD_PAGE_URL = "https://drugcentral.org/ActiveDownload";
     private static final Pattern DOWNLOAD_URL_PATTERN = Pattern.compile(
-            "href=\"(https?://[a-zA-Z.\\-/]+drugcentral-pgdump_[0-9]{8}\\.sql\\.gz)\"");
+            "href=\"(https?://[a-zA-Z.\\-/]+drugcentral\\.dump\\.[0-9_]+\\.sql\\.gz)\"");
 
     public DrugCentralUpdater(final DrugCentralDataSource dataSource) {
         super(dataSource);
@@ -29,8 +29,9 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
     @Override
     public Version getNewestVersion() throws UpdaterException {
         final String url = getDrugCentralFileUrl();
-        final String version = StringUtils.split(StringUtils.splitByWholeSeparator(url, "pgdump_")[1], '.')[0];
-        return parseVersion(version.substring(0, 4) + "." + version.substring(4, 6) + "." + version.substring(6));
+        final String version = StringUtils.split(StringUtils.splitByWholeSeparator(url, "dump.")[1], '.')[0];
+        final String[] versionParts = StringUtils.split(version, '_');
+        return parseVersion(versionParts[2] + "." + versionParts[0] + "." + versionParts[1]);
     }
 
     private String getDrugCentralFileUrl() throws UpdaterException {

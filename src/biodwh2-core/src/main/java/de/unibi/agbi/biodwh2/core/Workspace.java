@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -163,17 +164,15 @@ public final class Workspace {
                                          "have been added to the workspace config.json either directly or via " +
                                          "command line.");
         if (prepareDataSources()) {
-            LOGGER.info("[SEQUENTIAL MODE] Starting sequential updates and exports ... ");
+            LOGGER.info("Processing data sources sequentially");
             long start = System.currentTimeMillis();
             for (final DataSource dataSource : dataSources)
                 processDataSource(dataSource, skipUpdate);
             long stop = System.currentTimeMillis();
             long elapsed = stop - start;
-            LOGGER.info("[SEQUENTIAL MODE] Finished update and export of data sources within " + elapsed + " ms (" + elapsed/1000 + "s)");
-
+            LOGGER.info("Finished processing data sources within " + elapsed + " ms (" + (elapsed / 1000f) + "s)");
             mergeDataSources();
             mapDataSources();
-
         }
     }
 
@@ -183,36 +182,27 @@ public final class Workspace {
             throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
                                          "have been added to the workspace config.json either directly or via " +
                                          "command line.");
-
         if (prepareDataSources()) {
-
             ForkJoinPool threadPool = null;
-
             try {
                 // init new thread pool for processing
-                LOGGER.info("[PARALLEL MODE] Creating new thread pool with " + numThreads + " threads ... ");
+                LOGGER.info("Processing data sources in parallel with " + numThreads + " threads");
                 threadPool = new ForkJoinPool(numThreads);
                 long start = System.currentTimeMillis();
                 threadPool.submit(() -> Stream.of(dataSources).parallel().forEach(dataSource -> {
                     // submit task to pool
                     processDataSource(dataSource, skipUpdate);
                 })).get();
-
                 long stop = System.currentTimeMillis();
                 long elapsed = stop - start;
-                LOGGER.info("[PARALLEL MODE] Finished update and export of data sources within " + elapsed + " ms (" +
-                            elapsed / 1000 + "s) with " + numThreads + " threads");
-
-            } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.info("Finished processing data sources within " + elapsed + " ms (" + (elapsed / 1000f) + "s)");
+            } catch (InterruptedException | ExecutionException e) {
+                LOGGER.error("Failed to process data sources in parallel", e);
             } finally {
                 // shutting down thread pool (execution continued in common pool)
-                if (threadPool != null) {
-                    LOGGER.info("[PARALLEL MODE] Shutting down thread pool ...");
+                if (threadPool != null)
                     threadPool.shutdown();
-                }
             }
-
             mergeDataSources();
             mapDataSources();
         }
@@ -259,10 +249,13 @@ public final class Workspace {
                 dataSource);
     }
 
-    private boolean isDataSourceExportForced(final DataSource dataSource) {
-        final String id = dataSource.getId();
-        return configuration.hasPropertiesForDataSource(id) && "true".equalsIgnoreCase(
-                configuration.getDataSourceProperties(id).getOrDefault("forceExport", ""));
+    public boolean isDataSourceExportForced(final DataSource dataSource) {
+        return isDataSourceExportForced(dataSource.getId());
+    }
+
+    public boolean isDataSourceExportForced(final String dataSourceId) {
+        return configuration.hasPropertiesForDataSource(dataSourceId) && "true".equalsIgnoreCase(
+                configuration.getDataSourceProperties(dataSourceId).getOrDefault("forceExport", ""));
     }
 
     private boolean areDataSourceExportsMissing(final DataSource dataSource) {

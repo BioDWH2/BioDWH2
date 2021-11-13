@@ -19,8 +19,7 @@ public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
     static final String[] FILE_NAMES = {
             "genes.zip", "drugs.zip", "chemicals.zip", "variants.zip", "phenotypes.zip", "clinicalAnnotations.zip",
             "variantAnnotations.zip", "relationships.zip", "dosingGuidelines.json.zip", "drugLabels.zip",
-            "pathways-tsv.zip", "clinicalVariants.zip", "occurrences.zip", "automated_annotations.zip",
-            "occurrences.zip"
+            "pathways-tsv.zip", "clinicalVariants.zip", "occurrences.zip", "automated_annotations.zip"
     };
 
     public PharmGKBUpdater(final PharmGKBDataSource dataSource) {

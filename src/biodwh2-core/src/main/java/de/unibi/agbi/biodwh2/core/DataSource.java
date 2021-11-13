@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class DataSource {
@@ -196,8 +197,18 @@ public abstract class DataSource {
         return getUpdater().tryGetNewestVersion();
     }
 
+    public Map<String, DataSourcePropertyType> getAvailableProperties() {
+        final Map<String, DataSourcePropertyType> result = new HashMap<>();
+        result.put("forceExport", DataSourcePropertyType.BOOLEAN);
+        return result;
+    }
+
     public final Map<String, String> getProperties(final Workspace workspace) {
         return workspace.getConfiguration().getDataSourceProperties(getId());
+    }
+
+    public final boolean getBooleanProperty(final Workspace workspace, final String key) {
+        return "true".equalsIgnoreCase(getProperties(workspace).get(key));
     }
 
     void setVersion(final Workspace workspace, final Version version) {

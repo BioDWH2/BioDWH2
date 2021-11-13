@@ -1,8 +1,22 @@
 # Changelog
 
-## 📦 Version v0.4.0
+## 📦 Version v0.4.1
 
-Released: 
+Released: upcoming
+
+### 📚 Data Sources
+
+ * ```[CancerDrugsDB]``` #40 Add generic field to entry model and graph exporter
+
+### 🔧 Bug fixes and other changes
+
+ * ```[feature]``` Generate metadata nodes in merged graph for data source version information
+ * ```[feature]``` Use metadata nodes to determine whether the merged graph can be extended or needs to be recreated
+ * ```[feature]``` Use online version cache if live update failed
+
+## 📦 Version [v0.4.0](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.0)
+
+Released: 22.10.2021
 
 ### 📚 Data Sources
 
@@ -10,11 +24,15 @@ Released:
  * ```[AACT]``` #50 Added AACT data source module
  * ```[Gene2Phenotype]``` #51 Added Gene2Phenotype data source module
  * ```[CanadianNutrientFile]``` #52 Added CanadianNutrientFile (CNF) data source module
+ * ```[UNII]``` #29 Fixed table columns
+ * ```[PharmGKB]``` #8 Fixed occurrence export
+ * ```[DrugCentral]``` #18 Fixed updater
 
 ### 🔧 Bug fixes and other changes
 
  * ```[fix]``` HTTPFTPClient is able to handle more formats
  * ```[feature]``` Improve manual update behaviour
+ * ```[feature]``` Allow data sources to be processed in parallel (experimental)
 
 ## 📦 Version [v0.3.9](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.3.9)
 
