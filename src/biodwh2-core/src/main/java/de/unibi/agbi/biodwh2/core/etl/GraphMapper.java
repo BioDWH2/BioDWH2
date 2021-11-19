@@ -18,7 +18,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public final class GraphMapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMapper.class);
@@ -31,7 +37,13 @@ public final class GraphMapper {
         copyGraph(workspace);
         final Path graphFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_PERSISTENT_GRAPH);
         try (Graph graph = new Graph(graphFilePath, true)) {
+
+            long start = System.currentTimeMillis();
             mapGraph(graph, dataSources);
+            long stop = System.currentTimeMillis();
+            long elapsed = stop - start;
+            LOGGER.info("Mapping finished within " + elapsed + "ms (" + elapsed / 1000 + "s)");
+
             saveGraph(graph, workspace);
             generateMetaGraphStatistics(graph, workspace);
         }
@@ -161,11 +173,35 @@ public final class GraphMapper {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Mapping edge paths " + path);
         final PathMapping.Segment segment = path.get(0);
+
+        // PARALLEL
+        ForkJoinPool pool = null;
+        try {
+            pool = new ForkJoinPool(4);
+            pool.submit(() -> {
+                StreamSupport.stream(graph.getNodes(describer.prefixLabel(segment.fromNodeLabel)).spliterator(), true).parallel().forEach(node -> {
+                    final long[] currentPathIds = new long[path.getSegmentCount() * 2 + 1];
+                    currentPathIds[0] = node.getId();
+                    buildPathRecursively(graph, describer, path, 0, currentPathIds);
+                });
+            });
+        } catch(Exception e) {
+            e.printStackTrace();
+        } finally {
+            if(pool != null) {
+                pool.shutdown();
+            }
+        }
+
+        // SERIAL
+        /*
         for (final Node node : graph.getNodes(describer.prefixLabel(segment.fromNodeLabel))) {
             final long[] currentPathIds = new long[path.getSegmentCount() * 2 + 1];
             currentPathIds[0] = node.getId();
             buildPathRecursively(graph, describer, path, 0, currentPathIds);
         }
+         */
+
     }
 
     private void buildPathRecursively(final Graph graph, final MappingDescriber describer, final PathMapping path,
@@ -179,8 +215,8 @@ public final class GraphMapper {
         final String toNodeLabel = describer.prefixLabel(segment.toNodeLabel);
         final long fromNodeId = currentPathIds[segmentIndex * 2];
         final int currentEdgePathIndex = segmentIndex * 2 + 1;
-        if (segment.direction == EdgeDirection.BIDIRECTIONAL ||
-            segment.direction == EdgeDirection.FORWARD) {
+
+        if (segment.direction == EdgeDirection.BIDIRECTIONAL || segment.direction == EdgeDirection.FORWARD) {
             for (final Edge edge : graph.findEdges(edgeLabel, Edge.FROM_ID_FIELD, fromNodeId)) {
                 final Node nextNode = graph.getNode(edge.getToId());
                 if (nextNode.getLabel().equals(toNodeLabel)) {
@@ -191,8 +227,9 @@ public final class GraphMapper {
                 }
             }
         }
-        if (segment.direction == EdgeDirection.BIDIRECTIONAL ||
-            segment.direction == EdgeDirection.BACKWARD) {
+
+        if (segment.direction == EdgeDirection.BIDIRECTIONAL || segment.direction == EdgeDirection.BACKWARD) {
+
             for (final Edge edge : graph.findEdges(edgeLabel, Edge.TO_ID_FIELD, fromNodeId)) {
                 final Node nextNode = graph.getNode(edge.getFromId());
                 if (nextNode.getLabel().equals(toNodeLabel)) {
@@ -202,7 +239,9 @@ public final class GraphMapper {
                     buildPathRecursively(graph, describer, path, segmentIndex + 1, nextPathIds);
                 }
             }
+
         }
+
     }
 
     private void mapPathInstance(final Graph graph, final MappingDescriber describer, final long[] pathIds) {
