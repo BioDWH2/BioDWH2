@@ -7,6 +7,7 @@ Released: upcoming
 ### 📚 Data Sources
 
  * ```[CancerDrugsDB]``` #40 Add generic field to entry model and graph exporter
+ * ```[HGNC]``` #40 Add gencc field to gene model and graph exporter
 
 ### 🔧 Bug fixes and other changes
 

@@ -177,4 +177,7 @@ public final class Gene {
     @JsonProperty("mane_select")
     @GraphProperty("mane_select")
     public String maneSelect;
+    @JsonProperty("gencc")
+    @GraphProperty("gencc")
+    public String gencc;
 }
