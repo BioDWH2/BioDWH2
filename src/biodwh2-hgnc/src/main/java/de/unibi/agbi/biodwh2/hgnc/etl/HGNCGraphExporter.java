@@ -20,7 +20,7 @@ public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override

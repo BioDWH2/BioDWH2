@@ -116,8 +116,9 @@ public final class GraphMerger {
     }
 
     private void addDataSourceMetadataNode(final DataSource dataSource, final Graph graph) {
+        final Version version = dataSource.getMetadata().version;
         graph.addNode("metadata", "type", "datasource", "datasource_id", dataSource.getId(), "version",
-                      dataSource.getMetadata().version.toString(), "export_version",
+                      version != null ? version.toString() : "", "export_version",
                       dataSource.getMetadata().exportVersion);
     }
 

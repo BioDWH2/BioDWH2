@@ -1,12 +1,17 @@
 # Changelog
 
-## 📦 Version v0.4.1
+## 📦 Version v0.4.2
 
 Released: upcoming
+
+## 📦 Version [v0.4.1](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.1)
+
+Released: 22.11.2021
 
 ### 📚 Data Sources
 
  * ```[CancerDrugsDB]``` #40 Add generic field to entry model and graph exporter
+ * ```[HGNC]``` #40 Add gencc field to gene model and graph exporter
 
 ### 🔧 Bug fixes and other changes
 
