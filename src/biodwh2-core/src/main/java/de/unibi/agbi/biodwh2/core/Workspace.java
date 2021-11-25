@@ -172,7 +172,7 @@ public final class Workspace {
             long elapsed = stop - start;
             LOGGER.info("Finished processing data sources within " + elapsed + " ms (" + (elapsed / 1000f) + "s)");
             mergeDataSources();
-            mapDataSources();
+            mapDataSources(false, 1);
         }
     }
 
@@ -204,7 +204,7 @@ public final class Workspace {
                     threadPool.shutdown();
             }
             mergeDataSources();
-            mapDataSources();
+            mapDataSources(true, numThreads);
         }
 
     }
@@ -298,10 +298,11 @@ public final class Workspace {
         return Paths.get(getSourcesDirectory(), type.getName());
     }
 
-    private void mapDataSources() {
+    private void mapDataSources(final boolean runsInParallel, final int numThreads) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Mapping of data sources started");
-        new GraphMapper().map(this, dataSources);
+
+        new GraphMapper().map(this, dataSources, runsInParallel, numThreads);
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Mapping of data sources finished");
     }

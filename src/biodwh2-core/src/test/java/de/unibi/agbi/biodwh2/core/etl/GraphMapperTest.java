@@ -43,7 +43,7 @@ class GraphMapperTest {
         };
         final Graph graph = Graph.createTempGraph();
         graph.addNode(dataSource.getId() + "_Drug", "id", "D4693", "name", "TestDrug");
-        new GraphMapper().mapGraph(graph, new DataSource[]{dataSource});
+        new GraphMapper().mapGraph(graph, new DataSource[]{dataSource}, false, 0);
         final List<Node> nodes = new ArrayList<>();
         for (final Node node : graph.findNodes(NodeMappingDescription.NodeType.DRUG.name()))
             nodes.add(node);
@@ -81,7 +81,7 @@ class GraphMapperTest {
                 sharedIndex++;
             graph.addNode(dataSource.getId() + "_Drug", "id", "D" + i, "name", "Drug" + i, "id2", "S" + sharedIndex);
         }
-        new GraphMapper().mapGraph(graph, new DataSource[]{dataSource});
+        new GraphMapper().mapGraph(graph, new DataSource[]{dataSource}, false, 0);
         final List<Node> nodes = new ArrayList<>();
         for (final Node node : graph.findNodes(NodeMappingDescription.NodeType.DRUG.name()))
             nodes.add(node);
