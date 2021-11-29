@@ -139,6 +139,7 @@ After creating and processing the workspace, the resulting graph can be analyzed
 It is possible to execute certain steps of the data source processing pipeline in a multithreaded environment. Parallelism is so far supported in the 
 following procedures:
 
+* Update
 * Parsing
 * Export 
 

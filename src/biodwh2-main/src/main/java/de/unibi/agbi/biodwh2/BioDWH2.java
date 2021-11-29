@@ -144,7 +144,7 @@ public final class BioDWH2 {
         final String version = commandLine.setDataSourceVersion.get(2);
         final Workspace workspace = new Workspace(workspacePath);
         workspace.setDataSourceVersion(dataSourceId, version);
-    }
+}
 
     private void printVersion() {
         LOGGER.info("Version " + ResourceUtils.getManifestBioDWH2Version());

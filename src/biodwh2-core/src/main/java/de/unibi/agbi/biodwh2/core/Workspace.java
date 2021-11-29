@@ -172,11 +172,12 @@ public final class Workspace {
             long elapsed = stop - start;
             LOGGER.info("Finished processing data sources within " + elapsed + " ms (" + (elapsed / 1000f) + "s)");
             mergeDataSources();
-            mapDataSources();
+            mapDataSources(false, 1);
         }
     }
 
     public void processDataSourcesInParallel(final boolean skipUpdate, final int numThreads) {
+
         if (configuration.getDataSourceIds().length == 0)
             throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
                                          "have been added to the workspace config.json either directly or via " +
@@ -203,8 +204,9 @@ public final class Workspace {
                     threadPool.shutdown();
             }
             mergeDataSources();
-            mapDataSources();
+            mapDataSources(true, numThreads);
         }
+
     }
 
     private void processDataSource(final DataSource dataSource, final boolean skipUpdate) {
@@ -296,10 +298,11 @@ public final class Workspace {
         return Paths.get(getSourcesDirectory(), type.getName());
     }
 
-    private void mapDataSources() {
+    private void mapDataSources(final boolean runsInParallel, final int numThreads) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Mapping of data sources started");
-        new GraphMapper().map(this, dataSources);
+
+        new GraphMapper().map(this, dataSources, runsInParallel, numThreads);
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Mapping of data sources finished");
     }

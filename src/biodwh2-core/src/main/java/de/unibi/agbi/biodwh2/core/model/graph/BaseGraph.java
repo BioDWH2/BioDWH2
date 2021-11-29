@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 abstract class BaseGraph implements AutoCloseable {
     public static final int VERSION = 3;
@@ -21,14 +23,14 @@ abstract class BaseGraph implements AutoCloseable {
     private MVStoreDB database;
     private final MVMapWrapper<String, Object> metaMap;
     private final Map<String, MVStoreCollection<Node>> nodeRepositories;
-    private final Map<String, MVStoreCollection<Edge>> edgeRepositories;
+    private final ConcurrentMap<String, MVStoreCollection<Edge>> edgeRepositories;
 
     protected BaseGraph(final Path filePath, final boolean reopen, final boolean readOnly) {
         this.filePath = filePath;
         if (!reopen)
             deleteOldDatabaseFile(filePath);
         nodeRepositories = new HashMap<>();
-        edgeRepositories = new HashMap<>();
+        edgeRepositories = new ConcurrentHashMap<>();
         database = openDatabase(filePath, readOnly);
         metaMap = database.openMap("metadata");
         if (!reopen)

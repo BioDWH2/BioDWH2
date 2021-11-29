@@ -19,6 +19,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 @Disabled("For development and demonstration purposes only")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class WorkspaceTest {
+
     private Workspace workspace;
     private final String[] ids = {"Mock1", "Mock2", "Mock3"};
     private DecimalFormat df;
@@ -33,6 +34,7 @@ class WorkspaceTest {
     @ParameterizedTest
     @MethodSource("parallelProvider")
     void processDataSourcesInParallel(boolean isParallel, int numIterations) {
+
         long start, stop, elapsed, averageExecutionTime;
         if (numIterations > 0) {
             numIterations = numIterations;
@@ -52,6 +54,7 @@ class WorkspaceTest {
                     ds.export(workspace);
                 });
             }
+
             stop = System.currentTimeMillis();
             elapsed = stop - start;
             averageExecutionTime = elapsed / numIterations;
@@ -72,12 +75,14 @@ class WorkspaceTest {
                     ds.export(workspace);
                 }
             }
+
             stop = System.currentTimeMillis();
             elapsed = stop - start;
             averageExecutionTime = elapsed / numIterations;
             System.out.println("AVG SEQUENTIAL EXECUTION TIME: " + averageExecutionTime + " MS (" +
                                df.format((float) averageExecutionTime) + " SECONDS), " + numIterations + " ITERATIONS");
         }
+
         // cleanup ...
         try {
             FileUtils.forceDelete(new File("./sources/"));
