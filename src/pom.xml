@@ -59,6 +59,6 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
-        <junit-version>5.7.0</junit-version>
+        <junit-version>5.8.1</junit-version>
     </properties>
 </project>
