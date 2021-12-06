@@ -30,6 +30,7 @@ public enum IdentifierType {
      */
     EMA_CTR("EMA_CTR"),
     ENSEMBL_GENE_ID("ENSEMBL_Gene"),
+    ENTREZ_GENE_ID("Entrez_Gene"),
     EUROPEAN_CHEMICALS_AGENCY_EC("ECA_EC"),
     FDA_SPL("FDA_SPL"),
     GENE_CARD("GeneCard"),
