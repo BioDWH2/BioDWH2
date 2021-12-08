@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -53,7 +54,8 @@ public class OMIMGraphExporter extends GraphExporter<OMIMDataSource> {
             LOGGER.info("Loading MIM titles...");
         final Map<String, MIMTitles> result = new HashMap<>();
         for (final MIMTitles entry : parseTsvFile(workspace, MIMTitles.class, OMIMUpdater.MIMTITLES_FILENAME))
-            result.put(entry.mimNumber, entry); // TODO: prefix
+            if (!entry.prefix.equalsIgnoreCase("Caret"))
+                result.put(entry.mimNumber, entry);
         return result;
     }
 
@@ -70,18 +72,30 @@ public class OMIMGraphExporter extends GraphExporter<OMIMDataSource> {
 
     private void exportGeneMap2(final Workspace workspace, final Graph graph,
                                 final Map<String, MIMTitles> mimNumberToTitles) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Export GeneMap2...");
         for (final GeneMap2 entry : parseTsvFile(workspace, GeneMap2.class, OMIMUpdater.GENEMAP2_FILENAME)) {
-            final MIMTitles geneTitles = mimNumberToTitles.get(entry.mimNumber); // TODO: prefix
+            final MIMTitles titles = mimNumberToTitles.get(entry.mimNumber);
             final NodeBuilder builder = graph.buildNode().withLabel(GENE_LABEL).withModel(entry);
-            if (geneTitles != null) {
-                builder.withPropertyIfNotNull("included_titles", geneTitles.includedTitles);
-                builder.withPropertyIfNotNull("alternative_titles", geneTitles.alternativeTitle);
-                builder.withPropertyIfNotNull("preferred_title", geneTitles.preferredTitle);
+            if (titles != null && isTitlesForGene(titles.prefix)) {
+                builder.withPropertyIfNotNull("included_titles", getTitlesArray(titles.includedTitles));
+                builder.withPropertyIfNotNull("alternative_titles", getTitlesArray(titles.alternativeTitle));
+                builder.withPropertyIfNotNull("preferred_title", titles.preferredTitle);
             }
             final Node node = builder.build();
             if (entry.phenotypes != null)
                 exportEntryPhenotypes(graph, mimNumberToTitles, node, entry);
         }
+    }
+
+    private boolean isTitlesForGene(final String titlePrefix) {
+        return titlePrefix.equalsIgnoreCase("Asterisk") || titlePrefix.equalsIgnoreCase("Plus");
+    }
+
+    private String[] getTitlesArray(final String titles) {
+        if (titles == null || StringUtils.isEmpty(titles))
+            return null;
+        return Arrays.stream(StringUtils.splitByWholeSeparator(titles, ";;")).map(String::trim).toArray(String[]::new);
     }
 
     private void exportEntryPhenotypes(final Graph graph, final Map<String, MIMTitles> mimNumberToTitles,
@@ -92,12 +106,12 @@ public class OMIMGraphExporter extends GraphExporter<OMIMDataSource> {
             Node phenotypeNode = null;
             if (longMatcher.find()) {
                 phenotypeNode = getOrCreatePhenotypeNode(graph, mimNumberToTitles, longMatcher.group(2),
-                                                         longMatcher.group(1), longMatcher.group(3),
+                                                         longMatcher.group(1).trim(), longMatcher.group(3),
                                                          longMatcher.group(5));
             } else if (shortMatcher.find()) {
                 phenotypeNode = getOrCreatePhenotypeNode(graph, mimNumberToTitles, entry.mimNumber,
-                                                         shortMatcher.group(1), longMatcher.group(2),
-                                                         longMatcher.group(3));
+                                                         shortMatcher.group(1).trim(), shortMatcher.group(2),
+                                                         shortMatcher.group(3));
             } else
                 LOGGER.warn("Failed to match phenotype for value '" + phenotype.trim() + "'");
             if (phenotypeNode != null)
@@ -106,12 +120,31 @@ public class OMIMGraphExporter extends GraphExporter<OMIMDataSource> {
     }
 
     private Node getOrCreatePhenotypeNode(final Graph graph, final Map<String, MIMTitles> mimNumberToTitles,
-                                          final String mimNumber, final String name, final String mappingKey,
+                                          final String mimNumber, String name, final String mappingKey,
                                           final String inheritance) {
         Node node = graph.findNode(PHENOTYPE_LABEL, MIM_NUMBER_KEY, mimNumber);
         if (node == null) {
             final NodeBuilder builder = graph.buildNode().withLabel(PHENOTYPE_LABEL);
             builder.withProperty(MIM_NUMBER_KEY, mimNumber);
+            // A question mark, before the phenotype name indicates that the relationship between the phenotype
+            // and gene is provisional. More details about this relationship are provided in the comment field of the
+            // map and in the gene and phenotype OMIM entries.
+            if (name.startsWith("?")) {
+                name = name.substring(1);
+                builder.withProperty("provisional", true);
+            }
+            // Braces, {}, indicate mutations that contribute to susceptibility to multifactorial disorders
+            // (e.g., diabetes, asthma) or to susceptibility to infection (e.g., malaria).
+            if (name.startsWith("{") && name.endsWith("}")) {
+                name = name.substring(1, name.length() - 1);
+                builder.withProperty("susceptibility_mutation", true);
+            }
+            // Brackets, [], indicate "nondiseases," mainly genetic variations that lead to apparently abnormal
+            // laboratory test values (e.g., dysalbuminemic euthyroidal hyperthyroxinemia).
+            if (name.startsWith("[") && name.endsWith("]")) {
+                name = name.substring(1, name.length() - 1);
+                builder.withProperty("nondisease", true);
+            }
             builder.withPropertyIfNotNull("name", name);
             // 1 - the disorder is placed on the map based on its association with a gene, but the underlying defect is not known.
             // 2 - the disorder has been placed on the map by linkage; no mutation has been found.
@@ -119,14 +152,19 @@ public class OMIMGraphExporter extends GraphExporter<OMIMDataSource> {
             // 4 - a contiguous gene deletion or duplication syndrome, multiple genes are deleted or duplicated causing the phenotype.
             builder.withPropertyIfNotNull("mapping_key", mappingKey != null ? Integer.parseInt(mappingKey) : null);
             builder.withPropertyIfNotNull("inheritance", inheritance);
-            final MIMTitles titles = mimNumberToTitles.get(mimNumber); // TODO: prefix
-            if (titles != null) {
-                builder.withPropertyIfNotNull("included_titles", titles.includedTitles);
-                builder.withPropertyIfNotNull("alternative_titles", titles.alternativeTitle);
+            final MIMTitles titles = mimNumberToTitles.get(mimNumber);
+            if (titles != null && isTitlesForPhenotype(titles.prefix)) {
+                builder.withPropertyIfNotNull("included_titles", getTitlesArray(titles.includedTitles));
+                builder.withPropertyIfNotNull("alternative_titles", getTitlesArray(titles.alternativeTitle));
                 builder.withPropertyIfNotNull("preferred_title", titles.preferredTitle);
             }
             node = builder.build();
         }
         return node;
+    }
+
+    private boolean isTitlesForPhenotype(final String titlePrefix) {
+        return titlePrefix.equalsIgnoreCase("Number Sign") || titlePrefix.equalsIgnoreCase("Percent") ||
+               titlePrefix.equalsIgnoreCase("NULL");
     }
 }

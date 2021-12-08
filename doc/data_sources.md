@@ -16,6 +16,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | [HPO](sources/HPO/README.md) | Human Phenotype Ontology | [Link](https://hpo.jax.org) |
 | [MED-RT](sources/MED-RT/README.md) | Medication Reference Terminology (MED-RT™) | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/) |
 | [NDF-RT](sources/NDF-RT/README.md) | National Drug File – Reference Terminology (NDF-RT™) | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/) |
+| [OMIM](sources/OMIM/README.md) | Online Mendelian Inheritance in Man® | [Link](https://www.omim.org) |
 | [PharmGKB](sources/PharmGKB/README.md) | PharmGKB | [Link](https://www.pharmgkb.org) |
 | [ReDO-DB](sources/ReDO-DB/README.md) | A curated listing of non-cancer drugs which have shown some evidence of anticancer activity by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/redo-db) |
 | [ReDOTrialsDB](sources/ReDOTrialsDB/README.md) | A curated database, produced by the Anticancer Fund, of active clinical trials investigating the use of non-cancer drugs as potential cancer treatments | [Link](https://www.anticancerfund.org/en/redo-trials-db) |

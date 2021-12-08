@@ -4,6 +4,15 @@
 
 Released: upcoming
 
+### 📚 Data Sources
+
+ * ```[OMIM]``` #57 Add OMIM data source module
+
+### 🔧 Bug fixes and other changes
+
+ * ```[feature]``` Allow path mapping to be processed in parallel (experimental)
+ * ```[chore]``` Update dependencies
+
 ## 📦 Version [v0.4.1](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.1)
 
 Released: 22.11.2021

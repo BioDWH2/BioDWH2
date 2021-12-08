@@ -218,6 +218,11 @@
             <version>0.1</version>
         </dependency>
         <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-omim</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
             <version>4.6.2</version>
