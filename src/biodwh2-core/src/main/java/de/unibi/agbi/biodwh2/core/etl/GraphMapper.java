@@ -43,7 +43,8 @@ public final class GraphMapper {
             mapGraph(graph, dataSources, runsInParallel, numThreads);
             long stop = System.currentTimeMillis();
             long elapsed = stop - start;
-            LOGGER.info("Mapping finished within " + elapsed + "ms (" + elapsed / 1000 + "s)");
+            float elapsedSeconds = Math.round(elapsed / 1000f * 100) / 100f;
+            LOGGER.info("Mapping finished within " + elapsed + "ms (" + elapsedSeconds + "s)");
 
             saveGraph(graph, workspace);
             generateMetaGraphStatistics(graph, workspace);

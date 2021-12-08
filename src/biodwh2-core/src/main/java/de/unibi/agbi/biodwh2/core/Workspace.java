@@ -170,7 +170,8 @@ public final class Workspace {
                 processDataSource(dataSource, skipUpdate);
             long stop = System.currentTimeMillis();
             long elapsed = stop - start;
-            LOGGER.info("Finished processing data sources within " + elapsed + " ms (" + (elapsed / 1000f) + "s)");
+            float elapsedSeconds = Math.round(elapsed / 1000f * 100) / 100f;
+            LOGGER.info("Finished processing data sources within " + elapsed + " ms (" + elapsedSeconds + "s)");
             mergeDataSources();
             mapDataSources(false, 1);
         }
@@ -195,7 +196,8 @@ public final class Workspace {
                 })).get();
                 long stop = System.currentTimeMillis();
                 long elapsed = stop - start;
-                LOGGER.info("Finished processing data sources within " + elapsed + " ms (" + (elapsed / 1000f) + "s)");
+                float elapsedSeconds = Math.round(elapsed / 1000f * 100) / 100f;
+                LOGGER.info("Finished processing data sources within " + elapsed + " ms (" + elapsedSeconds + "s)");
             } catch (InterruptedException | ExecutionException e) {
                 LOGGER.error("Failed to process data sources in parallel", e);
             } finally {
