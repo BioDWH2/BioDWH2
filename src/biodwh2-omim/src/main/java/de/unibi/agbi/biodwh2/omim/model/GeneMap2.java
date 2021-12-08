@@ -4,13 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
+import de.unibi.agbi.biodwh2.omim.etl.OMIMGraphExporter;
 
 @JsonPropertyOrder({
         "Chromosom", "Genomic Position Start", "Genomic Position End", "Cyto Location", "Computed Cyto Location",
         "MIM Number", "Gene Symbols", "Gene Name", "Approved Gene Symbol", "Entrez Gene ID", "Ensembl Gene ID",
         "Comments", "Phenotypes", "Mouse Gene Symbol/ID"
 })
-@GraphNodeLabel("Gene")
+@GraphNodeLabel(OMIMGraphExporter.GENE_LABEL)
 public class GeneMap2 {
     @JsonProperty("Chromosom")
     @GraphProperty("chromosome")

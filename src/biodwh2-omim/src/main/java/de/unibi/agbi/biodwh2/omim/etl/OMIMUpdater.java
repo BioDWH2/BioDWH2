@@ -20,8 +20,8 @@ public class OMIMUpdater extends Updater<OMIMDataSource> {
     private static final String OMIM_PAGE_URL = "https://www.omim.org/";
     private static final String MIM2GENE_DOWNLOAD_URL = "https://omim.org/static/omim/data/mim2gene.txt";
     private static final String MIM2GENE_FILENAME = "mim2gene.txt";
-    private static final String MIMTITLES_FILENAME = "mimTitles.txt";
-    private static final String GENEMAP2_FILENAME = "genemap2.txt";
+    static final String MIMTITLES_FILENAME = "mimTitles.txt";
+    static final String GENEMAP2_FILENAME = "genemap2.txt";
     private static final String MORBIDMAP_FILENAME = "morbidmap.txt";
     private static final Pattern DOWNLOAD_URL_PATTERN = Pattern.compile(
             "<h5>\\n.*Updated\\s+([A-Za-z]+) ([0-9]+), ([0-9]{4})\\n.*</h5>");
