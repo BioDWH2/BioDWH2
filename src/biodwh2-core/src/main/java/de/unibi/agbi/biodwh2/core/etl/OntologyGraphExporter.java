@@ -10,6 +10,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -22,6 +24,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
         public String propertyValue;
     }
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(OntologyGraphExporter.class);
     protected static final String ID_PROPERTY = "id";
 
     public OntologyGraphExporter(final D dataSource) {
@@ -31,12 +34,6 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         final boolean ignoreObsolete = ignoreObsolete(workspace);
-        graph.addIndex(IndexDescription.forNode("Subset", ID_PROPERTY, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("SynonymType", ID_PROPERTY, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Idspace", ID_PROPERTY, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Term", ID_PROPERTY, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Typedef", ID_PROPERTY, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Instance", ID_PROPERTY, IndexDescription.Type.UNIQUE));
         try {
             final OboReader reader = new OboReader(dataSource.resolveSourceFilePath(workspace, getOntologyFileName()),
                                                    StandardCharsets.UTF_8);
@@ -81,9 +78,11 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
 
     private void exportHeaderSubsetDefinitions(final Graph graph, final OboHeader header, final Node headerNode) {
         final String[] subsetDefs = header.getSubsetDefs();
-        if (subsetDefs != null)
+        if (subsetDefs != null && subsetDefs.length > 0) {
+            graph.addIndex(IndexDescription.forNode("Subset", ID_PROPERTY, IndexDescription.Type.UNIQUE));
             for (final String subsetDef : subsetDefs)
                 exportHeaderSubsetDefinition(graph, headerNode, subsetDef);
+        }
     }
 
     private void exportHeaderSubsetDefinition(final Graph graph, final Node headerNode, final String subsetDef) {
@@ -95,9 +94,11 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
 
     private void exportHeaderSynonymTypeDefinitions(final Graph graph, final OboHeader header, final Node headerNode) {
         final String[] synonymTypeDefs = header.getSynonymTypeDefs();
-        if (synonymTypeDefs != null)
+        if (synonymTypeDefs != null && synonymTypeDefs.length > 0) {
+            graph.addIndex(IndexDescription.forNode("SynonymType", ID_PROPERTY, IndexDescription.Type.UNIQUE));
             for (final String synonymTypeDef : synonymTypeDefs)
                 exportHeaderSynonymTypeDefinition(graph, headerNode, synonymTypeDef);
+        }
     }
 
     private void exportHeaderSynonymTypeDefinition(final Graph graph, final Node headerNode,
@@ -123,9 +124,11 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
 
     private void exportHeaderIdspaces(final Graph graph, final OboHeader header, final Node headerNode) {
         final String[] idspaces = header.getIdspaces();
-        if (idspaces != null)
+        if (idspaces != null && idspaces.length > 0) {
+            graph.addIndex(IndexDescription.forNode("Idspace", ID_PROPERTY, IndexDescription.Type.UNIQUE));
             for (final String idspace : idspaces)
                 exportHeaderIdspace(graph, headerNode, idspace);
+        }
     }
 
     private void exportHeaderIdspace(final Graph graph, final Node headerNode, final String idspace) {
@@ -140,18 +143,35 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
     }
 
     private void exportEntries(final boolean ignoreObsolete, final Graph graph, final OboReader reader) {
+        boolean createdTermIndex = false;
+        boolean createdTypedefIndex = false;
+        boolean createdInstanceIndex = false;
         final Map<String, Map<String, List<EdgeCacheEntry>>> relationCache = new HashMap<>();
         for (final OboEntry entry : reader) {
             if (ignoreObsolete && Boolean.TRUE.equals(entry.isObsolete()))
                 continue;
-            if (entry instanceof OboTerm)
+            if (entry instanceof OboTerm) {
+                if (!createdTermIndex) {
+                    createdTermIndex = true;
+                    graph.addIndex(IndexDescription.forNode("Term", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+                }
                 exportTerm(graph, (OboTerm) entry, relationCache);
-            else if (entry instanceof OboTypedef)
+            } else if (entry instanceof OboTypedef) {
+                if (!createdTypedefIndex) {
+                    createdTypedefIndex = true;
+                    graph.addIndex(IndexDescription.forNode("Typedef", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+                }
                 exportTypedef(graph, (OboTypedef) entry, relationCache);
-            else if (entry instanceof OboInstance)
+            } else if (entry instanceof OboInstance) {
+                if (!createdInstanceIndex) {
+                    createdInstanceIndex = true;
+                    graph.addIndex(IndexDescription.forNode("Instance", ID_PROPERTY, IndexDescription.Type.UNIQUE));
+                }
                 exportInstance(graph, (OboInstance) entry, relationCache);
+            }
         }
-        //System.out.println(relationCache.size());
+        if (relationCache.size() > 0 && LOGGER.isWarnEnabled())
+            LOGGER.warn("Not all relationships could be added between ontology entries (" + relationCache.size() + ")");
     }
 
     private void exportTerm(final Graph graph, final OboTerm term,

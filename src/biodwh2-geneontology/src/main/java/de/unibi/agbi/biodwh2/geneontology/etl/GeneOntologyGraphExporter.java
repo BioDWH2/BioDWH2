@@ -37,6 +37,8 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.addIndex(IndexDescription.forNode(DB_OBJECT_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting GO ontology...");
         return super.exportGraph(workspace, graph) && exportAnnotations(workspace, graph);
     }
 
