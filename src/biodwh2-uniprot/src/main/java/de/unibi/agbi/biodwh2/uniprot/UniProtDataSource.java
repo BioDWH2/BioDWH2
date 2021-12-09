@@ -2,13 +2,9 @@ package de.unibi.agbi.biodwh2.uniprot;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
-import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
-import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
+import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.uniprot.etl.UniProtGraphExporter;
 import de.unibi.agbi.biodwh2.uniprot.etl.UniProtMappingDescriber;
-import de.unibi.agbi.biodwh2.uniprot.etl.UniProtParser;
 import de.unibi.agbi.biodwh2.uniprot.etl.UniProtUpdater;
 
 public class UniProtDataSource extends DataSource {
@@ -29,7 +25,7 @@ public class UniProtDataSource extends DataSource {
 
     @Override
     protected Parser<? extends DataSource> getParser() {
-        return new UniProtParser(this);
+        return new PassThroughParser<>(this);
     }
 
     @Override

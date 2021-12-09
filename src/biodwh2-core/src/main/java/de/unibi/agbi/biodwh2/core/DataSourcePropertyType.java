@@ -5,5 +5,6 @@ public enum DataSourcePropertyType {
     INTEGER,
     DECIMAL,
     BOOLEAN,
+    LIST,
     OBJECT
 }
