@@ -7,6 +7,7 @@ Released: upcoming
 ### 📚 Data Sources
 
  * ```[OMIM]``` #57 Add OMIM data source module
+ * ```[GeneOntology]``` #28 Flag GeneOntology data source as usable
 
 ### 🔧 Bug fixes and other changes
 

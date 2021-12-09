@@ -1,6 +1,6 @@
 # GeneOntology
 
-
+The Gene Ontology (GO) knowledgebase is the world’s largest source of information on the functions of genes. This knowledge is both human-readable and machine-readable, and is a foundation for computational analysis of large-scale molecular biology and genetics experiments in biomedical research.
 
 ## Website
 
@@ -16,11 +16,16 @@ For citation information see http://geneontology.org/docs/go-citation-policy/
 
 ## Files used
 
-
+  * ```go.obo```
+  * ```goa_human.gaf.gz```
+  * ```goa_human_complex.gaf.gz```
+  * ```goa_human_isoform.gaf.gz```
+  * ```goa_human_rna.gaf.gz```
 
 ## Configuration properties
 
 | Property       | Values     | Description |
 | -------------- | ---------- | ----------- |
 | forceExport    | true/false | Force graph export even if nothing changed |
+| ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 |                |            |             |

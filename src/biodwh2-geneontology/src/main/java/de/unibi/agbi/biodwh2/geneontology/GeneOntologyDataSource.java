@@ -14,8 +14,18 @@ public class GeneOntologyDataSource extends OntologyDataSource {
     }
 
     @Override
+    public String getFullName() {
+        return "Gene Ontology (GO)";
+    }
+
+    @Override
+    public String getDescription() {
+        return "The GO knowledgebase is the world's largest source of information on the functions of genes.";
+    }
+
+    @Override
     public DevelopmentState getDevelopmentState() {
-        return DevelopmentState.InDevelopment;
+        return DevelopmentState.Usable;
     }
 
     @Override

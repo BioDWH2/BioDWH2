@@ -34,7 +34,9 @@ public class GeneOntologyMappingDescriber extends MappingDescriber {
         typeNodeTypeMap.put("SRP_RNA", NodeMappingDescription.NodeType.RNA);
         typeNodeTypeMap.put("telomerase_RNA", NodeMappingDescription.NodeType.RNA);
         typeNodeTypeMap.put("tRNA", NodeMappingDescription.NodeType.RNA);
-        // TODO: gene_product, primary_transcript, transcript
+        typeNodeTypeMap.put("primary_transcript", NodeMappingDescription.NodeType.RNA);
+        typeNodeTypeMap.put("transcript", NodeMappingDescription.NodeType.RNA);
+        // gene_product is not further specified and a fallback, therefore a precise mapping is difficult
     }
 
     @Override

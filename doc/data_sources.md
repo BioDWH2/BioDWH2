@@ -12,6 +12,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | [DrugCentral](sources/DrugCentral/README.md) | DrugCentral | [Link](http://drugcentral.org) |
 | [EMA](sources/EMA/README.md) | European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC] | [Link](https://www.ema.europa.eu/en/medicines/download-medicine-data) |
 | [Gene2Phenotype](sources/Gene2Phenotype/README.md) | Datasets for use in diagnostic variant filtering | [Link](https://www.ebi.ac.uk/gene2phenotype) |
+| [GeneOntology](sources/GeneOntology/README.md) | Gene Ontology | [Link](http://geneontology.org) |
 | [HGNC](sources/HGNC/README.md) | HUGO Gene Nomenclature Committee | [Link](https://www.genenames.org) |
 | [HPO](sources/HPO/README.md) | Human Phenotype Ontology | [Link](https://hpo.jax.org) |
 | [MED-RT](sources/MED-RT/README.md) | Medication Reference Terminology (MED-RT™) | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/) |
@@ -33,7 +34,6 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | [CanadianNutrientFile](sources/CanadianNutrientFile/README.md) | CanadianNutrientFile | [Link](https://www.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/nutrient-data.html) |
 | [DGIdb](sources/DGIdb/README.md) | The Drug Gene Interaction Database | [Link](http://dgidb.org) |
 | [DrugBank](sources/DrugBank/README.md) | DrugBank | [Link](http://drugbank.ca) |
-| [GeneOntology](sources/GeneOntology/README.md) | Gene Ontology | [Link](http://geneontology.org) |
 | [GWASCatalog](sources/GWASCatalog/README.md) | GWAS Catalog | [Link](https://www.ebi.ac.uk/gwas/home) |
 | [ITIS](sources/ITIS/README.md) | Integrated Taxonomic Information System | [Link](https://www.itis.gov) |
 | [KEGG](sources/KEGG/README.md) | Kyoto Encyclopedia of Genes and Genomes | [Link](https://www.kegg.jp) |
