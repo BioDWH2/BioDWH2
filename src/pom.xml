@@ -47,6 +47,7 @@
         <module>biodwh2-opentargets</module>
         <module>biodwh2-aact</module>
         <module>biodwh2-omim</module>
+        <module>biodwh2-efo</module>
     </modules>
 
     <packaging>pom</packaging>

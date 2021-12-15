@@ -25,6 +25,7 @@ public enum IdentifierType {
      */
     DRKS_TRIAL("DRKS"),
     DUMMY("Dummy"),
+    EFO("EFO"),
     /**
      * EMA CTR (Clinical Trials Registry) https://www.clinicaltrialsregister.eu
      */
