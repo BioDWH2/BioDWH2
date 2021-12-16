@@ -5,6 +5,8 @@ import org.h2.mvstore.MVStore;
 import java.util.*;
 
 public final class MVStoreDB implements AutoCloseable {
+    private static final String COLLECTION_NAMES_KEY = "collection_names";
+
     private final boolean readOnly;
     private final MVStore store;
     private final MVMapWrapper<String, Object> metaMap;
@@ -24,7 +26,7 @@ public final class MVStoreDB implements AutoCloseable {
         metaMap = openMap("!meta");
         collections = new HashMap<>();
         collectionNames = new ArrayList<>();
-        final String[] collectionNamesArray = (String[]) metaMap.get("collection_names");
+        final String[] collectionNamesArray = (String[]) metaMap.get(COLLECTION_NAMES_KEY);
         if (collectionNamesArray != null)
             Collections.addAll(collectionNames, collectionNamesArray);
     }
@@ -40,11 +42,24 @@ public final class MVStoreDB implements AutoCloseable {
             collections.put(name, collection);
             if (!collectionNames.contains(name)) {
                 collectionNames.add(name);
-                metaMap.put("collection_names", getCollectionNames());
+                metaMap.put(COLLECTION_NAMES_KEY, getCollectionNames());
             }
         }
         //noinspection unchecked
         return (MVStoreCollection<T>) collection;
+    }
+
+    public boolean removeCollection(final String name) {
+        if (!readOnly) {
+            collectionNames.remove(name);
+            final MVStoreCollection<?> collection = collections.remove(name);
+            if (collection != null)
+                for (final String mapName : collection.getAllMapNames())
+                    store.removeMap(mapName);
+            metaMap.put(COLLECTION_NAMES_KEY, getCollectionNames());
+            return true;
+        }
+        return false;
     }
 
     @Override

@@ -25,6 +25,10 @@ public final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
         this.mvMap = mvMap;
     }
 
+    public String name() {
+        return mvMap.getName();
+    }
+
     @Override
     public int size() {
         return mvMap.size();

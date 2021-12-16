@@ -347,4 +347,13 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
             isDirty = true;
         }
     }
+
+    String[] getAllMapNames() {
+        final List<String> mapNames = new ArrayList<>();
+        mapNames.add(map.name());
+        mapNames.add(metaMap.name());
+        for (final MVStoreIndex index : indices.values())
+            mapNames.add(index.name);
+        return mapNames.toArray(new String[0]);
+    }
 }

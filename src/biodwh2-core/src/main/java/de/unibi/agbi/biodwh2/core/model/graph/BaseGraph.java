@@ -19,17 +19,19 @@ abstract class BaseGraph implements AutoCloseable {
     private static final String VERSION_KEY = "version";
     public static final String EXTENSION = "db";
 
+    private final boolean readOnly;
     private final Path filePath;
     private MVStoreDB database;
     private final MVMapWrapper<String, Object> metaMap;
-    private final Map<String, MVStoreCollection<Node>> nodeRepositories;
+    private final ConcurrentMap<String, MVStoreCollection<Node>> nodeRepositories;
     private final ConcurrentMap<String, MVStoreCollection<Edge>> edgeRepositories;
 
     protected BaseGraph(final Path filePath, final boolean reopen, final boolean readOnly) {
         this.filePath = filePath;
+        this.readOnly = readOnly;
         if (!reopen)
             deleteOldDatabaseFile(filePath);
-        nodeRepositories = new HashMap<>();
+        nodeRepositories = new ConcurrentHashMap<>();
         edgeRepositories = new ConcurrentHashMap<>();
         database = openDatabase(filePath, readOnly);
         metaMap = database.openMap("metadata");
@@ -454,6 +456,20 @@ abstract class BaseGraph implements AutoCloseable {
                 e.setToId(mapping.get(e.getToId()));
                 getOrCreateEdgeRepository(targetLabel).put(e);
             }
+        }
+    }
+
+    public void removeNodeLabel(final String label) {
+        if (!readOnly) {
+            nodeRepositories.remove(label);
+            database.removeCollection(NODE_REPOSITORY_PREFIX + label);
+        }
+    }
+
+    public void removeEdgeLabel(final String label) {
+        if (!readOnly) {
+            edgeRepositories.remove(label);
+            database.removeCollection(EDGE_REPOSITORY_PREFIX + label);
         }
     }
 
