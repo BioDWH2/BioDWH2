@@ -12,6 +12,7 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.model.WorkspaceFileType;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
@@ -117,9 +118,14 @@ public final class GraphMerger {
 
     private void addDataSourceMetadataNode(final DataSource dataSource, final Graph graph) {
         final Version version = dataSource.getMetadata().version;
-        graph.addNode("metadata", "type", "datasource", "datasource_id", dataSource.getId(), "version",
-                      version != null ? version.toString() : "", "export_version",
-                      dataSource.getMetadata().exportVersion);
+        final NodeBuilder builder = graph.buildNode().withLabel("metadata");
+        builder.withProperty("type", "datasource");
+        builder.withProperty("datasource_id", dataSource.getId());
+        builder.withProperty("version", version != null ? version.toString() : "");
+        builder.withProperty("export_version", dataSource.getMetadata().exportVersion);
+        builder.withPropertyIfNotNull("license", dataSource.getLicense());
+        builder.withPropertyIfNotNull("license_url", dataSource.getLicenseUrl());
+        builder.build();
     }
 
     private void saveMergedGraph(final Workspace workspace, final Graph mergedGraph) {

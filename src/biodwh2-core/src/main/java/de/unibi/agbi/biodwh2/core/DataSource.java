@@ -40,6 +40,14 @@ public abstract class DataSource {
         return "-";
     }
 
+    public String getLicense() {
+        return null;
+    }
+
+    public String getLicenseUrl() {
+        return null;
+    }
+
     public abstract DevelopmentState getDevelopmentState();
 
     protected abstract Updater<? extends DataSource> getUpdater();
