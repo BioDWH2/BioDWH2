@@ -421,7 +421,19 @@ abstract class BaseGraph implements AutoCloseable {
             }
         }
         // TODO: properties
-        getOrCreateNodeRepository(second.getLabel()).remove(second);
+        removeNode(second);
+    }
+
+    public final void removeNode(final Node node) {
+        final MVStoreCollection<Node> nodes = nodeRepositories.get(node.getLabel());
+        if (nodes != null)
+            nodes.remove(node);
+    }
+
+    public final void removeEdge(final Edge edge) {
+        final MVStoreCollection<Edge> edges = edgeRepositories.get(edge.getLabel());
+        if (edges != null)
+            edges.remove(edge);
     }
 
     public void mergeDatabase(final String dataSourceId, final BaseGraph databaseToMerge) {

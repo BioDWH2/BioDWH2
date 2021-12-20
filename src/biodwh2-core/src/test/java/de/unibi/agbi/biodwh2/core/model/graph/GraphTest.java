@@ -174,4 +174,48 @@ class GraphTest {
         assertFalse(description.get().isArrayProperty());
         assertEquals(IndexDescription.Type.NON_UNIQUE, description.get().getType());
     }
+
+    @Test
+    void testRemoveNode() throws IOException {
+        final Graph g = Graph.createTempGraph();
+        final Node a = g.addNode("Test", "id", 1);
+        final Node b = g.addNode("Test", "id", 2);
+        final Node c = g.addNode("Test", "id", 3);
+        assertEquals(3, g.getNumberOfNodes());
+        g.removeNode(b);
+        assertEquals(2, g.getNumberOfNodes());
+        assertEquals(a.getId(), g.findNode("Test", "id", 1).getId());
+        assertNull(g.findNode("Test", "id", 2));
+        assertEquals(c.getId(), g.findNode("Test", "id", 3).getId());
+        g.removeNode(c);
+        assertEquals(1, g.getNumberOfNodes());
+        assertEquals(a.getId(), g.findNode("Test", "id", 1).getId());
+        assertNull(g.findNode("Test", "id", 3));
+        g.removeNode(a);
+        assertEquals(0, g.getNumberOfNodes());
+        assertNull(g.findNode("Test", "id", 1));
+    }
+
+    @Test
+    void testRemoveEdge() throws IOException {
+        final Graph g = Graph.createTempGraph();
+        final Node a = g.addNode("Test");
+        final Node b = g.addNode("Test");
+        final Edge e1 = g.addEdge(a, b, "IS_A", "id", 1);
+        final Edge e2 = g.addEdge(a, b, "IS_A", "id", 2);
+        final Edge e3 = g.addEdge(a, b, "IS_A", "id", 3);
+        assertEquals(3, g.getNumberOfEdges());
+        g.removeEdge(e2);
+        assertEquals(2, g.getNumberOfEdges());
+        assertEquals(e1.getId(), g.findEdge("IS_A", "id", 1).getId());
+        assertNull(g.findEdge("IS_A", "id", 2));
+        assertEquals(e3.getId(), g.findEdge("IS_A", "id", 3).getId());
+        g.removeEdge(e3);
+        assertEquals(1, g.getNumberOfEdges());
+        assertEquals(e1.getId(), g.findEdge("IS_A", "id", 1).getId());
+        assertNull(g.findEdge("IS_A", "id", 3));
+        g.removeEdge(e1);
+        assertEquals(0, g.getNumberOfEdges());
+        assertNull(g.findEdge("IS_A", "id", 1));
+    }
 }
