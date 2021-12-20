@@ -29,4 +29,5 @@ DrugBank Online is a comprehensive, free-to-access, online database containing i
 | Property       | Values     | Description |
 | -------------- | ---------- | ----------- |
 | forceExport    | true/false | Force graph export even if nothing changed |
+| skipDrugInteractions | true/false | Skip exporting of drug interactions which currently take the longest time |
 |                |            |             |

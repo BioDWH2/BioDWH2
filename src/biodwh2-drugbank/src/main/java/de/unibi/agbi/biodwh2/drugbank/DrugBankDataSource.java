@@ -67,6 +67,7 @@ public class DrugBankDataSource extends DataSource {
         final Map<String, DataSourcePropertyType> result = super.getAvailableProperties();
         result.put("username", DataSourcePropertyType.STRING);
         result.put("password", DataSourcePropertyType.STRING);
+        result.put("skipDrugInteractions", DataSourcePropertyType.BOOLEAN);
         return result;
     }
 }

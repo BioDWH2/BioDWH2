@@ -305,6 +305,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     }
 
     private void exportDrugs(final Workspace workspace, final Graph graph) {
+        final boolean skipDrugInteractions = dataSource.getBooleanProperty(workspace, "skipDrugInteractions");
         final String filePath = dataSource.resolveSourceFilePath(workspace, DrugBankUpdater.FULL_DATABASE_FILE_NAME);
         final File zipFile = new File(filePath);
         if (!zipFile.exists())
@@ -325,7 +326,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
                             if (counter % 250 == 0 && LOGGER.isInfoEnabled())
                                 LOGGER.info("Exporting drug progress " + counter);
                             counter++;
-                            exportDrug(graph, xmlMapper.readValue(parser, Drug.class));
+                            exportDrug(graph, xmlMapper.readValue(parser, Drug.class), skipDrugInteractions);
                         }
                 }
             }
@@ -353,7 +354,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         return xmlMapper.getFactory().createParser(streamReader);
     }
 
-    private void exportDrug(final Graph graph, final Drug drug) {
+    private void exportDrug(final Graph graph, final Drug drug, final boolean skipDrugInteractions) {
         final Node drugNode = createDrugNode(graph, drug, drugLookUp);
         addDrugSalts(graph, drug, drugNode);
         addDrugExternalIdentifiers(graph, drug, drugNode);
@@ -374,7 +375,8 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         addDrugClassification(graph, drug, drugNode);
         addPharmacology(graph, drug, drugNode);
         addPharmacoeconomics(graph, drug, drugNode);
-        addOrCacheDrugInteractions(graph, drug, drugNode);
+        if (!skipDrugInteractions)
+            addOrCacheDrugInteractions(graph, drug, drugNode);
         addOrCacheDrugPathways(graph, drug, drugNode);
         if (drug.reactions != null)
             reactionCache.addAll(drug.reactions);
