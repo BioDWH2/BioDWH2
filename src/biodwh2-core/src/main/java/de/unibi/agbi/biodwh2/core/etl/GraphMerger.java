@@ -20,8 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public final class GraphMerger {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMerger.class);
@@ -29,8 +28,8 @@ public final class GraphMerger {
     public void merge(final Workspace workspace, final DataSource[] dataSources) throws MergerException {
         final Map<String, DataSourceMetadata> requestedStatus = getRequestedMergeStatus(dataSources);
         final Map<String, DataSourceMetadata> previousStatus = getPreviousMergeStatus(workspace);
-        if (isPreviousMergeStatusUsable(workspace, requestedStatus, previousStatus))
-            mergeFromPreviousStatus(workspace, dataSources, previousStatus);
+        if (isPreviousMergeStatusUsable(requestedStatus, previousStatus))
+            mergeFromPreviousStatus(workspace, dataSources, requestedStatus, previousStatus);
         else
             mergeFromScratch(workspace, dataSources);
     }
@@ -64,26 +63,12 @@ public final class GraphMerger {
         return result;
     }
 
-    private boolean isPreviousMergeStatusUsable(final Workspace workspace,
-                                                final Map<String, DataSourceMetadata> requestedStatus,
+    private boolean isPreviousMergeStatusUsable(final Map<String, DataSourceMetadata> requestedStatus,
                                                 final Map<String, DataSourceMetadata> previousStatus) {
-        // Old merged graph without metadata
-        if (previousStatus.size() == 0)
-            return false;
-        for (final DataSourceMetadata metadata : previousStatus.values()) {
-            // Existing data source not requested anymore?
-            if (!requestedStatus.containsKey(metadata.id))
-                return false;
-            final DataSourceMetadata requestedMetadata = requestedStatus.get(metadata.id);
-            // Existing data source out of date?
-            if (requestedMetadata.exportVersion > metadata.exportVersion || requestedMetadata.version.compareTo(
-                    metadata.version) > 0)
-                return false;
-            // Reexport forced?
-            if (workspace.isDataSourceExportForced(metadata.id))
-                return false;
-        }
-        return true;
+        final Set<String> intersection = new HashSet<>(requestedStatus.keySet());
+        intersection.retainAll(previousStatus.keySet());
+        // If we have a previous state and any intersection between old and newly requested data sources, it's usable
+        return previousStatus.size() != 0 && intersection.size() != 0;
     }
 
     private void mergeFromScratch(final Workspace workspace, final DataSource[] dataSources) throws MergerException {
@@ -107,7 +92,7 @@ public final class GraphMerger {
                     "Failed to merge data source " + dataSource.getId() + " because the exported graph is missing");
         try (Graph databaseToMerge = new Graph(intermediateGraphFilePath, true, true)) {
             if (LOGGER.isInfoEnabled())
-                LOGGER.info("Merging data source " + dataSource.getId() + " [" + databaseToMerge.getNumberOfNodes() +
+                LOGGER.info("Merging data source '" + dataSource.getId() + "' [" + databaseToMerge.getNumberOfNodes() +
                             " nodes, " + databaseToMerge.getNumberOfEdges() + " edges]");
             mergedGraph.mergeDatabase(dataSource.getId(), databaseToMerge);
         } catch (GraphCacheException e) {
@@ -174,19 +159,54 @@ public final class GraphMerger {
     }
 
     private void mergeFromPreviousStatus(final Workspace workspace, final DataSource[] dataSources,
+                                         final Map<String, DataSourceMetadata> requestedStatus,
                                          final Map<String, DataSourceMetadata> previousStatus) throws MergerException {
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Creating merged graph from previous status");
+        if (LOGGER.isInfoEnabled()) {
+            final List<String> notRequestedAnyMoreIds = new ArrayList<>();
+            for (final String id : previousStatus.keySet())
+                if (!requestedStatus.containsKey(id))
+                    notRequestedAnyMoreIds.add(id);
+            LOGGER.info("Creating merged graph from previous status [removing: {" +
+                        String.join(", ", notRequestedAnyMoreIds.toArray(new String[0])) + "}]");
+        }
         try (Graph mergedGraph = new Graph(workspace.getFilePath(WorkspaceFileType.MERGED_PERSISTENT_GRAPH), true)) {
-            for (final DataSource dataSource : dataSources)
-                // Only add newly requested data sources
+            // First, remove all previous states which are not requested anymore
+            for (final String id : previousStatus.keySet())
+                if (!requestedStatus.containsKey(id))
+                    removePreviousDataSourceVersion(mergedGraph, id);
+            for (final DataSource dataSource : dataSources) {
+                // Only add newly requested data sources or remove and re-add outdated ones
                 if (!previousStatus.containsKey(dataSource.getId()))
                     mergeDataSource(workspace, dataSource, mergedGraph);
+                else {
+                    final DataSourceMetadata metadata = previousStatus.get(dataSource.getId());
+                    final DataSourceMetadata requestedMetadata = requestedStatus.get(metadata.id);
+                    if (requestedMetadata.exportVersion > metadata.exportVersion || requestedMetadata.version.compareTo(
+                            metadata.version) > 0 || workspace.isDataSourceExportForced(metadata.id)) {
+                        removePreviousDataSourceVersion(mergedGraph, dataSource.getId());
+                        mergeDataSource(workspace, dataSource, mergedGraph);
+                    }
+                }
+            }
             saveMergedGraph(workspace, mergedGraph);
             generateMetaGraphStatistics(mergedGraph, workspace);
         } catch (final Exception ex) {
             throw new MergerException(ex);
         }
+    }
+
+    private void removePreviousDataSourceVersion(final Graph mergedGraph, final String dataSourceId) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Removing previously merged version of data source '" + dataSourceId + "'");
+        for (final String label : mergedGraph.getNodeLabels())
+            if (label.startsWith(dataSourceId + Graph.LABEL_PREFIX_SEPARATOR))
+                mergedGraph.removeNodeLabel(label);
+        for (final String label : mergedGraph.getEdgeLabels())
+            if (label.startsWith(dataSourceId + Graph.LABEL_PREFIX_SEPARATOR))
+                mergedGraph.removeEdgeLabel(label);
+        final Node metadataNode = mergedGraph.findNode("metadata", "type", "datasource", "datasource_id", dataSourceId);
+        if (metadataNode != null)
+            mergedGraph.removeNode(metadataNode);
     }
 
     private static class DataSourceMetadata {
