@@ -28,10 +28,17 @@ public final class GraphMerger {
     public void merge(final Workspace workspace, final DataSource[] dataSources) throws MergerException {
         final Map<String, DataSourceMetadata> requestedStatus = getRequestedMergeStatus(dataSources);
         final Map<String, DataSourceMetadata> previousStatus = getPreviousMergeStatus(workspace);
-        if (isPreviousMergeStatusUsable(requestedStatus, previousStatus))
-            mergeFromPreviousStatus(workspace, dataSources, requestedStatus, previousStatus);
-        else
+        if (isPreviousMergeStatusUsable(requestedStatus, previousStatus)) {
+            try {
+                mergeFromPreviousStatus(workspace, dataSources, requestedStatus, previousStatus);
+            } catch (final MergerException ex) {
+                if (LOGGER.isInfoEnabled())
+                    LOGGER.info("Merging data sources from previous status failed. Trying merge from scratch.");
+                mergeFromScratch(workspace, dataSources);
+            }
+        } else {
             mergeFromScratch(workspace, dataSources);
+        }
     }
 
     private Map<String, DataSourceMetadata> getRequestedMergeStatus(final DataSource[] dataSources) {
@@ -161,14 +168,8 @@ public final class GraphMerger {
     private void mergeFromPreviousStatus(final Workspace workspace, final DataSource[] dataSources,
                                          final Map<String, DataSourceMetadata> requestedStatus,
                                          final Map<String, DataSourceMetadata> previousStatus) throws MergerException {
-        if (LOGGER.isInfoEnabled()) {
-            final List<String> notRequestedAnyMoreIds = new ArrayList<>();
-            for (final String id : previousStatus.keySet())
-                if (!requestedStatus.containsKey(id))
-                    notRequestedAnyMoreIds.add(id);
-            LOGGER.info("Creating merged graph from previous status [removing: {" +
-                        String.join(", ", notRequestedAnyMoreIds.toArray(new String[0])) + "}]");
-        }
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Creating merged graph from previous status");
         try (Graph mergedGraph = new Graph(workspace.getFilePath(WorkspaceFileType.MERGED_PERSISTENT_GRAPH), true)) {
             // First, remove all previous states which are not requested anymore
             for (final String id : previousStatus.keySet())
