@@ -55,7 +55,7 @@ public class UNIIDataEntry {
      * https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Root
      */
     @JsonProperty("NCBI")
-    public Long ncbi;
+    public String ncbi;
     /*
      * USDA PLANTS organism ID
      * https://plants.usda.gov/java/

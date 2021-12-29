@@ -12,6 +12,9 @@ Released: upcoming
  * ```[STITCH]``` #59 Add empty STITCH data source module
  * ```[STRING]``` #55 Add STRING data source module
  * ```[DrugBank]``` #9 Add ```skipDrugInteractions``` option to DrugBank
+ * ```[UNII]``` #29 Fix UNII graph exporter
+ * ```[USDA-PLANTS]``` #35 Fix USDA-PLANTS graph exporter
+ * ```[Gene2Phenotype]``` #51 Update Gene2Phenotype model
 
 ### 🔧 Bug fixes and other changes
 

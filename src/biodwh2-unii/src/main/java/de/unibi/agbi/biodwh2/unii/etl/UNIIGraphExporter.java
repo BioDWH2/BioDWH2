@@ -87,7 +87,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
             itisIds.add(dataEntry.itis);
         final Set<Long> ncbiTaxonomyIds = new HashSet<>();
         if (dataEntry.ncbi != null)
-            ncbiTaxonomyIds.add(dataEntry.ncbi);
+            ncbiTaxonomyIds.add(parseNCBIId(dataEntry.ncbi));
         final Set<String> usdaPlantsSymbols = new HashSet<>();
         if (dataEntry.plants != null)
             usdaPlantsSymbols.add(dataEntry.plants);
@@ -126,5 +126,9 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
         for (final String usdaPlantsSymbol : usdaPlantsSymbols)
             usdaPlantsSymbolNodeIdMap.put(usdaPlantsSymbol, node.getId());
         return node;
+    }
+
+    private Long parseNCBIId(final String ncbi) {
+        return Long.parseLong(ncbi.replace("NCBI:", "").replace("txid", ""));
     }
 }
