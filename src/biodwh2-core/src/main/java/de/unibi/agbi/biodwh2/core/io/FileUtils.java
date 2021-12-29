@@ -155,6 +155,32 @@ public final class FileUtils {
         return openSeparatedValuesFile(stream, typeClass, '\t', true);
     }
 
+    public static Long tryGetGzipLineCount(final Workspace workspace, final DataSource dataSource,
+                                           final String fileName) {
+        try {
+            return getLineCount(openGzip(workspace, dataSource, fileName));
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    public static Long tryGetLineCount(final InputStream stream) {
+        try {
+            return getLineCount(stream);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    public static long getLineCount(final InputStream stream) throws IOException {
+        long lines = 0;
+        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
+            while (reader.readLine() != null)
+                lines++;
+        }
+        return lines;
+    }
+
     public static boolean writeTextToUTF8File(final Path path, final String text) {
         try {
             org.apache.commons.io.FileUtils.writeStringToFile(path.toFile(), text, StandardCharsets.UTF_8);
