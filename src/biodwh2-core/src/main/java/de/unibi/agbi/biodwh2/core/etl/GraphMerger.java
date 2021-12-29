@@ -16,6 +16,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,7 @@ public final class GraphMerger {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMerger.class);
 
     public void merge(final Workspace workspace, final DataSource[] dataSources) throws MergerException {
+        final long start = System.currentTimeMillis();
         final Map<String, DataSourceMetadata> requestedStatus = getRequestedMergeStatus(dataSources);
         final Map<String, DataSourceMetadata> previousStatus = getPreviousMergeStatus(workspace);
         if (isPreviousMergeStatusUsable(requestedStatus, previousStatus)) {
@@ -39,6 +41,8 @@ public final class GraphMerger {
         } else {
             mergeFromScratch(workspace, dataSources);
         }
+        final long stop = System.currentTimeMillis();
+        LOGGER.info("Merging finished within " + DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
     }
 
     private Map<String, DataSourceMetadata> getRequestedMergeStatus(final DataSource[] dataSources) {

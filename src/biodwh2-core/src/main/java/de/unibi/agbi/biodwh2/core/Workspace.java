@@ -11,6 +11,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.migration.GraphMigrator;
 import de.unibi.agbi.biodwh2.core.text.TableFormatter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,13 +166,12 @@ public final class Workspace {
                                          "command line.");
         if (prepareDataSources()) {
             LOGGER.info("Processing data sources sequentially");
-            long start = System.currentTimeMillis();
+            final long start = System.currentTimeMillis();
             for (final DataSource dataSource : dataSources)
                 processDataSource(dataSource, skipUpdate);
-            long stop = System.currentTimeMillis();
-            long elapsed = stop - start;
-            float elapsedSeconds = Math.round(elapsed / 1000f * 100) / 100f;
-            LOGGER.info("Finished processing data sources within " + elapsed + " ms (" + elapsedSeconds + "s)");
+            final long stop = System.currentTimeMillis();
+            LOGGER.info("Finished processing data sources within " +
+                        DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
             mergeDataSources();
             mapDataSources(false, 1);
         }
@@ -189,15 +189,14 @@ public final class Workspace {
                 // init new thread pool for processing
                 LOGGER.info("Processing data sources in parallel with " + numThreads + " threads");
                 threadPool = new ForkJoinPool(numThreads);
-                long start = System.currentTimeMillis();
+                final long start = System.currentTimeMillis();
                 threadPool.submit(() -> Stream.of(dataSources).parallel().forEach(dataSource -> {
                     // submit task to pool
                     processDataSource(dataSource, skipUpdate);
                 })).get();
-                long stop = System.currentTimeMillis();
-                long elapsed = stop - start;
-                float elapsedSeconds = Math.round(elapsed / 1000f * 100) / 100f;
-                LOGGER.info("Finished processing data sources within " + elapsed + " ms (" + elapsedSeconds + "s)");
+                final long stop = System.currentTimeMillis();
+                LOGGER.info("Finished processing data sources within " +
+                            DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
             } catch (InterruptedException | ExecutionException e) {
                 LOGGER.error("Failed to process data sources in parallel", e);
             } finally {

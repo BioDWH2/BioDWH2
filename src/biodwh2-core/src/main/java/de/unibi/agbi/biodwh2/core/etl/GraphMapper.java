@@ -10,6 +10,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,12 +35,10 @@ public final class GraphMapper {
         copyGraph(workspace);
         final Path graphFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_PERSISTENT_GRAPH);
         try (Graph graph = new Graph(graphFilePath, true)) {
-            long start = System.currentTimeMillis();
+            final long start = System.currentTimeMillis();
             mapGraph(graph, dataSources, runsInParallel, numThreads);
-            long stop = System.currentTimeMillis();
-            long elapsed = stop - start;
-            float elapsedSeconds = Math.round(elapsed / 1000f * 100) / 100f;
-            LOGGER.info("Mapping finished within " + elapsed + "ms (" + elapsedSeconds + "s)");
+            final long stop = System.currentTimeMillis();
+            LOGGER.info("Mapping finished within " + DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
             saveGraph(graph, workspace);
             generateMetaGraphStatistics(graph, workspace);
         }
