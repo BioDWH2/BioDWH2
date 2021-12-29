@@ -454,7 +454,7 @@ abstract class BaseGraph implements AutoCloseable {
             for (final Node n : databaseToMerge.nodeRepositories.get(sourceLabel)) {
                 final Long oldId = n.getId();
                 n.resetId();
-                n.setProperty(Node.LABEL_FIELD, targetLabel);
+                n.setLabel(targetLabel);
                 getOrCreateNodeRepository(targetLabel).put(n);
                 mapping.put(oldId, n.getId());
             }
@@ -463,7 +463,7 @@ abstract class BaseGraph implements AutoCloseable {
             final String targetLabel = dataSourcePrefix + sourceLabel;
             for (final Edge e : databaseToMerge.edgeRepositories.get(sourceLabel)) {
                 e.resetId();
-                e.setProperty(Edge.LABEL_FIELD, targetLabel);
+                e.setLabel(targetLabel);
                 e.setFromId(mapping.get(e.getFromId()));
                 e.setToId(mapping.get(e.getToId()));
                 getOrCreateEdgeRepository(targetLabel).put(e);

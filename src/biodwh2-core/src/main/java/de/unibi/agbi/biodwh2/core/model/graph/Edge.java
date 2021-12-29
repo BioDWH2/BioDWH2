@@ -11,7 +11,7 @@ public final class Edge extends MVStoreModel {
     private static final long serialVersionUID = -6592771152520163851L;
     public static final String FROM_ID_FIELD = "__from_id";
     public static final String TO_ID_FIELD = "__to_id";
-    public static final String LABEL_FIELD = "__label";
+    private static final String LABEL_FIELD = "__label";
     public static final Set<String> IGNORED_FIELDS = new HashSet<>(
             Arrays.asList(ID_FIELD, LABEL_FIELD, FROM_ID_FIELD, TO_ID_FIELD));
 
@@ -50,5 +50,9 @@ public final class Edge extends MVStoreModel {
 
     public String getLabel() {
         return getProperty(LABEL_FIELD);
+    }
+
+    void setLabel(final String label) {
+        setProperty(LABEL_FIELD, label);
     }
 }

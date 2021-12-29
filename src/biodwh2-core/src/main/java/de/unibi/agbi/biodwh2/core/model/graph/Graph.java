@@ -358,7 +358,7 @@ public final class Graph extends BaseGraph {
     }
 
     public Node findNode(final String label) {
-        return firstOrDefault(findNodes(Node.LABEL_FIELD, label));
+        return firstOrDefault(findNodes(label));
     }
 
     private <T> T firstOrDefault(final Iterable<T> iterable) {

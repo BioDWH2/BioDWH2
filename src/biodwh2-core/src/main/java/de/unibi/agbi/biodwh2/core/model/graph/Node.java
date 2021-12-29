@@ -9,7 +9,7 @@ import java.util.Set;
 
 public final class Node extends MVStoreModel {
     private static final long serialVersionUID = -5027987220033105538L;
-    public static final String LABEL_FIELD = "__label";
+    private static final String LABEL_FIELD = "__label";
     public static final Set<String> IGNORED_FIELDS = new HashSet<>(Arrays.asList(ID_FIELD, LABEL_FIELD));
 
     private Node() {
@@ -29,5 +29,9 @@ public final class Node extends MVStoreModel {
 
     public String getLabel() {
         return getProperty(LABEL_FIELD);
+    }
+
+    void setLabel(final String label) {
+        setProperty(LABEL_FIELD, label);
     }
 }
