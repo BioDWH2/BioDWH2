@@ -3,12 +3,10 @@ package de.unibi.agbi.biodwh2.gene2phenotype.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import java.util.List;
-
 @JsonPropertyOrder({
-        "gene symbol", "gene mim", "disease name", "disease mim", "DDD category", "allelic requirement",
+        "gene symbol", "gene mim", "disease name", "disease mim", "confidence category", "allelic requirement",
         "mutation consequence", "phenotypes", "organ specificity list", "pmids", "panel", "prev symbols", "hgnc id",
-        "gene disease pair entry date"
+        "gene disease pair entry date", "cross cutting modifier", "mutation consequence flag"
 })
 public class GeneDiseasePair {
     @JsonProperty("gene symbol")
@@ -19,8 +17,8 @@ public class GeneDiseasePair {
     public String diseaseName;
     @JsonProperty("disease mim")
     public String diseaseMim;
-    @JsonProperty("DDD category")
-    public DiseaseConfidence diseaseConfidence;
+    @JsonProperty("confidence category")
+    public String confidenceCategory;
     @JsonProperty("allelic requirement")
     public String allelicRequirement;
     @JsonProperty("mutation consequence")
@@ -32,11 +30,15 @@ public class GeneDiseasePair {
     @JsonProperty("pmids")
     public String pmids;
     @JsonProperty("panel")
-    public Panel panel;
+    public String panel;
     @JsonProperty("prev symbols")
     public String prevSymbols;
     @JsonProperty("hgnc id")
     public Integer hgncId;
     @JsonProperty("gene disease pair entry date")
     public String entryDate;
+    @JsonProperty("cross cutting modifier")
+    public String crossCuttingModifier;
+    @JsonProperty("mutation consequence flag")
+    public String mutationConsequenceFlag;
 }

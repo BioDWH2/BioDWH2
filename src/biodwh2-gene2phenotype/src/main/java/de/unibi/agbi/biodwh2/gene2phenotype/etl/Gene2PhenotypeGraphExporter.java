@@ -43,10 +43,12 @@ public class Gene2PhenotypeGraphExporter extends GraphExporter<Gene2PhenotypeDat
 
     private void exportGeneDiseasePair(final Graph graph, final GeneDiseasePair association) {
         final NodeBuilder builder = graph.buildNode().withLabel("Association");
-        builder.withPropertyIfNotNull("confidence", association.diseaseConfidence.getValue());
+        builder.withPropertyIfNotNull("confidence_category", association.confidenceCategory);
         builder.withPropertyIfNotNull("allelic_requirement", association.allelicRequirement);
         builder.withPropertyIfNotNull("mutation_consequence", association.mutationConsequence);
-        builder.withPropertyIfNotNull("panel", association.panel.getValue());
+        builder.withPropertyIfNotNull("cross_cutting_modifier", association.crossCuttingModifier);
+        builder.withPropertyIfNotNull("mutation_consequence_flag", association.mutationConsequenceFlag);
+        builder.withPropertyIfNotNull("panel", association.panel);
         builder.withPropertyIfNotNull("entry_date", association.entryDate);
         builder.withPropertyIfNotNull("organ_specificity", StringUtils.split(association.organSpecificityList, ';'));
         final Node associationNode = builder.build();
