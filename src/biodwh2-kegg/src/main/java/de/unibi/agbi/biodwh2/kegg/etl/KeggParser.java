@@ -237,7 +237,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                 entry.sequences.add(sequence);
                 break;
             case "BRACKET":
-                // TODO: as bracket structures are not that easy to parse and low priority just store the FLAT-FILE info
+                // As bracket structures are not that easy to parse and low priority just store the FLAT-FILE info
                 final StringBuilder bracket = new StringBuilder("BRACKET     ").append(
                         line.value.replace("\n", "\n            "));
                 for (int j = i + 1; j < chunk.length; j++) {
@@ -281,7 +281,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                 entry.names.addAll(Arrays.asList(StringUtils.split(line.value, '\n')));
                 break;
             case "GENE":
-                String[] geneRestParts = StringUtils.splitByWholeSeparator(line.value, "  ", 2);
+                final String[] geneRestParts = StringUtils.splitByWholeSeparator(line.value, "  ", 2);
                 entry.genes.put(geneRestParts[0], parseNameIdsPair(geneRestParts[1]));
                 break;
             case "ORGANISM":

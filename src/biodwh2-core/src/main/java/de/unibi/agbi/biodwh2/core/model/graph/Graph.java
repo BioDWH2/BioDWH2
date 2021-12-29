@@ -71,6 +71,20 @@ public final class Graph extends BaseGraph {
         return n;
     }
 
+    public Node addNode(final String label, final String propertyKey1, final Object propertyValue1,
+                        final String propertyKey2, final Object propertyValue2, final String propertyKey3,
+                        final Object propertyValue3, final String propertyKey4, final Object propertyValue4,
+                        final String propertyKey5, final Object propertyValue5) {
+        final Node n = Node.newNode(label);
+        n.setProperty(propertyKey1, propertyValue1);
+        n.setProperty(propertyKey2, propertyValue2);
+        n.setProperty(propertyKey3, propertyValue3);
+        n.setProperty(propertyKey4, propertyValue4);
+        n.setProperty(propertyKey5, propertyValue5);
+        update(n);
+        return n;
+    }
+
     public Node addNode(final String label, final Map<String, Object> properties) {
         final Node n = Node.newNode(label);
         for (final Map.Entry<String, Object> entry : properties.entrySet())
@@ -86,7 +100,7 @@ public final class Graph extends BaseGraph {
     public <T> Node addNodeFromModel(final T obj) {
         final ClassMapping mapping = ClassMapping.get(obj);
         final Node n = Node.newNode(mapping.label);
-        mapping.setNodeProperties(n, obj);
+        mapping.setModelProperties(n, obj);
         update(n);
         return n;
     }
@@ -94,7 +108,7 @@ public final class Graph extends BaseGraph {
     public <T> Node addNodeFromModel(final T obj, final String propertyKey, final Object propertyValue) {
         final ClassMapping mapping = ClassMapping.get(obj);
         final Node n = Node.newNode(mapping.label);
-        mapping.setNodeProperties(n, obj);
+        mapping.setModelProperties(n, obj);
         n.setProperty(propertyKey, propertyValue);
         update(n);
         return n;
@@ -104,7 +118,7 @@ public final class Graph extends BaseGraph {
                                      final String propertyKey2, final Object propertyValue2) {
         final ClassMapping mapping = ClassMapping.get(obj);
         final Node n = Node.newNode(mapping.label);
-        mapping.setNodeProperties(n, obj);
+        mapping.setModelProperties(n, obj);
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);
         update(n);
@@ -116,7 +130,7 @@ public final class Graph extends BaseGraph {
                                      final Object propertyValue3) {
         final ClassMapping mapping = ClassMapping.get(obj);
         final Node n = Node.newNode(mapping.label);
-        mapping.setNodeProperties(n, obj);
+        mapping.setModelProperties(n, obj);
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);
         n.setProperty(propertyKey3, propertyValue3);
@@ -130,7 +144,7 @@ public final class Graph extends BaseGraph {
                                      final Object propertyValue4) {
         final ClassMapping mapping = ClassMapping.get(obj);
         final Node n = Node.newNode(mapping.label);
-        mapping.setNodeProperties(n, obj);
+        mapping.setModelProperties(n, obj);
         n.setProperty(propertyKey1, propertyValue1);
         n.setProperty(propertyKey2, propertyValue2);
         n.setProperty(propertyKey3, propertyValue3);

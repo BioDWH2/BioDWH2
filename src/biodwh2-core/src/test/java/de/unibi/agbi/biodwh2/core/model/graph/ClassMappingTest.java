@@ -26,7 +26,7 @@ class ClassMappingTest {
         instance.enabled = true;
         instance.array = "test;abc;efg";
         final Node node = Node.newNode(mapping.label);
-        mapping.setNodeProperties(node, instance);
+        mapping.setModelProperties(node, instance);
         assertEquals(instance.id, node.getProperty("id"));
         assertEquals(instance.enabled, node.getProperty("enabled"));
         assertArrayEquals(new String[]{"test", "abc", "efg"}, node.getProperty("array"));
@@ -39,7 +39,7 @@ class ClassMappingTest {
         instance.arrayWithCustomDelimiter = "test|abc|efg";
         instance.quotedArray = "\"test\";\"abc\";\"efg\"";
         final Node node = Node.newNode(mapping.label);
-        mapping.setNodeProperties(node, instance);
+        mapping.setModelProperties(node, instance);
         assertArrayEquals(new String[]{"test", "abc", "efg"}, node.getProperty("array_with_custom_delimiter"));
         assertArrayEquals(new String[]{"test", "abc", "efg"}, node.getProperty("quoted_array"));
     }
@@ -49,7 +49,7 @@ class ClassMappingTest {
         final ClassMapping mapping = new ClassMapping(TestClass.class);
         final TestClass instance = new TestClass();
         final Node node = Node.newNode(mapping.label);
-        mapping.setNodeProperties(node, instance);
+        mapping.setModelProperties(node, instance);
         assertFalse(node.hasProperty("id"));
     }
 
@@ -59,10 +59,10 @@ class ClassMappingTest {
         final TestClass instance = new TestClass();
         instance.ignoreEmptyString = "";
         final Node node = Node.newNode(mapping.label);
-        mapping.setNodeProperties(node, instance);
+        mapping.setModelProperties(node, instance);
         assertFalse(node.hasProperty("ignore_empty_string"));
         instance.ignoreEmptyString = "t";
-        mapping.setNodeProperties(node, instance);
+        mapping.setModelProperties(node, instance);
         assertTrue(node.hasProperty("ignore_empty_string"));
     }
 

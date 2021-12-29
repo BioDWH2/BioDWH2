@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
+import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreModel;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
@@ -57,8 +58,9 @@ final class ClassMapping {
     }
 
     private String loadLabel(final Class<?> type) {
-        final GraphNodeLabel label = type.getAnnotation(GraphNodeLabel.class);
-        return label != null ? label.value() : null;
+        final GraphNodeLabel nodeLabel = type.getAnnotation(GraphNodeLabel.class);
+        final GraphEdgeLabel edgeLabel = type.getAnnotation(GraphEdgeLabel.class);
+        return nodeLabel != null ? nodeLabel.value() : (edgeLabel != null ? edgeLabel.value() : null);
     }
 
     private ClassMappingField[] loadClassMappingFields(final Class<?> type) {
@@ -111,26 +113,27 @@ final class ClassMapping {
         return new ClassMappingBooleanField(field, annotation.value(), annotation.truthValue());
     }
 
-    void setNodeProperties(final Node node, final Object obj) {
+    void setModelProperties(final MVStoreModel model, final Object obj) {
         try {
-            setNodePropertiesFromFields(node, obj);
-            setNodePropertiesFromArrayFields(node, obj);
-            setNodePropertiesFromBooleanFields(node, obj);
+            setModelPropertiesFromFields(model, obj);
+            setModelPropertiesFromArrayFields(model, obj);
+            setModelPropertiesFromBooleanFields(model, obj);
         } catch (IllegalAccessException e) {
             throw new GraphCacheException(e);
         }
     }
 
-    private void setNodePropertiesFromFields(final Node node, final Object obj) throws IllegalAccessException {
+    private void setModelPropertiesFromFields(final MVStoreModel model,
+                                              final Object obj) throws IllegalAccessException {
         for (final ClassMappingField field : fields)
-            setNodePropertyFromField(node, obj, field);
+            setModelPropertyFromField(model, obj, field);
     }
 
-    private void setNodePropertyFromField(final Node node, final Object obj,
-                                          final ClassMappingField field) throws IllegalAccessException {
+    private void setModelPropertyFromField(final MVStoreModel model, final Object obj,
+                                           final ClassMappingField field) throws IllegalAccessException {
         final Object value = getFieldValue(obj, field);
         if (value != null)
-            node.setProperty(field.propertyName, value);
+            model.setProperty(field.propertyName, value);
     }
 
     private Object getFieldValue(final Object obj, final ClassMappingField field) throws IllegalAccessException {
@@ -146,16 +149,17 @@ final class ClassMapping {
         return null;
     }
 
-    private void setNodePropertiesFromArrayFields(final Node node, final Object obj) throws IllegalAccessException {
+    private void setModelPropertiesFromArrayFields(final MVStoreModel model,
+                                                   final Object obj) throws IllegalAccessException {
         for (final ClassMappingArrayField field : arrayFields)
-            setNodePropertyFromArrayField(node, obj, field);
+            setModelPropertyFromArrayField(model, obj, field);
     }
 
-    private void setNodePropertyFromArrayField(final Node node, final Object obj,
-                                               final ClassMappingArrayField field) throws IllegalAccessException {
+    private void setModelPropertyFromArrayField(final MVStoreModel model, final Object obj,
+                                                final ClassMappingArrayField field) throws IllegalAccessException {
         final String[] elements = getArrayFieldValue(obj, field);
         if (elements != null)
-            node.setProperty(field.propertyName, elements);
+            model.setProperty(field.propertyName, elements);
     }
 
     private String[] getArrayFieldValue(final Object obj,
@@ -173,62 +177,63 @@ final class ClassMapping {
         return null;
     }
 
-    private void setNodePropertiesFromBooleanFields(final Node node, final Object obj) throws IllegalAccessException {
+    private void setModelPropertiesFromBooleanFields(final MVStoreModel model,
+                                                     final Object obj) throws IllegalAccessException {
         for (final ClassMappingBooleanField field : booleanFields)
-            setNodePropertyFromBooleanField(node, obj, field);
+            setModelPropertyFromBooleanField(model, obj, field);
     }
 
-    private void setNodePropertyFromBooleanField(final Node node, final Object obj,
-                                                 final ClassMappingBooleanField field) throws IllegalAccessException {
+    private void setModelPropertyFromBooleanField(final MVStoreModel model, final Object obj,
+                                                  final ClassMappingBooleanField field) throws IllegalAccessException {
         final Object value = field.field.get(obj);
         if (value != null)
-            node.setProperty(field.propertyName, field.truthValue.equalsIgnoreCase(value.toString()));
+            model.setProperty(field.propertyName, field.truthValue.equalsIgnoreCase(value.toString()));
     }
 
-    void setNodeProperties(final NodeBuilder builder, final Object obj) {
+    void setModelBuilderProperties(final ModelBuilder<?> builder, final Object obj) {
         try {
-            setNodePropertiesFromFields(builder, obj);
-            setNodePropertiesFromArrayFields(builder, obj);
-            setNodePropertiesFromBooleanFields(builder, obj);
+            setModelBuilderPropertiesFromFields(builder, obj);
+            setModelBuilderPropertiesFromArrayFields(builder, obj);
+            setModelBuilderPropertiesFromBooleanFields(builder, obj);
         } catch (IllegalAccessException e) {
             throw new GraphCacheException(e);
         }
     }
 
-    private void setNodePropertiesFromFields(final NodeBuilder builder,
-                                             final Object obj) throws IllegalAccessException {
+    private void setModelBuilderPropertiesFromFields(final ModelBuilder<?> builder,
+                                                     final Object obj) throws IllegalAccessException {
         for (final ClassMappingField field : fields)
-            setNodePropertyFromField(builder, obj, field);
+            setModelBuilderPropertyFromField(builder, obj, field);
     }
 
-    private void setNodePropertyFromField(final NodeBuilder builder, final Object obj,
-                                          final ClassMappingField field) throws IllegalAccessException {
+    private void setModelBuilderPropertyFromField(final ModelBuilder<?> builder, final Object obj,
+                                                  final ClassMappingField field) throws IllegalAccessException {
         final Object value = getFieldValue(obj, field);
         if (value != null)
             builder.withProperty(field.propertyName, value);
     }
 
-    private void setNodePropertiesFromArrayFields(final NodeBuilder builder,
-                                                  final Object obj) throws IllegalAccessException {
+    private void setModelBuilderPropertiesFromArrayFields(final ModelBuilder<?> builder,
+                                                          final Object obj) throws IllegalAccessException {
         for (final ClassMappingArrayField field : arrayFields)
-            setNodePropertyFromArrayField(builder, obj, field);
+            setModelBuilderPropertyFromArrayField(builder, obj, field);
     }
 
-    private void setNodePropertyFromArrayField(final NodeBuilder builder, final Object obj,
-                                               final ClassMappingArrayField field) throws IllegalAccessException {
+    private void setModelBuilderPropertyFromArrayField(final ModelBuilder<?> builder, final Object obj,
+                                                       final ClassMappingArrayField field) throws IllegalAccessException {
         final String[] elements = getArrayFieldValue(obj, field);
         if (elements != null)
             builder.withProperty(field.propertyName, elements);
     }
 
-    private void setNodePropertiesFromBooleanFields(final NodeBuilder builder,
-                                                    final Object obj) throws IllegalAccessException {
+    private void setModelBuilderPropertiesFromBooleanFields(final ModelBuilder<?> builder,
+                                                            final Object obj) throws IllegalAccessException {
         for (final ClassMappingBooleanField field : booleanFields)
-            setNodePropertyFromBooleanField(builder, obj, field);
+            setModelBuilderPropertyFromBooleanField(builder, obj, field);
     }
 
-    private void setNodePropertyFromBooleanField(final NodeBuilder builder, final Object obj,
-                                                 final ClassMappingBooleanField field) throws IllegalAccessException {
+    private void setModelBuilderPropertyFromBooleanField(final ModelBuilder<?> builder, final Object obj,
+                                                         final ClassMappingBooleanField field) throws IllegalAccessException {
         final Object value = field.field.get(obj);
         if (value != null)
             builder.withProperty(field.propertyName, field.truthValue.equalsIgnoreCase(value.toString()));
