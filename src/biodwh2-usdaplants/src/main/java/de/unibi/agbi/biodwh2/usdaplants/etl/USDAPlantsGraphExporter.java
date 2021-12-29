@@ -10,8 +10,12 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.usdaplants.USDAPlantsDataSource;
 import de.unibi.agbi.biodwh2.usdaplants.model.Plant;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class USDAPlantsGraphExporter extends GraphExporter<USDAPlantsDataSource> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(USDAPlantsGraphExporter.class);
+
     public USDAPlantsGraphExporter(final USDAPlantsDataSource dataSource) {
         super(dataSource);
     }
@@ -26,12 +30,16 @@ public class USDAPlantsGraphExporter extends GraphExporter<USDAPlantsDataSource>
         graph.addIndex(IndexDescription.forNode("Plant", "symbol", IndexDescription.Type.UNIQUE));
         // First, add all non-synonym plants
         dataSource.plants.stream().filter(p -> StringUtils.isEmpty(p.synonymSymbol)).forEach(p -> addPlant(graph, p));
-        // Second, all all synonym plants and link them to the main plant node
+        // Second, add all synonym plants and link them to the main plant node
         for (final Plant plant : dataSource.plants) {
             if (StringUtils.isNotEmpty(plant.synonymSymbol)) {
                 final Node node = addSynonymPlant(graph, plant);
                 final Node parent = graph.findNode("Plant", "symbol", plant.symbol);
-                graph.addEdge(parent, node, "HAS_SYNONYM");
+                if (parent != null)
+                    graph.addEdge(parent, node, "HAS_SYNONYM");
+                else
+                    LOGGER.warn("Failed to link synonym plant '" + plant.synonymSymbol + "' to plant '" + plant.symbol +
+                                "'");
             }
         }
         return true;
