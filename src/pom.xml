@@ -48,6 +48,7 @@
         <module>biodwh2-aact</module>
         <module>biodwh2-omim</module>
         <module>biodwh2-efo</module>
+        <module>biodwh2-string</module>
         <module>biodwh2-stitch</module>
     </modules>
 
