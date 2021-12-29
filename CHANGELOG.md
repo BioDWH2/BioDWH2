@@ -9,9 +9,16 @@ Released: upcoming
  * ```[OMIM]``` #57 Add OMIM data source module
  * ```[EFO]``` #58 Add EFO data source module
  * ```[GeneOntology]``` #28 Flag GeneOntology data source as usable
+ * ```[STITCH]``` #59 Add empty STITCH data source module
+ * ```[STRING]``` #55 Add STRING data source module
+ * ```[DrugBank]``` #9 Add ```skipDrugInteractions``` option to DrugBank
 
 ### 🔧 Bug fixes and other changes
 
+ * ```[feature]``` Graph merge now reuses previous merge status and merges from scratch as fallback
+ * ```[feature]``` Add ```removeNode```, ```removeEdge``` to Graph
+ * ```[feature]``` Add ```removeNodeLabel```, ```removeEdgeLabel``` to Graph
+ * ```[feature]``` Allow class mappings in ```EdgeBuilder```
  * ```[feature]``` Allow path mapping to be processed in parallel (experimental)
  * ```[chore]``` Update dependencies
 
@@ -22,7 +29,7 @@ Released: 22.11.2021
 ### 📚 Data Sources
 
  * ```[CancerDrugsDB]``` #40 Add generic field to entry model and graph exporter
- * ```[HGNC]``` #40 Add gencc field to gene model and graph exporter
+ * ```[HGNC]``` #13 Add gencc field to gene model and graph exporter
 
 ### 🔧 Bug fixes and other changes
 

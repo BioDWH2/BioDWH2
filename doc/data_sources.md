@@ -41,6 +41,8 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | [Mondo](sources/Mondo/README.md) | Mondo Disease Ontology | [Link](https://mondo.monarchinitiative.org) |
 | [PathwayCommons](sources/PathwayCommons/README.md) | Data warehouse of different pathway databases | [Link](http://www.pathwaycommons.org) |
 | [SIDER](sources/SIDER/README.md) | SIDER: Side Effect Resource | [Link](http://sideeffects.embl.de) |
+| [STITCH](sources/STITCH/README.md) | STITCH Chemical-Protein Interaction Networks | [Link](http://stitch.embl.de) |
+| [STRING](sources/STRING/README.md) | STRING Protein-Protein Interaction Networks | [Link](https://string-db.org) |
 | [UniProt](sources/UniProt/README.md) | Functional information on proteins, with accurate, consistent and rich annotation. | [Link](https://www.uniprot.org) |
 | [OpenTargets](sources/OpenTargets/README.md) | Systematic drug target identification and prioritisation. | [Link](https://www.opentargets.org) |
 |               |      |         |
