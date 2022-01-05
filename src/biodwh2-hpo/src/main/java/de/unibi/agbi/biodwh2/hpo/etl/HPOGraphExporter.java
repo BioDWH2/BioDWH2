@@ -57,7 +57,7 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
             for (final PhenotypeToGenesEntry entry : loadPhenotypeToGenesFile(workspace))
                 exportPhenotypeGeneAssociation(graph, entry);
         } catch (IOException e) {
-            throw new ExporterFormatException(e);
+            throw new ExporterFormatException("Failed to export HPO annotations", e);
         }
         return true;
     }
@@ -102,9 +102,8 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
             Set<String> names = node.getProperty("names");
             if (names == null)
                 names = new HashSet<>();
-            final int previousSize = names.size();
-            names.add(diseaseName);
-            if (previousSize != names.size()) {
+            if (!names.contains(diseaseName)) {
+                names.add(diseaseName);
                 node.setProperty("names", names);
                 graph.update(node);
             }

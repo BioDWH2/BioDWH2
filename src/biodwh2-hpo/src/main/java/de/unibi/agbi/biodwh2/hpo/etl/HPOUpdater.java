@@ -41,7 +41,7 @@ public class HPOUpdater extends OBOOntologyUpdater<HPODataSource> {
 
     @Override
     protected String getTargetFileName() {
-        return "hp.obo";
+        return PHENOTYPES_FILE_NAME;
     }
 
     @Override
