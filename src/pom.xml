@@ -50,6 +50,7 @@
         <module>biodwh2-efo</module>
         <module>biodwh2-string</module>
         <module>biodwh2-stitch</module>
+        <module>biodwh2-adrecs</module>
     </modules>
 
     <packaging>pom</packaging>
