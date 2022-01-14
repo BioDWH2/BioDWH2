@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 public class ADReCSUpdater extends Updater<ADReCSDataSource> {
     private static final Pattern UPDATE_DATE_PATTERN = Pattern.compile("[0-9]{4}/[0-9]{2}/[0-9]{2}");
+    static final String FILE_NAME = "DRUG_ADR.zip";
 
     public ADReCSUpdater(final ADReCSDataSource dataSource) {
         super(dataSource);
@@ -40,10 +41,10 @@ public class ADReCSUpdater extends Updater<ADReCSDataSource> {
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         try {
-            HTTPClient.downloadFileAsBrowser("http://bioinf.xmu.edu.cn/ADReCS/download/DRUG_ADR.zip",
-                                             dataSource.resolveSourceFilePath(workspace, "DRUG_ADR.zip"));
+            HTTPClient.downloadFileAsBrowser("http://bioinf.xmu.edu.cn/ADReCS/download/" + FILE_NAME,
+                                             dataSource.resolveSourceFilePath(workspace, FILE_NAME));
         } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file 'DRUG_ADR.zip'", e);
+            throw new UpdaterConnectionException("Failed to download file '" + FILE_NAME + "'", e);
         }
         return true;
     }
