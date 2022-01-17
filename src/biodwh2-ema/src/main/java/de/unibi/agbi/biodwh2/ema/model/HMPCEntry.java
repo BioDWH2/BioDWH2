@@ -27,8 +27,8 @@ public class HMPCEntry {
     @GraphProperty("english_common_name_of_herbal_substance")
     public String englishCommonNameOfHerbalSubstance;
     @JsonProperty("Combination")
-    @GraphBooleanProperty("combination")
-    public Boolean combination;
+    @GraphBooleanProperty(value = "combination", truthValue = "yes")
+    public String combination;
     @JsonProperty("Use")
     @GraphArrayProperty(value = "uses", arrayDelimiter = ", ")
     public String use;

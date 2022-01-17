@@ -36,8 +36,8 @@ public class EPAREntry {
     @GraphProperty("product_number")
     public String productNumber;
     @JsonProperty("Patient safety")
-    @GraphBooleanProperty("patient_safety")
-    public Boolean patientSafety;
+    @GraphBooleanProperty(value = "patient_safety", truthValue = "yes")
+    public String patientSafety;
     @JsonProperty("Authorisation status")
     @GraphProperty("authorisation_status")
     public String authorisationStatus;
@@ -45,26 +45,26 @@ public class EPAREntry {
     @GraphProperty("atc_code")
     public String atcCode;
     @JsonProperty("Additional monitoring")
-    @GraphBooleanProperty("additional_monitoring")
-    public Boolean additionalMonitoring;
+    @GraphBooleanProperty(value = "additional_monitoring", truthValue = "yes")
+    public String additionalMonitoring;
     @JsonProperty("Generic")
-    @GraphBooleanProperty("generic")
-    public Boolean generic;
+    @GraphBooleanProperty(value = "generic", truthValue = "yes")
+    public String generic;
     @JsonProperty("Biosimilar")
-    @GraphBooleanProperty("biosimilar")
-    public Boolean biosimilar;
+    @GraphBooleanProperty(value = "biosimilar", truthValue = "yes")
+    public String biosimilar;
     @JsonProperty("Conditional approval")
-    @GraphBooleanProperty("conditional_approval")
-    public Boolean conditionalApproval;
+    @GraphBooleanProperty(value = "conditional_approval", truthValue = "yes")
+    public String conditionalApproval;
     @JsonProperty("Exceptional circumstances")
-    @GraphBooleanProperty("exceptional_circumstances")
-    public Boolean exceptionalCircumstances;
+    @GraphBooleanProperty(value = "exceptional_circumstances", truthValue = "yes")
+    public String exceptionalCircumstances;
     @JsonProperty("Accelerated assessment")
-    @GraphBooleanProperty("accelerated_assessment")
-    public Boolean acceleratedAssessment;
+    @GraphBooleanProperty(value = "accelerated_assessment", truthValue = "yes")
+    public String acceleratedAssessment;
     @JsonProperty("Orphan medicine")
-    @GraphBooleanProperty("orphan_medicine")
-    public Boolean orphanMedicine;
+    @GraphBooleanProperty(value = "orphan_medicine", truthValue = "yes")
+    public String orphanMedicine;
     @JsonProperty("Marketing authorisation date")
     @GraphProperty("marketing_authorisation_date")
     public String marketingAuthorisationDate;

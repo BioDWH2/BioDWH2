@@ -13,14 +13,15 @@ import de.unibi.agbi.biodwh2.ema.EMADataSource;
 import de.unibi.agbi.biodwh2.ema.model.EPAREntry;
 import de.unibi.agbi.biodwh2.ema.model.HMPCEntry;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.dhatim.fastexcel.reader.*;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 public class EMAParser extends Parser<EMADataSource> {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -52,22 +53,24 @@ public class EMAParser extends Parser<EMADataSource> {
                                       final Class<T> type) throws IOException, ParserFormatException {
         final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
         final FileInputStream file = new FileInputStream(filePath);
-        final Workbook workbook = new XSSFWorkbook(file);
-        final Sheet sheet = workbook.getSheetAt(0);
+        final ReadableWorkbook workbook = new ReadableWorkbook(file, new ReadingOptions(true, false));
+        final Sheet sheet = workbook.getFirstSheet();
         final String tsvContent = getTsvContentFromSheet(sheet);
         return readAllEntriesFromTsvString(type, tsvContent);
     }
 
-    private String getTsvContentFromSheet(final Sheet sheet) throws ParserFormatException {
+    private String getTsvContentFromSheet(final Sheet sheet) throws ParserFormatException, IOException {
         boolean foundHeaderCell = false;
         final StringBuilder tsvBuilder = new StringBuilder();
-        for (final Row row : sheet) {
-            if (row.getPhysicalNumberOfCells() == 0)
+        for (final Row row : sheet.read()) {
+            if (row.getPhysicalCellCount() == 0)
                 continue;
-            final String firstCellValue = row.getCell(0, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)
-                                             .getStringCellValue();
-            if ("Category".equals(firstCellValue) || "Status".equals(firstCellValue))
-                foundHeaderCell = true;
+            if (!foundHeaderCell) {
+                final Optional<Cell> firstCell = row.getOptionalCell(0);
+                final String firstCellValue = firstCell.map(Cell::getRawValue).orElse(null);
+                if ("Category".equals(firstCellValue) || "Status".equals(firstCellValue))
+                    foundHeaderCell = true;
+            }
             if (foundHeaderCell)
                 appendRow(tsvBuilder, row);
         }
@@ -80,34 +83,28 @@ public class EMAParser extends Parser<EMADataSource> {
             if (!firstCell)
                 tsvBuilder.append('\t');
             firstCell = false;
-            if (cell.getCellType() == CellType.STRING)
-                appendStringCell(tsvBuilder, StringUtils.strip(cell.getStringCellValue(), " \t\u00A0"));
-            if (cell.getCellType() == CellType.BOOLEAN)
-                tsvBuilder.append(cell.getBooleanCellValue());
-            if (cell.getCellType() == CellType.NUMERIC)
+            if (cell.getType() == CellType.STRING)
+                appendStringCell(tsvBuilder, StringUtils.strip(cell.asString(), " \t\u00A0"));
+            if (cell.getType() == CellType.BOOLEAN)
+                tsvBuilder.append(cell.asBoolean());
+            if (cell.getType() == CellType.NUMBER)
                 appendNumericCell(tsvBuilder, cell);
-            if (cell.getCellType() == CellType.FORMULA)
+            if (cell.getType() == CellType.FORMULA)
                 throw new ParserFormatException("Unable to parse XLSX formula cell value");
         }
         tsvBuilder.append('\n');
     }
 
     private void appendStringCell(final StringBuilder tsvBuilder, String value) {
-        if ("no".equals(value))
-            tsvBuilder.append(false);
-        else if ("yes".equals(value))
-            tsvBuilder.append(true);
-        else
-            tsvBuilder.append('"').append(StringUtils.replace(value, "\"", "\"\"")).append('"');
+        tsvBuilder.append('"').append(StringUtils.replace(value, "\"", "\"\"")).append('"');
     }
 
     private void appendNumericCell(final StringBuilder tsvBuilder, final Cell cell) {
-        if (DateUtil.isCellDateFormatted(cell))
-            tsvBuilder.append('"').append(cell.getLocalDateTimeCellValue().format(DATE_FORMATTER)).append('"');
-        else {
-            final String value = String.valueOf(cell.getNumericCellValue());
-            tsvBuilder.append(value.endsWith(".0") ? value.substring(0, value.length() - 2) : value);
-        }
+        // TODO: better date format check
+        if (cell.getDataFormatString() == null || !cell.getDataFormatString().toLowerCase(Locale.ROOT).contains("yyyy"))
+            tsvBuilder.append(cell.getRawValue());
+        else
+            tsvBuilder.append('"').append(cell.asDate().format(DATE_FORMATTER)).append('"');
     }
 
     private <T> List<T> readAllEntriesFromTsvString(final Class<T> type, final String tsvContent) throws IOException {
