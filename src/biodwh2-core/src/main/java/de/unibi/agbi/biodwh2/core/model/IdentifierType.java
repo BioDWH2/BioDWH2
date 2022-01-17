@@ -61,6 +61,7 @@ public enum IdentifierType {
      */
     KDCA_KCT("KDCA_KCT"),
     KEGG("KEGG"),
+    MEDDRA("MEDDRA"),
     MESH("MeSH"),
     /**
      * Mondo Disease Ontology https://mondo.monarchinitiative.org

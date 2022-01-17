@@ -1,8 +1,16 @@
 # Changelog
 
-## 📦 Version v0.4.2
+## 📦 Version v0.4.3
 
 Released: upcoming
+
+### 📚 Data Sources
+
+ * ```[ADReCS]``` #60 Add ADReCS data source module
+
+## 📦 Version [v0.4.2](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.2)
+
+Released: 05.01.2022
 
 ### 📚 Data Sources
 

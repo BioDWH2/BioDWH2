@@ -58,66 +58,14 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
                 counter++;
                 if (counter % 100_000 == 0 && LOGGER.isInfoEnabled())
                     LOGGER.info("Progress " + counter + "/" + iterator.getTotalCount());
-                if (entry == null)
-                    continue;
-                final String[] adrecsIdParts = StringUtils.split(entry.adrecsId, '.');
-                if (adrecsIdParts.length > 0) {
-                    final Map<String, Map<String, Set<String>>> level1 = adrecsHierarchy.computeIfAbsent(
-                            adrecsIdParts[0], (k) -> new HashMap<>());
-                    if (adrecsIdParts.length > 1) {
-                        final Map<String, Set<String>> level2 = level1.computeIfAbsent(adrecsIdParts[1],
-                                                                                       (k) -> new HashMap<>());
-                        if (adrecsIdParts.length > 2) {
-                            final Set<String> level3 = level2.computeIfAbsent(adrecsIdParts[2], (k) -> new HashSet<>());
-                            if (adrecsIdParts.length > 3) {
-                                level3.add(adrecsIdParts[3]);
-                            }
-                        }
-                    }
+                if (entry != null) {
+                    updateAdrecsHierarchy(adrecsHierarchy, entry.adrecsId);
+                    exportDrugADREntry(graph, entry);
                 }
-                Node adrNode = graph.findNode(ADR_LABEL, "id", entry.adrId);
-                if (adrNode == null) {
-                    adrNode = graph.addNode(ADR_LABEL, "id", entry.adrId, "term", entry.adrTerm, ADRECS_ID_KEY,
-                                            entry.adrecsId, "classification", entry.adrClassification, "meddra_code",
-                                            entry.meddraCode);
-                }
-                Node drugNode = graph.findNode(DRUG_LABEL, "id", entry.drugId);
-                if (drugNode == null) {
-                    if (StringUtils.isNumeric(entry.pubchemCID))
-                        drugNode = graph.addNode(DRUG_LABEL, "id", entry.drugId, "name", entry.drugName, "pubchem_cid",
-                                                 entry.pubchemCID);
-                    else
-                        drugNode = graph.addNode(DRUG_LABEL, "id", entry.drugId, "name", entry.drugName);
-                }
-                graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH");
             }
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Exporting ADR hierarchy...");
-            for (final String level1Key : adrecsHierarchy.keySet()) {
-                final Long[] level1Ids = getNodeIds(graph.findNodes(ADR_LABEL, ADRECS_ID_KEY, level1Key));
-                for (final String level2Key : adrecsHierarchy.get(level1Key).keySet()) {
-                    final String level2FullKey = level1Key + '.' + level2Key;
-                    final Long[] level2Ids = getNodeIds(graph.findNodes(ADR_LABEL, ADRECS_ID_KEY, level2FullKey));
-                    for (final long level1Id : level1Ids)
-                        for (final long level2Id : level2Ids)
-                            graph.addEdge(level2Id, level1Id, "CHILD_OF");
-                    for (final String level3Key : adrecsHierarchy.get(level1Key).get(level2Key).keySet()) {
-                        final String level3FullKey = level2FullKey + '.' + level3Key;
-                        final Long[] level3Ids = getNodeIds(graph.findNodes(ADR_LABEL, ADRECS_ID_KEY, level3FullKey));
-                        for (final long level2Id : level2Ids)
-                            for (final long level3Id : level3Ids)
-                                graph.addEdge(level3Id, level2Id, "CHILD_OF");
-                        for (final String level4Key : adrecsHierarchy.get(level1Key).get(level2Key).get(level3Key)) {
-                            final String level4FullKey = level3FullKey + '.' + level4Key;
-                            final Long[] level4Ids = getNodeIds(
-                                    graph.findNodes(ADR_LABEL, ADRECS_ID_KEY, level4FullKey));
-                            for (final long level3Id : level3Ids)
-                                for (final long level4Id : level4Ids)
-                                    graph.addEdge(level4Id, level3Id, "CHILD_OF");
-                        }
-                    }
-                }
-            }
+            exportAdrecsHierarchy(graph, adrecsHierarchy);
         } catch (ParserException e) {
             throw new ExporterFormatException(e);
         }
@@ -134,6 +82,70 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
                 throw new ParserFileNotFoundException(ADReCSUpdater.FILE_NAME);
             else
                 throw new ParserFormatException(e);
+        }
+    }
+
+    private void updateAdrecsHierarchy(final Map<String, Map<String, Map<String, Set<String>>>> hierarchy,
+                                       final String id) {
+        final String[] adrecsIdParts = StringUtils.split(id, '.');
+        if (adrecsIdParts.length > 0) {
+            final Map<String, Map<String, Set<String>>> level1 = hierarchy.computeIfAbsent(adrecsIdParts[0],
+                                                                                           (k) -> new HashMap<>());
+            if (adrecsIdParts.length > 1) {
+                final Map<String, Set<String>> level2 = level1.computeIfAbsent(adrecsIdParts[1],
+                                                                               (k) -> new HashMap<>());
+                if (adrecsIdParts.length > 2) {
+                    final Set<String> level3 = level2.computeIfAbsent(adrecsIdParts[2], (k) -> new HashSet<>());
+                    if (adrecsIdParts.length > 3) {
+                        level3.add(adrecsIdParts[3]);
+                    }
+                }
+            }
+        }
+    }
+
+    private void exportDrugADREntry(final Graph graph, final DrugADREntry entry) {
+        Node adrNode = graph.findNode(ADR_LABEL, "id", entry.adrId);
+        if (adrNode == null) {
+            adrNode = graph.addNode(ADR_LABEL, "id", entry.adrId, "term", entry.adrTerm, ADRECS_ID_KEY, entry.adrecsId,
+                                    "classification", entry.adrClassification, "meddra_code", entry.meddraCode);
+        }
+        Node drugNode = graph.findNode(DRUG_LABEL, "id", entry.drugId);
+        if (drugNode == null) {
+            if (StringUtils.isNumeric(entry.pubchemCID))
+                drugNode = graph.addNode(DRUG_LABEL, "id", entry.drugId, "name", entry.drugName, "pubchem_cid",
+                                         entry.pubchemCID);
+            else
+                drugNode = graph.addNode(DRUG_LABEL, "id", entry.drugId, "name", entry.drugName);
+        }
+        graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH");
+    }
+
+    private void exportAdrecsHierarchy(final Graph graph,
+                                       final Map<String, Map<String, Map<String, Set<String>>>> hierarchy) {
+        for (final String level1Key : hierarchy.keySet()) {
+            final Long[] level1Ids = getNodeIds(graph.findNodes(ADR_LABEL, ADRECS_ID_KEY, level1Key));
+            for (final String level2Key : hierarchy.get(level1Key).keySet()) {
+                final String level2FullKey = level1Key + '.' + level2Key;
+                final Long[] level2Ids = getNodeIds(graph.findNodes(ADR_LABEL, ADRECS_ID_KEY, level2FullKey));
+                for (final long level1Id : level1Ids)
+                    for (final long level2Id : level2Ids)
+                        graph.addEdge(level2Id, level1Id, "CHILD_OF");
+                for (final String level3Key : hierarchy.get(level1Key).get(level2Key).keySet()) {
+                    final String level3FullKey = level2FullKey + '.' + level3Key;
+                    final Long[] level3Ids = getNodeIds(graph.findNodes(ADR_LABEL, ADRECS_ID_KEY, level3FullKey));
+                    for (final long level2Id : level2Ids)
+                        for (final long level3Id : level3Ids)
+                            graph.addEdge(level3Id, level2Id, "CHILD_OF");
+                    for (final String level4Key : hierarchy.get(level1Key).get(level2Key).get(level3Key)) {
+                        final String level4FullKey = level3FullKey + '.' + level4Key;
+                        final Long[] level4Ids = getNodeIds(graph.findNodes(ADR_LABEL, ADRECS_ID_KEY, level4FullKey));
+                        for (final long level3Id : level3Ids)
+                            for (final long level4Id : level4Ids)
+                                graph.addEdge(level4Id, level3Id, "CHILD_OF");
+                    }
+                }
+            }
         }
     }
 

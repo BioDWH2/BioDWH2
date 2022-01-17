@@ -8,6 +8,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 
 | ID            | Name | Website |
 | ------------- | ---- | ------- |
+| [ADReCS](sources/ADReCS/README.md) | Adverse Drug Reaction Classification System | [Link](https://bioinf.xmu.edu.cn/ADReCS/) |
 | [CancerDrugsDB](sources/CancerDrugsDB/README.md) | A curated listing of licensed cancer drugs by the Anticancer Fund | [Link](https://www.anticancerfund.org/en/cancerdrugs-db) |
 | [DrugCentral](sources/DrugCentral/README.md) | DrugCentral | [Link](http://drugcentral.org) |
 | [EFO](sources/EFO/README.md) | Experimental Factor Ontology | [Link](https://www.ebi.ac.uk/efo/) |
