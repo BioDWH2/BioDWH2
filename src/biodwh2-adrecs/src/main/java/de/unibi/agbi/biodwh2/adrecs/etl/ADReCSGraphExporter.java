@@ -22,10 +22,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
+import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.zip.ZipInputStream;
 
 public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final Logger LOGGER = LoggerFactory.getLogger(ADReCSGraphExporter.class);
     static final String DRUG_LABEL = "Drug";
     static final String ADR_LABEL = "ADR";
@@ -100,7 +103,6 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
         private final T[] buffer;
         private int usedBufferSize = 0;
         private int bufferIndex = 0;
-
         private Row nextRow = null;
 
         public XlsxMappingIterator(final Class<T> type, final InputStream stream) throws IOException {
@@ -108,13 +110,13 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
             final CsvSchema schema = csvMapper.schemaFor(type).withColumnSeparator('\t').withQuoteChar('"')
                                               .withNullValue("").withUseHeader(true);
             reader = csvMapper.readerFor(type).with(schema);
-            final ReadableWorkbook workbook = new ReadableWorkbook(stream);
+            final ReadableWorkbook workbook = new ReadableWorkbook(stream, new ReadingOptions(true, false));
             final Sheet sheet = workbook.getFirstSheet();
             totalCount = sheet.openStream().count();
             rows = sheet.openStream().iterator();
             advanceToNextRow();
             final StringBuilder headerBuilder = new StringBuilder();
-            xlsxRowToTsv(headerBuilder, nextRow);
+            appendRow(headerBuilder, nextRow);
             headerRow = headerBuilder.toString();
             //noinspection unchecked
             buffer = (T[]) Array.newInstance(type, BUFFER_SIZE);
@@ -131,6 +133,7 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
         }
 
         private void advanceToNextRow() {
+            nextRow = null;
             while (rows.hasNext()) {
                 nextRow = rows.next();
                 if (nextRow.getPhysicalCellCount() == 0)
@@ -147,7 +150,7 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
                 final StringBuilder tsvBuilder = new StringBuilder(headerRow);
                 advanceToNextRow();
                 while (nextRow != null && usedBufferSize < BUFFER_SIZE) {
-                    xlsxRowToTsv(tsvBuilder, nextRow);
+                    appendRow(tsvBuilder, nextRow);
                     usedBufferSize++;
                     if (usedBufferSize < BUFFER_SIZE)
                         advanceToNextRow();
@@ -174,19 +177,18 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
             return nextValue;
         }
 
-        private void xlsxRowToTsv(final StringBuilder tsvBuilder, final Row row) {
+        private void appendRow(final StringBuilder tsvBuilder, final Row row) throws RuntimeException {
             boolean firstCell = true;
             for (final Cell cell : row) {
                 if (!firstCell)
                     tsvBuilder.append('\t');
                 firstCell = false;
-                // TODO: date
                 if (cell.getType() == CellType.STRING)
                     appendStringCell(tsvBuilder, StringUtils.strip(cell.asString(), " \t\u00A0"));
                 if (cell.getType() == CellType.BOOLEAN)
                     tsvBuilder.append(cell.asBoolean());
                 if (cell.getType() == CellType.NUMBER)
-                    tsvBuilder.append(cell.getRawValue());
+                    appendNumericCell(tsvBuilder, cell);
                 if (cell.getType() == CellType.FORMULA)
                     throw new RuntimeException("Unable to parse XLSX formula cell value");
             }
@@ -195,6 +197,15 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
 
         private void appendStringCell(final StringBuilder tsvBuilder, final String value) {
             tsvBuilder.append('"').append(StringUtils.replace(value, "\"", "\"\"")).append('"');
+        }
+
+        private void appendNumericCell(final StringBuilder tsvBuilder, final Cell cell) {
+            // TODO: better date format check
+            if (cell.getDataFormatString() == null || !cell.getDataFormatString().toLowerCase(Locale.ROOT).contains(
+                    "yyyy"))
+                tsvBuilder.append(cell.getRawValue());
+            else
+                tsvBuilder.append('"').append(cell.asDate().format(DATE_FORMATTER)).append('"');
         }
     }
 }
