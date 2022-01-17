@@ -14,21 +14,19 @@ import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.dhatim.fastexcel.reader.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.lang.reflect.Array;
 import java.util.Iterator;
-import java.util.List;
 import java.util.zip.ZipInputStream;
 
 public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final Logger LOGGER = LoggerFactory.getLogger(ADReCSGraphExporter.class);
     static final String DRUG_LABEL = "Drug";
     static final String ADR_LABEL = "ADR";
 
@@ -47,9 +45,17 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
         graph.addIndex(IndexDescription.forNode(ADR_LABEL, "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(ADR_LABEL, "adrecs_id", false, IndexDescription.Type.NON_UNIQUE));
         try {
-            final Iterator<DrugADREntry> iterator = tryLoadXlsxTable(workspace);
+            final XlsxMappingIterator<DrugADREntry> iterator = tryLoadXlsxTable(workspace);
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Exporting ADR associations...");
+            long counter = 0;
             while (iterator.hasNext()) {
                 final DrugADREntry entry = iterator.next();
+                counter++;
+                if (counter % 100_000 == 0 && LOGGER.isInfoEnabled())
+                    LOGGER.info("Progress " + counter + "/" + iterator.getTotalCount());
+                if (entry == null)
+                    continue;
                 Node adrNode = graph.findNode(ADR_LABEL, "id", entry.adrId);
                 if (adrNode == null) {
                     adrNode = graph.addNode(ADR_LABEL, "id", entry.adrId, "term", entry.adrTerm, "adrecs_id",
@@ -72,7 +78,7 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
         return true;
     }
 
-    private Iterator<DrugADREntry> tryLoadXlsxTable(final Workspace workspace) throws ParserException {
+    private XlsxMappingIterator<DrugADREntry> tryLoadXlsxTable(final Workspace workspace) throws ParserException {
         try {
             final ZipInputStream stream = FileUtils.openZip(workspace, dataSource, ADReCSUpdater.FILE_NAME);
             stream.getNextEntry();
@@ -88,9 +94,10 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
     private static class XlsxMappingIterator<T> implements Iterator<T> {
         private static final int BUFFER_SIZE = 500;
         private final ObjectReader reader;
+        private final long totalCount;
         private final Iterator<Row> rows;
         private final String headerRow;
-        private final List<T> buffer;
+        private final T[] buffer;
         private int usedBufferSize = 0;
         private int bufferIndex = 0;
 
@@ -101,26 +108,32 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
             final CsvSchema schema = csvMapper.schemaFor(type).withColumnSeparator('\t').withQuoteChar('"')
                                               .withNullValue("").withUseHeader(true);
             reader = csvMapper.readerFor(type).with(schema);
-            final Workbook workbook = new XSSFWorkbook(stream);
-            final Sheet sheet = workbook.getSheetAt(0);
-            rows = sheet.rowIterator();
+            final ReadableWorkbook workbook = new ReadableWorkbook(stream);
+            final Sheet sheet = workbook.getFirstSheet();
+            totalCount = sheet.openStream().count();
+            rows = sheet.openStream().iterator();
             advanceToNextRow();
             final StringBuilder headerBuilder = new StringBuilder();
             xlsxRowToTsv(headerBuilder, nextRow);
             headerRow = headerBuilder.toString();
-            buffer = new ArrayList<>(BUFFER_SIZE);
+            //noinspection unchecked
+            buffer = (T[]) Array.newInstance(type, BUFFER_SIZE);
+        }
+
+        public long getTotalCount() {
+            return totalCount;
         }
 
         @Override
         public boolean hasNext() {
             fillBuffer();
-            return nextRow != null;
+            return bufferIndex < usedBufferSize;
         }
 
         private void advanceToNextRow() {
             while (rows.hasNext()) {
                 nextRow = rows.next();
-                if (nextRow.getPhysicalNumberOfCells() == 0)
+                if (nextRow.getPhysicalCellCount() == 0)
                     nextRow = null;
                 else
                     break;
@@ -133,14 +146,17 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
                 usedBufferSize = 0;
                 final StringBuilder tsvBuilder = new StringBuilder(headerRow);
                 advanceToNextRow();
-                while (nextRow != null) {
+                while (nextRow != null && usedBufferSize < BUFFER_SIZE) {
                     xlsxRowToTsv(tsvBuilder, nextRow);
-                    advanceToNextRow();
+                    usedBufferSize++;
+                    if (usedBufferSize < BUFFER_SIZE)
+                        advanceToNextRow();
                 }
                 try {
+                    usedBufferSize = 0;
                     final MappingIterator<T> entries = reader.readValues(tsvBuilder.toString());
-                    while (usedBufferSize < BUFFER_SIZE && entries.hasNext()) {
-                        buffer.set(usedBufferSize, entries.next());
+                    while (entries.hasNext()) {
+                        buffer[usedBufferSize] = entries.next();
                         usedBufferSize++;
                     }
                 } catch (IOException e) {
@@ -153,7 +169,7 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
         public T next() {
             if (bufferIndex >= usedBufferSize)
                 return null;
-            final T nextValue = buffer.get(bufferIndex);
+            final T nextValue = buffer[bufferIndex];
             bufferIndex++;
             return nextValue;
         }
@@ -164,34 +180,21 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
                 if (!firstCell)
                     tsvBuilder.append('\t');
                 firstCell = false;
-                if (cell.getCellType() == CellType.STRING)
-                    appendStringCell(tsvBuilder, StringUtils.strip(cell.getStringCellValue(), " \t\u00A0"));
-                if (cell.getCellType() == CellType.BOOLEAN)
-                    tsvBuilder.append(cell.getBooleanCellValue());
-                if (cell.getCellType() == CellType.NUMERIC)
-                    appendNumericCell(tsvBuilder, cell);
-                if (cell.getCellType() == CellType.FORMULA)
+                // TODO: date
+                if (cell.getType() == CellType.STRING)
+                    appendStringCell(tsvBuilder, StringUtils.strip(cell.asString(), " \t\u00A0"));
+                if (cell.getType() == CellType.BOOLEAN)
+                    tsvBuilder.append(cell.asBoolean());
+                if (cell.getType() == CellType.NUMBER)
+                    tsvBuilder.append(cell.getRawValue());
+                if (cell.getType() == CellType.FORMULA)
                     throw new RuntimeException("Unable to parse XLSX formula cell value");
             }
             tsvBuilder.append('\n');
         }
 
         private void appendStringCell(final StringBuilder tsvBuilder, final String value) {
-            if ("no".equals(value))
-                tsvBuilder.append(false);
-            else if ("yes".equals(value))
-                tsvBuilder.append(true);
-            else
-                tsvBuilder.append('"').append(StringUtils.replace(value, "\"", "\"\"")).append('"');
-        }
-
-        private void appendNumericCell(final StringBuilder tsvBuilder, final Cell cell) {
-            if (DateUtil.isCellDateFormatted(cell))
-                tsvBuilder.append('"').append(cell.getLocalDateTimeCellValue().format(DATE_FORMATTER)).append('"');
-            else {
-                final String value = new BigDecimal(String.valueOf(cell.getNumericCellValue())).toPlainString();
-                tsvBuilder.append(value.endsWith(".0") ? value.substring(0, value.length() - 2) : value);
-            }
+            tsvBuilder.append('"').append(StringUtils.replace(value, "\"", "\"\"")).append('"');
         }
     }
 }
