@@ -7,6 +7,7 @@ Released: upcoming
 ### 📚 Data Sources
 
  * ```[ADReCS]``` #60 Add ADReCS data source module
+ * ```[UNII]``` #29 Fix UNII updater for new website
 
 ## 📦 Version [v0.4.2](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.2)
 
