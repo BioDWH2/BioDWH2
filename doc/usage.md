@@ -173,7 +173,8 @@ according to your needs if not all cores are available for execution at all time
     "DrugBank": {
       "forceExport": boolean,
       "username": string,
-      "password": string
+      "password": string,
+      "skipDrugInteractions": boolean
     },
     "DrugCentral": {
       "forceExport": boolean,
@@ -183,7 +184,24 @@ according to your needs if not all cores are available for execution at all time
     },
     "HPO": {
       "forceExport": boolean,
-      "omimLicensed": boolean
+      "omimLicensed": boolean,
+      "ignoreObsolete": boolean
+    },
+    "EFO": {
+      "forceExport": boolean,
+      "ignoreObsolete": boolean
+    },
+    "GeneOntology": {
+      "forceExport": boolean,
+      "ignoreObsolete": boolean
+    },
+    "Mondo": {
+      "forceExport": boolean,
+      "ignoreObsolete": boolean
+    },
+    "OMIM": {
+      "forceExport": boolean,
+      "downloadKey": string
     },
     "...": {
       "forceExport": boolean
