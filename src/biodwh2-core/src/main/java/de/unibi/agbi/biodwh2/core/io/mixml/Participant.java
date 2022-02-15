@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A molecule participating in an interaction.
@@ -49,26 +49,26 @@ public class Participant {
     public Integer interactionRef;
     public InteractorCandidateList interactorCandidateList;
     @JacksonXmlElementWrapper
-    public ArrayList<ParticipantIdentificationMethod> participantIdentificationMethodList;
+    public List<ParticipantIdentificationMethod> participantIdentificationMethodList;
     public CvType biologicalRole;
     @JacksonXmlElementWrapper
-    public ArrayList<ExperimentalRole> experimentalRoleList;
+    public List<ExperimentalRole> experimentalRoleList;
     @JacksonXmlElementWrapper
-    public ArrayList<ExperimentalPreparation> experimentalPreparationList;
+    public List<ExperimentalPreparation> experimentalPreparationList;
     @JacksonXmlElementWrapper
-    public ArrayList<ExperimentalInteractor> experimentalInteractorList;
+    public List<ExperimentalInteractor> experimentalInteractorList;
     @JacksonXmlElementWrapper
-    public ArrayList<Feature> featureList;
+    public List<Feature> featureList;
     @JacksonXmlElementWrapper
-    public ArrayList<HostOrganism> hostOrganismList;
+    public List<HostOrganism> hostOrganismList;
     @JacksonXmlElementWrapper
-    public ArrayList<Confidence> confidenceList;
+    public List<Confidence> confidenceList;
     @JacksonXmlElementWrapper
-    public ArrayList<Parameter> parameterList;
+    public List<Parameter> parameterList;
     public StoichiometryType stoichiometry;
     public StoichiometryRangeType stoichiometryRange;
     @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    public List<Attribute> attributeList;
     @JacksonXmlProperty(isAttribute = true)
     public int id;
 }

@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A molecule participating in an interaction (complex, allsoteric interaction, ...). This participant is abstracted
@@ -43,12 +43,14 @@ public class AbstractParticipant {
     public Integer interactionRef;
     public AbstractInteractorCandidateList interactorCandidateList;
     public CvType biologicalRole;
-    @JacksonXmlElementWrapper
-    public ArrayList<AbstractFeature> featureList;
+    @JacksonXmlElementWrapper(localName = "featureList")
+    @JacksonXmlProperty(localName = "feature")
+    public List<AbstractFeature> featureList;
     public StoichiometryType stoichiometry;
     public StoichiometryRangeType stoichiometryRange;
-    @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    @JacksonXmlElementWrapper(localName = "attributeList")
+    @JacksonXmlProperty(localName = "attribute")
+    public List<Attribute> attributeList;
     @JacksonXmlProperty(isAttribute = true)
     public int id;
 }

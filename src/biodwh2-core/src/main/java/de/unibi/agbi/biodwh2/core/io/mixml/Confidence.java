@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <pre>
@@ -18,6 +18,6 @@ import java.util.ArrayList;
  * </pre>
  */
 public class Confidence extends ConfidenceBase {
-    @JacksonXmlElementWrapper
-    public ArrayList<Integer> experimentRefList;
+    @JacksonXmlElementWrapper(localName = "experimentRefList")
+    public List<Integer> experimentRefList;
 }

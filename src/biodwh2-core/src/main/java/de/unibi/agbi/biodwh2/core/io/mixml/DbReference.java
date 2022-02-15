@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Refers to a unique object in an external database.
@@ -70,7 +70,7 @@ import java.util.ArrayList;
  */
 public class DbReference {
     @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    public List<Attribute> attributeList;
     @JacksonXmlProperty(isAttribute = true)
     public String db;
     @JacksonXmlProperty(isAttribute = true)

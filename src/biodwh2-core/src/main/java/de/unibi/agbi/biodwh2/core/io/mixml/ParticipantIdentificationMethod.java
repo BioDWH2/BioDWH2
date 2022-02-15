@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Experimental method to determine the interactors involved in the interaction. This element is controlled by the
@@ -21,5 +21,5 @@ import java.util.ArrayList;
  */
 public class ParticipantIdentificationMethod extends CvType {
     @JacksonXmlElementWrapper
-    public ArrayList<Integer> experimentRefList;
+    public List<Integer> experimentRefList;
 }

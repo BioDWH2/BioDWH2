@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A biological feature, e.g. domain, on a sequence.
@@ -39,11 +39,13 @@ public class AbstractFeature {
     public Names names;
     public Xref xref;
     public CvType featureType;
-    @JacksonXmlElementWrapper
-    public ArrayList<BaseLocation> featureRangeList;
+    @JacksonXmlElementWrapper(localName = "featureRangeList")
+    @JacksonXmlProperty(localName = "featureRange")
+    public List<BaseLocation> featureRangeList;
     public CvType featureRole;
-    @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    @JacksonXmlElementWrapper(localName = "attributeList")
+    @JacksonXmlProperty(localName = "attribute")
+    public List<Attribute> attributeList;
     @JacksonXmlProperty(isAttribute = true)
     public int id;
 }

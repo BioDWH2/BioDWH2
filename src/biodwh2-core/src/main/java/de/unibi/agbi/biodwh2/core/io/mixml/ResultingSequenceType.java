@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Description of the mutated or transformed interactor sequence portion
@@ -29,9 +29,9 @@ import java.util.ArrayList;
  */
 public class ResultingSequenceType {
     @JacksonXmlElementWrapper(useWrapping = false)
-    public ArrayList<Object> originalSequence;
+    public List<Object> originalSequence;
     @JacksonXmlElementWrapper(useWrapping = false)
-    public ArrayList<Object> newSequence;
+    public List<Object> newSequence;
     @JacksonXmlElementWrapper(useWrapping = false)
-    public ArrayList<Xref> xref;
+    public List<Xref> xref;
 }

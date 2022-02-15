@@ -1,6 +1,9 @@
 package de.unibi.agbi.biodwh2.core.io.mixml;
 
-import java.util.ArrayList;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
+import java.util.List;
 
 /**
  * Crossreference to an external database. Crossreferences to literature databases, e.g. PubMed, should not be put into
@@ -20,5 +23,7 @@ import java.util.ArrayList;
  */
 public class Xref {
     public DbReference primaryRef;
-    public ArrayList<DbReference> secondaryRef;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @JacksonXmlProperty(localName = "secondaryRef")
+    public List<DbReference> secondaryRef;
 }

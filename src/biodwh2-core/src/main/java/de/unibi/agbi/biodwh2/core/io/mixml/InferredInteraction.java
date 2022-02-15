@@ -1,8 +1,9 @@
 package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <pre>
@@ -19,7 +20,9 @@ import java.util.ArrayList;
  * </pre>
  */
 public class InferredInteraction {
-    public ArrayList<InferredInteractionParticipant> participant;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @JacksonXmlProperty(localName = "participant")
+    public List<InferredInteractionParticipant> participants;
     @JacksonXmlElementWrapper
-    public ArrayList<Integer> experimentRefList;
+    public List<Integer> experimentRefList;
 }

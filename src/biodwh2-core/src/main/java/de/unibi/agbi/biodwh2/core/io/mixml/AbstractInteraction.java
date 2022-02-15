@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An 'abstract' molecular interaction - e.g - stable complexes, allosteric interaction, .... These interactions are
@@ -38,25 +38,31 @@ import java.util.ArrayList;
 public class AbstractInteraction {
     public Names names;
     public Xref xref;
-    @JacksonXmlElementWrapper
-    public ArrayList<AbstractParticipant> participantList;
-    @JacksonXmlElementWrapper
-    public ArrayList<BindingFeatures> bindingFeatureList;
+    @JacksonXmlElementWrapper(localName = "participantList")
+    @JacksonXmlProperty(localName = "participant")
+    public List<AbstractParticipant> participantList;
+    @JacksonXmlElementWrapper(localName = "bindingFeatureList")
+    @JacksonXmlProperty(localName = "bindingFeature")
+    public List<BindingFeatures> bindingFeatureList;
     public CvType interactionType;
     @JsonProperty(defaultValue = "false")
     public Boolean intraMolecular;
-    @JacksonXmlElementWrapper
-    public ArrayList<AbstractConfidence> confidenceList;
-    @JacksonXmlElementWrapper
-    public ArrayList<AbstractParameter> parameterList;
+    @JacksonXmlElementWrapper(localName = "confidenceList")
+    @JacksonXmlProperty(localName = "confidence")
+    public List<AbstractConfidence> confidenceList;
+    @JacksonXmlElementWrapper(localName = "parameterList")
+    @JacksonXmlProperty(localName = "parameter")
+    public List<AbstractParameter> parameterList;
     public BioSource organism;
     public CvType interactorType;
     public CvType evidenceType;
     public CooperativeEffectList cooperativeEffectList;
-    @JacksonXmlElementWrapper
-    public ArrayList<CausalRelationship> causalRelationshipList;
-    @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    @JacksonXmlElementWrapper(localName = "causalRelationshipList")
+    @JacksonXmlProperty(localName = "causalRelationship")
+    public List<CausalRelationship> causalRelationshipList;
+    @JacksonXmlElementWrapper(localName = "attributeList")
+    @JacksonXmlProperty(localName = "attribute")
+    public List<Attribute> attributeList;
     @JacksonXmlProperty(isAttribute = true)
     public int id;
 }

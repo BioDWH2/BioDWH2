@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.List;
 
 /**
@@ -46,23 +46,25 @@ public class Interaction {
     public Availability availability;
     public ExperimentList experimentList;
     @JacksonXmlElementWrapper
-    public ArrayList<Participant> participantList;
+    public List<Participant> participantList;
     @JacksonXmlElementWrapper
-    public ArrayList<InferredInteraction> inferredInteractionList;
+    public List<InferredInteraction> inferredInteractionList;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @JacksonXmlProperty(localName = "interactionType")
     public List<CvType> interactionType;
     public Boolean modelled;
     public Boolean intraMolecular;
     public Boolean negative;
     @JacksonXmlElementWrapper
-    public ArrayList<Confidence> confidenceList;
+    public List<Confidence> confidenceList;
     @JacksonXmlElementWrapper
-    public ArrayList<Parameter> parameterList;
+    public List<Parameter> parameterList;
     @JacksonXmlElementWrapper
-    public ArrayList<ExperimentalVariableValues> experimentalVariableValueList;
+    public List<ExperimentalVariableValues> experimentalVariableValueList;
     @JacksonXmlElementWrapper
-    public ArrayList<CausalRelationship> causalRelationshipList;
+    public List<CausalRelationship> causalRelationshipList;
     @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    public List<Attribute> attributeList;
     @JacksonXmlProperty(isAttribute = true)
     public String imexId;
     @JacksonXmlProperty(isAttribute = true)

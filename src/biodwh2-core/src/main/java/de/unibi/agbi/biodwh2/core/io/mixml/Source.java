@@ -5,7 +5,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Desciption of the source of the entry, usually an organisation
@@ -37,10 +37,9 @@ public class Source {
     public Bibref bibref;
     public Xref xref;
     @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    public List<Attribute> attributeList;
     @JacksonXmlProperty(isAttribute = true)
     public String release;
     @JacksonXmlProperty(isAttribute = true)
-    @XmlSchemaType(name = "date")
-    public XMLGregorianCalendar releaseDate;
+    public String releaseDate;
 }

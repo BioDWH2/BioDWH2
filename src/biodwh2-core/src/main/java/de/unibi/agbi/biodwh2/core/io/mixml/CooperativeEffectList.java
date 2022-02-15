@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A list of cooperative effects this interaction has on subsequent interactions, either through an allosteric or
@@ -24,7 +24,7 @@ import java.util.ArrayList;
  */
 public class CooperativeEffectList {
     @JacksonXmlElementWrapper(useWrapping = false)
-    public ArrayList<Allostery> allostery;
+    public List<Allostery> allostery;
     @JacksonXmlElementWrapper(useWrapping = false)
-    public ArrayList<CooperativeEffectType> preassembly;
+    public List<CooperativeEffectType> preassembly;
 }

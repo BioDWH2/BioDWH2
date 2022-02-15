@@ -1,8 +1,9 @@
 package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A cooperative effect an interaction has on a subsequent interaction.
@@ -43,12 +44,15 @@ import java.util.ArrayList;
  * </pre>
  */
 public class CooperativeEffectType {
-    @JacksonXmlElementWrapper
-    public ArrayList<EvidenceType> cooperativityEvidenceList;
-    @JacksonXmlElementWrapper
-    public ArrayList<Integer> affectedInteractionList;
+    @JacksonXmlElementWrapper(localName = "cooperativityEvidenceList")
+    @JacksonXmlProperty(localName = "cooperativityEvidenceDescription")
+    public List<EvidenceType> cooperativityEvidenceList;
+    @JacksonXmlElementWrapper(localName = "affectedInteractionList")
+    @JacksonXmlProperty(localName = "affectedInteractionRef")
+    public List<Integer> affectedInteractionList;
     public CvType cooperativeEffectOutcome;
     public CvType cooperativeEffectResponse;
-    @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    @JacksonXmlElementWrapper(localName = "attributeList")
+    @JacksonXmlProperty(localName = "attribute")
+    public List<Attribute> attributeList;
 }

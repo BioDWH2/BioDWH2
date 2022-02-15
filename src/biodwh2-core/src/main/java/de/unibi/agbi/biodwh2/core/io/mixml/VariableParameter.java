@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Describes one variable parameter and its values in this experiment  - eg - variable concentration of a specific
@@ -25,5 +25,5 @@ public class VariableParameter {
     public String description;
     public OpenCvType unit;
     @JacksonXmlElementWrapper
-    public ArrayList<VariableValue> variableValueList;
+    public List<VariableValue> variableValueList;
 }

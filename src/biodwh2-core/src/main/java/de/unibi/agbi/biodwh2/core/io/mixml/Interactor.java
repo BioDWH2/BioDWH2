@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Describes a molecular interactor.
@@ -45,7 +45,7 @@ public class Interactor {
     public BioSource organism;
     public String sequence;
     @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    public List<Attribute> attributeList;
     @JacksonXmlProperty(isAttribute = true)
     public int id;
 }

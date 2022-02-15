@@ -1,7 +1,10 @@
 package de.unibi.agbi.biodwh2.core.io.mixml;
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
 import javax.xml.bind.annotation.XmlElement;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * List all the features reported in the complex that are linked to each other.
@@ -18,6 +21,7 @@ import java.util.ArrayList;
  * </pre>
  */
 public class BindingFeatures {
-    @XmlElement(type = Integer.class)
-    public ArrayList<Integer> participantFeatureRef;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @JacksonXmlProperty(localName = "participantFeatureRef")
+    public List<Integer> participantFeatureRef;
 }

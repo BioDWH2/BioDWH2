@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <pre>
@@ -24,19 +24,15 @@ import java.util.ArrayList;
  * </pre>
  */
 public class Entry {
-    @JacksonXmlProperty(isAttribute = true)
-    public String releaseDate;
-    public Names names;
     public Source source;
-    public Bibref bibref;
-    public Xref xref;
     @JacksonXmlElementWrapper
-    public ArrayList<Availability> availabilityList;
+    public List<Availability> availabilityList;
+    @JacksonXmlElementWrapper(localName = "experimentList")
+    @JacksonXmlProperty(localName = "experimentDescription")
+    public List<ExperimentDescription> experimentList;
     @JacksonXmlElementWrapper
-    public ArrayList<ExperimentDescription> experimentList;
-    @JacksonXmlElementWrapper
-    public ArrayList<Interactor> interactorList;
+    public List<Interactor> interactorList;
     public InteractionList interactionList;
     @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    public List<Attribute> attributeList;
 }

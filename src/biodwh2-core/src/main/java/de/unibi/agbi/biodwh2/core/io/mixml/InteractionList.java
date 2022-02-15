@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * List of interactions
@@ -23,7 +23,7 @@ import java.util.ArrayList;
  */
 public class InteractionList {
     @JacksonXmlElementWrapper(useWrapping = false)
-    public ArrayList<Interaction> interaction;
+    public List<Interaction> interaction;
     @JacksonXmlElementWrapper(useWrapping = false)
-    public ArrayList<AbstractInteraction> abstractInteraction;
+    public List<AbstractInteraction> abstractInteraction;
 }

@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.List;
 
 /**
@@ -43,16 +43,18 @@ public class Feature {
     public Names names;
     public Xref xref;
     public CvType featureType;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @JacksonXmlProperty(localName = "featureDetectionMethod")
     public List<CvType> featureDetectionMethod;
     @JacksonXmlElementWrapper
-    public ArrayList<Integer> experimentRefList;
+    public List<Integer> experimentRefList;
     @JacksonXmlElementWrapper
-    public ArrayList<BaseLocation> featureRangeList;
+    public List<BaseLocation> featureRangeList;
     public CvType featureRole;
     @JacksonXmlElementWrapper
-    public ArrayList<Parameter> parameterList;
+    public List<Parameter> parameterList;
     @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    public List<Attribute> attributeList;
     @JacksonXmlProperty(isAttribute = true)
     public int id;
 }

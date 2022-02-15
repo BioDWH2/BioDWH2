@@ -1,8 +1,9 @@
 package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Bibliographic reference.
@@ -26,6 +27,7 @@ import java.util.ArrayList;
  */
 public class Bibref {
     public Xref xref;
-    @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    @JacksonXmlElementWrapper(localName = "attributeList")
+    @JacksonXmlProperty(localName = "attribute")
+    public List<Attribute> attributeList;
 }

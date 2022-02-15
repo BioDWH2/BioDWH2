@@ -1,6 +1,9 @@
 package de.unibi.agbi.biodwh2.core.io.mixml;
 
-import java.util.ArrayList;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
+import java.util.List;
 
 /**
  * A set of experimental parameter/conditions values applied together and for which this interaction occurs.
@@ -17,5 +20,7 @@ import java.util.ArrayList;
  * </pre>
  */
 public class ExperimentalVariableValues {
-    public ArrayList<Integer> variableValueRef;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @JacksonXmlProperty(localName = "variableValueRef")
+    public List<Integer> variableValueRef;
 }

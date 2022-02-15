@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <pre>
@@ -25,5 +25,5 @@ public class ExperimentalInteractor {
     public Integer interactorRef;
     public Interactor interactor;
     @JacksonXmlElementWrapper
-    public ArrayList<Integer> experimentRefList;
+    public List<Integer> experimentRefList;
 }

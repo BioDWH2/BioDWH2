@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * List of experimental methods and corresponding publication from which this cooperative effect has been inferred.
@@ -32,5 +32,5 @@ import java.util.ArrayList;
 public class EvidenceType {
     public Bibref bibref;
     @JacksonXmlElementWrapper
-    public ArrayList<CvType> evidenceMethodList;
+    public List<CvType> evidenceMethodList;
 }

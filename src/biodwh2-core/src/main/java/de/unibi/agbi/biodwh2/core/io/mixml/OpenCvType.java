@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Allows to reference an external controlled vocabulary, or to directly include a value if no suitable external
@@ -25,5 +25,5 @@ public class OpenCvType {
     public Names names;
     public Xref xref;
     @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    public List<Attribute> attributeList;
 }

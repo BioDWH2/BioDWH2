@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This element is controlled by the PSI-MI controlled vocabulary "experimentalPreparation", root term id MI:0346.
@@ -20,5 +20,5 @@ import java.util.ArrayList;
  */
 public class ExperimentalPreparation extends CvType {
     @JacksonXmlElementWrapper
-    public ArrayList<Integer> experimentRefList;
+    public List<Integer> experimentRefList;
 }

@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Describes one set of experimental parameters.
@@ -33,17 +33,21 @@ public class ExperimentDescription {
     public Names names;
     public Bibref bibref;
     public Xref xref;
-    @JacksonXmlElementWrapper
-    public ArrayList<HostOrganism> hostOrganismList;
+    @JacksonXmlElementWrapper(localName = "hostOrganismList")
+    @JacksonXmlProperty(localName = "hostOrganism")
+    public List<HostOrganism> hostOrganismList;
     public CvType interactionDetectionMethod;
     public CvType participantIdentificationMethod;
     public CvType featureDetectionMethod;
-    @JacksonXmlElementWrapper
-    public ArrayList<Confidence> confidenceList;
-    @JacksonXmlElementWrapper
-    public ArrayList<VariableParameter> variableParameterList;
-    @JacksonXmlElementWrapper
-    public ArrayList<Attribute> attributeList;
+    @JacksonXmlElementWrapper(localName = "confidenceList")
+    @JacksonXmlProperty(localName = "confidence")
+    public List<Confidence> confidenceList;
+    @JacksonXmlElementWrapper(localName = "variableParameterList")
+    @JacksonXmlProperty(localName = "variableParameter")
+    public List<VariableParameter> variableParameterList;
+    @JacksonXmlElementWrapper(localName = "attributeList")
+    @JacksonXmlProperty(localName = "attribute")
+    public List<Attribute> attributeList;
     @JacksonXmlProperty(isAttribute = true)
     public int id;
 }

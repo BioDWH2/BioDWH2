@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.List;
@@ -23,7 +24,9 @@ import java.util.List;
  */
 @JsonIgnoreProperties({"schemaLocation"})
 public class EntrySet {
-    public List<Entry> entry;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @JacksonXmlProperty(localName = "entry")
+    public List<Entry> entries;
     @JacksonXmlProperty(isAttribute = true)
     public int level;
     @JacksonXmlProperty(isAttribute = true)

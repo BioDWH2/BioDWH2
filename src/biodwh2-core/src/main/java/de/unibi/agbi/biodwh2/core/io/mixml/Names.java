@@ -1,8 +1,9 @@
 package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Names for an object.
@@ -36,5 +37,6 @@ public class Names {
     public String shortLabel;
     public String fullName;
     @JacksonXmlElementWrapper(useWrapping = false)
-    public ArrayList<Alias> alias;
+    @JacksonXmlProperty(localName = "alias")
+    public List<Alias> alias;
 }

@@ -1,8 +1,9 @@
 package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <pre>
@@ -18,6 +19,7 @@ import java.util.ArrayList;
  * </pre>
  */
 public class AbstractParticipantCandidate extends ParticipantCandidateParent {
-    @JacksonXmlElementWrapper
-    public ArrayList<AbstractFeature> featureList;
+    @JacksonXmlElementWrapper(localName = "featureList")
+    @JacksonXmlProperty(localName = "feature")
+    public List<AbstractFeature> featureList;
 }

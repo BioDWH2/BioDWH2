@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * List of experiments in which this interaction has been determined.
@@ -21,7 +21,7 @@ import java.util.ArrayList;
  */
 public class ExperimentList {
     @JacksonXmlElementWrapper(useWrapping = false)
-    public ArrayList<Integer> experimentRef;
+    public List<Integer> experimentRef;
     @JacksonXmlElementWrapper(useWrapping = false)
-    public ArrayList<ExperimentDescription> experimentDescription;
+    public List<ExperimentDescription> experimentDescription;
 }
