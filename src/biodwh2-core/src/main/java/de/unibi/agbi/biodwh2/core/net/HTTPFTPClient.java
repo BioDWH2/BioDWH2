@@ -10,7 +10,6 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +25,7 @@ public final class HTTPFTPClient {
         public String size;
     }
 
-    private static final String PRE_TABLE_ENTRY_REGEX = "<a\\s+href=\"([a-zA-Z0-9-_.:/]+)\">([a-zA-Z0-9-_.&;]+)</a>\\s+(([0-9]{4}-[0-9]{2}-[0-9]{2}|[0-9]{2}-[A-Z][a-z]+-[0-9]{4})\\s+[0-9]{2}:[0-9]{2})\\s+([0-9.]+[KMG]?)";
+    private static final String PRE_TABLE_ENTRY_REGEX = "<a\\s+href=\"([a-zA-Z0-9-_.:/]+)\">([a-zA-Z0-9-_.&;/]+)</a>\\s+(([0-9]{4}-[0-9]{2}-[0-9]{2}|[0-9]{2}-[A-Z][a-z]+-[0-9]{4})\\s+[0-9]{2}:[0-9]{2})\\s+([0-9.]+[KMG]?|-)";
 
     private final String url;
     private final Map<String, Entry[]> entryCache;
@@ -41,7 +40,7 @@ public final class HTTPFTPClient {
     }
 
     public Entry[] listDirectory(final String path) throws IOException {
-        final String fullDirectoryUrl = path == null ? url : url + "/" + path;
+        final String fullDirectoryUrl = path == null ? url : (url + "/" + path);
         if (entryCache.containsKey(fullDirectoryUrl))
             return entryCache.get(fullDirectoryUrl);
         final String source = HTTPClient.getWebsiteSource(fullDirectoryUrl);
@@ -65,7 +64,7 @@ public final class HTTPFTPClient {
         final List<Entry> result = new ArrayList<>();
         for (final Element row : table.select("tr")) {
             final Elements columns = row.select("td");
-            if (columns != null && columns.size() > 0 && !"Parent Directory".equals(columns.get(1).text())) {
+            if (columns.size() > 0 && !"Parent Directory".equals(columns.get(1).text())) {
                 final Entry entry = new Entry();
                 entry.name = columns.get(1).text().trim();
                 entry.modificationDate = columns.get(2).text().trim();
