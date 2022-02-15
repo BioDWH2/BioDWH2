@@ -51,6 +51,7 @@
         <module>biodwh2-string</module>
         <module>biodwh2-stitch</module>
         <module>biodwh2-adrecs</module>
+        <module>biodwh2-intact</module>
     </modules>
 
     <packaging>pom</packaging>
@@ -64,6 +65,6 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
-        <junit-version>5.8.1</junit-version>
+        <junit-version>5.8.2</junit-version>
     </properties>
 </project>
