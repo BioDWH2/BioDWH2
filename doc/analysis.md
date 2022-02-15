@@ -15,7 +15,7 @@ To help finding connections of interest between entities, this list is intended 
 |      |   |
 | ---- | - |
 | OMIM | ()-[]->() |
-| HPO  | ()-[]->() |
+| HPO  | (d:Disease)<-[ASSOCIATED_WITH]-(Term)<-[tg:ASSOCIATED_WITH]-(HPO_Gene) WHERE tg.source_disease_id=d.id |
 |      |   |
 
 ### Disease - Drug
@@ -38,6 +38,8 @@ To help finding connections of interest between entities, this list is intended 
 
 |               |   |
 | ------------- | - |
+| DrugBank      | (Drug)-[INTERACTS_WITH_DRUG]->(Drug) |
+| DrugCentral   | ()-[]->() |
 | MED-RT        | (Drug)-[EFFECT_MAY_BE_INHIBITED_BY]->(Drug) |
 | NDF-RT        | (Drug)-[EFFECT_MAY_BE_INHIBITED_BY]->(Drug) |
 |               |   |
@@ -46,7 +48,10 @@ To help finding connections of interest between entities, this list is intended 
 
 |               |   |
 | ------------- | - |
-| DrugBank      | ()-[]->() |
+| DrugBank      | (Drug)-[TARGETS]->(TargetMetadata)-[HAS_TARGET]->(Target)-[IS_POLYPEPTIDE]->(Polypeptide) |
+| DrugBank      | (Drug)-[TARGETS]->(TargetMetadata)-[HAS_TARGET]->(Enzyme)-[IS_POLYPEPTIDE]->(Polypeptide) |
+| DrugBank      | (Drug)-[TARGETS]->(TargetMetadata)-[HAS_TARGET]->(Carrier)-[IS_POLYPEPTIDE]->(Polypeptide) |
+| DrugBank      | (Drug)-[TARGETS]->(TargetMetadata)-[HAS_TARGET]->(Transporter)-[IS_POLYPEPTIDE]->(Polypeptide) |
 | DrugCentral   | ()-[]->() |
 | CancerDrugsDB | (Drug)-[TARGETS]->(Gene) |
 | ReDO-DB       | (Drug)-[TARGETS]->(Gene) |
@@ -80,4 +85,11 @@ To help finding connections of interest between entities, this list is intended 
 |                |   |
 | -------------- | - |
 | PathwayCommons | (Protein)-[ASSOCIATED_WITH]->(Pathway) |
+|                |   |
+
+### Pathway - Drug
+
+|                |   |
+| -------------- | - |
+| DrugBank       | (Drug)-[IS_IN_PATHWAY]->(Pathway) |
 |                |   |
