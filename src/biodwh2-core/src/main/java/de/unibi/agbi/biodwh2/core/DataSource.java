@@ -174,7 +174,7 @@ public abstract class DataSource {
             }
         } catch (ExporterException e) {
             if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to export data source '" + getId() + "' in GraphML format", e);
+                LOGGER.error("Failed to export data source '" + getId() + "'", e);
             metadata.exportSuccessful = false;
         }
     }
