@@ -1,5 +1,9 @@
 package de.unibi.agbi.biodwh2.core.etl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SequenceWriter;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.graphics.MetaGraphImage;
@@ -26,6 +30,7 @@ import java.util.stream.StreamSupport;
 
 public final class GraphMapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMapper.class);
+    private static final String MERGED_INTO_EDGE_LABEL = "MERGED_INTO";
     private static final String MAPPED_TO_EDGE_LABEL = "MAPPED_TO";
     private static final String IDS_NODE_PROPERTY = "ids";
     private static final String NAMES_NODE_PROPERTY = "names";
@@ -43,6 +48,7 @@ public final class GraphMapper {
             LOGGER.info("Mapping finished within " + DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
             saveGraph(graph, workspace);
             generateMetaGraphStatistics(graph, workspace);
+            generateLogGraphClusters(logGraph, workspace);
         }
     }
 
@@ -129,7 +135,7 @@ public final class GraphMapper {
             logGraph.update(logMergedNode);
             for (final Long id : matchedNodeIds)
                 if (!Objects.equals(id, logMergedNode.getId()))
-                    logGraph.addEdge(id, logMergedNode, "MERGED_INTO");
+                    logGraph.addEdge(id, logMergedNode, MERGED_INTO_EDGE_LABEL);
         }
     }
 
@@ -322,5 +328,52 @@ public final class GraphMapper {
         FileUtils.writeTextToUTF8File(metaGraphStatsFilePath, statistics);
         final MetaGraphDynamicVisWriter visWriter = new MetaGraphDynamicVisWriter(metaGraph);
         visWriter.write(metaGraphDynamicVisFilePath);
+    }
+
+    private void generateLogGraphClusters(final Graph logGraph, final Workspace workspace) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting mapping log graph clusters");
+        final Path clustersFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_LOG_CLUSTERS);
+        final ObjectMapper mapper = new ObjectMapper();
+        try (final SequenceWriter writer = mapper.writer().withRootValueSeparator("\n").writeValues(
+                clustersFilePath.toFile())) {
+            for (final Node node : logGraph.getNodes()) {
+                final Long[] forwardNodeIds = logGraph.getAdjacentNodeIdsForEdgeLabel(node.getId(),
+                                                                                      MERGED_INTO_EDGE_LABEL,
+                                                                                      EdgeDirection.FORWARD);
+                // If we find a final node without outgoing edges collect the cluster
+                if (forwardNodeIds.length == 0) {
+                    final ObjectNode jsonNode = createJsonLogNodeRecursive(logGraph, node, mapper);
+                    writer.write(jsonNode);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private ObjectNode createJsonLogNodeRecursive(final Graph logGraph, final Node node, final ObjectMapper mapper) {
+        final ObjectNode jsonNode = mapper.createObjectNode();
+        jsonNode.put("id", node.getId());
+        jsonNode.put("label", node.getLabel());
+        final Set<String> ids = node.getProperty(IDS_NODE_PROPERTY);
+        final Set<String> names = node.getProperty(NAMES_NODE_PROPERTY);
+        final ArrayNode idsArray = jsonNode.putArray(IDS_NODE_PROPERTY);
+        if (ids != null)
+            for (final String id : ids)
+                idsArray.add(id);
+        final ArrayNode namesArray = jsonNode.putArray(NAMES_NODE_PROPERTY);
+        if (names != null)
+            for (final String name : names)
+                namesArray.add(name);
+        jsonNode.put(MAPPED_NODE_PROPERTY, node.<Boolean>getProperty(MAPPED_NODE_PROPERTY));
+        final ArrayNode childrenArray = jsonNode.putArray("children");
+        for (final Long nodeId : logGraph.getAdjacentNodeIdsForEdgeLabel(node.getId(), MERGED_INTO_EDGE_LABEL,
+                                                                         EdgeDirection.BACKWARD)) {
+            final Node childNode = logGraph.getNode(nodeId);
+            if (childNode != null)
+                childrenArray.add(createJsonLogNodeRecursive(logGraph, childNode, mapper));
+        }
+        return jsonNode;
     }
 }
