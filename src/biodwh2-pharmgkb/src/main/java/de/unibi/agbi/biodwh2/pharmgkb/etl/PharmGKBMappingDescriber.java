@@ -122,7 +122,7 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
         final String[] crossReferences = getCrossReferences(node);
         for (final String reference : crossReferences)
             if (reference.startsWith("HGNC"))
-                description.addIdentifier(IdentifierType.HGNC_ID, getIdFromPrefixIdPair(reference));
+                description.addIdentifier(IdentifierType.HGNC_ID, StringUtils.replace(reference, "HGNC:", ""));
             else if (reference.startsWith("GeneCard"))
                 description.addIdentifier(IdentifierType.GENE_CARD, getIdFromPrefixIdPair(reference));
             else if (reference.startsWith("GenAtlas"))
