@@ -42,8 +42,9 @@ class GraphMapperTest {
             }
         };
         final Graph graph = Graph.createTempGraph();
+        final Graph logGraph = Graph.createTempGraph();
         graph.addNode(dataSource.getId() + "_Drug", "id", "D4693", "name", "TestDrug");
-        new GraphMapper().mapGraph(graph, new DataSource[]{dataSource}, false, 0);
+        new GraphMapper().mapGraph(graph, logGraph, new DataSource[]{dataSource}, false, 0);
         final List<Node> nodes = new ArrayList<>();
         for (final Node node : graph.findNodes(NodeMappingDescription.NodeType.DRUG.name()))
             nodes.add(node);
@@ -75,13 +76,14 @@ class GraphMapperTest {
             }
         };
         final Graph graph = Graph.createTempGraph();
+        final Graph logGraph = Graph.createTempGraph();
         int sharedIndex = 0;
         for (int i = 0; i < 1000; i++) {
             if (i % 100 == 0)
                 sharedIndex++;
             graph.addNode(dataSource.getId() + "_Drug", "id", "D" + i, "name", "Drug" + i, "id2", "S" + sharedIndex);
         }
-        new GraphMapper().mapGraph(graph, new DataSource[]{dataSource}, false, 0);
+        new GraphMapper().mapGraph(graph, logGraph, new DataSource[]{dataSource}, false, 0);
         final List<Node> nodes = new ArrayList<>();
         for (final Node node : graph.findNodes(NodeMappingDescription.NodeType.DRUG.name()))
             nodes.add(node);

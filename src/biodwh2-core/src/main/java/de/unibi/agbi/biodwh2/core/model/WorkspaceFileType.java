@@ -10,6 +10,7 @@ public enum WorkspaceFileType {
     MERGED_META_GRAPH_STATISTICS("merged-meta-graph-statistics.txt"),
     MERGED_META_GRAPH_DYNAMIC_VIS("merged-meta-graph.html"),
     MAPPED_PERSISTENT_GRAPH("mapped." + Graph.EXTENSION),
+    MAPPED_LOG_PERSISTENT_GRAPH("mapping-log." + Graph.EXTENSION),
     MAPPED_GRAPHML("mapped." + GraphFileFormat.GRAPH_ML.extension),
     MAPPED_META_GRAPH_IMAGE("mapped-meta-graph.png"),
     MAPPED_META_GRAPH_STATISTICS("mapped-meta-graph-statistics.txt"),

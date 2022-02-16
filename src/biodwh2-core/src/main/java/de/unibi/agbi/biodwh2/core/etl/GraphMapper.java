@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.graphics.MetaGraphImage;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
+import de.unibi.agbi.biodwh2.core.io.SerializableUtils;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.WorkspaceFileType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
@@ -34,9 +35,10 @@ public final class GraphMapper {
                     final int numThreads) {
         copyGraph(workspace);
         final Path graphFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_PERSISTENT_GRAPH);
-        try (Graph graph = new Graph(graphFilePath, true)) {
+        final Path logGraphFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_LOG_PERSISTENT_GRAPH);
+        try (final Graph graph = new Graph(graphFilePath, true); final Graph logGraph = new Graph(logGraphFilePath)) {
             final long start = System.currentTimeMillis();
-            mapGraph(graph, dataSources, runsInParallel, numThreads);
+            mapGraph(graph, logGraph, dataSources, runsInParallel, numThreads);
             final long stop = System.currentTimeMillis();
             LOGGER.info("Mapping finished within " + DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
             saveGraph(graph, workspace);
@@ -55,12 +57,12 @@ public final class GraphMapper {
         }
     }
 
-    void mapGraph(final Graph graph, final DataSource[] dataSources, final boolean runsInParallel,
+    void mapGraph(final Graph graph, final Graph logGraph, final DataSource[] dataSources, final boolean runsInParallel,
                   final int numThreads) {
         final Map<String, MappingDescriber> map = getDataSourceDescriberMap(dataSources);
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Mapping nodes");
-        mapNodes(graph, map);
+        mapNodes(graph, logGraph, map);
         if (LOGGER.isInfoEnabled())
             if (runsInParallel) {
                 LOGGER.info("Starting path mapping in parallel mode with " + numThreads + " threads");
@@ -77,17 +79,19 @@ public final class GraphMapper {
         return map;
     }
 
-    private void mapNodes(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap) {
+    private void mapNodes(final Graph graph, final Graph logGraph,
+                          final Map<String, MappingDescriber> dataSourceDescriberMap) {
         final Map<String, Map<String, Long>> labelIdNodeIdMap = new HashMap<>();
         for (final MappingDescriber describer : dataSourceDescriberMap.values()) {
             final String[] localMappingLabels = describer.getNodeMappingLabels();
             if (localMappingLabels != null)
                 for (final String localMappingLabel : localMappingLabels)
-                    mapNodesWithLabel(graph, labelIdNodeIdMap, describer, localMappingLabel);
+                    mapNodesWithLabel(graph, logGraph, labelIdNodeIdMap, describer, localMappingLabel);
         }
     }
 
-    private void mapNodesWithLabel(final Graph graph, final Map<String, Map<String, Long>> labelIdNodeIdMap,
+    private void mapNodesWithLabel(final Graph graph, final Graph logGraph,
+                                   final Map<String, Map<String, Long>> labelIdNodeIdMap,
                                    final MappingDescriber describer, final String localMappingLabel) {
         final String prefixedMappingLabel = describer.prefixLabel(localMappingLabel);
         if (LOGGER.isInfoEnabled())
@@ -99,18 +103,34 @@ public final class GraphMapper {
                     if (mappingDescription != null) {
                         final Map<String, Long> idNodeIdMap = labelIdNodeIdMap.computeIfAbsent(
                                 mappingDescription.getType(), k -> new HashMap<>());
-                        mergeMatchingNodes(graph, mappingDescription, idNodeIdMap, node.getId());
+                        mergeMatchingNodes(graph, logGraph, mappingDescription, idNodeIdMap, node);
                     }
         }
     }
 
-    private void mergeMatchingNodes(final Graph graph, final NodeMappingDescription description,
-                                    final Map<String, Long> idNodeIdMap, final long mappedNodeId) {
+    private void mergeMatchingNodes(final Graph graph, final Graph logGraph, final NodeMappingDescription description,
+                                    final Map<String, Long> idNodeIdMap, final Node mappedNode) {
         final Set<Long> matchedNodeIds = matchNodesFromIds(idNodeIdMap, description);
         final Node mergedNode = mergeOrCreateMappingNode(graph, description, matchedNodeIds);
-        graph.addEdge(mappedNodeId, mergedNode, MAPPED_TO_EDGE_LABEL);
-        for (final String id : mergedNode.<Collection<String>>getProperty(IDS_NODE_PROPERTY))
-            idNodeIdMap.put(id, mergedNode.getId());
+        graph.addEdge(mappedNode.getId(), mergedNode, MAPPED_TO_EDGE_LABEL);
+        final Set<String> nodeIds = mergedNode.getProperty(IDS_NODE_PROPERTY);
+        if (nodeIds != null)
+            for (final String id : nodeIds)
+                idNodeIdMap.put(id, mergedNode.getId());
+        // Export logging
+        final Node logMergedNode = SerializableUtils.clone(mergedNode);
+        if (logMergedNode != null) {
+            final Node sourceLogNode = createMappingNode(logGraph, mappedNode.getLabel(), description.getIdentifiers(),
+                                                         description.getNames());
+            sourceLogNode.setProperty("source_node_id", mappedNode.getId());
+            sourceLogNode.setProperty(MAPPED_NODE_PROPERTY, false);
+            logGraph.update(sourceLogNode);
+            matchedNodeIds.add(sourceLogNode.getId());
+            logGraph.update(logMergedNode);
+            for (final Long id : matchedNodeIds)
+                if (!Objects.equals(id, logMergedNode.getId()))
+                    logGraph.addEdge(id, logMergedNode, "MERGED_INTO");
+        }
     }
 
     private Set<Long> matchNodesFromIds(final Map<String, Long> idNodeIdMap, final NodeMappingDescription description) {
@@ -128,10 +148,11 @@ public final class GraphMapper {
         Node mergedNode = null;
         for (final Long nodeId : matchedNodeIds) {
             final Node matchedNode = graph.getNode(nodeId);
-            if (!hasMatchedNodeSameLabel(description, matchedNode))
+            if (matchedNode == null || !hasMatchedNodeSameLabel(description, matchedNode))
                 continue;
             final Set<String> nodeIds = matchedNode.getProperty(IDS_NODE_PROPERTY);
-            ids.addAll(nodeIds);
+            if (nodeIds != null)
+                ids.addAll(nodeIds);
             final Set<String> nodeNames = matchedNode.getProperty(NAMES_NODE_PROPERTY);
             if (nodeNames != null)
                 names.addAll(nodeNames);
@@ -141,14 +162,17 @@ public final class GraphMapper {
                 graph.mergeNodes(mergedNode, matchedNode);
         }
         if (mergedNode == null) {
-            mergedNode = graph.addNode(description.getType(), MAPPED_NODE_PROPERTY, true, IDS_NODE_PROPERTY, ids,
-                                       NAMES_NODE_PROPERTY, names);
+            mergedNode = createMappingNode(graph, description.getType(), ids, names);
         } else {
             mergedNode.setProperty(IDS_NODE_PROPERTY, ids);
             mergedNode.setProperty(NAMES_NODE_PROPERTY, names);
             graph.update(mergedNode);
         }
         return mergedNode;
+    }
+
+    private Node createMappingNode(final Graph g, final String label, final Set<String> ids, final Set<String> names) {
+        return g.addNode(label, MAPPED_NODE_PROPERTY, true, IDS_NODE_PROPERTY, ids, NAMES_NODE_PROPERTY, names);
     }
 
     private boolean hasMatchedNodeSameLabel(final NodeMappingDescription description, final Node node) {
@@ -179,11 +203,10 @@ public final class GraphMapper {
             ForkJoinPool pool = null;
             try {
                 pool = new ForkJoinPool(numThreads);
-                pool.submit(() -> {
-                    StreamSupport.stream(graph.getNodes(describer.prefixLabel(segment.fromNodeLabel)).spliterator(),
-                                         true).parallel().forEach(
-                            node -> startBuildPathRecursively(graph, describer, path, node));
-                });
+                final Spliterator<Node> nodes = graph.getNodes(describer.prefixLabel(segment.fromNodeLabel))
+                                                     .spliterator();
+                pool.submit(() -> StreamSupport.stream(nodes, true).parallel().forEach(
+                        node -> startBuildPathRecursively(graph, describer, path, node)));
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
@@ -216,7 +239,7 @@ public final class GraphMapper {
         if (segment.direction == EdgeDirection.BIDIRECTIONAL || segment.direction == EdgeDirection.FORWARD) {
             for (final Edge edge : graph.findEdges(edgeLabel, Edge.FROM_ID_FIELD, fromNodeId)) {
                 final Node nextNode = graph.getNode(edge.getToId());
-                if (nextNode.getLabel().equals(toNodeLabel)) {
+                if (nextNode != null && nextNode.getLabel().equals(toNodeLabel)) {
                     final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
                     nextPathIds[currentEdgePathIndex] = edge.getId();
                     nextPathIds[currentEdgePathIndex + 1] = nextNode.getId();
@@ -227,7 +250,7 @@ public final class GraphMapper {
         if (segment.direction == EdgeDirection.BIDIRECTIONAL || segment.direction == EdgeDirection.BACKWARD) {
             for (final Edge edge : graph.findEdges(edgeLabel, Edge.TO_ID_FIELD, fromNodeId)) {
                 final Node nextNode = graph.getNode(edge.getFromId());
-                if (nextNode.getLabel().equals(toNodeLabel)) {
+                if (nextNode != null && nextNode.getLabel().equals(toNodeLabel)) {
                     final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
                     nextPathIds[currentEdgePathIndex] = edge.getId();
                     nextPathIds[currentEdgePathIndex + 1] = nextNode.getId();
