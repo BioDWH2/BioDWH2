@@ -115,10 +115,12 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
         final String geneSymbol = node.getProperty("symbol");
         if (geneSymbol != null)
             description.addIdentifier(IdentifierType.HGNC_SYMBOL, geneSymbol.trim());
+        /*
         final String[] ensemblGeneIds = node.getProperty("ensemble_ids");
         if (ensemblGeneIds != null)
             for (final String ensemblGeneId : ensemblGeneIds)
                 description.addIdentifier(IdentifierType.ENSEMBL_GENE_ID, ensemblGeneId.trim());
+        */
         final String[] crossReferences = getCrossReferences(node);
         for (final String reference : crossReferences)
             if (reference.startsWith("HGNC"))
@@ -127,8 +129,8 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
                 description.addIdentifier(IdentifierType.GENE_CARD, getIdFromPrefixIdPair(reference));
             else if (reference.startsWith("GenAtlas"))
                 description.addIdentifier(IdentifierType.GEN_ATLAS, getIdFromPrefixIdPair(reference));
-            else if (reference.startsWith("Ensembl"))
-                description.addIdentifier(IdentifierType.ENSEMBL_GENE_ID, getIdFromPrefixIdPair(reference));
+            //else if (reference.startsWith("Ensembl"))
+            //    description.addIdentifier(IdentifierType.ENSEMBL_GENE_ID, getIdFromPrefixIdPair(reference));
             else if (reference.startsWith("NCBI Gene"))
                 description.addIdentifier(IdentifierType.NCBI_GENE, getIdFromPrefixIdPair(reference));
             /*
