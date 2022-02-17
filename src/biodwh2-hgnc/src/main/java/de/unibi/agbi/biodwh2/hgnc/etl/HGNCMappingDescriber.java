@@ -27,13 +27,9 @@ public class HGNCMappingDescriber extends MappingDescriber {
         description.addName(node.getProperty("name"));
         description.addNames(node.<String[]>getProperty("alias_names"));
         description.addIdentifier(IdentifierType.HGNC_ID, getHGNCIdFromNode(node));
-        final String[] prevSymbols = node.getProperty("prev_symbols");
-        if (prevSymbols != null)
-            for (final String symbol : prevSymbols)
-                description.addIdentifier(IdentifierType.HGNC_SYMBOL, symbol);
         description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("symbol"));
         description.addIdentifier(IdentifierType.OMIM, node.<String>getProperty(OMIM_ID_KEY));
-        // TODO: more ids
+        description.addIdentifier(IdentifierType.ENSEMBL_GENE_ID, node.<String>getProperty("ensembl_gene_id"));
         return new NodeMappingDescription[]{description};
     }
 
