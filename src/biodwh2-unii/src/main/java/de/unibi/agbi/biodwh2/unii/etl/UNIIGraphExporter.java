@@ -28,7 +28,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -78,8 +78,9 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
         final Set<Long> matchedNodeIds = new HashSet<>();
         if (dataEntry.itis != null && itisIdNodeIdMap.containsKey(dataEntry.itis))
             matchedNodeIds.add(itisIdNodeIdMap.get(dataEntry.itis));
-        if (dataEntry.ncbi != null && ncbiTaxonomyIdNodeIdMap.containsKey(dataEntry.ncbi))
-            matchedNodeIds.add(ncbiTaxonomyIdNodeIdMap.get(dataEntry.ncbi));
+        Long entryNcbi = dataEntry.ncbi != null ? parseNCBIId(dataEntry.ncbi) : null;
+        if (dataEntry.ncbi != null && ncbiTaxonomyIdNodeIdMap.containsKey(entryNcbi))
+            matchedNodeIds.add(ncbiTaxonomyIdNodeIdMap.get(entryNcbi));
         if (dataEntry.plants != null && usdaPlantsSymbolNodeIdMap.containsKey(dataEntry.plants))
             matchedNodeIds.add(usdaPlantsSymbolNodeIdMap.get(dataEntry.plants));
         final Set<Long> itisIds = new HashSet<>();
@@ -87,7 +88,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
             itisIds.add(dataEntry.itis);
         final Set<Long> ncbiTaxonomyIds = new HashSet<>();
         if (dataEntry.ncbi != null)
-            ncbiTaxonomyIds.add(parseNCBIId(dataEntry.ncbi));
+            ncbiTaxonomyIds.add(entryNcbi);
         final Set<String> usdaPlantsSymbols = new HashSet<>();
         if (dataEntry.plants != null)
             usdaPlantsSymbols.add(dataEntry.plants);

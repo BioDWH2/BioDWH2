@@ -10,6 +10,7 @@ Released: upcoming
  * ```[UNII]``` #29 Fix UNII updater for new website
  * ```[HGNC]``` #13 Remove previous symbols and add ensembl gene id from HGNC gene mapping
  * ```[PharmGKB]``` #8 Remove ensembl gene ids from PharmGKB gene mapping
+ * ```[UNII]``` #29 Fix UNII species merging with NCBI taxid
 
 ### 🔧 Bug fixes and other changes
 

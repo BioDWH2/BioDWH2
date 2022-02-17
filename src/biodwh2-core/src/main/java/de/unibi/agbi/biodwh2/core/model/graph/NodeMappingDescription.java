@@ -63,10 +63,16 @@ public final class NodeMappingDescription {
             names.add(name);
     }
 
-    public void addNames(final Collection<String> names) {
+    public <T extends Collection<String>> void addNames(final T names) {
         if (names != null)
             for (final String name : names)
                 addName(name);
+    }
+
+    public void addIdentifier(final IdentifierType type, final Collection<?> ids) {
+        if (ids != null)
+            for (final Object value : ids)
+                addIdentifier(type.prefix, value.toString());
     }
 
     public void addIdentifier(final IdentifierType type, final Long longValue) {

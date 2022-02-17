@@ -48,12 +48,12 @@ public class UNIIMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeSpecies(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.TAXON);
-        for (Long itisId : node.<Set<Long>>getProperty(UNIIGraphExporter.ITIS_IDS_KEY))
-            description.addIdentifier(IdentifierType.ITIS_TAXON, itisId);
-        for (Long ncbiTaxonId : node.<Set<Long>>getProperty(UNIIGraphExporter.NCBI_TAXONOMY_IDS_KEY))
-            description.addIdentifier(IdentifierType.NCBI_TAXON, ncbiTaxonId);
-        for (String plantsSymbol : node.<Set<String>>getProperty(UNIIGraphExporter.USDA_PLANTS_SYMBOLS_KEY))
-            description.addIdentifier(IdentifierType.USDA_PLANTS_SYMBOL, plantsSymbol);
+        description.addIdentifier(IdentifierType.ITIS_TAXON,
+                                  node.<Set<Long>>getProperty(UNIIGraphExporter.ITIS_IDS_KEY));
+        description.addIdentifier(IdentifierType.NCBI_TAXON,
+                                  node.<Set<Long>>getProperty(UNIIGraphExporter.NCBI_TAXONOMY_IDS_KEY));
+        description.addIdentifier(IdentifierType.USDA_PLANTS_SYMBOL,
+                                  node.<Set<String>>getProperty(UNIIGraphExporter.USDA_PLANTS_SYMBOLS_KEY));
         return new NodeMappingDescription[]{description};
     }
 
