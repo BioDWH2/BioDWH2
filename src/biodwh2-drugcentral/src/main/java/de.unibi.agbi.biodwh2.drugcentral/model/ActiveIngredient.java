@@ -22,10 +22,8 @@ public final class ActiveIngredient {
     @GraphProperty("active_moiety_name")
     public String activeMoietyName;
     @JsonProperty("unit")
-    @GraphProperty("unit")
     public String unit;
     @JsonProperty("quantity")
-    @GraphProperty("quantity")
     public String quantity;
     @JsonProperty("substance_unii")
     @GraphProperty("substance_unii")
@@ -38,9 +36,7 @@ public final class ActiveIngredient {
     @JsonProperty("struct_id")
     public Integer structId;
     @JsonProperty("quantity_denom_unit")
-    @GraphProperty("quantity_denom_unit")
     public String quantityDenomUnit;
     @JsonProperty("quantity_denom_value")
-    @GraphProperty("quantity_denom_value")
     public String quantityDenomValue;
 }

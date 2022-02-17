@@ -5,6 +5,7 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
+import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -41,7 +42,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -347,11 +348,25 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         for (final Prd2Label link : parseTsvFile(workspace, Prd2Label.class, "prd2label.tsv"))
             g.addEdge(ndcProductCodeNodeIdMap.get(link.ndcProductCode), labelIdNodeIdMap.get(link.labelId),
                       "HAS_LABEL");
+        final Map<String, Long> uniiNodeIdMap = new HashMap<>();
         for (final ActiveIngredient ingredient : parseTsvFile(workspace, ActiveIngredient.class,
                                                               "active_ingredient.tsv")) {
-            final Node node = g.addNodeFromModel(ingredient);
-            g.addEdge(ndcProductCodeNodeIdMap.get(ingredient.ndcProductCode), node, "CONTAINS");
-            g.addEdge(structureIdNodeIdMap.get(ingredient.structId), node, "IS_INGREDIENT");
+            final String key = ingredient.activeMoietyUnii + "|" + ingredient.substanceUnii;
+            final Long ingredientNodeId;
+            if (uniiNodeIdMap.containsKey(key)) {
+                ingredientNodeId = uniiNodeIdMap.get(key);
+            } else {
+                ingredientNodeId = g.addNodeFromModel(ingredient).getId();
+                uniiNodeIdMap.put(key, ingredientNodeId);
+                g.addEdge(structureIdNodeIdMap.get(ingredient.structId), ingredientNodeId, "IS_INGREDIENT");
+            }
+            final EdgeBuilder builder = g.buildEdge().fromNode(ndcProductCodeNodeIdMap.get(ingredient.ndcProductCode))
+                                         .toNode(ingredientNodeId).withLabel("CONTAINS");
+            builder.withPropertyIfNotNull("unit", ingredient.unit);
+            builder.withPropertyIfNotNull("quantity", ingredient.quantity);
+            builder.withPropertyIfNotNull("quantity_denom_unit", ingredient.quantityDenomUnit);
+            builder.withPropertyIfNotNull("quantity_denom_value", ingredient.quantityDenomValue);
+            builder.build();
         }
     }
 

@@ -11,10 +11,12 @@ Released: upcoming
  * ```[HGNC]``` #13 Remove previous symbols and add ensembl gene id from HGNC gene mapping
  * ```[PharmGKB]``` #8 Remove ensembl gene ids from PharmGKB gene mapping
  * ```[UNII]``` #29 Fix UNII species merging with NCBI taxid
+ * ```[DrugCentral]``` #18 Remove redundancy in DrugCentral active ingredients
 
 ### 🔧 Bug fixes and other changes
 
  * ```[docs]``` Update analysis docs
+ * ```[feature]``` Graph mapping now generates a mapping log for later analysis
 
 ## 📦 Version [v0.4.2](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.2)
 
