@@ -12,6 +12,7 @@ Released: upcoming
  * ```[PharmGKB]``` #8 Remove ensembl gene ids from PharmGKB gene mapping
  * ```[UNII]``` #29 Fix UNII species merging with NCBI taxid
  * ```[DrugCentral]``` #18 Remove redundancy in DrugCentral active ingredients
+ * ```[AACT]``` #50 Fix updated AACT schema model
 
 ### 🔧 Bug fixes and other changes
 

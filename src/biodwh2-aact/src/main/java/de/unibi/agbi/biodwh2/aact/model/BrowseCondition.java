@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.aact.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({"id", "nct_id", "mesh_term", "downcase_mesh_term"})
+@JsonPropertyOrder({"id", "nct_id", "mesh_term", "downcase_mesh_term", "mesh_type"})
 public class BrowseCondition {
     @JsonProperty("id")
     public Long id;
@@ -13,4 +13,6 @@ public class BrowseCondition {
     public String meshTerm;
     @JsonProperty("downcaseMeshTerm")
     public String downcaseMeshTerm;
+    @JsonProperty("mesh_type")
+    public String meshType;
 }

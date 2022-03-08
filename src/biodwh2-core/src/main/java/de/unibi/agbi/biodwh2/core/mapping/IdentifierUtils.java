@@ -6,10 +6,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class IdentifierUtils {
+    /**
+     * https://www.uniprot.org/help/accession_numbers
+     */
+    public static final Pattern UNIPROT_KB_PATTERN = Pattern.compile(
+            "[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}");
     public static final Pattern CAS_NUMBER_PATTERN = Pattern.compile("[0-9]{2,7}-[0-9]{2}-[0-9]");
     public static final Pattern DRUGBANK_DRUG_ID_PATTERN = Pattern.compile("DB[0-9]{5}");
     public static final Pattern CHEMBL_ID_PATTERN = Pattern.compile("CHEMBL[0-9]+");
-    // https://www.crossref.org/blog/dois-and-matching-regular-expressions/
+    /**
+     * https://www.crossref.org/blog/dois-and-matching-regular-expressions/
+     */
     public static final Pattern DOI_PATTERN = Pattern.compile("doi: (10\\.\\d{4,9}/[-._;()/:A-Z0-9]+)\\.",
                                                               Pattern.CASE_INSENSITIVE);
 

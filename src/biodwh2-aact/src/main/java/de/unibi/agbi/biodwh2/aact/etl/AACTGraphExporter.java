@@ -36,7 +36,7 @@ public class AACTGraphExporter extends GraphExporter<AACTDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
