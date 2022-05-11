@@ -48,6 +48,10 @@ public class Gene2PhenotypeGraphExporter extends GraphExporter<Gene2PhenotypeDat
         builder.withPropertyIfNotNull("mutation_consequence", association.mutationConsequence);
         builder.withPropertyIfNotNull("cross_cutting_modifier", association.crossCuttingModifier);
         builder.withPropertyIfNotNull("mutation_consequence_flag", association.mutationConsequenceFlag);
+        builder.withPropertyIfNotNull("variant_consequence", association.variantConsequence);
+        builder.withPropertyIfNotNull("confidence_value_flag", association.confidenceValueFlag);
+        builder.withPropertyIfNotNull("comments", association.comments);
+        builder.withPropertyIfNotNull("disease_ontology", association.diseaseOntology);
         builder.withPropertyIfNotNull("panel", association.panel);
         builder.withPropertyIfNotNull("entry_date", association.entryDate);
         builder.withPropertyIfNotNull("organ_specificity", StringUtils.split(association.organSpecificityList, ';'));
