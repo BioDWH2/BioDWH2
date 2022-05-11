@@ -11,4 +11,6 @@ public @interface GraphProperty {
     String value() default "";
 
     boolean ignoreEmpty() default false;
+
+    String emptyPlaceholder() default "";
 }

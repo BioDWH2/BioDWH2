@@ -8,7 +8,7 @@ class ClassMappingTest {
     @Test
     void loadClassMapping() {
         final ClassMapping mapping = new ClassMapping(TestClass.class);
-        assertEquals(2, mapping.fields.length);
+        assertEquals(3, mapping.fields.length);
         assertEquals(1, mapping.booleanFields.length);
         assertEquals(3, mapping.arrayFields.length);
         assertEquals("A", mapping.label);
@@ -66,12 +66,27 @@ class ClassMappingTest {
         assertTrue(node.hasProperty("ignore_empty_string"));
     }
 
+    @Test
+    void setNodePropertiesEmptyPlaceholder() {
+        final ClassMapping mapping = new ClassMapping(TestClass.class);
+        final TestClass instance = new TestClass();
+        instance.emptyPlaceholder = "NA";
+        final Node node = Node.newNode(mapping.label);
+        mapping.setModelProperties(node, instance);
+        assertFalse(node.hasProperty("null_on_empty_placeholder"));
+        instance.emptyPlaceholder = "t";
+        mapping.setModelProperties(node, instance);
+        assertTrue(node.hasProperty("null_on_empty_placeholder"));
+    }
+
     @GraphNodeLabel("A")
     private static class TestClass {
         @GraphProperty("id")
         public String id;
         @GraphProperty(value = "ignore_empty_string", ignoreEmpty = true)
         public String ignoreEmptyString;
+        @GraphProperty(value = "null_on_empty_placeholder", emptyPlaceholder = "NA")
+        public String emptyPlaceholder;
         @GraphBooleanProperty("enabled")
         public Boolean enabled;
         @GraphArrayProperty("array")
