@@ -472,9 +472,18 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         LOGGER.info("Add AutomatedAnnotations...");
         for (final AutomatedAnnotation annotation : annotations) {
             final Node node = graph.addNodeFromModel(annotation);
-            if (annotation.geneIds != null)
-                for (String geneId : StringUtils.split(annotation.geneIds, ','))
-                    graph.addEdge(node, accessionNodeIdMap.get(geneId), ASSOCIATED_WITH_LABEL);
+            if (annotation.geneIds != null) {
+                for (String geneId : StringUtils.split(annotation.geneIds, ',')) {
+                    final Long geneNodeId = accessionNodeIdMap.get(geneId);
+                    if (geneNodeId != null)
+                        graph.addEdge(node, accessionNodeIdMap.get(geneId), ASSOCIATED_WITH_LABEL);
+                    else {
+                        LOGGER.warn(
+                                "Failed to add AutomatedAnnotation gene association as no gene with " + "accession '" +
+                                geneId + "' was found");
+                    }
+                }
+            }
             if (annotation.chemicalId != null) {
                 long chemicalNodeId = addChemicalIfNotExists(graph, annotation.chemicalId, annotation.chemicalName);
                 graph.addEdge(node, chemicalNodeId, ASSOCIATED_WITH_LABEL);
