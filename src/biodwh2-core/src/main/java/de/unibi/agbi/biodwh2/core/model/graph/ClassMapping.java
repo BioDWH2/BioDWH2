@@ -12,11 +12,14 @@ final class ClassMapping {
         final Field field;
         final String propertyName;
         final boolean ignoreEmpty;
+        final String emptyPlaceholder;
 
-        ClassMappingField(final Field field, final String propertyName, final boolean ignoreEmpty) {
+        ClassMappingField(final Field field, final String propertyName, final boolean ignoreEmpty,
+                          final String emptyPlaceholder) {
             this.field = field;
             this.propertyName = propertyName;
             this.ignoreEmpty = ignoreEmpty;
+            this.emptyPlaceholder = emptyPlaceholder != null ? emptyPlaceholder : "";
         }
     }
 
@@ -24,13 +27,15 @@ final class ClassMapping {
         final String arrayDelimiter;
         final String quotedArrayDelimiter;
         final boolean quotedArrayElements;
+        final String emptyPlaceholder;
 
         ClassMappingArrayField(final Field field, final String propertyName, final String arrayDelimiter,
-                               final boolean quotedArrayElements) {
-            super(field, propertyName, false);
+                               final boolean quotedArrayElements, final String emptyPlaceholder) {
+            super(field, propertyName, false, "");
             this.arrayDelimiter = arrayDelimiter;
             quotedArrayDelimiter = "\"" + arrayDelimiter + "\"";
             this.quotedArrayElements = quotedArrayElements;
+            this.emptyPlaceholder = emptyPlaceholder != null ? emptyPlaceholder : "";
         }
     }
 
@@ -38,7 +43,7 @@ final class ClassMapping {
         final String truthValue;
 
         ClassMappingBooleanField(final Field field, final String propertyName, final String truthValue) {
-            super(field, propertyName, false);
+            super(field, propertyName, false, "");
             this.truthValue = truthValue;
         }
     }
@@ -81,7 +86,8 @@ final class ClassMapping {
     private ClassMappingField loadClassMappingField(final Field field) {
         field.setAccessible(true);
         final GraphProperty annotation = field.getAnnotation(GraphProperty.class);
-        return new ClassMappingField(field, annotation.value(), annotation.ignoreEmpty());
+        return new ClassMappingField(field, annotation.value(), annotation.ignoreEmpty(),
+                                     annotation.emptyPlaceholder());
     }
 
     private ClassMappingArrayField[] loadClassMappingArrayFields(final Class<?> type) {
@@ -96,7 +102,7 @@ final class ClassMapping {
         field.setAccessible(true);
         final GraphArrayProperty annotation = field.getAnnotation(GraphArrayProperty.class);
         return new ClassMappingArrayField(field, annotation.value(), annotation.arrayDelimiter(),
-                                          annotation.quotedArrayElements());
+                                          annotation.quotedArrayElements(), annotation.emptyPlaceholder());
     }
 
     private ClassMappingBooleanField[] loadClassMappingBooleanFields(final Class<?> type) {
@@ -141,6 +147,8 @@ final class ClassMapping {
         if (value != null) {
             if (value instanceof String) {
                 final String stringValue = (String) value;
+                if (field.emptyPlaceholder.length() > 0 && stringValue.equals(field.emptyPlaceholder))
+                    return null;
                 if (!field.ignoreEmpty || stringValue.length() > 0)
                     return value;
             } else
@@ -166,8 +174,11 @@ final class ClassMapping {
                                         final ClassMappingArrayField field) throws IllegalAccessException {
         final Object value = field.field.get(obj);
         if (value != null) {
+            final String valueText = value.toString();
+            if (field.emptyPlaceholder.length() > 0 && valueText.equals(field.emptyPlaceholder))
+                return null;
             final String delimiter = field.quotedArrayElements ? field.quotedArrayDelimiter : field.arrayDelimiter;
-            final String[] elements = StringUtils.splitByWholeSeparator(value.toString(), delimiter);
+            final String[] elements = StringUtils.splitByWholeSeparator(valueText, delimiter);
             if (field.quotedArrayElements && elements.length > 0) {
                 elements[0] = StringUtils.stripStart(elements[0], "\"");
                 elements[elements.length - 1] = StringUtils.stripEnd(elements[elements.length - 1], "\"");

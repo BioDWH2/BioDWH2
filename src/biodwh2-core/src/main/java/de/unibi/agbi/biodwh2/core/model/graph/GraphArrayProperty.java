@@ -13,4 +13,6 @@ public @interface GraphArrayProperty {
     String arrayDelimiter() default ";";
 
     boolean quotedArrayElements() default false;
+
+    String emptyPlaceholder() default "";
 }

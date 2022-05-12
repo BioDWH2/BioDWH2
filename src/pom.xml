@@ -52,6 +52,7 @@
         <module>biodwh2-stitch</module>
         <module>biodwh2-adrecs</module>
         <module>biodwh2-intact</module>
+        <module>biodwh2-herb</module>
     </modules>
 
     <packaging>pom</packaging>
