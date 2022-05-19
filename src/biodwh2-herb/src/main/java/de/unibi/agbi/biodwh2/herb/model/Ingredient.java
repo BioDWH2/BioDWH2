@@ -54,6 +54,7 @@ public class Ingredient {
     @JsonProperty("DrugBank_id")
     @GraphProperty(value = "drugbank_id", emptyPlaceholder = "NA")
     public String drugBankId;
-    @JsonProperty("")
+    // There is a column without name in the file which should be ignored
+    @JsonProperty()
     public String empty;
 }
