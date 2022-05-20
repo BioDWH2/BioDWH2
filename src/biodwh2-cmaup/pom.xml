@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>biodwh2-driverdb</artifactId>
+    <artifactId>biodwh2-cmaup</artifactId>
     <version>0.1</version>
 
     <dependencies>

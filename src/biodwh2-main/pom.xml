@@ -253,6 +253,11 @@
             <version>0.1</version>
         </dependency>
         <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-cmaup</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
             <version>4.6.3</version>
