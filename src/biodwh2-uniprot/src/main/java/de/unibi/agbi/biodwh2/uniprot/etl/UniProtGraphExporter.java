@@ -25,6 +25,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
+import static java.util.stream.Collectors.groupingBy;
+
 public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(UniProtGraphExporter.class);
     private static final Map<String, Long> dbReferenceCitationNodeIdMap = new HashMap<>();
@@ -94,15 +96,32 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
             builder.withPropertyIfNotNull("sequence_precursor", entry.sequence.precursor);
             builder.withPropertyIfNotNull("sequence_fragment", entry.sequence.fragment);
         }
+        if (entry.proteinExistence != null)
+            builder.withPropertyIfNotNull("existence", entry.proteinExistence.type);
+        if (entry.keyword != null) {
+            builder.withProperty("keywords", entry.keyword.stream().map((k) -> k.value).toArray(String[]::new));
+            builder.withProperty("keyword_ids", entry.keyword.stream().map((k) -> k.id).toArray(String[]::new));
+            // TODO: evidence
+            for (final Keyword keyword : entry.keyword)
+                if (keyword.evidence != null && keyword.evidence.length() > 0)
+                    LOGGER.warn("Evidence for keyword '" + keyword.value + "' (" + keyword.id + ") not exported");
+        }
         final Node node = builder.build();
+        if (entry.gene != null) {
+            for (final Gene gene : entry.gene) {
+                // TODO
+            }
+        }
+        if (entry.geneLocation != null) {
+            for (final GeneLocation location : entry.geneLocation) {
+                // TODO: in swiss-prot human only type is ever set and always "mitochondrion"
+                // LOGGER.info(location.type + ", " + location.evidence + ", " + location.name);
+            }
+        }
         // TODO: Protein entry.protein
-        // TODO: List<Gene> entry.gene
         // TODO: List<Organism> entry.organismHost
-        // TODO: List<GeneLocation> entry.geneLocation
         // TODO: List<Comment> entry.comment
         // TODO: List<DbReference> entry.dbReference
-        // TODO: ProteinExistence entry.proteinExistence
-        // TODO: List<Keyword> entry.keyword
         // TODO: List<Feature> entry.feature
         // TODO: List<Evidence> entry.evidence
         graph.addEdge(node, getOrCreateOrganism(graph, entry.organism), "HAS_SOURCE");
@@ -124,17 +143,17 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
         }
         // TODO: evidence
         final NodeBuilder builder = graph.buildNode().withLabel("Organism");
-        for (final OrganismName name : organism.name) {
-            // TODO: duplicate types
-            builder.withProperty(name.type + "_name", name.value);
-        }
+        Map<String, List<OrganismName>> namesPerType = organism.name.stream().collect(groupingBy((o) -> o.type));
+        for (final String nameType : namesPerType.keySet())
+            builder.withProperty(nameType + "_names", namesPerType.get(nameType).stream().map((n) -> n.value)
+                                                                  .toArray(String[]::new));
         ncbiId.ifPresent(r -> builder.withProperty("id", r.id));
-        for (final DbReference reference : organism.dbReference) {
-            // TODO: evidence, molecule, property
-            // TODO: add non ncbi ids
-        }
         if (organism.lineage != null && organism.lineage.taxon != null && organism.lineage.taxon.size() > 0)
             builder.withProperty("lineage", organism.lineage.taxon.toArray(new String[0]));
+        // TODO: evidence, molecule, property
+        final String[] dbReferences = organism.dbReference != null ? organism.dbReference.stream().map(
+                (r) -> r.type + ':' + r.id).toArray(String[]::new) : new String[0];
+        builder.withProperty("db_references", dbReferences);
         return builder.build().getId();
     }
 
@@ -142,6 +161,7 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
      * unpublished observations, patent, online journal article, thesis, book, journal article, submission
      */
     private long getOrCreateCitation(final Graph graph, final Citation citation) {
+        // TODO: evidence, molecule, property
         final String[] dbReferences = citation.dbReference != null ? citation.dbReference.stream().map(
                 (r) -> r.type + ':' + r.id).toArray(String[]::new) : new String[0];
         for (final String reference : dbReferences)
