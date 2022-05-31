@@ -13,6 +13,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.uniprot.UniProtDataSource;
 import de.unibi.agbi.biodwh2.uniprot.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -24,6 +26,9 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UniProtGraphExporter.class);
+    private static final Map<String, Long> dbReferenceCitationNodeIdMap = new HashMap<>();
+
     public UniProtGraphExporter(final UniProtDataSource dataSource) {
         super(dataSource);
     }
@@ -35,6 +40,7 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
+        dbReferenceCitationNodeIdMap.clear();
         graph.addIndex(IndexDescription.forNode("Organism", "id", IndexDescription.Type.UNIQUE));
         final String filePath = dataSource.resolveSourceFilePath(workspace, UniProtUpdater.HUMAN_SPROT_FILE_NAME);
         final File zipFile = new File(filePath);
@@ -76,17 +82,35 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
         builder.withPropertyIfNotNull("created", entry.created);
         builder.withPropertyIfNotNull("modified", entry.modified);
         builder.withPropertyIfNotNull("version", entry.version);
-        builder.withPropertyIfNotNull("names", entry.name);
-        builder.withPropertyIfNotNull("accessions", entry.accession);
-        // TODO: protein, gene
+        builder.withProperty("names", entry.name.toArray(new String[0]));
+        builder.withProperty("accessions", entry.accession.toArray(new String[0]));
+        if (entry.sequence != null) {
+            builder.withPropertyIfNotNull("sequence", entry.sequence.value);
+            builder.withPropertyIfNotNull("sequence_length", entry.sequence.length);
+            builder.withPropertyIfNotNull("sequence_mass", entry.sequence.mass);
+            builder.withPropertyIfNotNull("sequence_checksum", entry.sequence.checksum);
+            builder.withPropertyIfNotNull("sequence_modified", entry.sequence.modified);
+            builder.withPropertyIfNotNull("sequence_version", entry.sequence.version);
+            builder.withPropertyIfNotNull("sequence_precursor", entry.sequence.precursor);
+            builder.withPropertyIfNotNull("sequence_fragment", entry.sequence.fragment);
+        }
         final Node node = builder.build();
+        // TODO: Protein entry.protein
+        // TODO: List<Gene> entry.gene
+        // TODO: List<Organism> entry.organismHost
+        // TODO: List<GeneLocation> entry.geneLocation
+        // TODO: List<Comment> entry.comment
+        // TODO: List<DbReference> entry.dbReference
+        // TODO: ProteinExistence entry.proteinExistence
+        // TODO: List<Keyword> entry.keyword
+        // TODO: List<Feature> entry.feature
+        // TODO: List<Evidence> entry.evidence
         graph.addEdge(node, getOrCreateOrganism(graph, entry.organism), "HAS_SOURCE");
-        final Map<String, Long> referenceKeyCitationNodeIdMap = new HashMap<>();
         for (final Reference reference : entry.reference) {
             final long citationNodeId = getOrCreateCitation(graph, reference.citation);
-            referenceKeyCitationNodeIdMap.put(reference.key, citationNodeId);
-            // TODO: scope, source
-            graph.addEdge(node, citationNodeId, "REFERENCES");
+            final String[] scopes = reference.scope != null ? reference.scope.toArray(new String[0]) : new String[0];
+            // TODO: reference.source
+            graph.addEdge(node, citationNodeId, "REFERENCES", "key", Integer.parseInt(reference.key), "scopes", scopes);
         }
     }
 
@@ -118,7 +142,11 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
      * unpublished observations, patent, online journal article, thesis, book, journal article, submission
      */
     private long getOrCreateCitation(final Graph graph, final Citation citation) {
-        // TODO: dbreference
+        final String[] dbReferences = citation.dbReference != null ? citation.dbReference.stream().map(
+                (r) -> r.type + ':' + r.id).toArray(String[]::new) : new String[0];
+        for (final String reference : dbReferences)
+            if (dbReferenceCitationNodeIdMap.containsKey(reference))
+                return dbReferenceCitationNodeIdMap.get(reference);
         final NodeBuilder builder = graph.buildNode().withLabel("Citation");
         builder.withPropertyIfNotNull("title", citation.title);
         builder.withPropertyIfNotNull("type", citation.type);
@@ -131,14 +159,29 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
         builder.withPropertyIfNotNull("locator", citation.locator);
         builder.withPropertyIfNotNull("country", citation.country);
         builder.withPropertyIfNotNull("volume", citation.volume);
-        builder.withPropertyIfNotNull("pages", citation.first + '-' + citation.last);
+        if (citation.first != null && citation.last != null)
+            builder.withProperty("pages", citation.first + '-' + citation.last);
+        else if (citation.first != null)
+            builder.withProperty("pages", citation.first);
+        else if (citation.last != null)
+            builder.withProperty("pages", citation.last);
         final String[] authors = nameListToArray(citation.authorList);
         if (authors.length > 0)
             builder.withPropertyIfNotNull("authors", authors);
         final String[] editors = nameListToArray(citation.editorList);
         if (editors.length > 0)
             builder.withPropertyIfNotNull("editors", editors);
-        return builder.build().getId();
+        builder.withProperty("db_references", dbReferences);
+        final long nodeId = builder.build().getId();
+        for (final String reference : dbReferences) {
+            final Long existingNodeId = dbReferenceCitationNodeIdMap.get(reference);
+            if (existingNodeId != null && existingNodeId != nodeId) {
+                LOGGER.warn("DBReference '" + reference + "' already exists for node id " + existingNodeId +
+                            ", now found in node id " + nodeId);
+            }
+            dbReferenceCitationNodeIdMap.put(reference, nodeId);
+        }
+        return nodeId;
     }
 
     private String[] nameListToArray(final NameList list) {

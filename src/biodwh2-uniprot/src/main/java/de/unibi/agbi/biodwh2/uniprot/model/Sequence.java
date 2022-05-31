@@ -7,15 +7,15 @@ public class Sequence {
     @JacksonXmlText
     public String value;
     @JacksonXmlProperty(isAttribute = true)
-    public int length;
+    public Integer length;
     @JacksonXmlProperty(isAttribute = true)
-    public int mass;
+    public Integer mass;
     @JacksonXmlProperty(isAttribute = true)
     public String checksum;
     @JacksonXmlProperty(isAttribute = true)
     public String modified;
     @JacksonXmlProperty(isAttribute = true)
-    public int version;
+    public Integer version;
     @JacksonXmlProperty(isAttribute = true)
     public Boolean precursor;
     @JacksonXmlProperty(isAttribute = true)
