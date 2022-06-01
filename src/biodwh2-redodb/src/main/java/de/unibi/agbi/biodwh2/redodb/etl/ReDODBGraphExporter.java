@@ -78,7 +78,7 @@ public final class ReDODBGraphExporter extends GraphExporter<ReDODBDataSource> {
         final String[] geneSymbols = StringUtils.split(entry.targets, ';');
         for (final String geneSymbol : geneSymbols)
             if (StringUtils.isNotEmpty(geneSymbol.trim()))
-            graph.addEdge(node, findOrCreateGene(graph, geneSymbol.trim()), "TARGETS");
+                graph.addEdge(node, findOrCreateGene(graph, geneSymbol.trim()), "TARGETS");
     }
 
     private Node findOrCreateGene(final Graph graph, final String geneSymbol) {
