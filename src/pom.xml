@@ -54,6 +54,7 @@
         <module>biodwh2-intact</module>
         <module>biodwh2-herb</module>
         <module>biodwh2-cmaup</module>
+        <module>biodwh2-tissues</module>
     </modules>
 
     <packaging>pom</packaging>
