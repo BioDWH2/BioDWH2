@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.core.io.mvstore;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 
@@ -65,6 +66,7 @@ public final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     }
 
     V unsafeGet(final Object key) {
+        //noinspection SuspiciousMethodCalls
         return mvMap.get(key);
     }
 
@@ -79,6 +81,26 @@ public final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     }
 
     private V clone(final V value) {
+        if (value == null || ClassUtils.isPrimitiveOrWrapper(value.getClass()) || value instanceof CharSequence)
+            return value;
+        if (value instanceof CloneableModel) {
+            //noinspection unchecked
+            return ((CloneableModel<V>) value).cloneModel();
+        }
+        if (value instanceof String[]) {
+            //noinspection unchecked
+            return (V) ((String[]) value).clone();
+        }
+        if (value instanceof boolean[])
+            return (V) ((boolean[]) value).clone();
+        if (value instanceof int[])
+            return (V) ((int[]) value).clone();
+        if (value instanceof long[])
+            return (V) ((long[]) value).clone();
+        if (value instanceof float[])
+            return (V) ((float[]) value).clone();
+        if (value instanceof double[])
+            return (V) ((double[]) value).clone();
         try {
             final ByteArrayOutputStream output = new ByteArrayOutputStream();
             new ObjectOutputStream(output).writeObject(value);
@@ -106,6 +128,7 @@ public final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
     }
 
     void unsafeRemove(final Object key) {
+        //noinspection SuspiciousMethodCalls
         mvMap.remove(key);
     }
 

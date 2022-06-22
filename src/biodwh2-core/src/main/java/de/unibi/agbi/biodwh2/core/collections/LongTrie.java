@@ -1,18 +1,21 @@
 package de.unibi.agbi.biodwh2.core.collections;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import de.unibi.agbi.biodwh2.core.io.mvstore.CloneableModel;
+
+import java.io.*;
 import java.util.*;
 
-public class LongTrie extends AbstractCollection<Long> implements Serializable {
+public class LongTrie extends AbstractCollection<Long> implements Serializable, CloneableModel<LongTrie> {
     private static final long serialVersionUID = -8002512841290306308L;
 
     private Node root;
 
     public LongTrie() {
         root = new Node();
+    }
+
+    private LongTrie(final Node root) {
+        this.root = root;
     }
 
     @Override
@@ -170,17 +173,43 @@ public class LongTrie extends AbstractCollection<Long> implements Serializable {
     }
 
     private void writeObject(final ObjectOutputStream out) throws IOException {
-        root.writeObject(out);
+        write(out);
+    }
+
+    public void write(final OutputStream out) throws IOException {
+        root.write(out);
     }
 
     private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
-        root = new Node();
-        root.readObject(in);
+        read(in);
     }
 
-    private static class Node {
-        public int digit;
-        public Node[] children = new Node[10];
+    public void read(final InputStream in) throws IOException {
+        final Stack<Node> stack = new Stack<>();
+        root = new Node();
+        stack.add(root);
+        root.isLeaf = in.read() == 1;
+        while (!stack.isEmpty()) {
+            int digit = in.read();
+            if (digit == 255)
+                stack.pop();
+            else {
+                final Node child = new Node(digit);
+                child.isLeaf = in.read() == 1;
+                stack.lastElement().children[digit] = child;
+                stack.push(child);
+            }
+        }
+    }
+
+    @Override
+    public LongTrie cloneModel() {
+        return new LongTrie(root.cloneModel());
+    }
+
+    private static class Node implements CloneableModel<Node> {
+        private int digit;
+        private final Node[] children = new Node[10];
         private boolean isLeaf;
 
         public Node() {
@@ -190,24 +219,24 @@ public class LongTrie extends AbstractCollection<Long> implements Serializable {
             this.digit = digit;
         }
 
-        private void writeObject(final ObjectOutputStream out) throws IOException {
-            out.writeBoolean(isLeaf);
+        private void write(final OutputStream out) throws IOException {
+            out.write(isLeaf ? 1 : 0);
             for (int i = 0; i < children.length; i++)
                 if (children[i] != null) {
-                    out.writeByte(i);
-                    children[i].writeObject(out);
+                    out.write(i);
+                    children[i].write(out);
                 }
-            out.writeByte(255);
+            out.write(255);
         }
 
-        private void readObject(final ObjectInputStream in) throws IOException {
-            isLeaf = in.readBoolean();
-            children = new Node[10];
-            int digit;
-            while ((digit = in.readUnsignedByte()) != 255) {
-                children[digit] = new Node(digit);
-                children[digit].readObject(in);
-            }
+        @Override
+        public Node cloneModel() {
+            final Node clone = new Node(digit);
+            clone.isLeaf = isLeaf;
+            for (int i = 0; i < children.length; i++)
+                if (children[i] != null)
+                    clone.children[i] = children[i].cloneModel();
+            return clone;
         }
     }
 }

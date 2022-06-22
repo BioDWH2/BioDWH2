@@ -128,6 +128,7 @@ class LongTrieTest {
     void serializableTest() throws IOException, ClassNotFoundException {
         final LongTrie trie = new LongTrie();
         trie.add(321L);
+        trie.add(1321L);
         trie.add(654321L);
         trie.add(0L);
         trie.add(2390548L);
@@ -137,5 +138,20 @@ class LongTrieTest {
         final ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(output.toByteArray()));
         final LongTrie loadedTrie = (LongTrie) ois.readObject();
         assertArrayEquals(trie.values().stream().sorted().toArray(), loadedTrie.values().stream().sorted().toArray());
+    }
+
+    @Test
+    void cloneModelTest() {
+        final LongTrie trie = new LongTrie();
+        trie.add(321L);
+        trie.add(654321L);
+        trie.add(0L);
+        trie.add(2390548L);
+        trie.add(2304903533523L);
+        final LongTrie clone = trie.cloneModel();
+        assertArrayEquals(trie.values().stream().sorted().toArray(), clone.values().stream().sorted().toArray());
+        trie.add(10L);
+        assertTrue(trie.contains(10L));
+        assertFalse(clone.contains(10L));
     }
 }
