@@ -30,17 +30,28 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.addIndex(IndexDescription.forNode("Species", "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Disease", "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Ontology", "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("OntologyTerm", "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("GoProcess", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Variant", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Reference", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("ClinicalTrial", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("ClinicalTrial", "nct_id", false, IndexDescription.Type.UNIQUE));
         // Ignored currently empty files:
         // cellular_location.tsv, cellular_location_refs.tsv, iuphar2discoverx.tsv, do_disease_isa.tsv, discoverx.tsv,
-        // drug2disease.tsv, further_reading.tsv, hot_topics2object.tsv, hot_topics2family.tsv, primary_regulator.tsv,
-        // ligand2meshpharmacology.tsv, primary_regulator_refs.tsv, ligand_physchem_public.tsv
+        // drug2disease.tsv, further_reading.tsv, primary_regulator.tsv, ligand2meshpharmacology.tsv,
+        // primary_regulator_refs.tsv, ligand_physchem_public.tsv
         // Ignored other files:
-        // hottopic_refs.tsv, hot_topics.tsv, hot_topics_refs.tsv, object_vectors.tsv
+        // hottopic_refs.tsv, hot_topics.tsv, hot_topics_refs.tsv, hot_topics2object.tsv, hot_topics2family.tsv,
+        // object_vectors.tsv, version.tsv, contributor.tsv, contributor_copy.tsv, contributor_link.tsv,
+        // contributor2committee.tsv, contributor2intro.tsv, contributor2family.tsv, contributor2object.tsv,
+        // committee.tsv, subcommittee.tsv, deleted_family.tsv
         createNodesFromTsvFile(workspace, graph, Species.class, "species.tsv");
+        createNodesFromTsvFile(workspace, graph, Disease.class, "disease.tsv");
+        createNodesFromTsvFile(workspace, graph, Ontology.class, "ontology.tsv");
+        createNodesFromTsvFile(workspace, graph, Database.class, "database.tsv");
+        createNodesFromTsvFile(workspace, graph, GoProcess.class, "go_process.tsv");
         createNodesFromTsvFile(workspace, graph, Reference.class, "reference.tsv");
         createNodesFromTsvFile(workspace, graph, ClinicalTrial.class, "clinical_trial.tsv");
         for (final ClinicalTrialRef entry : parseTsvFile(workspace, ClinicalTrialRef.class,
@@ -49,6 +60,14 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
             final Node referenceNode = graph.findNode("Reference", "id", entry.referenceId);
             graph.addEdge(trialNode, referenceNode, "REFERENCES");
         }
+        for (final OntologyTerm entry : parseTsvFile(workspace, OntologyTerm.class, "ontology_term.tsv")) {
+            final Node node = graph.addNodeFromModel(entry);
+            graph.addEdge(node, graph.findNode("Ontology", "id", entry.ontologyId), "BELONGS_TO");
+        }
+        for (final Objects entry : parseTsvFile(workspace, Objects.class, "object.tsv")) {
+            final Node node = graph.addNodeFromModel(entry);
+            // TODO: citeId
+        }
         for (final Variant entry : parseTsvFile(workspace, Variant.class, "variant.tsv")) {
             final Node node = graph.addNodeFromModel(entry);
             if (entry.speciesId != null) {
@@ -56,6 +75,16 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
                 graph.addEdge(node, speciesNode, "BELONGS_TO");
             }
             // TODO: objectId
+        }
+        for (final VariantRef entry : parseTsvFile(workspace, VariantRef.class, "variant_refs.tsv")) {
+            final Node variantNode = graph.findNode("Variant", "id", entry.variantId);
+            final Node referenceNode = graph.findNode("Reference", "id", entry.referenceId);
+            graph.addEdge(variantNode, referenceNode, "REFERENCES");
+        }
+        for (final GoProcessRel entry : parseTsvFile(workspace, GoProcessRel.class, "go_process_rel.tsv")) {
+            final Node parentNode = graph.findNode("GoProcess", "id", entry.parentId);
+            final Node childNode = graph.findNode("GoProcess", "id", entry.childId);
+            graph.addEdge(parentNode, childNode, "HAS_CHILD");
         }
         // TODO: accessory_protein.tsv
         // TODO: allele.tsv
@@ -95,10 +124,8 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: co_celltype.tsv
         // TODO: co_celltype_isa.tsv
         // TODO: co_celltype_relationship.tsv
-        // TODO: database.tsv
         // TODO: database_link.tsv
         // TODO: deleted_family.tsv
-        // TODO: disease.tsv
         // TODO: disease2category.tsv
         // TODO: disease2synonym.tsv
         // TODO: disease_category.tsv
@@ -116,8 +143,6 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: family.tsv
         // TODO: functional_assay.tsv
         // TODO: functional_assay_refs.tsv
-        // TODO: go_process.tsv
-        // TODO: go_process_rel.tsv
         // TODO: gpcr.tsv
         // TODO: grac_family_text.tsv
         // TODO: grac_functional_characteristics.tsv
@@ -167,11 +192,8 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: mutation.tsv
         // TODO: mutation_refs.tsv
         // TODO: nhr.tsv
-        // TODO: object.tsv
         // TODO: object2go_process.tsv
         // TODO: object2reaction.tsv
-        // TODO: ontology.tsv
-        // TODO: ontology_term.tsv
         // TODO: other_ic.tsv
         // TODO: other_protein.tsv
         // TODO: pathophysiology.tsv
@@ -224,7 +246,6 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: transduction_refs.tsv
         // TODO: transporter.tsv
         // TODO: variant2database_link.tsv
-        // TODO: variant_refs.tsv
         // TODO: version.tsv
         // TODO: vgic.tsv
         // TODO: voltage_dependence.tsv
