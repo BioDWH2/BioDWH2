@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>biodwh2-drugcentral</artifactId>
+    <artifactId>biodwh2-guidetopharmacology</artifactId>
     <version>0.1</version>
 
     <dependencies>

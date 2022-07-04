@@ -55,6 +55,7 @@
         <module>biodwh2-herb</module>
         <module>biodwh2-cmaup</module>
         <module>biodwh2-tissues</module>
+        <module>biodwh2-guidetopharmacology</module>
     </modules>
 
     <packaging>pom</packaging>
