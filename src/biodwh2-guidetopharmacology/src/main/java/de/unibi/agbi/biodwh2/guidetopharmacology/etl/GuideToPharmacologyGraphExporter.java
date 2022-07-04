@@ -9,9 +9,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.guidetopharmacology.GuideToPharmacologyDataSource;
-import de.unibi.agbi.biodwh2.guidetopharmacology.model.ClinicalTrial;
-import de.unibi.agbi.biodwh2.guidetopharmacology.model.ClinicalTrialRef;
-import de.unibi.agbi.biodwh2.guidetopharmacology.model.Reference;
+import de.unibi.agbi.biodwh2.guidetopharmacology.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +29,8 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
+        graph.addIndex(IndexDescription.forNode("Species", "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Variant", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Reference", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("ClinicalTrial", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("ClinicalTrial", "nct_id", false, IndexDescription.Type.UNIQUE));
@@ -40,6 +40,7 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // ligand2meshpharmacology.tsv, primary_regulator_refs.tsv, ligand_physchem_public.tsv
         // Ignored other files:
         // hottopic_refs.tsv, hot_topics.tsv, hot_topics_refs.tsv, object_vectors.tsv
+        createNodesFromTsvFile(workspace, graph, Species.class, "species.tsv");
         createNodesFromTsvFile(workspace, graph, Reference.class, "reference.tsv");
         createNodesFromTsvFile(workspace, graph, ClinicalTrial.class, "clinical_trial.tsv");
         for (final ClinicalTrialRef entry : parseTsvFile(workspace, ClinicalTrialRef.class,
@@ -47,6 +48,14 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
             final Node trialNode = graph.findNode("ClinicalTrial", "id", entry.clinicalTrialId);
             final Node referenceNode = graph.findNode("Reference", "id", entry.referenceId);
             graph.addEdge(trialNode, referenceNode, "REFERENCES");
+        }
+        for (final Variant entry : parseTsvFile(workspace, Variant.class, "variant.tsv")) {
+            final Node node = graph.addNodeFromModel(entry);
+            if (entry.speciesId != null) {
+                final Node speciesNode = graph.findNode("Species", "id", entry.speciesId);
+                graph.addEdge(node, speciesNode, "BELONGS_TO");
+            }
+            // TODO: objectId
         }
         // TODO: accessory_protein.tsv
         // TODO: allele.tsv
@@ -193,7 +202,6 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: screen_refs.tsv
         // TODO: selectivity.tsv
         // TODO: selectivity_refs.tsv
-        // TODO: species.tsv
         // TODO: specific_reaction.tsv
         // TODO: specific_reaction_refs.tsv
         // TODO: structural_info.tsv
@@ -215,7 +223,6 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: transduction.tsv
         // TODO: transduction_refs.tsv
         // TODO: transporter.tsv
-        // TODO: variant.tsv
         // TODO: variant2database_link.tsv
         // TODO: variant_refs.tsv
         // TODO: version.tsv
