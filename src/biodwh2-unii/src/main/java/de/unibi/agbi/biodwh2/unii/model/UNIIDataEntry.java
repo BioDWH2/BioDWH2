@@ -2,12 +2,12 @@ package de.unibi.agbi.biodwh2.unii.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @JsonPropertyOrder({
-        "UNII", "PT", "RN", "EC", "NCIT", "RXCUI", "PUBCHEM", "ITIS", "NCBI", "PLANTS", "GRIN", "MPNS", "INN_ID", "MF",
-        "INCHIKEY", "SMILES", "INGREDIENT_TYPE"
+        "UNII", "PT", "RN", "EC", "NCIT", "RXCUI", "PUBCHEM", "ITIS", "NCBI", "PLANTS", "GRIN", "MPNS", "INN_ID",
+        "USAN_ID", "MF", "INCHIKEY", "SMILES", "INGREDIENT_TYPE", "UUID", "SUBSTANCE_TYPE"
 })
 @GraphNodeLabel("UNII")
 public class UNIIDataEntry {
@@ -83,6 +83,9 @@ public class UNIIDataEntry {
     @JsonProperty("INN_ID")
     @GraphProperty("inn_id")
     public String innId;
+    @JsonProperty("USAN_ID")
+    @GraphProperty("usan_id")
+    public String usanId;
     /*
      * Molecular Formula - total atoms represented as a molecular structure in a UNII description
      */
@@ -98,4 +101,10 @@ public class UNIIDataEntry {
     @JsonProperty("INGREDIENT_TYPE")
     @GraphProperty("ingredient_type")
     public String ingredientType;
+    @JsonProperty("UUID")
+    @GraphProperty("uuid")
+    public String uuid;
+    @JsonProperty("SUBSTANCE_TYPE")
+    @GraphProperty("substance_type")
+    public String substanceType;
 }
