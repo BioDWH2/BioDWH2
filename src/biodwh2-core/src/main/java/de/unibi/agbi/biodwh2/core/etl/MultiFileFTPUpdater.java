@@ -35,7 +35,7 @@ public abstract class MultiFileFTPUpdater<D extends DataSource> extends Updater<
         try {
             isConnected = ftpClient.connect(getFTPAddress());
         } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
+            throw new UpdaterConnectionException(getFTPAddress(), e);
         }
         if (!isConnected)
             throw new UpdaterConnectionException();
