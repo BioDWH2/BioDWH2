@@ -35,6 +35,7 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         graph.addIndex(IndexDescription.forNode("INN", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Species", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Disease", "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Object", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Ontology", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("OntologyTerm", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("GoProcess", "id", false, IndexDescription.Type.UNIQUE));
@@ -43,6 +44,9 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         graph.addIndex(IndexDescription.forNode("Reference", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("ClinicalTrial", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("ClinicalTrial", "nct_id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Interaction", "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("AntibioticDB", "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Family", "id", false, IndexDescription.Type.UNIQUE));
         // Ignored currently empty files:
         // cellular_location.tsv, cellular_location_refs.tsv, iuphar2discoverx.tsv, do_disease_isa.tsv, discoverx.tsv,
         // drug2disease.tsv, further_reading.tsv, primary_regulator.tsv, ligand2meshpharmacology.tsv,
@@ -51,7 +55,9 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // hottopic_refs.tsv, hot_topics.tsv, hot_topics_refs.tsv, hot_topics2object.tsv, hot_topics2family.tsv,
         // object_vectors.tsv, version.tsv, contributor.tsv, contributor_copy.tsv, contributor_link.tsv,
         // contributor2committee.tsv, contributor2intro.tsv, contributor2family.tsv, contributor2object.tsv,
-        // committee.tsv, subcommittee.tsv, deleted_family.tsv
+        // committee.tsv, subcommittee.tsv, deleted_family.tsv, ligand_cluster.tsv, ligand_cluster_new.tsv,
+        // peptide_ligand_cluster.tsv, peptide_ligand_sequence_cluster.tsv, iuphar2tocris.tsv, tocris.tsv,
+        // tocris_update.tsv
         createNodesFromTsvFile(workspace, graph, Species.class, "species.tsv");
         createNodesFromTsvFile(workspace, graph, INN.class, "inn.tsv");
         exportDiseases(workspace, graph);
@@ -70,6 +76,10 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         for (final OntologyTerm entry : parseTsvFile(workspace, OntologyTerm.class, "ontology_term.tsv")) {
             final Node node = graph.addNodeFromModel(entry);
             graph.addEdge(node, graph.findNode("Ontology", "id", entry.ontologyId), "BELONGS_TO");
+        }
+        for (final Family entry : parseTsvFile(workspace, Family.class, "family.tsv")) {
+            final Node node = graph.addNodeFromModel(entry);
+            // TODO: citeId
         }
         for (final Objects entry : parseTsvFile(workspace, Objects.class, "object.tsv")) {
             final Node node = graph.addNodeFromModel(entry);
@@ -93,12 +103,13 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
             final Node childNode = graph.findNode("GoProcess", "id", entry.childId);
             graph.addEdge(parentNode, childNode, "HAS_CHILD");
         }
+        exportInteractions(workspace, graph);
+        exportAntibioticDB(workspace, graph);
         // TODO: accessory_protein.tsv
         // TODO: allele.tsv
         // TODO: altered_expression.tsv
         // TODO: altered_expression_refs.tsv
         // TODO: analogue_cluster.tsv
-        // TODO: antibiotic_db.tsv
         // TODO: associated_protein.tsv
         // TODO: associated_protein_refs.tsv
         // TODO: binding_partner.tsv
@@ -111,18 +122,10 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: cite.tsv
         // TODO: cofactor.tsv
         // TODO: cofactor_refs.tsv
-        // TODO: committee.tsv
         // TODO: conductance.tsv
         // TODO: conductance_refs.tsv
         // TODO: conductance_states.tsv
         // TODO: conductance_states_refs.tsv
-        // TODO: contributor.tsv
-        // TODO: contributor2committee.tsv
-        // TODO: contributor2family.tsv
-        // TODO: contributor2intro.tsv
-        // TODO: contributor2object.tsv
-        // TODO: contributor_copy.tsv
-        // TODO: contributor_link.tsv
         // TODO: coregulator.tsv
         // TODO: coregulator_gene.tsv
         // TODO: coregulator_refs.tsv
@@ -132,7 +135,6 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: co_celltype_isa.tsv
         // TODO: co_celltype_relationship.tsv
         // TODO: database_link.tsv
-        // TODO: deleted_family.tsv
         // TODO: disease2synonym.tsv
         // TODO: disease_database_link.tsv
         // TODO: disease_synonym2database_link.tsv
@@ -145,7 +147,6 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: expression_level.tsv
         // TODO: expression_pathophysiology.tsv
         // TODO: expression_pathophysiology_refs.tsv
-        // TODO: family.tsv
         // TODO: functional_assay.tsv
         // TODO: functional_assay_refs.tsv
         // TODO: gpcr.tsv
@@ -168,12 +169,9 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: immuno_disease2ligand_refs.tsv
         // TODO: immuno_disease2object.tsv
         // TODO: immuno_disease2object_refs.tsv
-        // TODO: interaction.tsv
         // TODO: interaction_affinity_refs.tsv
         // TODO: introduction.tsv
-        // TODO: iuphar2tocris.tsv
         // TODO: lgic.tsv
-        // TODO: ligand2adb.tsv
         // TODO: ligand2clinical_trial.tsv
         // TODO: ligand2clinical_trial_refs.tsv
         // TODO: ligand2family.tsv
@@ -182,8 +180,6 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: ligand2synonym_refs.tsv
         // TODO: ligand2tcp.tsv
         // TODO: ligand2tcp_refs.tsv
-        // TODO: ligand_cluster.tsv
-        // TODO: ligand_cluster_new.tsv
         // TODO: ligand_database_link.tsv
         // TODO: list_ligand.tsv
         // TODO: malaria_stage.tsv
@@ -200,9 +196,6 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: pathophysiology_refs.tsv
         // TODO: pdb_structure.tsv
         // TODO: pdb_structure_refs.tsv
-        // TODO: peptide.tsv
-        // TODO: peptide_ligand_cluster.tsv
-        // TODO: peptide_ligand_sequence_cluster.tsv
         // TODO: physiological_function.tsv
         // TODO: physiological_function_refs.tsv
         // TODO: precursor.tsv
@@ -227,7 +220,6 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: specific_reaction_refs.tsv
         // TODO: structural_info.tsv
         // TODO: structural_info_refs.tsv
-        // TODO: subcommittee.tsv
         // TODO: substrate.tsv
         // TODO: substrate_refs.tsv
         // TODO: synonym.tsv
@@ -239,13 +231,10 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: tissue.tsv
         // TODO: tissue_distribution.tsv
         // TODO: tissue_distribution_refs.tsv
-        // TODO: tocris.tsv
-        // TODO: tocris_update.tsv
         // TODO: transduction.tsv
         // TODO: transduction_refs.tsv
         // TODO: transporter.tsv
         // TODO: variant2database_link.tsv
-        // TODO: version.tsv
         // TODO: vgic.tsv
         // TODO: voltage_dependence.tsv
         // TODO: voltage_dep_activation_refs.tsv
@@ -302,12 +291,18 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         for (final LigandPhysChem entry : parseTsvFile(workspace, LigandPhysChem.class, "ligand_physchem.tsv")) {
             ligandPhysChems.put(entry.ligandId, entry);
         }
+        final Map<Long, Peptide> peptides = new HashMap<>();
+        for (final Peptide entry : parseTsvFile(workspace, Peptide.class, "peptide.tsv")) {
+            peptides.put(entry.ligandId, entry);
+        }
         for (final Ligand entry : parseTsvFile(workspace, Ligand.class, "ligand.tsv")) {
             final NodeBuilder builder = graph.buildNode().withLabel("Ligand").withModel(entry);
             if (ligandStructures.containsKey(entry.ligandId))
                 builder.withModel(ligandStructures.get(entry.ligandId));
             if (ligandPhysChems.containsKey(entry.ligandId))
                 builder.withModel(ligandPhysChems.get(entry.ligandId));
+            if (peptides.containsKey(entry.ligandId))
+                builder.withModel(peptides.get(entry.ligandId));
             builder.build();
         }
         for (final ProDrug entry : parseTsvFile(workspace, ProDrug.class, "prodrug.tsv")) {
@@ -319,6 +314,28 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
             final Node ligandNode = graph.findNode("Ligand", "id", entry.ligandId);
             final Node innNode = graph.findNode("INN", "id", entry.innNumber);
             graph.addEdge(ligandNode, innNode, "HAS_INN");
+        }
+    }
+
+    private void exportInteractions(final Workspace workspace, final Graph graph) {
+        for (final Interaction entry : parseTsvFile(workspace, Interaction.class, "interaction.tsv")) {
+            final Node node = graph.addNodeFromModel(entry);
+            if (entry.ligandId != null)
+                graph.addEdge(graph.findNode("Ligand", "id", entry.ligandId), node, "ASSOCIATED_WITH");
+            if (entry.targetLigandId != null)
+                graph.addEdge(graph.findNode("Ligand", "id", entry.targetLigandId), node, "ASSOCIATED_WITH");
+            if (entry.objectId != null)
+                graph.addEdge(graph.findNode("Object", "id", entry.objectId), node, "ASSOCIATED_WITH");
+            if (entry.speciesId != null)
+                graph.addEdge(node, graph.findNode("Species", "id", entry.speciesId), "BELONGS_TO");
+        }
+    }
+
+    private void exportAntibioticDB(final Workspace workspace, final Graph graph) {
+        createNodesFromTsvFile(workspace, graph, AntibioticDB.class, "antibiotic_db.tsv");
+        for (final Ligand2ADB entry : parseTsvFile(workspace, Ligand2ADB.class, "ligand2adb.tsv")) {
+            graph.addEdge(graph.findNode("Ligand", "id", entry.ligandId),
+                          graph.findNode("AntibioticDB", "id", entry.adbId), "HAS_XREF");
         }
     }
 }
