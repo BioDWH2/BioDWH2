@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharmacologyDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GuideToPharmacologyGraphExporter.class);
@@ -48,7 +50,7 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // contributor2committee.tsv, contributor2intro.tsv, contributor2family.tsv, contributor2object.tsv,
         // committee.tsv, subcommittee.tsv, deleted_family.tsv
         createNodesFromTsvFile(workspace, graph, Species.class, "species.tsv");
-        createNodesFromTsvFile(workspace, graph, Disease.class, "disease.tsv");
+        exportDiseases(workspace, graph);
         createNodesFromTsvFile(workspace, graph, Ontology.class, "ontology.tsv");
         createNodesFromTsvFile(workspace, graph, Database.class, "database.tsv");
         createNodesFromTsvFile(workspace, graph, GoProcess.class, "go_process.tsv");
@@ -126,9 +128,7 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: co_celltype_relationship.tsv
         // TODO: database_link.tsv
         // TODO: deleted_family.tsv
-        // TODO: disease2category.tsv
         // TODO: disease2synonym.tsv
-        // TODO: disease_category.tsv
         // TODO: disease_database_link.tsv
         // TODO: disease_synonym2database_link.tsv
         // TODO: dna_binding.tsv
@@ -273,6 +273,24 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
             return () -> iterator;
         } catch (IOException e) {
             throw new ExporterException("Failed to parse the file '" + fileName + "'", e);
+        }
+    }
+
+    private void exportDiseases(final Workspace workspace, final Graph graph) {
+        final Map<Long, String> diseaseCategories = new HashMap<>();
+        for (final DiseaseCategory entry : parseTsvFile(workspace, DiseaseCategory.class, "disease_category.tsv")) {
+            diseaseCategories.put(entry.diseaseCategoryId, entry.name);
+        }
+        final Map<Long, String> diseaseIdCategoryMap = new HashMap<>();
+        for (final Disease2Category entry : parseTsvFile(workspace, Disease2Category.class, "disease2category.tsv")) {
+            diseaseIdCategoryMap.put(entry.diseaseId, diseaseCategories.get(entry.diseaseCategoryId));
+        }
+        for (final Disease entry : parseTsvFile(workspace, Disease.class, "disease.tsv")) {
+            final String category = diseaseIdCategoryMap.get(entry.diseaseId);
+            if (category == null)
+                graph.addNodeFromModel(entry);
+            else
+                graph.addNodeFromModel(entry, "category", category);
         }
     }
 }
