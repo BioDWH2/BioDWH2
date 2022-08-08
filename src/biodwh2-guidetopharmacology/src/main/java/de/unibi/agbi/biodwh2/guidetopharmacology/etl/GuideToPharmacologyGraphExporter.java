@@ -8,6 +8,7 @@ import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.guidetopharmacology.GuideToPharmacologyDataSource;
 import de.unibi.agbi.biodwh2.guidetopharmacology.model.*;
 import org.slf4j.Logger;
@@ -31,12 +32,14 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
+        graph.addIndex(IndexDescription.forNode("INN", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Species", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Disease", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Ontology", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("OntologyTerm", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("GoProcess", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Variant", "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Ligand", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Reference", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("ClinicalTrial", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("ClinicalTrial", "nct_id", false, IndexDescription.Type.UNIQUE));
@@ -50,7 +53,9 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // contributor2committee.tsv, contributor2intro.tsv, contributor2family.tsv, contributor2object.tsv,
         // committee.tsv, subcommittee.tsv, deleted_family.tsv
         createNodesFromTsvFile(workspace, graph, Species.class, "species.tsv");
+        createNodesFromTsvFile(workspace, graph, INN.class, "inn.tsv");
         exportDiseases(workspace, graph);
+        exportLigands(workspace, graph);
         createNodesFromTsvFile(workspace, graph, Ontology.class, "ontology.tsv");
         createNodesFromTsvFile(workspace, graph, Database.class, "database.tsv");
         createNodesFromTsvFile(workspace, graph, GoProcess.class, "go_process.tsv");
@@ -163,18 +168,15 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: immuno_disease2ligand_refs.tsv
         // TODO: immuno_disease2object.tsv
         // TODO: immuno_disease2object_refs.tsv
-        // TODO: inn.tsv
         // TODO: interaction.tsv
         // TODO: interaction_affinity_refs.tsv
         // TODO: introduction.tsv
         // TODO: iuphar2tocris.tsv
         // TODO: lgic.tsv
-        // TODO: ligand.tsv
         // TODO: ligand2adb.tsv
         // TODO: ligand2clinical_trial.tsv
         // TODO: ligand2clinical_trial_refs.tsv
         // TODO: ligand2family.tsv
-        // TODO: ligand2inn.tsv
         // TODO: ligand2subunit.tsv
         // TODO: ligand2synonym.tsv
         // TODO: ligand2synonym_refs.tsv
@@ -183,8 +185,6 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: ligand_cluster.tsv
         // TODO: ligand_cluster_new.tsv
         // TODO: ligand_database_link.tsv
-        // TODO: ligand_physchem.tsv
-        // TODO: ligand_structure.tsv
         // TODO: list_ligand.tsv
         // TODO: malaria_stage.tsv
         // TODO: malaria_stage2interaction.tsv
@@ -210,7 +210,6 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
         // TODO: precursor2synonym.tsv
         // TODO: process_assoc.tsv
         // TODO: process_assoc_refs.tsv
-        // TODO: prodrug.tsv
         // TODO: product.tsv
         // TODO: product_refs.tsv
         // TODO: reaction.tsv
@@ -291,6 +290,35 @@ public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharm
                 graph.addNodeFromModel(entry);
             else
                 graph.addNodeFromModel(entry, "category", category);
+        }
+    }
+
+    private void exportLigands(final Workspace workspace, final Graph graph) {
+        final Map<Long, LigandStructure> ligandStructures = new HashMap<>();
+        for (final LigandStructure entry : parseTsvFile(workspace, LigandStructure.class, "ligand_structure.tsv")) {
+            ligandStructures.put(entry.ligandId, entry);
+        }
+        final Map<Long, LigandPhysChem> ligandPhysChems = new HashMap<>();
+        for (final LigandPhysChem entry : parseTsvFile(workspace, LigandPhysChem.class, "ligand_physchem.tsv")) {
+            ligandPhysChems.put(entry.ligandId, entry);
+        }
+        for (final Ligand entry : parseTsvFile(workspace, Ligand.class, "ligand.tsv")) {
+            final NodeBuilder builder = graph.buildNode().withLabel("Ligand").withModel(entry);
+            if (ligandStructures.containsKey(entry.ligandId))
+                builder.withModel(ligandStructures.get(entry.ligandId));
+            if (ligandPhysChems.containsKey(entry.ligandId))
+                builder.withModel(ligandPhysChems.get(entry.ligandId));
+            builder.build();
+        }
+        for (final ProDrug entry : parseTsvFile(workspace, ProDrug.class, "prodrug.tsv")) {
+            final Node proDrugNode = graph.findNode("Ligand", "id", entry.prodrugLigandId);
+            final Node drugNode = graph.findNode("Ligand", "id", entry.drugLigandId);
+            graph.addEdge(proDrugNode, drugNode, "IS_PRODRUG_OF");
+        }
+        for (final Ligand2INN entry : parseTsvFile(workspace, Ligand2INN.class, "ligand2inn.tsv")) {
+            final Node ligandNode = graph.findNode("Ligand", "id", entry.ligandId);
+            final Node innNode = graph.findNode("INN", "id", entry.innNumber);
+            graph.addEdge(ligandNode, innNode, "HAS_INN");
         }
     }
 }
