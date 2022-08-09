@@ -6,10 +6,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("unused")
-public final class Graph extends BaseGraph {
+public final class Graph extends MVStoreGraph {
     public Graph(final String filePath) {
         this(Paths.get(filePath), false, false);
     }

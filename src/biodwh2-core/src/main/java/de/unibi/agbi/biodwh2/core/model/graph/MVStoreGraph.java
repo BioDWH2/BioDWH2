@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-abstract class BaseGraph implements AutoCloseable {
+abstract class MVStoreGraph implements AutoCloseable {
     public static final int VERSION = 3;
     public static final String LABEL_PREFIX_SEPARATOR = "_";
     private static final char NODE_REPOSITORY_PREFIX = '$';
@@ -26,7 +26,7 @@ abstract class BaseGraph implements AutoCloseable {
     private final ConcurrentMap<String, MVStoreCollection<Node>> nodeRepositories;
     private final ConcurrentMap<String, MVStoreCollection<Edge>> edgeRepositories;
 
-    protected BaseGraph(final Path filePath, final boolean reopen, final boolean readOnly) {
+    protected MVStoreGraph(final Path filePath, final boolean reopen, final boolean readOnly) {
         this.filePath = filePath;
         this.readOnly = readOnly;
         if (!reopen)
@@ -436,7 +436,7 @@ abstract class BaseGraph implements AutoCloseable {
             edges.remove(edge);
     }
 
-    public void mergeDatabase(final String dataSourceId, final BaseGraph databaseToMerge) {
+    public void mergeDatabase(final String dataSourceId, final MVStoreGraph databaseToMerge) {
         final String dataSourcePrefix = dataSourceId + LABEL_PREFIX_SEPARATOR;
         for (final String sourceLabel : databaseToMerge.nodeRepositories.keySet()) {
             final String targetLabel = dataSourcePrefix + sourceLabel;
