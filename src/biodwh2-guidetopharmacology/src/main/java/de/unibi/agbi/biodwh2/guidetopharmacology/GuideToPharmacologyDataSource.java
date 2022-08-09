@@ -14,6 +14,11 @@ public class GuideToPharmacologyDataSource extends DataSource {
     }
 
     @Override
+    public String getLicense() {
+        return "CC BY-SA 4.0";
+    }
+
+    @Override
     public DevelopmentState getDevelopmentState() {
         return DevelopmentState.InDevelopment;
     }
