@@ -38,8 +38,8 @@ public class TissuesGraphExporter extends GraphExporter<TissuesDataSource> {
                                                         TissuesUpdater.INTEGRATED_FILE_NAME)) {
             final long geneNodeId = getOrCreateGene(graph, entry.geneIdentifier, entry.geneName);
             final long tissueNodeId = getOrCreateTissue(graph, entry.tissueIdentifier, entry.tissueName);
-            //graph.addEdge(geneNodeId, tissueNodeId, EXPRESSED_IN_LABEL, "integrated_confidence_score",
-            //              entry.confidenceScore);
+            graph.addEdge(geneNodeId, tissueNodeId, EXPRESSED_IN_LABEL, "integrated_confidence_score",
+                          entry.confidenceScore);
         }
         for (final KnowledgeEntry entry : parseTsvFile(workspace, KnowledgeEntry.class,
                                                        TissuesUpdater.KNOWLEDGE_FILE_NAME)) {
@@ -53,9 +53,9 @@ public class TissuesGraphExporter extends GraphExporter<TissuesDataSource> {
                                                         TissuesUpdater.EXPERIMENTS_FILE_NAME)) {
             final long geneNodeId = getOrCreateGene(graph, entry.geneIdentifier, entry.geneName);
             final long tissueNodeId = getOrCreateTissue(graph, entry.tissueIdentifier, entry.tissueName);
-            //graph.addEdge(geneNodeId, tissueNodeId, EXPRESSED_IN_LABEL, "experiment_confidence_score",
-            //              entry.confidenceScore, "experiment_source", entry.sourceDataset,
-            //              "experiment_expression_score", entry.expressionScore);
+            graph.addEdge(geneNodeId, tissueNodeId, EXPRESSED_IN_LABEL, "experiment_confidence_score",
+                          entry.confidenceScore, "experiment_source", entry.sourceDataset,
+                          "experiment_expression_score", entry.expressionScore);
         }
         return true;
     }
