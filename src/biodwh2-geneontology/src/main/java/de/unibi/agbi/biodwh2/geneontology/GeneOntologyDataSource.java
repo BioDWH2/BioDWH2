@@ -14,6 +14,11 @@ public class GeneOntologyDataSource extends OntologyDataSource {
     }
 
     @Override
+    public String getLicense() {
+        return "CC BY 4.0";
+    }
+
+    @Override
     public String getFullName() {
         return "Gene Ontology (GO)";
     }

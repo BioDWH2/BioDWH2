@@ -25,7 +25,7 @@ public class IntActDataSource extends DataSource {
 
     @Override
     public String getLicense() {
-        return "Creative Commons Attribution 4.0 International (CC BY 4.0)";
+        return "CC BY 4.0";
     }
 
     @Override

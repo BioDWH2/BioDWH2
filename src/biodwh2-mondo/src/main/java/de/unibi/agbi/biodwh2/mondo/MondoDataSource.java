@@ -14,6 +14,16 @@ public class MondoDataSource extends OntologyDataSource {
     }
 
     @Override
+    public String getFullName() {
+        return "Mondo Disease Ontology";
+    }
+
+    @Override
+    public String getLicense() {
+        return "CC BY 4.0";
+    }
+
+    @Override
     public DevelopmentState getDevelopmentState() {
         return DevelopmentState.InDevelopment;
     }

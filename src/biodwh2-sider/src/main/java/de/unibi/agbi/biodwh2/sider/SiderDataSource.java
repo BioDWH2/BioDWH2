@@ -14,6 +14,11 @@ public class SiderDataSource extends DataSource {
     }
 
     @Override
+    public String getLicense() {
+        return "CC BY-NC-SA 4.0";
+    }
+
+    @Override
     public DevelopmentState getDevelopmentState() {
         return DevelopmentState.InDevelopment;
     }

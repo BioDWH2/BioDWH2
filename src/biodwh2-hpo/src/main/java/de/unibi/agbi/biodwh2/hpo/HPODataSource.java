@@ -17,6 +17,16 @@ public class HPODataSource extends OntologyDataSource {
     }
 
     @Override
+    public String getLicense() {
+        return "HPO license";
+    }
+
+    @Override
+    public String getLicenseUrl() {
+        return "https://hpo.jax.org/app/license";
+    }
+
+    @Override
     public DevelopmentState getDevelopmentState() {
         return DevelopmentState.Usable;
     }

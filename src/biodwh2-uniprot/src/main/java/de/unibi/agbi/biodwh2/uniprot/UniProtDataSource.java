@@ -14,6 +14,11 @@ public class UniProtDataSource extends DataSource {
     }
 
     @Override
+    public String getLicense() {
+        return "CC BY 4.0";
+    }
+
+    @Override
     public DevelopmentState getDevelopmentState() {
         return DevelopmentState.InDevelopment;
     }

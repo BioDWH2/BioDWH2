@@ -15,6 +15,16 @@ public class EFODataSource extends OntologyDataSource {
     }
 
     @Override
+    public String getLicense() {
+        return "Apache-2.0";
+    }
+
+    @Override
+    public String getFullName() {
+        return "Experimental Factor Ontology (EFO)";
+    }
+
+    @Override
     public DevelopmentState getDevelopmentState() {
         return DevelopmentState.InDevelopment;
     }

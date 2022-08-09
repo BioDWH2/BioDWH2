@@ -2,7 +2,10 @@ package de.unibi.agbi.biodwh2.kegg;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
-import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
+import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.etl.Parser;
+import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.kegg.etl.KeggGraphExporter;
 import de.unibi.agbi.biodwh2.kegg.etl.KeggMappingDescriber;
 import de.unibi.agbi.biodwh2.kegg.etl.KeggParser;
@@ -21,6 +24,11 @@ public class KeggDataSource extends DataSource {
     @Override
     public String getId() {
         return "KEGG";
+    }
+
+    @Override
+    public String getFullName() {
+        return "Kyoto Encyclopedia of Genes and Genomes (KEGG)";
     }
 
     @Override

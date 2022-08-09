@@ -17,6 +17,16 @@ public class OMIMDataSource extends DataSource {
     }
 
     @Override
+    public String getLicense() {
+        return "OMIM license";
+    }
+
+    @Override
+    public String getLicenseUrl() {
+        return "https://www.omim.org/help/agreement";
+    }
+
+    @Override
     public String getFullName() {
         return "Online Mendelian Inheritance in Man";
     }
