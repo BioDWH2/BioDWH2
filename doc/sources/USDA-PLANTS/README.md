@@ -12,7 +12,7 @@ Plant information, including the distribution maps, lists, and text, is not copy
 
 ## Citation
 
-Please cite the PLANTS Database as: USDA, NRCS. 2020. The PLANTS Database (http://plants.usda.gov, 23 November 2020). National Plant Data Team, Greensboro, NC 27401-4901 USA.
+> USDA, NRCS. 2022. The PLANTS Database (http://plants.usda.gov, 08/09/2022). National Plant Data Team, Greensboro, NC USA.
 
 ## Files used
 
@@ -20,7 +20,7 @@ The only file used is the ```plantlst.txt``` CSV file.
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
-|                |            |             |
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |
+|             |            |                                            |

@@ -20,7 +20,7 @@ unknown
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
-|                |            |             |
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |
+|             |            |                                            |

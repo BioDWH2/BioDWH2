@@ -10,7 +10,7 @@ import de.unibi.agbi.biodwh2.sider.etl.SiderUpdater;
 public class SiderDataSource extends DataSource {
     @Override
     public String getId() {
-        return "Sider";
+        return "SIDER";
     }
 
     @Override
@@ -20,7 +20,7 @@ public class SiderDataSource extends DataSource {
 
     @Override
     public DevelopmentState getDevelopmentState() {
-        return DevelopmentState.InDevelopment;
+        return DevelopmentState.Usable;
     }
 
     @Override

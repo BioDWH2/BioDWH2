@@ -4,7 +4,9 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DataSourcePropertyType;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
-import de.unibi.agbi.biodwh2.drugcentral.etl.*;
+import de.unibi.agbi.biodwh2.drugcentral.etl.DrugCentralGraphExporter;
+import de.unibi.agbi.biodwh2.drugcentral.etl.DrugCentralMappingDescriber;
+import de.unibi.agbi.biodwh2.drugcentral.etl.DrugCentralUpdater;
 
 import java.util.Map;
 
@@ -12,6 +14,16 @@ public class DrugCentralDataSource extends DataSource {
     @Override
     public String getId() {
         return "DrugCentral";
+    }
+
+    @Override
+    public String getLicense() {
+        return "CC BY-SA 4.0";
+    }
+
+    @Override
+    public String getLicenseUrl() {
+        return "https://drugcentral.org/privacy";
     }
 
     @Override

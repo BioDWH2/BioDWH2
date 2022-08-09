@@ -8,7 +8,7 @@ DrugCentral is an online drug information resource created and maintained by the
 
 ## License
 
-> Creative Commons Attribution-ShareAlike 4.0 International Public License
+> CC BY-SA 4.0
 
 ## Citation
 
@@ -20,10 +20,10 @@ The SQL database dump file ```drugcentral-pgdump_[YYYYMMDD].sql.gz``` is used to
 
 ## Configuration properties
 
-| Property               | Values     | Description |
-| ---------------------- | ---------- | ----------- |
-| forceExport            | true/false | Force graph export even if nothing changed |
+| Property               | Values     | Description                                                                   |
+|------------------------|------------|-------------------------------------------------------------------------------|
+| forceExport            | true/false | Force graph export even if nothing changed                                    |
 | skipDrugLabelFullTexts | true/false | Skip export of drug label full text information to reduce graph database size |
-| skipLINCSSignatures    | true/false | Skip export of LINCS signatures to reduce graph database size |
-| skipFAERSReports       | true/false | Skip export of FAERS reports to reduce graph database size |
-|                        |            |             |
+| skipLINCSSignatures    | true/false | Skip export of LINCS signatures to reduce graph database size                 |
+| skipFAERSReports       | true/false | Skip export of FAERS reports to reduce graph database size                    |
+|                        |            |                                                                               |
