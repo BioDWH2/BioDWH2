@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-abstract class MVStoreGraph implements AutoCloseable {
+abstract class MVStoreGraph implements BaseGraph, AutoCloseable {
     public static final int VERSION = 3;
     public static final String LABEL_PREFIX_SEPARATOR = "_";
     private static final char NODE_REPOSITORY_PREFIX = '$';

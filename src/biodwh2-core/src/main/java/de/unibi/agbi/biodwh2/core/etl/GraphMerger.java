@@ -21,7 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public final class GraphMerger {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphMerger.class);
@@ -217,9 +220,9 @@ public final class GraphMerger {
     private static class DataSourceMetadata {
         public final String id;
         public final Version version;
-        public final long exportVersion;
+        public final Long exportVersion;
 
-        private DataSourceMetadata(final String id, final Version version, final long exportVersion) {
+        private DataSourceMetadata(final String id, final Version version, final Long exportVersion) {
             this.id = id;
             this.version = version;
             this.exportVersion = exportVersion;
