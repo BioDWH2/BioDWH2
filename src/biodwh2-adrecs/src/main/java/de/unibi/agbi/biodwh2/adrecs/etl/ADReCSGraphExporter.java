@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import de.unibi.agbi.biodwh2.adrecs.ADReCSDataSource;
+import de.unibi.agbi.biodwh2.adrecs.model.ADROntologyEntry;
 import de.unibi.agbi.biodwh2.adrecs.model.DrugADREntry;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
@@ -24,7 +25,7 @@ import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.zip.ZipInputStream;
+import java.util.zip.GZIPInputStream;
 
 public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -39,90 +40,50 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.addIndex(IndexDescription.forNode(DRUG_LABEL, "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(ADR_LABEL, "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(ADR_LABEL, "adrecs_id", false, IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode(ADR_LABEL, "id", false, IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode(ADR_LABEL, ADRECS_ID_KEY, false, IndexDescription.Type.NON_UNIQUE));
         try {
-            final XlsxMappingIterator<DrugADREntry> iterator = tryLoadXlsxTable(workspace);
-            if (LOGGER.isInfoEnabled())
-                LOGGER.info("Exporting ADR associations...");
-            final Map<String, Map<String, Map<String, Set<String>>>> adrecsHierarchy = new HashMap<>();
-            long counter = 0;
-            while (iterator.hasNext()) {
-                final DrugADREntry entry = iterator.next();
-                counter++;
-                if (counter % 100_000 == 0 && LOGGER.isInfoEnabled())
-                    LOGGER.info("Progress " + counter + "/" + iterator.getTotalCount());
-                if (entry != null) {
-                    updateAdrecsHierarchy(adrecsHierarchy, entry.adrecsId);
-                    exportDrugADREntry(graph, entry);
-                }
-            }
-            if (LOGGER.isInfoEnabled())
-                LOGGER.info("Exporting ADR hierarchy...");
-            exportAdrecsHierarchy(graph, adrecsHierarchy);
+            exportADROntology(workspace, graph);
+            exportADRDrugAssociations(workspace, graph);
         } catch (ParserException e) {
             throw new ExporterFormatException(e);
         }
         return true;
     }
 
-    private XlsxMappingIterator<DrugADREntry> tryLoadXlsxTable(final Workspace workspace) throws ParserException {
-        try {
-            final ZipInputStream stream = FileUtils.openZip(workspace, dataSource, ADReCSUpdater.FILE_NAME);
-            stream.getNextEntry();
-            return new XlsxMappingIterator<>(DrugADREntry.class, stream);
-        } catch (IOException e) {
-            if (e instanceof FileNotFoundException)
-                throw new ParserFileNotFoundException(ADReCSUpdater.FILE_NAME);
-            else
-                throw new ParserFormatException(e);
-        }
-    }
-
-    private void updateAdrecsHierarchy(final Map<String, Map<String, Map<String, Set<String>>>> hierarchy,
-                                       final String id) {
-        final String[] adrecsIdParts = StringUtils.split(id, '.');
-        if (adrecsIdParts.length > 0) {
-            final Map<String, Map<String, Set<String>>> level1 = hierarchy.computeIfAbsent(adrecsIdParts[0],
-                                                                                           (k) -> new HashMap<>());
-            if (adrecsIdParts.length > 1) {
-                final Map<String, Set<String>> level2 = level1.computeIfAbsent(adrecsIdParts[1],
-                                                                               (k) -> new HashMap<>());
-                if (adrecsIdParts.length > 2) {
-                    final Set<String> level3 = level2.computeIfAbsent(adrecsIdParts[2], (k) -> new HashSet<>());
-                    if (adrecsIdParts.length > 3) {
-                        level3.add(adrecsIdParts[3]);
+    private void exportADROntology(final Workspace workspace, final Graph graph) throws ParserException {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting ADR ontology...");
+        final Map<String, Map<String, Map<String, Set<String>>>> hierarchy = new HashMap<>();
+        final XlsxMappingIterator<ADROntologyEntry> iterator = tryLoadXlsxTable(workspace,
+                                                                                ADReCSUpdater.ADR_ONTOLOGY_FILE_NAME,
+                                                                                ADROntologyEntry.class);
+        while (iterator.hasNext()) {
+            final ADROntologyEntry entry = iterator.next();
+            graph.addNodeFromModel(entry);
+            final String[] adrecsIdParts = StringUtils.split(entry.adrecsId, '.');
+            if (adrecsIdParts.length > 0) {
+                final Map<String, Map<String, Set<String>>> level1 = hierarchy.computeIfAbsent(adrecsIdParts[0],
+                                                                                               (k) -> new HashMap<>());
+                if (adrecsIdParts.length > 1) {
+                    final Map<String, Set<String>> level2 = level1.computeIfAbsent(adrecsIdParts[1],
+                                                                                   (k) -> new HashMap<>());
+                    if (adrecsIdParts.length > 2) {
+                        final Set<String> level3 = level2.computeIfAbsent(adrecsIdParts[2], (k) -> new HashSet<>());
+                        if (adrecsIdParts.length > 3) {
+                            level3.add(adrecsIdParts[3]);
+                        }
                     }
                 }
             }
         }
-    }
-
-    private void exportDrugADREntry(final Graph graph, final DrugADREntry entry) {
-        Node adrNode = graph.findNode(ADR_LABEL, "id", entry.adrId);
-        if (adrNode == null) {
-            adrNode = graph.addNode(ADR_LABEL, "id", entry.adrId, "term", entry.adrTerm, ADRECS_ID_KEY, entry.adrecsId,
-                                    "classification", entry.adrClassification, "meddra_code", entry.meddraCode);
-        }
-        Node drugNode = graph.findNode(DRUG_LABEL, "id", entry.drugId);
-        if (drugNode == null) {
-            if (StringUtils.isNumeric(entry.pubchemCID))
-                drugNode = graph.addNode(DRUG_LABEL, "id", entry.drugId, "name", entry.drugName, "pubchem_cid",
-                                         entry.pubchemCID);
-            else
-                drugNode = graph.addNode(DRUG_LABEL, "id", entry.drugId, "name", entry.drugName);
-        }
-        graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH");
-    }
-
-    private void exportAdrecsHierarchy(final Graph graph,
-                                       final Map<String, Map<String, Map<String, Set<String>>>> hierarchy) {
+        // Export the ADReCS id hierarchy
         for (final String level1Key : hierarchy.keySet()) {
             final Long[] level1Ids = getNodeIds(graph.findNodes(ADR_LABEL, ADRECS_ID_KEY, level1Key));
             for (final String level2Key : hierarchy.get(level1Key).keySet()) {
@@ -146,6 +107,40 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
                     }
                 }
             }
+        }
+    }
+
+    private <T> XlsxMappingIterator<T> tryLoadXlsxTable(final Workspace workspace, final String fileName,
+                                                        final Class<T> type) throws ParserException {
+        try {
+            final GZIPInputStream stream = FileUtils.openGzip(workspace, dataSource, fileName);
+            return new XlsxMappingIterator<>(type, stream);
+        } catch (IOException e) {
+            if (e instanceof FileNotFoundException)
+                throw new ParserFileNotFoundException(fileName);
+            else
+                throw new ParserFormatException(e);
+        }
+    }
+
+    private void exportADRDrugAssociations(final Workspace workspace, final Graph graph) throws ParserException {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting ADR drug associations...");
+        final XlsxMappingIterator<DrugADREntry> iterator = tryLoadXlsxTable(workspace, ADReCSUpdater.DRUG_ADR_FILE_NAME,
+                                                                            DrugADREntry.class);
+        while (iterator.hasNext()) {
+            final DrugADREntry entry = iterator.next();
+            final Iterable<Node> adrNodes = graph.findNodes(ADR_LABEL, "id", entry.adrId);
+            Node drugNode = graph.findNode(DRUG_LABEL, "id", entry.drugId);
+            if (drugNode == null) {
+                if (StringUtils.isNumeric(entry.pubchemID))
+                    drugNode = graph.addNode(DRUG_LABEL, "id", entry.drugId, "name", entry.drugName, "pubchem_id",
+                                             entry.pubchemID);
+                else
+                    drugNode = graph.addNode(DRUG_LABEL, "id", entry.drugId, "name", entry.drugName);
+            }
+            for (final Node adrNode : adrNodes)
+                graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH");
         }
     }
 
