@@ -13,11 +13,20 @@ Released: upcoming
  * ```[UNII]``` #29 Fix UNII species merging with NCBI taxid
  * ```[DrugCentral]``` #18 Remove redundancy in DrugCentral active ingredients
  * ```[AACT]``` #50 Fix updated AACT schema model
+ * ```[DrugBank]``` #28 Flag DrugBank data source as usable
+ * ```[SIDER]``` #25 Flag SIDER data source as usable and change ID to uppercase
+ * ```[HERB]``` #62 Add HERB data source module
+ * ```[CMAUP]``` #64 Add CMAUP data source module
+ * ```[TISSUES]``` #65 Add TISSUES data source module
+ * ```[GuideToPharmacology]``` #66 Add GuideToPharmacology data source module
+ * ```[Negatome]``` #67 Add Negatome data source module
 
 ### 🔧 Bug fixes and other changes
 
+ * ```[docs]``` Update docs
  * ```[docs]``` Update analysis docs
  * ```[feature]``` Graph mapping now generates a mapping log for later analysis
+ * ```[feature]``` Add PSI-MI TAB file format models
 
 ## 📦 Version [v0.4.2](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.2)
 
