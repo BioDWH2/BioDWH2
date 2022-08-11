@@ -6,8 +6,10 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-
-import de.unibi.agbi.biodwh2.itis.etl.*;
+import de.unibi.agbi.biodwh2.itis.etl.ITISGraphExporter;
+import de.unibi.agbi.biodwh2.itis.etl.ITISMappingDescriber;
+import de.unibi.agbi.biodwh2.itis.etl.ITISParser;
+import de.unibi.agbi.biodwh2.itis.etl.ITISUpdater;
 import de.unibi.agbi.biodwh2.itis.model.*;
 
 import java.util.List;
@@ -36,6 +38,11 @@ public class ITISDataSource extends DataSource {
     @Override
     public String getId() {
         return "ITIS";
+    }
+
+    @Override
+    public String getLicense() {
+        return "CC0";
     }
 
     @Override

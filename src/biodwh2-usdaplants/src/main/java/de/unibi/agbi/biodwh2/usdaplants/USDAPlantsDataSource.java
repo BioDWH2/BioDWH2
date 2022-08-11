@@ -28,6 +28,11 @@ public class USDAPlantsDataSource extends DataSource {
     }
 
     @Override
+    public String getLicense() {
+        return "Free with attribution";
+    }
+
+    @Override
     public String getDescription() {
         return "The PLANTS Database provides standardized information about the vascular plants, mosses, liverworts, " +
                "hornworts, and lichens of the U.S. and its territories.";

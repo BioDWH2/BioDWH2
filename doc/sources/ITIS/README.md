@@ -8,6 +8,8 @@ Integrated Taxonomic Information System
 
 ## License
 
+> CC0
+
 > Information presented on the ITIS website is considered public information and may be distributed or copied. Use of the appropriate citation is requested.
 
 ## Citation

@@ -22,7 +22,7 @@ https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/NDFRT/index.html
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
-|                |            |             |
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |
+|             |            |                                            |
