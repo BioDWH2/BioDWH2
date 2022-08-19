@@ -10,7 +10,6 @@ import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.drugbank.DrugBankDataSource;
 import de.unibi.agbi.biodwh2.drugbank.model.*;
-import de.unibi.agbi.biodwh2.drugbank.model.MetaboliteStructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -199,7 +198,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 3;
+        return 4;
     }
 
     @Override
@@ -573,7 +572,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
             }
     }
 
-    private Long updateOrCreateOrganism(final Graph graph, final String name, final String ncbiTaxonomyId) {
+    private Long updateOrCreateOrganism(final Graph graph, final String name, final Integer ncbiTaxonomyId) {
         Node foundNode = null;
         if (ncbiTaxonomyId != null)
             foundNode = graph.findNode(ORGANISM_LABEL, ID_KEY, ncbiTaxonomyId);

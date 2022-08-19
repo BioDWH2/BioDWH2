@@ -20,7 +20,7 @@ public class DrugBankMappingDescriber extends MappingDescriber {
         if ("Salt".equalsIgnoreCase(localMappingLabel))
             return describeCompound(node);
         if ("Polypeptide".equalsIgnoreCase(localMappingLabel))
-            return new NodeMappingDescription[]{describeGene(graph, node), describeProtein(graph, node)};
+            return describePolypeptide(graph, node);
         if ("Article".equalsIgnoreCase(localMappingLabel))
             return describeArticle(node);
         if ("Organism".equalsIgnoreCase(localMappingLabel))
@@ -56,6 +56,19 @@ public class DrugBankMappingDescriber extends MappingDescriber {
         description.addIdentifier(IdentifierType.UNII, node.<String>getProperty("unii"));
         description.addName(node.getProperty("name"));
         return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describePolypeptide(final Graph graph, final Node node) {
+        // Retrieve the polypeptide associated organism
+        final Long[] organismNodeIds = graph.getAdjacentNodeIdsForEdgeLabel(node.getId(), "DrugBank_HAS_ORGANISM",
+                                                                            EdgeDirection.FORWARD);
+        for (final long organismNodeId : organismNodeIds) {
+            final Integer taxonomyId = graph.getNode(organismNodeId).getProperty("id");
+            // Only describe the polypeptide for Homo sapiens
+            if (taxonomyId != null && taxonomyId == 9606)
+                return new NodeMappingDescription[]{describeGene(graph, node), describeProtein(graph, node)};
+        }
+        return null;
     }
 
     private NodeMappingDescription describeProtein(final Graph graph, final Node node) {
@@ -107,7 +120,7 @@ public class DrugBankMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeOrganism(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.TAXON);
-        description.addIdentifier(IdentifierType.NCBI_TAXON, node.<String>getProperty("id"));
+        description.addIdentifier(IdentifierType.NCBI_TAXON, node.<Integer>getProperty("id"));
         description.addName(node.getProperty("name"));
         return new NodeMappingDescription[]{description};
     }
@@ -118,16 +131,30 @@ public class DrugBankMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public PathMappingDescription describe(Graph graph, Node[] nodes, Edge[] edges) {
+    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
         if (edges.length > 0 && edges[0].getLabel().endsWith("INTERACTS_WITH_DRUG"))
             return new PathMappingDescription(PathMappingDescription.EdgeType.INTERACTS);
+        if (edges.length == 3) {
+            if (edges[1].getLabel().endsWith("HAS_TARGET"))
+                return new PathMappingDescription(PathMappingDescription.EdgeType.TARGETS);
+        }
         return null;
     }
 
     @Override
     protected PathMapping[] getEdgePathMappings() {
         return new PathMapping[]{
-                new PathMapping().add("Drug", "INTERACTS_WITH_DRUG", "Drug", EdgeDirection.FORWARD)
+                new PathMapping().add("Drug", "INTERACTS_WITH_DRUG", "Drug", EdgeDirection.FORWARD),
+                createTargetsPathMapping("Target"), createTargetsPathMapping("Enzyme"), createTargetsPathMapping(
+                "Transporter"), createTargetsPathMapping("Carrier")
         };
+    }
+
+    private PathMapping createTargetsPathMapping(final String targetLabel) {
+        final PathMapping mapping = new PathMapping();
+        mapping.add("Drug", "TARGETS", "TargetMetadata", EdgeDirection.FORWARD);
+        mapping.add("TargetMetadata", "HAS_TARGET", targetLabel, EdgeDirection.FORWARD);
+        mapping.add(targetLabel, "IS_POLYPEPTIDE", "Polypeptide", EdgeDirection.FORWARD);
+        return mapping;
     }
 }

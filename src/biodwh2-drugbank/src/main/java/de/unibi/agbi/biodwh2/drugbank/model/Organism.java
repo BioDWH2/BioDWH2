@@ -7,5 +7,5 @@ public final class Organism {
     @JacksonXmlText
     public String value;
     @JsonProperty("ncbi-taxonomy-id")
-    public String ncbiTaxonomyId;
+    public Integer ncbiTaxonomyId;
 }

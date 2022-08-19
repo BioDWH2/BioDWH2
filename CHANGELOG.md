@@ -8,6 +8,8 @@ Released: Upcoming
 
  * ```[ADReCS]``` #60 Fix ADReCS new data format
  * ```[DrugCentral]``` #18 Map human targets to gene and protein and add drug targets edge mapping
+ * ```[DrugBank]``` #9 Change organism id to integer (breaking change)
+ * ```[DrugBank]``` #9 Only map polypeptide if human; Add path mapping for drug targets polypeptide
 
 ## 📦 Version [v0.4.3](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.3)
 
@@ -22,7 +24,7 @@ Released: 11.08.2022
  * ```[UNII]``` #29 Fix UNII species merging with NCBI taxid
  * ```[DrugCentral]``` #18 Remove redundancy in DrugCentral active ingredients
  * ```[AACT]``` #50 Fix updated AACT schema model
- * ```[DrugBank]``` #28 Flag DrugBank data source as usable
+ * ```[DrugBank]``` #9 Flag DrugBank data source as usable
  * ```[SIDER]``` #25 Flag SIDER data source as usable and change ID to uppercase
  * ```[HERB]``` #62 Add HERB data source module
  * ```[CMAUP]``` #64 Add CMAUP data source module
