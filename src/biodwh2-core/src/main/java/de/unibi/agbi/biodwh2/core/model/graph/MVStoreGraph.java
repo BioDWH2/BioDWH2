@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Consumer;
 
 abstract class MVStoreGraph implements BaseGraph, AutoCloseable {
     public static final int VERSION = 3;
@@ -437,6 +438,11 @@ abstract class MVStoreGraph implements BaseGraph, AutoCloseable {
     }
 
     public void mergeDatabase(final String dataSourceId, final MVStoreGraph databaseToMerge) {
+        this.mergeDatabase(dataSourceId, databaseToMerge, null, null);
+    }
+
+    public void mergeDatabase(final String dataSourceId, final MVStoreGraph databaseToMerge,
+                              final Consumer<Long> nodeProgressCallback, final Consumer<Long> edgeProgressCallback) {
         final String dataSourcePrefix = dataSourceId + LABEL_PREFIX_SEPARATOR;
         for (final String sourceLabel : databaseToMerge.nodeRepositories.keySet()) {
             final String targetLabel = dataSourcePrefix + sourceLabel;
@@ -448,10 +454,14 @@ abstract class MVStoreGraph implements BaseGraph, AutoCloseable {
             for (final MVStoreIndex index : databaseToMerge.edgeRepositories.get(sourceLabel).getIndices())
                 getOrCreateEdgeRepository(targetLabel).getIndex(index.getKey(), index.isArrayIndex(), index.getType());
         }
+        long nodeCounter = 0;
         final Map<Long, Long> mapping = new HashMap<>();
         for (final String sourceLabel : databaseToMerge.nodeRepositories.keySet()) {
             final String targetLabel = dataSourcePrefix + sourceLabel;
             for (final Node n : databaseToMerge.nodeRepositories.get(sourceLabel)) {
+                nodeCounter++;
+                if (nodeProgressCallback != null && nodeCounter % 100000 == 0)
+                    nodeProgressCallback.accept(nodeCounter);
                 final Long oldId = n.getId();
                 n.resetId();
                 n.setLabel(targetLabel);
@@ -459,9 +469,13 @@ abstract class MVStoreGraph implements BaseGraph, AutoCloseable {
                 mapping.put(oldId, n.getId());
             }
         }
+        long edgeCounter = 0;
         for (final String sourceLabel : databaseToMerge.edgeRepositories.keySet()) {
             final String targetLabel = dataSourcePrefix + sourceLabel;
             for (final Edge e : databaseToMerge.edgeRepositories.get(sourceLabel)) {
+                edgeCounter++;
+                if (edgeProgressCallback != null && edgeCounter % 100000 == 0)
+                    edgeProgressCallback.accept(edgeCounter);
                 e.resetId();
                 e.setLabel(targetLabel);
                 e.setFromId(mapping.get(e.getFromId()));

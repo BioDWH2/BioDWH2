@@ -105,10 +105,20 @@ public final class GraphMerger {
             throw new MergerException(
                     "Failed to merge data source " + dataSource.getId() + " because the exported graph is missing");
         try (Graph databaseToMerge = new Graph(intermediateGraphFilePath, true, true)) {
+            final long numberOfNodes = databaseToMerge.getNumberOfNodes();
+            final long numberOfEdges = databaseToMerge.getNumberOfEdges();
             if (LOGGER.isInfoEnabled())
-                LOGGER.info("Merging data source '" + dataSource.getId() + "' [" + databaseToMerge.getNumberOfNodes() +
-                            " nodes, " + databaseToMerge.getNumberOfEdges() + " edges]");
-            mergedGraph.mergeDatabase(dataSource.getId(), databaseToMerge);
+                LOGGER.info("Merging data source '" + dataSource.getId() + "' [" + numberOfNodes + " nodes, " +
+                            numberOfEdges + " edges]");
+            mergedGraph.mergeDatabase(dataSource.getId(), databaseToMerge, (nodeCounter) -> {
+                if (LOGGER.isInfoEnabled())
+                    LOGGER.info("\tNode progress: " + nodeCounter + '/' + numberOfNodes + " (" +
+                                String.format("%.1f", nodeCounter * 100.0 / numberOfNodes) + "%)");
+            }, (edgeCounter) -> {
+                if (LOGGER.isInfoEnabled())
+                    LOGGER.info("\tEdge progress: " + edgeCounter + '/' + numberOfEdges + " (" +
+                                String.format("%.1f", edgeCounter * 100.0 / numberOfEdges) + "%)");
+            });
         } catch (GraphCacheException e) {
             throw new MergerException("Failed to merge data source " + dataSource.getId(), e);
         }
