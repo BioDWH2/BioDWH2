@@ -27,6 +27,8 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
             return describeDrugLabel(node);
         if (DrugCentralGraphExporter.PDB_LABEL.equalsIgnoreCase(localMappingLabel))
             return describeProtein(node);
+        if (DrugCentralGraphExporter.TARGET_COMPONENT_LABEL.equalsIgnoreCase(localMappingLabel))
+            return describeTargetComponent(node);
         return null;
     }
 
@@ -151,13 +153,26 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
         return new NodeMappingDescription[]{description};
     }
 
+    private NodeMappingDescription[] describeTargetComponent(final Node node) {
+        final String organism = node.getProperty("organism");
+        if (!"homo sapiens".equalsIgnoreCase(organism))
+            return null;
+        final NodeMappingDescription geneDescription = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        geneDescription.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("gene"));
+        geneDescription.addIdentifier(IdentifierType.NCBI_GENE, node.<String>getProperty("geneid"));
+        final NodeMappingDescription proteinDescription = new NodeMappingDescription(
+                NodeMappingDescription.NodeType.PROTEIN);
+        proteinDescription.addIdentifier(IdentifierType.UNIPROT_KB, node.<String>getProperty("accession"));
+        return new NodeMappingDescription[]{geneDescription, proteinDescription};
+    }
+
     @Override
     protected String[] getNodeMappingLabels() {
         return new String[]{
                 DrugCentralGraphExporter.REFERENCE_LABEL, DrugCentralGraphExporter.PARENT_DRUG_MOLECULE_LABEL,
                 DrugCentralGraphExporter.STRUCTURE_LABEL, DrugCentralGraphExporter.ACTIVE_INGREDIENT_LABEL,
                 DrugCentralGraphExporter.OMOP_CONCEPT_LABEL, DrugCentralGraphExporter.DRUG_LABEL_LABEL,
-                DrugCentralGraphExporter.PDB_LABEL
+                DrugCentralGraphExporter.PDB_LABEL, DrugCentralGraphExporter.TARGET_COMPONENT_LABEL
         };
     }
 
@@ -169,8 +184,12 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
             if (edges[0].getLabel().endsWith("CONTRAINDICATION"))
                 return new PathMappingDescription(PathMappingDescription.EdgeType.CONTRAINDICATES);
         }
-        if (edges.length == 3 && edges[1].getLabel().endsWith("INTERACTS"))
-            return new PathMappingDescription(PathMappingDescription.EdgeType.INTERACTS);
+        if (edges.length == 3) {
+            if (edges[1].getLabel().endsWith("INTERACTS"))
+                return new PathMappingDescription(PathMappingDescription.EdgeType.INTERACTS);
+            if (edges[1].getLabel().endsWith("HAS_TARGET"))
+                return new PathMappingDescription(PathMappingDescription.EdgeType.TARGETS);
+        }
         return null;
     }
 
@@ -180,10 +199,14 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
         interactionPathMapping.add("Structure", "BELONGS_TO", "DrugClass", EdgeDirection.FORWARD);
         interactionPathMapping.add("DrugClass", "INTERACTS", "DrugClass", EdgeDirection.FORWARD);
         interactionPathMapping.add("DrugClass", "BELONGS_TO", "Structure", EdgeDirection.BACKWARD);
+        final PathMapping targetsPathMapping = new PathMapping();
+        targetsPathMapping.add("Structure", "TARGETS", "Bioactivity", EdgeDirection.FORWARD);
+        targetsPathMapping.add("Bioactivity", "HAS_TARGET", "Target", EdgeDirection.FORWARD);
+        targetsPathMapping.add("Target", "COMPONENT_OF", "TargetComponent", EdgeDirection.BACKWARD);
         return new PathMapping[]{
                 new PathMapping().add("Structure", "INDICATION", "OMOPConcept", EdgeDirection.FORWARD),
                 new PathMapping().add("Structure", "CONTRAINDICATION", "OMOPConcept", EdgeDirection.FORWARD),
-                interactionPathMapping
+                interactionPathMapping, targetsPathMapping
         };
     }
 }

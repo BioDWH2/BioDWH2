@@ -7,6 +7,7 @@ Released: Upcoming
 ### 📚 Data Sources
 
  * ```[ADReCS]``` #60 Fix ADReCS new data format
+ * ```[DrugCentral]``` #18 Map human targets to gene and protein and add drug targets edge mapping
 
 ## 📦 Version [v0.4.3](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.3)
 

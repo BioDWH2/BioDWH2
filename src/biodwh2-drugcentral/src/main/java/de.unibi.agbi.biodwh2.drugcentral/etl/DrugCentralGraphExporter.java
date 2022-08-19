@@ -3,7 +3,7 @@ package de.unibi.agbi.biodwh2.drugcentral.etl;
 import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.exceptions.*;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
@@ -35,6 +35,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     public static final String PARENT_DRUG_MOLECULE_LABEL = "ParentDrugMolecule";
     public static final String OMOP_CONCEPT_LABEL = "OMOPConcept";
     public static final String ACTIVE_INGREDIENT_LABEL = "ActiveIngredient";
+    public static final String TARGET_COMPONENT_LABEL = "TargetComponent";
 
     public DrugCentralGraphExporter(final DrugCentralDataSource dataSource) {
         super(dataSource);
