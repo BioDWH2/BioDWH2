@@ -19,7 +19,7 @@ public class ADROntologyEntry {
     @GraphProperty("term")
     public String adrTerm;
     @JsonProperty("ADR_SYNONYMS")
-    @GraphArrayProperty(value = "synonyms", arrayDelimiter = " | ")
+    @GraphArrayProperty(value = "synonyms", arrayDelimiter = " | ", emptyPlaceholder = "Not Available")
     public String adrSynonyms;
     @JsonProperty("MEDDRA_CODE")
     @GraphProperty("meddra_code")

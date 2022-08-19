@@ -1,5 +1,13 @@
 # Changelog
 
+## 📦 Version v0.4.4
+
+Released: Upcoming
+
+### 📚 Data Sources
+
+ * ```[ADReCS]``` #60 Fix ADReCS new data format
+
 ## 📦 Version [v0.4.3](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.3)
 
 Released: 11.08.2022

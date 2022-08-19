@@ -18,6 +18,7 @@ public class ADReCSUpdater extends Updater<ADReCSDataSource> {
     private static final String DOWNLOAD_URL_PREFIX = "http://bioinf.xmu.edu.cn/ADReCS/download/";
     static final String DRUG_ADR_FILE_NAME = "Drug_ADR.xlsx.gz";
     static final String ADR_ONTOLOGY_FILE_NAME = "ADR_ontology.xlsx.gz";
+    static final String DRUG_INFO_FILE_NAME = "Drug_information.xlsx.gz";
 
     public ADReCSUpdater(final ADReCSDataSource dataSource) {
         super(dataSource);
@@ -42,23 +43,23 @@ public class ADReCSUpdater extends Updater<ADReCSDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + DRUG_ADR_FILE_NAME,
-                                             dataSource.resolveSourceFilePath(workspace, DRUG_ADR_FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + DRUG_ADR_FILE_NAME + "'", e);
-        }
-        try {
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + ADR_ONTOLOGY_FILE_NAME,
-                                             dataSource.resolveSourceFilePath(workspace, ADR_ONTOLOGY_FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + ADR_ONTOLOGY_FILE_NAME + "'", e);
-        }
+        tryDownloadFile(workspace, DRUG_ADR_FILE_NAME);
+        tryDownloadFile(workspace, ADR_ONTOLOGY_FILE_NAME);
+        tryDownloadFile(workspace, DRUG_INFO_FILE_NAME);
         return true;
+    }
+
+    private void tryDownloadFile(final Workspace workspace, final String fileName) throws UpdaterConnectionException {
+        try {
+            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + fileName,
+                                             dataSource.resolveSourceFilePath(workspace, fileName));
+        } catch (IOException e) {
+            throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
+        }
     }
 
     @Override
     protected String[] expectedFileNames() {
-        return new String[]{DRUG_ADR_FILE_NAME, ADR_ONTOLOGY_FILE_NAME};
+        return new String[]{DRUG_ADR_FILE_NAME, ADR_ONTOLOGY_FILE_NAME, DRUG_INFO_FILE_NAME};
     }
 }

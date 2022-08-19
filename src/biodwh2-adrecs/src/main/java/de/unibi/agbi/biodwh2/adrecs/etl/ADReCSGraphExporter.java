@@ -7,6 +7,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import de.unibi.agbi.biodwh2.adrecs.ADReCSDataSource;
 import de.unibi.agbi.biodwh2.adrecs.model.ADROntologyEntry;
 import de.unibi.agbi.biodwh2.adrecs.model.DrugADREntry;
+import de.unibi.agbi.biodwh2.adrecs.model.DrugInformationEntry;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
@@ -40,7 +41,7 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -49,12 +50,23 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
         graph.addIndex(IndexDescription.forNode(ADR_LABEL, "id", false, IndexDescription.Type.NON_UNIQUE));
         graph.addIndex(IndexDescription.forNode(ADR_LABEL, ADRECS_ID_KEY, false, IndexDescription.Type.NON_UNIQUE));
         try {
+            exportDrugs(workspace, graph);
             exportADROntology(workspace, graph);
             exportADRDrugAssociations(workspace, graph);
         } catch (ParserException e) {
             throw new ExporterFormatException(e);
         }
         return true;
+    }
+
+    private void exportDrugs(final Workspace workspace, final Graph graph) throws ParserException {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting Drug information...");
+        final XlsxMappingIterator<DrugInformationEntry> iterator = tryLoadXlsxTable(workspace,
+                                                                                    ADReCSUpdater.DRUG_INFO_FILE_NAME,
+                                                                                    DrugInformationEntry.class);
+        while (iterator.hasNext())
+            graph.addNodeFromModel(iterator.next());
     }
 
     private void exportADROntology(final Workspace workspace, final Graph graph) throws ParserException {
@@ -131,16 +143,22 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
         while (iterator.hasNext()) {
             final DrugADREntry entry = iterator.next();
             final Iterable<Node> adrNodes = graph.findNodes(ADR_LABEL, "id", entry.adrId);
-            Node drugNode = graph.findNode(DRUG_LABEL, "id", entry.drugId);
-            if (drugNode == null) {
-                if (StringUtils.isNumeric(entry.pubchemID))
-                    drugNode = graph.addNode(DRUG_LABEL, "id", entry.drugId, "name", entry.drugName, "pubchem_id",
-                                             entry.pubchemID);
-                else
-                    drugNode = graph.addNode(DRUG_LABEL, "id", entry.drugId, "name", entry.drugName);
+            final Node drugNode = graph.findNode(DRUG_LABEL, "id", entry.drugId);
+            final boolean hasFrequency = !"-".equals(entry.adrFrequencyFAERS);
+            final boolean hasSeverityGrade = !"-".equals(entry.adrSeverityGradeFAERS);
+            for (final Node adrNode : adrNodes) {
+                if (hasFrequency && hasSeverityGrade) {
+                    graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH", "frequency_faers", entry.adrFrequencyFAERS,
+                                  "severity_grade_faers", entry.adrSeverityGradeFAERS);
+                } else if (hasFrequency) {
+                    graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH", "frequency_faers", entry.adrFrequencyFAERS);
+                } else if (hasSeverityGrade) {
+                    graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH", "severity_grade_faers",
+                                  entry.adrSeverityGradeFAERS);
+                } else {
+                    graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH");
+                }
             }
-            for (final Node adrNode : adrNodes)
-                graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH");
         }
     }
 
