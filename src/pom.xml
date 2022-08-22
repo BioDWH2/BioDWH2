@@ -57,6 +57,7 @@
         <module>biodwh2-tissues</module>
         <module>biodwh2-guidetopharmacology</module>
         <module>biodwh2-negatome</module>
+        <module>biodwh2-interpro</module>
     </modules>
 
     <packaging>pom</packaging>

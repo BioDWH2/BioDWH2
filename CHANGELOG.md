@@ -10,6 +10,7 @@ Released: Upcoming
  * ```[DrugCentral]``` #18 Map human targets to gene and protein and add drug targets edge mapping
  * ```[DrugBank]``` #9 Change organism id to integer (breaking change)
  * ```[DrugBank]``` #9 Only map polypeptide if human; Add path mapping for drug targets polypeptide
+ * ```[InterPro]``` #68 Add InterPro data source module 
 
 ## 📦 Version [v0.4.3](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.3)
 

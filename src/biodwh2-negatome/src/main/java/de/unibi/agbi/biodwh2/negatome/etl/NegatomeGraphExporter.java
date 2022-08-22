@@ -42,9 +42,7 @@ public class NegatomeGraphExporter extends GraphExporter<NegatomeDataSource> {
     }
 
     private Node getOrCreateProtein(final Graph graph, final String id) {
-        Node node = graph.findNode("Protein", "id", id);
-        if (node == null)
-            node = graph.addNode("Protein", "id", id);
-        return node;
+        final Node node = graph.findNode("Protein", "id", id);
+        return node == null ? graph.addNode("Protein", "id", id) : node;
     }
 }

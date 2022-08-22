@@ -122,45 +122,50 @@ public class OMIMGraphExporter extends GraphExporter<OMIMDataSource> {
     private Node getOrCreatePhenotypeNode(final Graph graph, final Map<String, MIMTitles> mimNumberToTitles,
                                           final String mimNumber, String name, final String mappingKey,
                                           final String inheritance) {
-        Node node = graph.findNode(PHENOTYPE_LABEL, MIM_NUMBER_KEY, mimNumber);
-        if (node == null) {
-            final NodeBuilder builder = graph.buildNode().withLabel(PHENOTYPE_LABEL);
-            builder.withProperty(MIM_NUMBER_KEY, mimNumber);
-            // A question mark, before the phenotype name indicates that the relationship between the phenotype
-            // and gene is provisional. More details about this relationship are provided in the comment field of the
-            // map and in the gene and phenotype OMIM entries.
-            if (name.startsWith("?")) {
-                name = name.substring(1);
-                builder.withProperty("provisional", true);
-            }
-            // Braces, {}, indicate mutations that contribute to susceptibility to multifactorial disorders
-            // (e.g., diabetes, asthma) or to susceptibility to infection (e.g., malaria).
-            if (name.startsWith("{") && name.endsWith("}")) {
-                name = name.substring(1, name.length() - 1);
-                builder.withProperty("susceptibility_mutation", true);
-            }
-            // Brackets, [], indicate "nondiseases," mainly genetic variations that lead to apparently abnormal
-            // laboratory test values (e.g., dysalbuminemic euthyroidal hyperthyroxinemia).
-            if (name.startsWith("[") && name.endsWith("]")) {
-                name = name.substring(1, name.length() - 1);
-                builder.withProperty("nondisease", true);
-            }
-            builder.withPropertyIfNotNull("name", name);
-            // 1 - the disorder is placed on the map based on its association with a gene, but the underlying defect is not known.
-            // 2 - the disorder has been placed on the map by linkage; no mutation has been found.
-            // 3 - the molecular basis for the disorder is known; a mutation has been found in the gene.
-            // 4 - a contiguous gene deletion or duplication syndrome, multiple genes are deleted or duplicated causing the phenotype.
-            builder.withPropertyIfNotNull("mapping_key", mappingKey != null ? Integer.parseInt(mappingKey) : null);
-            builder.withPropertyIfNotNull("inheritance", inheritance);
-            final MIMTitles titles = mimNumberToTitles.get(mimNumber);
-            if (titles != null && isTitlesForPhenotype(titles.prefix)) {
-                builder.withPropertyIfNotNull("included_titles", getTitlesArray(titles.includedTitles));
-                builder.withPropertyIfNotNull("alternative_titles", getTitlesArray(titles.alternativeTitle));
-                builder.withPropertyIfNotNull("preferred_title", titles.preferredTitle);
-            }
-            node = builder.build();
+        final Node node = graph.findNode(PHENOTYPE_LABEL, MIM_NUMBER_KEY, mimNumber);
+        if (node != null)
+            return node;
+        return createPhenotypeNode(graph, mimNumberToTitles, mimNumber, name, mappingKey, inheritance);
+    }
+
+    private Node createPhenotypeNode(final Graph graph, final Map<String, MIMTitles> mimNumberToTitles,
+                                     final String mimNumber, String name, final String mappingKey,
+                                     final String inheritance) {
+        final NodeBuilder builder = graph.buildNode().withLabel(PHENOTYPE_LABEL);
+        builder.withProperty(MIM_NUMBER_KEY, mimNumber);
+        // A question mark, before the phenotype name indicates that the relationship between the phenotype
+        // and gene is provisional. More details about this relationship are provided in the comment field of the
+        // map and in the gene and phenotype OMIM entries.
+        if (name.startsWith("?")) {
+            name = name.substring(1);
+            builder.withProperty("provisional", true);
         }
-        return node;
+        // Braces, {}, indicate mutations that contribute to susceptibility to multifactorial disorders
+        // (e.g., diabetes, asthma) or to susceptibility to infection (e.g., malaria).
+        if (name.startsWith("{") && name.endsWith("}")) {
+            name = name.substring(1, name.length() - 1);
+            builder.withProperty("susceptibility_mutation", true);
+        }
+        // Brackets, [], indicate "nondiseases," mainly genetic variations that lead to apparently abnormal
+        // laboratory test values (e.g., dysalbuminemic euthyroidal hyperthyroxinemia).
+        if (name.startsWith("[") && name.endsWith("]")) {
+            name = name.substring(1, name.length() - 1);
+            builder.withProperty("nondisease", true);
+        }
+        builder.withPropertyIfNotNull("name", name);
+        // 1 - the disorder is placed on the map based on its association with a gene, but the underlying defect is not known.
+        // 2 - the disorder has been placed on the map by linkage; no mutation has been found.
+        // 3 - the molecular basis for the disorder is known; a mutation has been found in the gene.
+        // 4 - a contiguous gene deletion or duplication syndrome, multiple genes are deleted or duplicated causing the phenotype.
+        builder.withPropertyIfNotNull("mapping_key", mappingKey != null ? Integer.parseInt(mappingKey) : null);
+        builder.withPropertyIfNotNull("inheritance", inheritance);
+        final MIMTitles titles = mimNumberToTitles.get(mimNumber);
+        if (titles != null && isTitlesForPhenotype(titles.prefix)) {
+            builder.withPropertyIfNotNull("included_titles", getTitlesArray(titles.includedTitles));
+            builder.withPropertyIfNotNull("alternative_titles", getTitlesArray(titles.alternativeTitle));
+            builder.withPropertyIfNotNull("preferred_title", titles.preferredTitle);
+        }
+        return builder.build();
     }
 
     private boolean isTitlesForPhenotype(final String titlePrefix) {
