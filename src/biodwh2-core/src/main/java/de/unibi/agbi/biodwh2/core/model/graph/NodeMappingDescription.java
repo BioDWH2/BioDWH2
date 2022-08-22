@@ -27,6 +27,7 @@ public final class NodeMappingDescription {
         PHYTOCHEMICAL,
         PRODRUG,
         PROTEIN,
+        PROTEIN_DOMAIN,
         PUBLICATION,
         RNA,
         //SIDE_EFFECT, //-------

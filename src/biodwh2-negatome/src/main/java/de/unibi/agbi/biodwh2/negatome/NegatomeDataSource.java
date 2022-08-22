@@ -10,13 +10,15 @@ import de.unibi.agbi.biodwh2.negatome.etl.NegatomeGraphExporter;
 import de.unibi.agbi.biodwh2.negatome.etl.NegatomeMappingDescriber;
 import de.unibi.agbi.biodwh2.negatome.etl.NegatomeParser;
 import de.unibi.agbi.biodwh2.negatome.etl.NegatomeUpdater;
+import de.unibi.agbi.biodwh2.negatome.model.PfamPair;
 import de.unibi.agbi.biodwh2.negatome.model.ProteinPair;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class NegatomeDataSource extends DataSource {
-    public final Map<String, ProteinPair> pairs = new HashMap<>();
+    public final Map<String, ProteinPair> proteinPairs = new HashMap<>();
+    public final Map<String, PfamPair> pfamPairs = new HashMap<>();
 
     @Override
     public String getId() {
@@ -25,7 +27,7 @@ public class NegatomeDataSource extends DataSource {
 
     @Override
     public DevelopmentState getDevelopmentState() {
-        return DevelopmentState.InDevelopment;
+        return DevelopmentState.Usable;
     }
 
     @Override
@@ -50,6 +52,7 @@ public class NegatomeDataSource extends DataSource {
 
     @Override
     protected void unloadData() {
-        pairs.clear();
+        proteinPairs.clear();
+        pfamPairs.clear();
     }
 }

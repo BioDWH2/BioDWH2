@@ -4,6 +4,10 @@
 
 Released: Upcoming
 
+### 📚 Data Sources
+
+* ```[Negatome]``` #67 Add Negatome Pfam domains and relationships. Mark module as usable.
+
 ## 📦 Version [v0.4.4](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.4)
 
 Released: 22.08.2022

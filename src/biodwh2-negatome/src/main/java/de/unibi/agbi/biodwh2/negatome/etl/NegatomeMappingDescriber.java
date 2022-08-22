@@ -12,10 +12,16 @@ public class NegatomeMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if ("Protein".equals(localMappingLabel)) {
+        if (NegatomeGraphExporter.PROTEIN_LABEL.equals(localMappingLabel)) {
             final NodeMappingDescription description = new NodeMappingDescription(
                     NodeMappingDescription.NodeType.PROTEIN);
             description.addIdentifier(IdentifierType.UNIPROT_KB, node.<String>getProperty("id"));
+            return new NodeMappingDescription[]{description};
+        }
+        if (NegatomeGraphExporter.PFAM_DOMAIN_LABEL.equals(localMappingLabel)) {
+            final NodeMappingDescription description = new NodeMappingDescription(
+                    NodeMappingDescription.NodeType.PROTEIN_DOMAIN);
+            description.addIdentifier(IdentifierType.PFAM, node.<String>getProperty("id"));
             return new NodeMappingDescription[]{description};
         }
         return new NodeMappingDescription[0];
@@ -28,7 +34,7 @@ public class NegatomeMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{"Protein"};
+        return new String[]{NegatomeGraphExporter.PROTEIN_LABEL, NegatomeGraphExporter.PFAM_DOMAIN_LABEL};
     }
 
     @Override

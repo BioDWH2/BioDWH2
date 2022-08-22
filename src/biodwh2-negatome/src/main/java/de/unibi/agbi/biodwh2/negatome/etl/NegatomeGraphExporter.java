@@ -8,22 +8,27 @@ import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.negatome.NegatomeDataSource;
+import de.unibi.agbi.biodwh2.negatome.model.PfamPair;
 import de.unibi.agbi.biodwh2.negatome.model.ProteinPair;
 
 public class NegatomeGraphExporter extends GraphExporter<NegatomeDataSource> {
+    static final String PROTEIN_LABEL = "Protein";
+    static final String PFAM_DOMAIN_LABEL = "PfamDomain";
+
     public NegatomeGraphExporter(final NegatomeDataSource dataSource) {
         super(dataSource);
     }
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode("Protein", "id", false, IndexDescription.Type.UNIQUE));
-        for (final ProteinPair pair : dataSource.pairs.values()) {
+        graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PFAM_DOMAIN_LABEL, "id", false, IndexDescription.Type.UNIQUE));
+        for (final ProteinPair pair : dataSource.proteinPairs.values()) {
             final EdgeBuilder builder = graph.buildEdge().withLabel("NOT_INTERACTS_WITH");
             builder.fromNode(getOrCreateProtein(graph, pair.uniProtId1));
             builder.toNode(getOrCreateProtein(graph, pair.uniProtId2));
@@ -38,11 +43,24 @@ public class NegatomeGraphExporter extends GraphExporter<NegatomeDataSource> {
             builder.withPropertyIfNotNull("is_pdb_stringent", pair.isPDBStringent);
             builder.build();
         }
+        for (final PfamPair pair : dataSource.pfamPairs.values()) {
+            final EdgeBuilder builder = graph.buildEdge().withLabel("NOT_INTERACTS_WITH");
+            builder.fromNode(getOrCreatePfam(graph, pair.pfamId1));
+            builder.toNode(getOrCreatePfam(graph, pair.pfamId2));
+            builder.withPropertyIfNotNull("is_manual", pair.isManual);
+            builder.withPropertyIfNotNull("is_pdb", pair.isPDB);
+            builder.build();
+        }
         return true;
     }
 
     private Node getOrCreateProtein(final Graph graph, final String id) {
-        final Node node = graph.findNode("Protein", "id", id);
-        return node == null ? graph.addNode("Protein", "id", id) : node;
+        final Node node = graph.findNode(PROTEIN_LABEL, "id", id);
+        return node == null ? graph.addNode(PROTEIN_LABEL, "id", id) : node;
+    }
+
+    private Node getOrCreatePfam(final Graph graph, final String id) {
+        final Node node = graph.findNode(PFAM_DOMAIN_LABEL, "id", id);
+        return node == null ? graph.addNode(PFAM_DOMAIN_LABEL, "id", id) : node;
     }
 }

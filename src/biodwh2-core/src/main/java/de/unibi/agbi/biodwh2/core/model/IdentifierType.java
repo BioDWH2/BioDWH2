@@ -86,6 +86,7 @@ public enum IdentifierType {
      */
     PACTR_TRIAL("PACTR"),
     PANTHER("Panther"),
+    PFAM("Pfam"),
     PHARM_GKB("PharmGKB"),
     PROTEIN_DATA_BANK("PDB"),
     PUB_CHEM_COMPOUND("PubChem_CID"),

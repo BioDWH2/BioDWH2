@@ -7,6 +7,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.negatome.NegatomeDataSource;
+import de.unibi.agbi.biodwh2.negatome.model.PfamPair;
 import de.unibi.agbi.biodwh2.negatome.model.ProteinPair;
 import org.apache.commons.lang3.StringUtils;
 
@@ -55,7 +56,8 @@ public class NegatomeParser extends Parser<NegatomeDataSource> {
                 pair.manualEvidence = entry[3];
             pair.isManualStringent = true;
         }
-        // TODO: final Iterable<String[]> entries = parseTsvFile(workspace, "manual_pfam.txt");
+        for (final String[] entry : parseTsvFile(workspace, "manual_pfam.txt"))
+            getOrCreatePfamPair(entry[0], entry[1]).isManual = true;
     }
 
     private Iterable<String[]> parseTsvFile(final Workspace workspace, final String fileName) throws IOException {
@@ -65,16 +67,31 @@ public class NegatomeParser extends Parser<NegatomeDataSource> {
 
     private ProteinPair getOrCreateProteinPair(final String a, final String b) {
         final String key = buildProteinPairKey(a, b);
-        if (!dataSource.pairs.containsKey(key)) {
+        if (!dataSource.proteinPairs.containsKey(key)) {
             final ProteinPair pair = new ProteinPair();
             pair.uniProtId1 = a;
             pair.uniProtId2 = b;
-            dataSource.pairs.put(key, pair);
+            dataSource.proteinPairs.put(key, pair);
         }
-        return dataSource.pairs.get(key);
+        return dataSource.proteinPairs.get(key);
     }
 
     private String buildProteinPairKey(final String a, final String b) {
+        return a.compareTo(b) <= 0 ? a + ";" + b : b + ";" + a;
+    }
+
+    private PfamPair getOrCreatePfamPair(final String a, final String b) {
+        final String key = buildPfamPairKey(a, b);
+        if (!dataSource.pfamPairs.containsKey(key)) {
+            final PfamPair pair = new PfamPair();
+            pair.pfamId1 = a;
+            pair.pfamId2 = b;
+            dataSource.pfamPairs.put(key, pair);
+        }
+        return dataSource.pfamPairs.get(key);
+    }
+
+    private String buildPfamPairKey(final String a, final String b) {
         return a.compareTo(b) <= 0 ? a + ";" + b : b + ";" + a;
     }
 
@@ -97,6 +114,7 @@ public class NegatomeParser extends Parser<NegatomeDataSource> {
                 pair.pdbEvidence = entry[3];
             pair.isPDBStringent = true;
         }
-        // TODO: final Iterable<String[]> entries = parseTsvFile(workspace, "pdb_pfam.txt");
+        for (final String[] entry : parseTsvFile(workspace, "pdb_pfam.txt"))
+            getOrCreatePfamPair(entry[0], entry[1]).isPDB = true;
     }
 }
