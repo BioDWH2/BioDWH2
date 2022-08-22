@@ -26,6 +26,7 @@ public class InterProGraphExporter extends GraphExporter<InterProDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(InterProGraphExporter.class);
     private static final String CLASSIFICATION_LABEL = "Classification";
     static final String PUBLICATION_LABEL = "Publication";
+    static final String DOMAIN_LABEL = "Domain";
 
     public InterProGraphExporter(final InterProDataSource dataSource) {
         super(dataSource);
@@ -38,7 +39,7 @@ public class InterProGraphExporter extends GraphExporter<InterProDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode("Domain", "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DOMAIN_LABEL, "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("ActiveSite", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("BindingSite", "id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("ConservedSite", "id", false, IndexDescription.Type.UNIQUE));
