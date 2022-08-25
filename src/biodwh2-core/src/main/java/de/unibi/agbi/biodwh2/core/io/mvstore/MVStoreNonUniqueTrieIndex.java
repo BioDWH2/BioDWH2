@@ -33,7 +33,7 @@ public class MVStoreNonUniqueTrieIndex extends MVStoreIndex {
 
     @Override
     public boolean contains(final Comparable<?> propertyValue) {
-        return map.containsKey(propertyValue);
+        return map.containsKey(propertyValue) || (isDelayed && delayCache.containsKey(propertyValue));
     }
 
     @Override
@@ -47,6 +47,9 @@ public class MVStoreNonUniqueTrieIndex extends MVStoreIndex {
             map.lock();
             try {
                 for (final Comparable<?> indexKey : delayCache.keySet()) {
+                    final ConcurrentDoublyLinkedList<Long> ids = delayCache.get(indexKey);
+                    if (ids.size() == 0)
+                        continue;
                     LongTrie trie = map.unsafeGet(indexKey);
                     if (trie == null)
                         trie = new LongTrie();
@@ -120,13 +123,21 @@ public class MVStoreNonUniqueTrieIndex extends MVStoreIndex {
 
     @Override
     public Set<Long> find(final Comparable<?> indexKey) {
+        final Set<Long> result = new HashSet<>();
         map.lock();
         try {
             final LongTrie trie = map.unsafeGet(indexKey);
-            return trie == null ? new HashSet<>() : new HashSet<>(trie);
+            if (trie != null)
+                result.addAll(trie);
         } finally {
             map.unlock();
         }
+        if (isDelayed) {
+            final ConcurrentDoublyLinkedList<Long> cache = delayCache.get(indexKey);
+            if (cache != null)
+                result.addAll(cache);
+        }
+        return result;
     }
 
     @Override
@@ -138,17 +149,22 @@ public class MVStoreNonUniqueTrieIndex extends MVStoreIndex {
     }
 
     private void remove(final Comparable<?> indexKey, final long id) {
-        if (indexKey != null) {
-            map.lock();
-            try {
-                final LongTrie trie = map.unsafeGet(indexKey);
-                if (trie != null) {
-                    trie.remove(id);
-                    map.unsafePut(indexKey, trie);
-                }
-            } finally {
-                map.unlock();
+        if (indexKey == null)
+            return;
+        if (isDelayed) {
+            final ConcurrentDoublyLinkedList<Long> cache = delayCache.get(indexKey);
+            if (cache != null)
+                cache.remove(id);
+        }
+        map.lock();
+        try {
+            final LongTrie trie = map.unsafeGet(indexKey);
+            if (trie != null) {
+                trie.remove(id);
+                map.unsafePut(indexKey, trie);
             }
+        } finally {
+            map.unlock();
         }
     }
 
@@ -157,6 +173,11 @@ public class MVStoreNonUniqueTrieIndex extends MVStoreIndex {
         try {
             for (final Comparable<?> indexKey : indexKeys)
                 if (indexKey != null) {
+                    if (isDelayed) {
+                        final ConcurrentDoublyLinkedList<Long> cache = delayCache.get(indexKey);
+                        if (cache != null)
+                            cache.remove(id);
+                    }
                     final LongTrie trie = map.unsafeGet(indexKey);
                     if (trie != null) {
                         trie.remove(id);
