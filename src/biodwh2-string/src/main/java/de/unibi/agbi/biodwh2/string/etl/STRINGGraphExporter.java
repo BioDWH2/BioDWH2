@@ -8,6 +8,7 @@ import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
+import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import de.unibi.agbi.biodwh2.string.STRINGDataSource;
 import de.unibi.agbi.biodwh2.string.model.*;
 import org.slf4j.Logger;
@@ -136,14 +137,13 @@ public class STRINGGraphExporter extends GraphExporter<STRINGDataSource> {
         }
     }
 
-    private void logProgressIfNecessary(long i, Long totalLinkCount) {
-        if (totalLinkCount != null && i % 100_000 == 0) {
-            final String percent = String.format("%.2f", 100.0 / totalLinkCount * i);
-            LOGGER.info(i + "/" + totalLinkCount + " (" + percent + "%)");
-        }
+    private void logProgressIfNecessary(final long current, final Long total) {
+        if (total != null && current % 100_000 == 0)
+            LOGGER.info(TextUtils.getProgressText(current, total));
     }
 
     private void exportLinks(final Workspace workspace, final Graph graph, final Map<String, Long> proteinIdNodeIdMap) {
+        graph.beginEdgeIndicesDelay("ASSOCIATED_WITH");
         long i = 0;
         Long totalLinkCount = FileUtils.tryGetGzipLineCount(workspace, dataSource, "9606.protein.links.full.txt.gz");
         for (final ProteinLink link : parseSpaceSeparatedValuesFile(workspace, ProteinLink.class,
@@ -160,6 +160,7 @@ public class STRINGGraphExporter extends GraphExporter<STRINGDataSource> {
             i += 1;
             logProgressIfNecessary(i, totalLinkCount);
         }
+        graph.endEdgeIndicesDelay("ASSOCIATED_WITH");
     }
 
     private <T> Iterable<T> parseSpaceSeparatedValuesFile(final Workspace workspace, final Class<T> typeVariableClass,
@@ -177,6 +178,7 @@ public class STRINGGraphExporter extends GraphExporter<STRINGDataSource> {
 
     private void exportPhysicalLinks(final Workspace workspace, final Graph graph,
                                      final Map<String, Long> proteinIdNodeIdMap) {
+        graph.beginEdgeIndicesDelay("PHYSICALLY_INTERACTS_WITH");
         long i = 0;
         Long totalLinkCount = FileUtils.tryGetGzipLineCount(workspace, dataSource,
                                                             "9606.protein.physical.links.full.txt.gz");
@@ -194,5 +196,6 @@ public class STRINGGraphExporter extends GraphExporter<STRINGDataSource> {
             i += 1;
             logProgressIfNecessary(i, totalLinkCount);
         }
+        graph.endEdgeIndicesDelay("PHYSICALLY_INTERACTS_WITH");
     }
 }

@@ -62,6 +62,14 @@ public class MVStoreNonUniqueIndex extends MVStoreIndex {
     }
 
     @Override
+    public void beginDelay() {
+    }
+
+    @Override
+    public void endDelay() {
+    }
+
+    @Override
     public void put(final Object propertyValue, final long id) {
         if (arrayIndex)
             put((Comparable<?>[]) propertyValue, id);

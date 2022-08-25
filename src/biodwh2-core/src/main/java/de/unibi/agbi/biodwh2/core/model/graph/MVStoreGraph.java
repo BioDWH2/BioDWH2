@@ -94,6 +94,9 @@ abstract class MVStoreGraph implements BaseGraph, AutoCloseable {
 
     @Override
     public void close() {
+        // End all index delays that may still be enabled
+        for (final MVStoreCollection<Edge> edges : edgeRepositories.values())
+            edges.endIndicesDelay();
         if (database != null)
             database.close();
         nodeRepositories.clear();
@@ -136,6 +139,14 @@ abstract class MVStoreGraph implements BaseGraph, AutoCloseable {
             createEdgeRepositoryIndicesIfNotExist(edges);
         }
         return edges;
+    }
+
+    public final void beginEdgeIndicesDelay(final String label) {
+        getOrCreateEdgeRepository(label).beginIndicesDelay();
+    }
+
+    public final void endEdgeIndicesDelay(final String label) {
+        getOrCreateEdgeRepository(label).endIndicesDelay();
     }
 
     public final IndexDescription[] indexDescriptions() {

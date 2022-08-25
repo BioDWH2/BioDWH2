@@ -356,4 +356,14 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
             mapNames.add(index.name);
         return mapNames.toArray(new String[0]);
     }
+
+    public void beginIndicesDelay() {
+        for (final MVStoreIndex index : indices.values())
+            index.beginDelay();
+    }
+
+    public void endIndicesDelay() {
+        for (final MVStoreIndex index : indices.values())
+            index.endDelay();
+    }
 }

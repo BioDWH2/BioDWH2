@@ -47,4 +47,8 @@ public abstract class MVStoreIndex {
     public final MVIndexDescription getIndexDescription() {
         return indexDescription;
     }
+
+    public abstract void beginDelay();
+
+    public abstract void endDelay();
 }

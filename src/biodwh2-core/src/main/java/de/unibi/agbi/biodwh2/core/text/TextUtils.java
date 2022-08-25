@@ -13,4 +13,13 @@ public final class TextUtils {
             result.append(part.substring(0, 1).toUpperCase()).append(part.substring(1).toLowerCase());
         return result.toString();
     }
+
+    public static String getProgressText(final long current, final long total) {
+        return getProgressText(current, total, 2);
+    }
+
+    public static String getProgressText(final long current, final long total, final int decimals) {
+        final String percent = String.format("%." + decimals + "f", Math.pow(10.0, decimals) / total * current);
+        return current + '/' + total + " (" + percent + "%)";
+    }
 }
