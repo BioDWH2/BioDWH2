@@ -2,6 +2,8 @@ package de.unibi.agbi.biodwh2.core.text;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Locale;
+
 public final class TextUtils {
     private TextUtils() {
     }
@@ -19,7 +21,7 @@ public final class TextUtils {
     }
 
     public static String getProgressText(final long current, final long total, final int decimals) {
-        final String percent = String.format("%." + decimals + "f", Math.pow(10.0, decimals) / total * current);
-        return current + '/' + total + " (" + percent + "%)";
+        final double percent = Math.pow(10.0, decimals) / total * current;
+        return String.format(Locale.US, "%s/%s (%." + decimals + "f%%)", current, total, percent);
     }
 }
