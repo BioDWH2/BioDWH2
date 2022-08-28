@@ -231,7 +231,9 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         graph.addIndex(IndexDescription.forNode(DRUG_LABEL, DRUGBANK_ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(SALT_LABEL, DRUGBANK_ID_KEY, IndexDescription.Type.UNIQUE));
         createMetaboliteStructures(graph, dataSource.metaboliteStructures);
+        graph.beginEdgeIndicesDelay(INTERACTS_WITH_DRUG_LABEL);
         exportDrugs(workspace, graph);
+        graph.endEdgeIndicesDelay(INTERACTS_WITH_DRUG_LABEL);
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export remaining " + pathwayEnzymeCache.size() + " pathway relationships...");
         for (final Long pathwayNodeId : pathwayEnzymeCache.keySet()) {
