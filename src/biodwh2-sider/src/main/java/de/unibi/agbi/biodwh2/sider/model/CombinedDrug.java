@@ -5,6 +5,7 @@ import java.util.Set;
 
 public final class CombinedDrug {
     public final String flatId;
+    public String stereoId;
     public String name;
     public final Set<String> atcCodes;
 

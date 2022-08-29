@@ -17,7 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * MedDRA concept types are hierarchical: PT - Represents a single medical concept LLT - Lowest level of the
@@ -36,6 +37,8 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
     private static final String FLAT_ID_KEY = "flat_id";
     private static final String STEREO_ID_KEY = "stereo_id";
     private static final String ATC_CODES_KEY = "atc_codes";
+    private static final String HAS_SIDE_EFFECT_LABEL = "HAS_SIDE_EFFECT";
+    private static final String HAS_SIDE_EFFECT_FREQUENCY_LABEL = "HAS_SIDE_EFFECT_FREQUENCY";
 
     public SiderGraphExporter(final SiderDataSource dataSource) {
         super(dataSource);
@@ -54,20 +57,19 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
         graph.addIndex(IndexDescription.forNode(MEDDRA_TERM_LABEL, MEDDRA_ID_KEY, IndexDescription.Type.UNIQUE));
         final Map<String, CombinedDrug> flatIdDrugMap = new HashMap<>();
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Collecting drug atc codes...");
+            LOGGER.info("Exporting drugs...");
         populateCombinedDrugsWithATC(workspace, flatIdDrugMap);
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Collecting drug names...");
         populateCombinedDrugsWithName(workspace, flatIdDrugMap);
+        final Map<String, Long> flatIdNodeIdMap = exportDrugs(workspace, graph, flatIdDrugMap);
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting indications...");
-        addAllIndications(workspace, graph, flatIdDrugMap);
+        addAllIndications(workspace, graph, flatIdNodeIdMap);
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting side effects...");
-        addAllSideEffects(workspace, graph, flatIdDrugMap);
+        addAllSideEffects(workspace, graph, flatIdNodeIdMap);
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting side effect frequencies...");
-        addAllSideEffectFrequencies(workspace, graph, flatIdDrugMap);
+        addAllSideEffectFrequencies(workspace, graph, flatIdNodeIdMap);
         return true;
     }
 
@@ -99,19 +101,36 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
         }
     }
 
-    private void addAllIndications(final Workspace workspace, final Graph graph,
-                                   final Map<String, CombinedDrug> flatIdDrugMap) throws ExporterException {
-        for (final Indication indication : parseGzipTsvFile(workspace, SiderUpdater.INDICATIONS_FILE_NAME,
-                                                            Indication.class)) {
-            if (skipConcept(indication.meddraConceptType))
-                continue;
-            final Node drugNode = getOrAddDrugNode(graph, flatIdDrugMap, indication.flatCompoundId,
-                                                   indication.stereoCompoundId);
-            final Node termNode = getOrAddTermNode(graph, indication.umlsConceptId, indication.conceptName,
-                                                   indication.meddraUmlsConceptId, indication.meddraConceptName);
-            graph.addEdge(drugNode, termNode, "INDICATES", "label", indication.label, "detection_method",
-                          indication.detectionMethod);
+    private Map<String, Long> exportDrugs(final Workspace workspace, final Graph graph,
+                                          final Map<String, CombinedDrug> flatIdDrugMap) {
+        for (final Indication entry : parseGzipTsvFile(workspace, SiderUpdater.INDICATIONS_FILE_NAME,
+                                                       Indication.class)) {
+            updateDrugEntry(flatIdDrugMap, entry.flatCompoundId, entry.stereoCompoundId);
         }
+        for (final SideEffect entry : parseGzipTsvFile(workspace, SiderUpdater.SIDE_EFFECTS_FILE_NAME,
+                                                       SideEffect.class)) {
+            updateDrugEntry(flatIdDrugMap, entry.flatCompoundId, entry.stereoCompoundId);
+        }
+        for (final Frequency entry : parseGzipTsvFile(workspace, SiderUpdater.FREQUENCIES_FILE_NAME, Frequency.class)) {
+            updateDrugEntry(flatIdDrugMap, entry.flatCompoundId, entry.stereoCompoundId);
+        }
+        final Map<String, Long> flatIdNodeIdMap = new HashMap<>();
+        for (final CombinedDrug drug : flatIdDrugMap.values()) {
+            final Node node;
+            if (drug.name != null && drug.atcCodes.size() > 0)
+                node = graph.addNode(DRUG_LABEL, STEREO_ID_KEY, drug.stereoId, FLAT_ID_KEY, drug.flatId, "name",
+                                     drug.name, ATC_CODES_KEY, drug.atcCodes.toArray(new String[0]));
+            else if (drug.name != null)
+                node = graph.addNode(DRUG_LABEL, STEREO_ID_KEY, drug.stereoId, FLAT_ID_KEY, drug.flatId, "name",
+                                     drug.name);
+            else if (drug.atcCodes.size() > 0)
+                node = graph.addNode(DRUG_LABEL, STEREO_ID_KEY, drug.stereoId, FLAT_ID_KEY, drug.flatId, ATC_CODES_KEY,
+                                     drug.atcCodes.toArray(new String[0]));
+            else
+                node = graph.addNode(DRUG_LABEL, STEREO_ID_KEY, drug.stereoId, FLAT_ID_KEY, drug.flatId);
+            flatIdNodeIdMap.put(drug.flatId, node.getId());
+        }
+        return flatIdNodeIdMap;
     }
 
     private <T> Iterable<T> parseGzipTsvFile(final Workspace workspace, final String fileName,
@@ -124,28 +143,31 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
         }
     }
 
-    private boolean skipConcept(final String conceptType) {
-        return StringUtils.isNotEmpty(conceptType) && !"PT".equals(conceptType);
+    private void updateDrugEntry(final Map<String, CombinedDrug> flatIdDrugMap, final String flatId,
+                                 final String stereoId) {
+        CombinedDrug drug = flatIdDrugMap.get(flatId);
+        if (drug == null) {
+            drug = new CombinedDrug(flatId);
+            flatIdDrugMap.put(flatId, drug);
+        }
+        drug.stereoId = drug.stereoId != null ? drug.stereoId : stereoId;
     }
 
-    private Node getOrAddDrugNode(final Graph graph, final Map<String, CombinedDrug> flatIdDrugMap, final String flatId,
-                                  final String stereoId) {
-        Node node = graph.findNode(DRUG_LABEL, STEREO_ID_KEY, stereoId);
-        if (node == null) {
-            final CombinedDrug drug = flatIdDrugMap.get(flatId);
-            if (drug != null) {
-                if (drug.name != null && drug.atcCodes.size() > 0)
-                    node = graph.addNode(DRUG_LABEL, STEREO_ID_KEY, stereoId, FLAT_ID_KEY, flatId, "name", drug.name,
-                                         ATC_CODES_KEY, drug.atcCodes.toArray(new String[0]));
-                else if (drug.name != null)
-                    node = graph.addNode(DRUG_LABEL, STEREO_ID_KEY, stereoId, FLAT_ID_KEY, flatId, "name", drug.name);
-                else if (drug.atcCodes.size() > 0)
-                    node = graph.addNode(DRUG_LABEL, STEREO_ID_KEY, stereoId, FLAT_ID_KEY, flatId, ATC_CODES_KEY,
-                                         drug.atcCodes.toArray(new String[0]));
-            } else
-                node = graph.addNode(DRUG_LABEL, STEREO_ID_KEY, stereoId, FLAT_ID_KEY, flatId);
+    private void addAllIndications(final Workspace workspace, final Graph graph,
+                                   final Map<String, Long> flatIdNodeIdMap) throws ExporterException {
+        for (final Indication indication : parseGzipTsvFile(workspace, SiderUpdater.INDICATIONS_FILE_NAME,
+                                                            Indication.class)) {
+            if (skipConcept(indication.meddraConceptType))
+                continue;
+            final Node termNode = getOrAddTermNode(graph, indication.umlsConceptId, indication.conceptName,
+                                                   indication.meddraUmlsConceptId, indication.meddraConceptName);
+            graph.addEdge(flatIdNodeIdMap.get(indication.flatCompoundId), termNode, "INDICATES", "label",
+                          indication.label, "detection_method", indication.detectionMethod);
         }
-        return node;
+    }
+
+    private boolean skipConcept(final String conceptType) {
+        return StringUtils.isNotEmpty(conceptType) && !"PT".equals(conceptType);
     }
 
     private Node getOrAddTermNode(final Graph graph, final String umlsConceptId, final String umlsConceptName,
@@ -170,31 +192,32 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
     }
 
     private void addAllSideEffects(final Workspace workspace, final Graph graph,
-                                   final Map<String, CombinedDrug> flatIdDrugMap) throws ExporterException {
+                                   final Map<String, Long> flatIdNodeIdMap) throws ExporterException {
+        graph.beginEdgeIndicesDelay(HAS_SIDE_EFFECT_LABEL);
         for (final SideEffect sideEffect : parseGzipTsvFile(workspace, SiderUpdater.SIDE_EFFECTS_FILE_NAME,
                                                             SideEffect.class)) {
             if (skipConcept(sideEffect.meddraConceptType))
                 continue;
-            final Node drugNode = getOrAddDrugNode(graph, flatIdDrugMap, sideEffect.flatCompoundId,
-                                                   sideEffect.stereoCompoundId);
             final Node termNode = getOrAddTermNode(graph, sideEffect.umlsConceptId, null,
                                                    sideEffect.meddraUmlsConceptId, sideEffect.sideEffectName);
-            graph.addEdge(drugNode, termNode, "HAS_SIDE_EFFECT", "label", sideEffect.label);
+            graph.addEdge(flatIdNodeIdMap.get(sideEffect.flatCompoundId), termNode, HAS_SIDE_EFFECT_LABEL, "label",
+                          sideEffect.label);
         }
+        graph.endEdgeIndicesDelay(HAS_SIDE_EFFECT_LABEL);
     }
 
     private void addAllSideEffectFrequencies(final Workspace workspace, final Graph graph,
-                                             final Map<String, CombinedDrug> flatIdDrugMap) throws ExporterException {
+                                             final Map<String, Long> flatIdNodeIdMap) throws ExporterException {
+        graph.beginEdgeIndicesDelay(HAS_SIDE_EFFECT_FREQUENCY_LABEL);
         for (final Frequency frequency : parseGzipTsvFile(workspace, SiderUpdater.FREQUENCIES_FILE_NAME,
                                                           Frequency.class)) {
             if (skipConcept(frequency.meddraConceptType))
                 continue;
-            final Node drugNode = getOrAddDrugNode(graph, flatIdDrugMap, frequency.flatCompoundId,
-                                                   frequency.stereoCompoundId);
             final Node termNode = getOrAddTermNode(graph, frequency.umlsConceptId, null, frequency.meddraUmlsConceptId,
                                                    frequency.sideEffectName);
-            final EdgeBuilder builder = graph.buildEdge().fromNode(drugNode).toNode(termNode);
-            builder.withLabel("HAS_SIDE_EFFECT_FREQUENCY");
+            final EdgeBuilder builder = graph.buildEdge().fromNode(flatIdNodeIdMap.get(frequency.flatCompoundId))
+                                             .toNode(termNode);
+            builder.withLabel(HAS_SIDE_EFFECT_FREQUENCY_LABEL);
             builder.withProperty("frequency", frequency.frequency);
             builder.withProperty("frequency_lower_bound", frequency.frequencyLowerBound);
             builder.withProperty("frequency_upper_bound", frequency.frequencyUpperBound);
@@ -202,5 +225,6 @@ public class SiderGraphExporter extends GraphExporter<SiderDataSource> {
                 builder.withProperty("placebo", frequency.placebo.equalsIgnoreCase("placebo"));
             builder.build();
         }
+        graph.endEdgeIndicesDelay(HAS_SIDE_EFFECT_FREQUENCY_LABEL);
     }
 }
