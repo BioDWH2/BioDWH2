@@ -58,6 +58,7 @@
         <module>biodwh2-guidetopharmacology</module>
         <module>biodwh2-negatome</module>
         <module>biodwh2-interpro</module>
+        <module>biodwh2-gencc</module>
     </modules>
 
     <packaging>pom</packaging>

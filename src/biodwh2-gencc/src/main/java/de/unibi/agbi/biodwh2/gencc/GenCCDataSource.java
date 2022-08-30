@@ -1,0 +1,54 @@
+package de.unibi.agbi.biodwh2.gencc;
+
+import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DevelopmentState;
+import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.gencc.etl.GenCCGraphExporter;
+import de.unibi.agbi.biodwh2.gencc.etl.GenCCMappingDescriber;
+import de.unibi.agbi.biodwh2.gencc.etl.GenCCUpdater;
+
+public class GenCCDataSource extends DataSource {
+    @Override
+    public String getId() {
+        return "GenCC";
+    }
+
+    @Override
+    public String getLicense() {
+        return "CC0 1.0";
+    }
+
+    @Override
+    public String getLicenseUrl() {
+        return "https://thegencc.org/terms.html";
+    }
+
+    @Override
+    public DevelopmentState getDevelopmentState() {
+        return DevelopmentState.InDevelopment;
+    }
+
+    @Override
+    protected Updater<? extends DataSource> getUpdater() {
+        return new GenCCUpdater(this);
+    }
+
+    @Override
+    protected Parser<? extends DataSource> getParser() {
+        return new PassThroughParser<>(this);
+    }
+
+    @Override
+    protected GraphExporter<? extends DataSource> getGraphExporter() {
+        return new GenCCGraphExporter(this);
+    }
+
+    @Override
+    public MappingDescriber getMappingDescriber() {
+        return new GenCCMappingDescriber(this);
+    }
+
+    @Override
+    protected void unloadData() {
+    }
+}
