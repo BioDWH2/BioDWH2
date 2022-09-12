@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -190,8 +191,12 @@ public final class GraphMapper {
         for (final Map.Entry<String, MappingDescriber> entry : dataSourceDescriberMap.entrySet()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Mapping edge paths for data source '" + entry.getKey() + "'");
-            for (final PathMapping path : getNonEmptyPathMappingsForDescriber(entry.getValue()))
-                mapPath(graph, entry.getValue(), path, runsInParallel, numThreads);
+            for (final PathMapping path : getNonEmptyPathMappingsForDescriber(entry.getValue())) {
+                final ConcurrentHashMap<String, Boolean> mappedEdgeTypes = new ConcurrentHashMap<>();
+                mapPath(graph, entry.getValue(), path, runsInParallel, numThreads, mappedEdgeTypes);
+                for (final String label : mappedEdgeTypes.keySet())
+                    graph.endEdgeIndicesDelay(label);
+            }
         }
     }
 
@@ -201,7 +206,8 @@ public final class GraphMapper {
     }
 
     private void mapPath(final Graph graph, final MappingDescriber describer, final PathMapping path,
-                         final boolean runsInParallel, final int numThreads) {
+                         final boolean runsInParallel, final int numThreads,
+                         final AbstractMap<String, Boolean> mappedEdgeTypes) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Mapping edge paths " + path);
         final PathMapping.Segment segment = path.get(0);
@@ -212,7 +218,7 @@ public final class GraphMapper {
                 final Spliterator<Node> nodes = graph.getNodes(describer.prefixLabel(segment.fromNodeLabel))
                                                      .spliterator();
                 pool.submit(() -> StreamSupport.stream(nodes, true).parallel().forEach(
-                        node -> startBuildPathRecursively(graph, describer, path, node)));
+                        node -> startBuildPathRecursively(graph, describer, path, node, mappedEdgeTypes)));
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
@@ -221,20 +227,21 @@ public final class GraphMapper {
             }
         } else
             for (final Node node : graph.getNodes(describer.prefixLabel(segment.fromNodeLabel)))
-                startBuildPathRecursively(graph, describer, path, node);
+                startBuildPathRecursively(graph, describer, path, node, mappedEdgeTypes);
     }
 
     private void startBuildPathRecursively(final Graph graph, final MappingDescriber describer, final PathMapping path,
-                                           final Node node) {
+                                           final Node node, final AbstractMap<String, Boolean> mappedEdgeTypes) {
         final long[] currentPathIds = new long[path.getSegmentCount() * 2 + 1];
         currentPathIds[0] = node.getId();
-        buildPathRecursively(graph, describer, path, 0, currentPathIds);
+        buildPathRecursively(graph, describer, path, 0, currentPathIds, mappedEdgeTypes);
     }
 
     private void buildPathRecursively(final Graph graph, final MappingDescriber describer, final PathMapping path,
-                                      final int segmentIndex, final long[] currentPathIds) {
+                                      final int segmentIndex, final long[] currentPathIds,
+                                      final AbstractMap<String, Boolean> mappedEdgeTypes) {
         if (segmentIndex >= path.getSegmentCount()) {
-            mapPathInstance(graph, describer, currentPathIds);
+            mapPathInstance(graph, describer, currentPathIds, mappedEdgeTypes);
             return;
         }
         final PathMapping.Segment segment = path.get(segmentIndex);
@@ -244,29 +251,30 @@ public final class GraphMapper {
         final int currentEdgePathIndex = segmentIndex * 2 + 1;
         if (segment.direction == EdgeDirection.BIDIRECTIONAL || segment.direction == EdgeDirection.FORWARD) {
             for (final Edge edge : graph.findEdges(edgeLabel, Edge.FROM_ID_FIELD, fromNodeId)) {
-                final Node nextNode = graph.getNode(edge.getToId());
-                if (nextNode != null && nextNode.getLabel().equals(toNodeLabel)) {
+                final String nextNodeLabel = graph.getNodeLabel(edge.getToId());
+                if (toNodeLabel.equals(nextNodeLabel)) {
                     final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
                     nextPathIds[currentEdgePathIndex] = edge.getId();
-                    nextPathIds[currentEdgePathIndex + 1] = nextNode.getId();
-                    buildPathRecursively(graph, describer, path, segmentIndex + 1, nextPathIds);
+                    nextPathIds[currentEdgePathIndex + 1] = edge.getToId();
+                    buildPathRecursively(graph, describer, path, segmentIndex + 1, nextPathIds, mappedEdgeTypes);
                 }
             }
         }
         if (segment.direction == EdgeDirection.BIDIRECTIONAL || segment.direction == EdgeDirection.BACKWARD) {
             for (final Edge edge : graph.findEdges(edgeLabel, Edge.TO_ID_FIELD, fromNodeId)) {
-                final Node nextNode = graph.getNode(edge.getFromId());
-                if (nextNode != null && nextNode.getLabel().equals(toNodeLabel)) {
+                final String nextNodeLabel = graph.getNodeLabel(edge.getFromId());
+                if (toNodeLabel.equals(nextNodeLabel)) {
                     final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
                     nextPathIds[currentEdgePathIndex] = edge.getId();
-                    nextPathIds[currentEdgePathIndex + 1] = nextNode.getId();
-                    buildPathRecursively(graph, describer, path, segmentIndex + 1, nextPathIds);
+                    nextPathIds[currentEdgePathIndex + 1] = edge.getFromId();
+                    buildPathRecursively(graph, describer, path, segmentIndex + 1, nextPathIds, mappedEdgeTypes);
                 }
             }
         }
     }
 
-    private void mapPathInstance(final Graph graph, final MappingDescriber describer, final long[] pathIds) {
+    private void mapPathInstance(final Graph graph, final MappingDescriber describer, final long[] pathIds,
+                                 final AbstractMap<String, Boolean> mappedEdgeTypes) {
         final Node[] nodes = new Node[pathIds.length / 2 + 1];
         for (int i = 0; i < nodes.length; i++)
             nodes[i] = graph.getNode(pathIds[i * 2]);
@@ -275,13 +283,17 @@ public final class GraphMapper {
             edges[i] = graph.getEdge(pathIds[i * 2 + 1]);
         final PathMappingDescription mappingDescription = describer.describe(graph, nodes, edges);
         if (mappingDescription != null) {
+            final String mappedLabel = mappingDescription.getType();
+            if (!mappedEdgeTypes.containsKey(mappedLabel)) {
+                mappedEdgeTypes.put(mappedLabel, true);
+                graph.beginEdgeIndicesDelay(mappedLabel);
+            }
             final Long[] mappedFromNodeIds = graph.getAdjacentNodeIdsForEdgeLabel(pathIds[0], MAPPED_TO_EDGE_LABEL);
             final Long[] mappedToNodeIds = graph.getAdjacentNodeIdsForEdgeLabel(pathIds[pathIds.length - 1],
                                                                                 MAPPED_TO_EDGE_LABEL);
             for (final Long fromNodeId : mappedFromNodeIds)
                 for (final Long toNodeId : mappedToNodeIds)
-                    graph.addEdge(fromNodeId, toNodeId, mappingDescription.getType(), "source",
-                                  describer.getDataSourceId());
+                    graph.addEdge(fromNodeId, toNodeId, mappedLabel, "source", describer.getDataSourceId());
         }
     }
 

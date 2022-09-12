@@ -16,6 +16,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
+import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,12 +113,10 @@ public final class GraphMerger {
                             numberOfEdges + " edges]");
             mergedGraph.mergeDatabase(dataSource.getId(), databaseToMerge, (nodeCounter) -> {
                 if (LOGGER.isInfoEnabled())
-                    LOGGER.info("\tNode progress: " + nodeCounter + '/' + numberOfNodes + " (" +
-                                String.format("%.1f", nodeCounter * 100.0 / numberOfNodes) + "%)");
+                    LOGGER.info("\tNode progress: " + TextUtils.getProgressText(nodeCounter, numberOfNodes));
             }, (edgeCounter) -> {
                 if (LOGGER.isInfoEnabled())
-                    LOGGER.info("\tEdge progress: " + edgeCounter + '/' + numberOfEdges + " (" +
-                                String.format("%.1f", edgeCounter * 100.0 / numberOfEdges) + "%)");
+                    LOGGER.info("\tEdge progress: " + TextUtils.getProgressText(edgeCounter, numberOfEdges));
             });
         } catch (GraphCacheException e) {
             throw new MergerException("Failed to merge data source " + dataSource.getId(), e);
