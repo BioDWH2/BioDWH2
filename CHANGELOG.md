@@ -1,12 +1,17 @@
 # Changelog
 
-## 📦 Version v0.4.5
+## 📦 Version [v0.4.5](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.5)
 
-Released: Upcoming
+Released: 12.09.2022
 
 ### 📚 Data Sources
 
 * ```[Negatome]``` #67 Add Negatome Pfam domains and relationships. Mark module as usable.
+* ```[GenCC]``` #70 Add GenCC data source module
+
+### 🔧 Bug fixes and other changes
+
+* ```[feature]``` Allow delay of edge index creation to speedup graph exporter performance
 
 ## 📦 Version [v0.4.4](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.4)
 
