@@ -12,6 +12,7 @@ Released: 12.09.2022
 ### 🔧 Bug fixes and other changes
 
 * ```[feature]``` Allow delay of edge index creation to speedup graph exporter performance
+* ```[chore]``` Update dependencies
 
 ## 📦 Version [v0.4.4](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.4)
 
