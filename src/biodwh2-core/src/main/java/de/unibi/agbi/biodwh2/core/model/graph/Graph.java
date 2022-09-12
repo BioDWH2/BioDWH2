@@ -6,12 +6,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
-@SuppressWarnings("unused")
 public final class Graph extends MVStoreGraph {
     public Graph(final String filePath) {
         this(Paths.get(filePath), false, false);
@@ -346,146 +342,6 @@ public final class Graph extends MVStoreGraph {
 
     public EdgeBuilder buildEdge() {
         return new EdgeBuilder(this);
-    }
-
-    public Iterable<Node> getNodes(final String label) {
-        if (label == null || label.length() == 0)
-            return getNodes();
-        return findNodes(label);
-    }
-
-    public Iterable<Edge> getEdges(final String label) {
-        if (label == null || label.length() == 0)
-            return getEdges();
-        return findEdges(label);
-    }
-
-    public Node findNode(final String label) {
-        return firstOrDefault(findNodes(label));
-    }
-
-    private <T> T firstOrDefault(final Iterable<T> iterable) {
-        return firstOrDefault(iterable.iterator());
-    }
-
-    private <T> T firstOrDefault(final Iterator<T> iterator) {
-        return iterator.hasNext() ? iterator.next() : null;
-    }
-
-    public Node findNode(final String label, final String propertyKey, final Comparable<?> value) {
-        return firstOrDefault(findNodes(label, propertyKey, value));
-    }
-
-    public Node findNode(final String label, final String propertyKey1, final Comparable<?> value1,
-                         final String propertyKey2, final Comparable<?> value2) {
-        return firstOrDefault(findNodes(label, propertyKey1, value1, propertyKey2, value2));
-    }
-
-    public Node findNode(final String label, final String propertyKey1, final Comparable<?> value1,
-                         final String propertyKey2, final Comparable<?> value2, final String propertyKey3,
-                         final Comparable<?> value3) {
-        return firstOrDefault(findNodes(label, propertyKey1, value1, propertyKey2, value2, propertyKey3, value3));
-    }
-
-    public Node findNode(final String label, final Map<String, Comparable<?>> properties) {
-        return firstOrDefault(findNodes(label, properties));
-    }
-
-    public Node findNode(final String propertyKey, final Comparable<?> value) {
-        return firstOrDefault(findNodes(propertyKey, value));
-    }
-
-    public Node findNode(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
-                         final Comparable<?> value2) {
-        return firstOrDefault(findNodes(propertyKey1, value1, propertyKey2, value2));
-    }
-
-    public Node findNode(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
-                         final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3) {
-        return firstOrDefault(findNodes(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3));
-    }
-
-    public Node findNode(final Map<String, Comparable<?>> properties) {
-        return firstOrDefault(findNodes(properties));
-    }
-
-    public Edge findEdge(final String label) {
-        return firstOrDefault(findEdges(label));
-    }
-
-    public Edge findEdge(final String label, final String propertyKey, final Comparable<?> value) {
-        return firstOrDefault(findEdges(label, propertyKey, value));
-    }
-
-    public Edge findEdge(final String label, final String propertyKey1, final Comparable<?> value1,
-                         final String propertyKey2, final Comparable<?> value2) {
-        return firstOrDefault(findEdges(label, propertyKey1, value1, propertyKey2, value2));
-    }
-
-    public Edge findEdge(final String label, final String propertyKey1, final Comparable<?> value1,
-                         final String propertyKey2, final Comparable<?> value2, final String propertyKey3,
-                         final Comparable<?> value3) {
-        return firstOrDefault(findEdges(label, propertyKey1, value1, propertyKey2, value2, propertyKey3, value3));
-    }
-
-    public Edge findEdge(final String label, final Map<String, Comparable<?>> properties) {
-        return firstOrDefault(findEdges(label, properties));
-    }
-
-    public Edge findEdge(final String propertyKey, final Comparable<?> value) {
-        return firstOrDefault(findEdges(propertyKey, value));
-    }
-
-    public Edge findEdge(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
-                         final Comparable<?> value2) {
-        return firstOrDefault(findEdges(propertyKey1, value1, propertyKey2, value2));
-    }
-
-    public Edge findEdge(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
-                         final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3) {
-        return firstOrDefault(findEdges(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3));
-    }
-
-    public Edge findEdge(final Map<String, Comparable<?>> properties) {
-        return firstOrDefault(findEdges(properties));
-    }
-
-    public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId) {
-        return getAdjacentNodeIdsForEdgeLabel(nodeId, null, EdgeDirection.BIDIRECTIONAL);
-    }
-
-    public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId, final String edgeLabel) {
-        return getAdjacentNodeIdsForEdgeLabel(nodeId, edgeLabel, EdgeDirection.BIDIRECTIONAL);
-    }
-
-    /**
-     * Find nodes directly connected to the provided node with a specified edge label and direction.
-     *
-     * @param nodeId    ID of the node to find adjacent nodes for
-     * @param edgeLabel Label filter for connected edges (default: null)
-     * @param direction Direction filter for connected edges (default: BIDIRECTIONAL)
-     * @return Array of directly connected node IDs
-     */
-    public Long[] getAdjacentNodeIdsForEdgeLabel(final long nodeId, final String edgeLabel,
-                                                 final EdgeDirection direction) {
-        final Set<Long> nodeIds = new HashSet<>();
-        if (direction != EdgeDirection.BACKWARD) {
-            if (edgeLabel == null)
-                for (final Edge edge : findEdges(Edge.FROM_ID_FIELD, nodeId))
-                    nodeIds.add(edge.getToId());
-            else
-                for (final Edge edge : findEdges(edgeLabel, Edge.FROM_ID_FIELD, nodeId))
-                    nodeIds.add(edge.getToId());
-        }
-        if (direction != EdgeDirection.FORWARD) {
-            if (edgeLabel == null)
-                for (final Edge edge : findEdges(Edge.TO_ID_FIELD, nodeId))
-                    nodeIds.add(edge.getFromId());
-            else
-                for (final Edge edge : findEdges(edgeLabel, Edge.TO_ID_FIELD, nodeId))
-                    nodeIds.add(edge.getFromId());
-        }
-        return nodeIds.toArray(new Long[0]);
     }
 
     public static Graph createTempGraph() throws IOException {

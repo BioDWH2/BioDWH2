@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 /**
  * Readonly wrapper for a BaseGraph representing a view on specified node and edge labels.
  */
-public class GraphView implements BaseGraph {
+public class GraphView extends BaseGraph {
     private final MVStoreGraph graph;
     private final Set<String> nodeLabels;
     private final Set<String> edgeLabels;
