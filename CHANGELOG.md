@@ -1,5 +1,13 @@
 # Changelog
 
+## 📦 Version [v0.4.6](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.6)
+
+Released: 12.09.2022
+
+### 🔧 Bug fixes and other changes
+
+* ```[feature]``` Move functions from Graph to BaseGraph
+
 ## 📦 Version [v0.4.5](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.5)
 
 Released: 12.09.2022
