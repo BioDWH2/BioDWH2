@@ -485,30 +485,34 @@ abstract class MVStoreGraph implements BaseGraph, AutoCloseable {
         final Map<Long, Long> mapping = new HashMap<>();
         for (final String sourceLabel : databaseToMerge.nodeRepositories.keySet()) {
             final String targetLabel = dataSourcePrefix + sourceLabel;
+            final MVStoreCollection<Node> targetNodes = getOrCreateNodeRepository(targetLabel);
             for (final Node n : databaseToMerge.nodeRepositories.get(sourceLabel)) {
                 nodeCounter++;
-                if (nodeProgressCallback != null && nodeCounter % 100000 == 0)
+                if (nodeProgressCallback != null && nodeCounter % 100_000 == 0)
                     nodeProgressCallback.accept(nodeCounter);
                 final Long oldId = n.getId();
                 n.resetId();
                 n.setLabel(targetLabel);
-                getOrCreateNodeRepository(targetLabel).put(n);
+                targetNodes.put(n);
                 mapping.put(oldId, n.getId());
             }
         }
         long edgeCounter = 0;
         for (final String sourceLabel : databaseToMerge.edgeRepositories.keySet()) {
             final String targetLabel = dataSourcePrefix + sourceLabel;
+            beginEdgeIndicesDelay(targetLabel);
+            final MVStoreCollection<Edge> targetEdges = getOrCreateEdgeRepository(targetLabel);
             for (final Edge e : databaseToMerge.edgeRepositories.get(sourceLabel)) {
                 edgeCounter++;
-                if (edgeProgressCallback != null && edgeCounter % 100000 == 0)
+                if (edgeProgressCallback != null && edgeCounter % 100_000 == 0)
                     edgeProgressCallback.accept(edgeCounter);
                 e.resetId();
                 e.setLabel(targetLabel);
                 e.setFromId(mapping.get(e.getFromId()));
                 e.setToId(mapping.get(e.getToId()));
-                getOrCreateEdgeRepository(targetLabel).put(e);
+                targetEdges.put(e);
             }
+            endEdgeIndicesDelay(targetLabel);
         }
     }
 
