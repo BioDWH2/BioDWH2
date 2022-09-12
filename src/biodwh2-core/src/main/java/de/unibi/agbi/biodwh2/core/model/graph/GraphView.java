@@ -72,9 +72,21 @@ public class GraphView implements BaseGraph {
     }
 
     @Override
+    public String getNodeLabel(long nodeId) {
+        final Node node = graph.getNode(nodeId);
+        return node != null && nodeLabels.contains(node.getLabel()) ? node.getLabel() : null;
+    }
+
+    @Override
     public Edge getEdge(final long edgeId) {
         final Edge edge = graph.getEdge(edgeId);
         return edge != null && edgeLabels.contains(edge.getLabel()) ? edge : null;
+    }
+
+    @Override
+    public String getEdgeLabel(long edgeId) {
+        final Edge edge = graph.getEdge(edgeId);
+        return edge != null && edgeLabels.contains(edge.getLabel()) ? edge.getLabel() : null;
     }
 
     @Override

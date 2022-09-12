@@ -21,7 +21,11 @@ public interface BaseGraph {
 
     Node getNode(final long nodeId);
 
+    String getNodeLabel(final long nodeId);
+
     Edge getEdge(final long edgeId);
+
+    String getEdgeLabel(final long edgeId);
 
     Iterable<Node> findNodes(final String label);
 

@@ -187,6 +187,10 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
         }
     }
 
+    public boolean contains(final long id) {
+        return map.containsKey(id);
+    }
+
     public T get(final MVStoreId id) {
         return map.getOrDefault(id.getIdValue(), null);
     }

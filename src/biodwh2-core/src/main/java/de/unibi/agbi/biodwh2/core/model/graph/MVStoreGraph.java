@@ -230,12 +230,28 @@ abstract class MVStoreGraph implements BaseGraph, AutoCloseable {
         return null;
     }
 
+    @Override
+    public String getNodeLabel(long nodeId) {
+        for (final String label : nodeRepositories.keySet())
+            if (nodeRepositories.get(label).contains(nodeId))
+                return label;
+        return null;
+    }
+
     public final Edge getEdge(final long edgeId) {
         for (final MVStoreCollection<Edge> edges : edgeRepositories.values()) {
             final Edge edge = edges.get(edgeId);
             if (edge != null)
                 return edge;
         }
+        return null;
+    }
+
+    @Override
+    public String getEdgeLabel(long edgeId) {
+        for (final String label : edgeRepositories.keySet())
+            if (edgeRepositories.get(label).contains(edgeId))
+                return label;
         return null;
     }
 
