@@ -61,6 +61,7 @@
         <module>biodwh2-gencc</module>
         <module>biodwh2-t3db</module>
         <module>biodwh2-mirbase</module>
+        <module>biodwh2-mirtarbase</module>
         <module>biodwh2-tarbase</module>
     </modules>
 
