@@ -2,8 +2,8 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({"syn_id", "id", "name", "preferred_name", "parent_id", "lname"})
@@ -12,7 +12,7 @@ public final class Synonym {
     @JsonProperty("syn_id")
     public String synId;
     @JsonProperty("id")
-    public Integer id;
+    public Long id;
     @JsonProperty("name")
     @GraphProperty("name")
     public String name;
@@ -20,7 +20,7 @@ public final class Synonym {
     @GraphProperty("preferred_name")
     public String preferredName;
     @JsonProperty("parent_id")
-    public Integer parentId;
+    public Long parentId;
     @JsonProperty("lname")
     public String lname;
 }

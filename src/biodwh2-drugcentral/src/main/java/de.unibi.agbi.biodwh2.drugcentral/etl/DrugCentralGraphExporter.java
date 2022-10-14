@@ -25,6 +25,8 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     static final String ATTRIBUTE_TYPE_LABEL = "AttributeType";
     public static final String FAERS_LABEL = "FAERS";
     static final String INN_STEM_LABEL = "InnStem";
+    public static final String VET_PROD_LABEL = "VetProd";
+    public static final String VET_OMOP_LABEL = "VetOmop";
     static final String ORANGE_BOOK_EXCLUSIVITY_LABEL = "OrangeBookExclusivity";
     public static final String ORANGE_BOOK_PRODUCT_LABEL = "OrangeBookProduct";
     static final String STRUCTURE_LABEL = "Structure";
@@ -43,7 +45,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -62,8 +64,11 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         g.addIndex(IndexDescription.forNode(GO_TERM_LABEL, "id", IndexDescription.Type.UNIQUE));
         g.addIndex(IndexDescription.forNode(TARGET_KEYWORD_LABEL, "id", IndexDescription.Type.UNIQUE));
         g.addIndex(IndexDescription.forNode(INN_STEM_LABEL, "stem", IndexDescription.Type.UNIQUE));
-        // "ddi_risk.tsv", "approval_type.tsv", "target_class.tsv", "ref_type.tsv", "protein_type.tsv"
-        // are ignored because no necessary additional info is included
+        g.addIndex(IndexDescription.forNode(VET_PROD_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(VET_OMOP_LABEL, "id", IndexDescription.Type.UNIQUE));
+        // "ddi_risk.tsv", "approval_type.tsv", "target_class.tsv", "ref_type.tsv", "protein_type.tsv",
+        // "ijc_connect_items.tsv", "ijc_connect_structures.tsv", "struct_type_def.tsv" are ignored because no necessary
+        // additional info is included
         createNodesFromTsvFile(workspace, g, DataSource.class, "data_source.tsv");
         createNodesFromTsvFile(workspace, g, DbVersion.class, "dbversion.tsv");
         createNodesFromTsvFile(workspace, g, AttributeType.class, "attr_type.tsv");
@@ -71,7 +76,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         createNodesFromTsvFile(workspace, g, IdType.class, "id_type.tsv");
         createNodesFromTsvFile(workspace, g, ActionType.class, "action_type.tsv");
         createNodesFromTsvFile(workspace, g, Reference.class, "reference.tsv");
-        final Map<Integer, Long> structureIdNodeIdMap = addStructuresWithType(workspace, g);
+        final Map<Long, Long> structureIdNodeIdMap = addStructuresWithType(workspace, g);
         for (final Approval approval : parseTsvFile(workspace, Approval.class, "approval.tsv")) {
             final Node approvalNode = g.addNodeFromModel(approval);
             g.addEdge(structureIdNodeIdMap.get(approval.structId), approvalNode, "HAS_APPROVAL");
@@ -91,6 +96,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         addProductsWithLabelsAndIngredients(workspace, g, structureIdNodeIdMap, skipDrugLabelFullTexts);
         addTargets(workspace, g, structureIdNodeIdMap);
         addDiseaseOntology(workspace, g);
+        addVetProducts(workspace, g, structureIdNodeIdMap);
         if (!skipFAERSReports)
             addFAERSEntries(workspace, g, structureIdNodeIdMap);
         if (!skipLINCSSignatures)
@@ -117,33 +123,38 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         }
     }
 
-    private Map<Integer, Long> addStructuresWithType(final Workspace workspace,
-                                                     final Graph g) throws ExporterException {
-        final Map<Integer, List<String>> structureIdTypeMap = new HashMap<>();
+    private Map<Long, Long> addStructuresWithType(final Workspace workspace, final Graph g) throws ExporterException {
+        final Map<Long, Humanim> structureHumanimMap = new HashMap<>();
+        for (final Humanim entry : parseTsvFile(workspace, Humanim.class, "humanim.tsv")) {
+            structureHumanimMap.put(entry.structId, entry);
+        }
+        final Map<Long, List<String>> structureIdTypeMap = new HashMap<>();
         for (final StructureType structureType : parseTsvFile(workspace, StructureType.class, "structure_type.tsv")) {
             if (!structureIdTypeMap.containsKey(structureType.structId))
                 structureIdTypeMap.put(structureType.structId, new ArrayList<>());
             structureIdTypeMap.get(structureType.structId).add(structureType.type);
         }
-        final Map<Integer, Pka> structureIdPkaMap = new HashMap<>();
+        final Map<Long, Pka> structureIdPkaMap = new HashMap<>();
         for (final Pka pka : parseTsvFile(workspace, Pka.class, "pka.tsv"))
             structureIdPkaMap.put(pka.structId, pka);
-        final Map<Integer, Long> structureIdNodeIdMap = new HashMap<>();
+        final Map<Long, Long> structureIdNodeIdMap = new HashMap<>();
         for (final Structure structure : parseTsvFile(workspace, Structure.class, "structures.tsv")) {
-            final Node node;
-            final boolean hasType = structureIdTypeMap.containsKey(structure.id);
-            final String[] types = hasType ? structureIdTypeMap.get(structure.id).toArray(new String[0]) : null;
+            final Map<String, Object> additionalProperties = new HashMap<>();
+            final List<String> types = structureIdTypeMap.get(structure.id);
+            if (types != null)
+                additionalProperties.put("types", types.toArray(new String[0]));
             final Pka pka = structureIdPkaMap.get(structure.id);
-            if (hasType && pka != null)
-                node = g.addNodeFromModel(structure, "types", types, "pka_level", pka.pkaLevel, "pka_type", pka.pkaType,
-                                          "pka_value", pka.value);
-            else if (hasType)
-                node = g.addNodeFromModel(structure, "types", types);
-            else if (pka != null)
-                node = g.addNodeFromModel(structure, "pka_level", pka.pkaLevel, "pka_type", pka.pkaType, "pka_value",
-                                          pka.value);
-            else
-                node = g.addNodeFromModel(structure);
+            if (pka != null) {
+                additionalProperties.put("pka_level", pka.pkaLevel);
+                additionalProperties.put("pka_type", pka.pkaType);
+                additionalProperties.put("pka_value", pka.value);
+            }
+            final Humanim humanim = structureHumanimMap.get(structure.id);
+            if (humanim != null) {
+                additionalProperties.put("human", "t".equalsIgnoreCase(humanim.human));
+                additionalProperties.put("animal", "t".equalsIgnoreCase(humanim.animal));
+            }
+            final Node node = g.addNodeFromModel(structure, additionalProperties);
             structureIdNodeIdMap.put(structure.id, node.getId());
             if (structure.stem != null)
                 g.addEdge(node, g.findNode("InnStem", "stem", structure.stem), "HAS_INN_STEM");
@@ -152,7 +163,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     }
 
     private void addAtcCodeHierarchy(final Workspace workspace, final Graph g,
-                                     final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
+                                     final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
         final Map<String, Long> atcCodeNodeIdMap = new HashMap<>();
         for (final Atc atc : parseTsvFile(workspace, Atc.class, "atc.tsv")) {
             final Node node = g.addNodeFromModel(atc, "level", 5);
@@ -193,7 +204,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     }
 
     private void addStructureProperties(final Workspace workspace, final Graph g,
-                                        final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
+                                        final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
         final Map<Integer, PropertyType> propertyTypeMap = new HashMap<>();
         for (final PropertyType type : parseTsvFile(workspace, PropertyType.class, "property_type.tsv"))
             propertyTypeMap.put(type.id, type);
@@ -207,7 +218,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     }
 
     private void addStructurePharmaClasses(final Workspace workspace, final Graph g,
-                                           final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
+                                           final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
         final Map<String, Long> classCodeNodeIdMap = new HashMap<>();
         for (final PharmaClass pharmaClass : parseTsvFile(workspace, PharmaClass.class, "pharma_class.tsv")) {
             if (!classCodeNodeIdMap.containsKey(pharmaClass.classCode)) {
@@ -220,7 +231,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     }
 
     private void addOrangeBookPatentProducts(final Workspace workspace, final Graph g,
-                                             final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
+                                             final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
         final Map<String, String> useCodeDescriptionMap = new HashMap<>();
         for (final ObPatentUseCode useCode : parseTsvFile(workspace, ObPatentUseCode.class, "ob_patent_use_code.tsv"))
             useCodeDescriptionMap.put(useCode.code, useCode.description);
@@ -273,7 +284,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     }
 
     private void addOMOPRelationships(final Workspace workspace, final Graph g,
-                                      final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
+                                      final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
         final Map<String, Long> conceptKeyNodeIdMap = new HashMap<>();
         for (final OmopRelationship relationship : parseTsvFile(workspace, OmopRelationship.class,
                                                                 "omop_relationship.tsv")) {
@@ -288,7 +299,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     }
 
     private void addDrugClassesAndDrugInteractions(final Workspace workspace, final Graph g,
-                                                   final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
+                                                   final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
         final Map<Integer, Long> classIdNodeIdMap = new HashMap<>();
         final Map<String, Long> classNameNodeIdMap = new HashMap<>();
         for (final DrugClass drugClass : parseTsvFile(workspace, DrugClass.class, "drug_class.tsv")) {
@@ -309,7 +320,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     }
 
     private void addPDBEntries(final Workspace workspace, final Graph g,
-                               final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
+                               final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
         for (final Pdb pdb : parseTsvFile(workspace, Pdb.class, "pdb.tsv")) {
             final Node node = g.addNodeFromModel(pdb);
             g.addEdge(structureIdNodeIdMap.get(pdb.structId), node, "BINDS_PROTEIN");
@@ -317,8 +328,8 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     }
 
     private void addParentDrugMoleculesAndSynonyms(final Workspace workspace, final Graph g,
-                                                   final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
-        final Map<Integer, Long> parentIdNodeIdMap = new HashMap<>();
+                                                   final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
+        final Map<Long, Long> parentIdNodeIdMap = new HashMap<>();
         for (final Parentmol parent : parseTsvFile(workspace, Parentmol.class, "parentmol.tsv"))
             parentIdNodeIdMap.put(parent.cdId, g.addNodeFromModel(parent).getId());
         for (final Struct2Parent link : parseTsvFile(workspace, Struct2Parent.class, "struct2parent.tsv"))
@@ -333,7 +344,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     }
 
     private void addProductsWithLabelsAndIngredients(final Workspace workspace, final Graph g,
-                                                     final Map<Integer, Long> structureIdNodeIdMap,
+                                                     final Map<Long, Long> structureIdNodeIdMap,
                                                      final boolean skipDrugLabelFullTexts) throws ExporterException {
         final Map<String, Long> labelIdNodeIdMap = new HashMap<>();
         for (final Label label : parseTsvFile(workspace, Label.class, "label.tsv"))
@@ -372,7 +383,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     }
 
     private void addTargets(final Workspace workspace, final Graph g,
-                            final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
+                            final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
         final Map<String, Long> goIdNodeIdMap = new HashMap<>();
         for (final TargetGo goTerm : parseTsvFile(workspace, TargetGo.class, "target_go.tsv"))
             goIdNodeIdMap.put(goTerm.id, g.addNodeFromModel(goTerm).getId());
@@ -414,8 +425,49 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         }
     }
 
+    private void addVetProducts(final Workspace workspace, final Graph g,
+                                final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
+        final Map<String, String> applicationTypeDescriptionMap = new HashMap<>();
+        for (final VetprodType type : parseTsvFile(workspace, VetprodType.class, "vetprod_type.tsv")) {
+            applicationTypeDescriptionMap.put(type.applType, type.description);
+        }
+        final Map<Long, String> vetProdTypeMap = new HashMap<>();
+        for (final Vettype type : parseTsvFile(workspace, Vettype.class, "vettype.tsv")) {
+            vetProdTypeMap.put(type.prodId, type.type);
+        }
+        final Map<Long, Long> vetProdNodeIdMap = new HashMap<>();
+        for (final Vetprod prod : parseTsvFile(workspace, Vetprod.class, "vetprod.tsv")) {
+            final String type = vetProdTypeMap.get(prod.prodId);
+            final String applicationTypeDescription = applicationTypeDescriptionMap.get(prod.applType);
+            final Node node;
+            if (type != null && applicationTypeDescription != null) {
+                node = g.addNodeFromModel(prod, "type", type, "appl_type_description", applicationTypeDescription);
+            } else if (type != null) {
+                node = g.addNodeFromModel(prod, "type", type);
+            } else if (applicationTypeDescription != null) {
+                node = g.addNodeFromModel(prod, "appl_type_description", applicationTypeDescription);
+            } else {
+                node = g.addNodeFromModel(prod);
+            }
+            vetProdNodeIdMap.put(prod.prodId, node.getId());
+        }
+        for (final Vetprod2Struct entry : parseTsvFile(workspace, Vetprod2Struct.class, "vetprod2struct.tsv")) {
+            final Long vetProdNodeId = vetProdNodeIdMap.get(entry.prodId);
+            final Long structNodeId = structureIdNodeIdMap.get(entry.structId);
+            g.addEdge(structNodeId, vetProdNodeId, "IS_VET_PROD");
+        }
+        final Map<String, Long> conceptKeyNodeIdMap = new HashMap<>();
+        for (final VetOmop relationship : parseTsvFile(workspace, VetOmop.class, "vetomop.tsv")) {
+            if (!conceptKeyNodeIdMap.containsKey(relationship.conceptName))
+                conceptKeyNodeIdMap.put(relationship.conceptName, g.addNodeFromModel(relationship).getId());
+            final String edgeLabel = relationship.relationshipType.toUpperCase(Locale.US);
+            g.addEdge(structureIdNodeIdMap.get(relationship.structId),
+                      conceptKeyNodeIdMap.get(relationship.conceptName), edgeLabel, "species", relationship.species);
+        }
+    }
+
     private void addFAERSEntries(final Workspace workspace, final Graph g,
-                                 final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
+                                 final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
         for (final Faers faers : parseTsvFile(workspace, Faers.class, "faers.tsv")) {
             final Node faersNode = g.addNodeFromModel(faers);
             g.addEdge(faersNode, structureIdNodeIdMap.get(faers.structId), "HAS_STRUCTURE");
@@ -428,11 +480,20 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
             final Node faersNode = g.addNodeFromModel(faers, "gender", "male");
             g.addEdge(faersNode, structureIdNodeIdMap.get(faers.structId), "HAS_STRUCTURE");
         }
+        // TODO: define ger and ped
+        for (final Faers faers : parseTsvFile(workspace, Faers.class, "faers_ger.tsv")) {
+            //final Node faersNode = g.addNodeFromModel(faers, "gender", "male");
+            //g.addEdge(faersNode, structureIdNodeIdMap.get(faers.structId), "HAS_STRUCTURE");
+        }
+        for (final Faers faers : parseTsvFile(workspace, Faers.class, "faers_ped.tsv")) {
+            //final Node faersNode = g.addNodeFromModel(faers, "gender", "male");
+            //g.addEdge(faersNode, structureIdNodeIdMap.get(faers.structId), "HAS_STRUCTURE");
+        }
     }
 
     private void addLINCSSignatures(final Workspace workspace, final Graph g,
-                                    final Map<Integer, Long> structureIdNodeIdMap) throws ExporterException {
-        final Set<Integer> missingStructureIds = new HashSet<>();
+                                    final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
+        final Set<Long> missingStructureIds = new HashSet<>();
         for (final LincsSignature lincs : parseTsvFile(workspace, LincsSignature.class, "lincs_signature.tsv")) {
             final Long nodeId1 = structureIdNodeIdMap.get(lincs.structId1);
             final Long nodeId2 = structureIdNodeIdMap.get(lincs.structId2);

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({"struct_id", "parent_id"})
 public final class Struct2Parent {
     @JsonProperty("struct_id")
-    public Integer structId;
+    public Long structId;
     @JsonProperty("parent_id")
-    public Integer parentId;
+    public Long parentId;
 }

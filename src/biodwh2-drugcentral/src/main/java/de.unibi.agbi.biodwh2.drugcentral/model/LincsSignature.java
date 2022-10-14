@@ -2,8 +2,8 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({
@@ -15,9 +15,9 @@ public final class LincsSignature {
     @JsonProperty("id")
     public String id;
     @JsonProperty("struct_id1")
-    public Integer structId1;
+    public Long structId1;
     @JsonProperty("struct_id2")
-    public Integer structId2;
+    public Long structId2;
     @JsonProperty("is_parent1")
     public String isParent1;
     @JsonProperty("is_parent2")

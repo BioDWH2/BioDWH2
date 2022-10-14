@@ -9,7 +9,7 @@ public final class Pka {
     @JsonProperty("id")
     public Integer id;
     @JsonProperty("struct_id")
-    public Integer structId;
+    public Long structId;
     @JsonProperty("pka_level")
     public String pkaLevel;
     @JsonProperty("value")

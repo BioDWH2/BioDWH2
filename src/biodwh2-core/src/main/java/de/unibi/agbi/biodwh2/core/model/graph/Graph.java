@@ -152,6 +152,17 @@ public final class Graph extends MVStoreGraph {
         return n;
     }
 
+    public <T> Node addNodeFromModel(final T obj, final Map<String, Object> additionalProperties) {
+        final ClassMapping mapping = ClassMapping.get(obj);
+        final Node n = Node.newNode(mapping.label);
+        mapping.setModelProperties(n, obj);
+        if (additionalProperties != null)
+            for (final String key : additionalProperties.keySet())
+                n.setProperty(key, additionalProperties.get(key));
+        update(n);
+        return n;
+    }
+
     public Edge addEdge(final Node from, final Node to, final String label) {
         validateSourceNode(from);
         validateTargetNode(to);

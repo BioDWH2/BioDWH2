@@ -3,12 +3,10 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({"struct_id", "atc_code", "id"})
-public final class Struct2Atc {
+@JsonPropertyOrder({"prodid", "struct_id"})
+public class Vetprod2Struct {
+    @JsonProperty("prodid")
+    public Long prodId;
     @JsonProperty("struct_id")
     public Long structId;
-    @JsonProperty("atc_code")
-    public String atcCode;
-    @JsonProperty("id")
-    public String id;
 }

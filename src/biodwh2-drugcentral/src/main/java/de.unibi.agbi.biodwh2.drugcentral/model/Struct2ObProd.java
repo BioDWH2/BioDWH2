@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({"struct_id", "prod_id", "strength"})
 public final class Struct2ObProd {
     @JsonProperty("struct_id")
-    public Integer structId;
+    public Long structId;
     @JsonProperty("prod_id")
     public Integer prodId;
     @JsonProperty("strength")

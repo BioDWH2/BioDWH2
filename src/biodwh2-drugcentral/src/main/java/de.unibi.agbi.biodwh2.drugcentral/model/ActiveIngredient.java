@@ -2,8 +2,8 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.drugcentral.etl.DrugCentralGraphExporter;
 
 @SuppressWarnings("unused")
@@ -34,7 +34,7 @@ public final class ActiveIngredient {
     @JsonProperty("ndc_product_code")
     public String ndcProductCode;
     @JsonProperty("struct_id")
-    public Integer structId;
+    public Long structId;
     @JsonProperty("quantity_denom_unit")
     public String quantityDenomUnit;
     @JsonProperty("quantity_denom_value")
