@@ -30,8 +30,11 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
     public Version getNewestVersion() throws UpdaterException {
         final String url = getDrugCentralFileUrl();
         final String version = StringUtils.split(StringUtils.splitByWholeSeparator(url, "dump.")[1], '.')[0];
-        final String[] versionParts = StringUtils.split(version, '_');
-        return parseVersion(versionParts[2] + "." + versionParts[0] + "." + versionParts[1]);
+        if (version.contains("_")) {
+            final String[] versionParts = StringUtils.split(version, '_');
+            return parseVersion(versionParts[2] + "." + versionParts[0] + "." + versionParts[1]);
+        }
+        return parseVersion(version.substring(4, 8) + "." + version.substring(0, 2) + "." + version.substring(2, 4));
     }
 
     private String getDrugCentralFileUrl() throws UpdaterException {
@@ -86,16 +89,18 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
             PrintWriter writer = null;
             String line;
             while ((line = reader.readLine()) != null) {
-                if (line.startsWith("COPY"))
+                if (line.startsWith("COPY")) {
                     writer = getTsvWriterFromCopyLine(workspace, line);
-                else if (line.trim().startsWith("\\.")) {
-                    if (writer != null)
+                } else if (line.trim().startsWith("\\.")) {
+                    if (writer != null) {
                         writer.close();
+                    }
                     writer = null;
-                } else if (writer != null)
+                } else if (writer != null) {
                     writer.println(line.replace("\\N", ""));
-                else
+                } else if (!line.startsWith("--")) {
                     schema.append(line).append("\n");
+                }
             }
             if (writer != null)
                 writer.close();
