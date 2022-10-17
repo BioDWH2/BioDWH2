@@ -14,10 +14,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 import java.util.Locale;
 
-public class XlsxMappingIterator<T> implements Iterator<T> {
+public class XlsxMappingIterator<T> implements Iterator<T>, AutoCloseable {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final int BUFFER_SIZE = 500;
     private final ObjectReader reader;
+    private final ReadableWorkbook workbook;
     private final long totalCount;
     private final Iterator<Row> rows;
     private final String headerRow;
@@ -31,7 +32,7 @@ public class XlsxMappingIterator<T> implements Iterator<T> {
         final CsvSchema schema = csvMapper.schemaFor(type).withColumnSeparator('\t').withQuoteChar('"').withNullValue(
                 "").withUseHeader(true);
         reader = csvMapper.readerFor(type).with(schema);
-        final ReadableWorkbook workbook = new ReadableWorkbook(stream, new ReadingOptions(true, false));
+        workbook = new ReadableWorkbook(stream, new ReadingOptions(true, false));
         final Sheet sheet = workbook.getFirstSheet();
         totalCount = sheet.openStream().count();
         rows = sheet.openStream().iterator();
@@ -126,5 +127,10 @@ public class XlsxMappingIterator<T> implements Iterator<T> {
             tsvBuilder.append(cell.getRawValue());
         else
             tsvBuilder.append('"').append(cell.asDate().format(DATE_FORMATTER)).append('"');
+    }
+
+    @Override
+    public void close() throws Exception {
+        workbook.close();
     }
 }
