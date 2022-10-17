@@ -113,7 +113,8 @@ public enum IdentifierType {
     UNII("UNII"),
     UNIPROT_KB("UniProtKB"),
     USDA_PLANTS_SYMBOL("USDA_PLANTS_Symbol"),
-    VANDF_VUID("VANDF_VUID");
+    VANDF_VUID("VANDF_VUID"),
+    WORM_BASE("WORM_BASE");
 
     public final String prefix;
 
