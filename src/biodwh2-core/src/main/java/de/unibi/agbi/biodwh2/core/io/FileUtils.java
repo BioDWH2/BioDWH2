@@ -126,6 +126,13 @@ public final class FileUtils {
         return openSeparatedValuesFile(stream, typeClass, '\t', false);
     }
 
+    public static <T> MappingIterator<T> openTsvWithoutQuoting(final Workspace workspace, final DataSource dataSource,
+                                                               final String fileName,
+                                                               final Class<T> typeClass) throws IOException {
+        final InputStream stream = openInput(workspace, dataSource, fileName);
+        return openSeparatedValuesFile(stream, typeClass, '\t', false, false);
+    }
+
     public static <T> MappingIterator<T> openTsvWithHeader(final Workspace workspace, final DataSource dataSource,
                                                            final String fileName,
                                                            final Class<T> typeClass) throws IOException {
@@ -148,11 +155,26 @@ public final class FileUtils {
         return openSeparatedValuesFile(stream, typeClass, '\t', false);
     }
 
+    public static <T> MappingIterator<T> openGzipTsvWithoutQuoting(final Workspace workspace,
+                                                                   final DataSource dataSource, final String fileName,
+                                                                   final Class<T> typeClass) throws IOException {
+        final InputStream stream = openGzip(workspace, dataSource, fileName);
+        return openSeparatedValuesFile(stream, typeClass, '\t', false, false);
+    }
+
     public static <T> MappingIterator<T> openGzipTsvWithHeader(final Workspace workspace, final DataSource dataSource,
                                                                final String fileName,
                                                                final Class<T> typeClass) throws IOException {
         final InputStream stream = openGzip(workspace, dataSource, fileName);
         return openSeparatedValuesFile(stream, typeClass, '\t', true);
+    }
+
+    public static <T> MappingIterator<T> openGzipTsvWithHeaderWithoutQuoting(final Workspace workspace,
+                                                                             final DataSource dataSource,
+                                                                             final String fileName,
+                                                                             final Class<T> typeClass) throws IOException {
+        final InputStream stream = openGzip(workspace, dataSource, fileName);
+        return openSeparatedValuesFile(stream, typeClass, '\t', true, false);
     }
 
     public static Long tryGetGzipLineCount(final Workspace workspace, final DataSource dataSource,

@@ -1,0 +1,261 @@
+ID   cel-let-7         standard; RNA; CEL; 99 BP.
+XX
+AC   MI0000001;
+XX
+DE   Caenorhabditis elegans let-7 stem-loop
+XX
+RN   [1]
+RX   PUBMED; 11679671.
+RA   Lau NC, Lim LP, Weinstein EG, Bartel DP;
+RT   "An abundant class of tiny RNAs with probable regulatory roles in
+RT   Caenorhabditis elegans";
+RL   Science. 294:858-862(2001).
+XX
+RN   [2]
+RX   PUBMED; 12672692.
+RA   Lim LP, Lau NC, Weinstein EG, Abdelhakim A, Yekta S, Rhoades MW, Burge CB,
+RA   Bartel DP;
+RT   "The microRNAs of Caenorhabditis elegans";
+RL   Genes Dev. 17:991-1008(2003).
+XX
+RN   [3]
+RX   PUBMED; 12747828.
+RA   Ambros V, Lee RC, Lavanway A, Williams PT, Jewell D;
+RT   "MicroRNAs and other tiny endogenous RNAs in C. elegans";
+RL   Curr Biol. 13:807-818(2003).
+XX
+RN   [4]
+RX   PUBMED; 12769849.
+RA   Grad Y, Aach J, Hayes GD, Reinhart BJ, Church GM, Ruvkun G, Kim J;
+RT   "Computational and experimental identification of C. elegans microRNAs";
+RL   Mol Cell. 11:1253-1263(2003).
+XX
+RN   [5]
+RX   PUBMED; 17174894.
+RA   Ruby JG, Jan C, Player C, Axtell MJ, Lee W, Nusbaum C, Ge H, Bartel DP;
+RT   "Large-scale sequencing reveals 21U-RNAs and additional microRNAs and
+RT   endogenous siRNAs in C. elegans";
+RL   Cell. 127:1193-1207(2006).
+XX
+RN   [6]
+RX   PUBMED; 19460142.
+RA   Kato M, de Lencastre A, Pincus Z, Slack FJ;
+RT   "Dynamic expression of small non-coding RNAs, including novel microRNAs
+RT   and piRNAs/21U-RNAs, during Caenorhabditis elegans development";
+RL   Genome Biol. 10:R54(2009).
+XX
+RN   [7]
+RX   PUBMED; 20062054.
+RA   Zisoulis DG, Lovci MT, Wilbert ML, Hutt KR, Liang TY, Pasquinelli AE, Yeo
+RA   GW;
+RT   "Comprehensive discovery of endogenous Argonaute binding sites in
+RT   Caenorhabditis elegans";
+RL   Nat Struct Mol Biol. 17:173-179(2010).
+XX
+DR   RFAM; RF00027; let-7.
+DR   WORMBASE; C05G5/12462-12364; .
+XX
+CC   let-7 is found on chromosome X in Caenorhabditis elegans [1] and pairs to
+CC   sites within the 3' untranslated region (UTR) of target mRNAs, specifying
+CC   the translational repression of these mRNAs and triggering the transition
+CC   to late-larval and adult stages [2].
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   miRNA           17..38
+FT                   /accession="MIMAT0000001"
+FT                   /product="cel-let-7-5p"
+FT                   /evidence=experimental
+FT                   /experiment="cloned [1-3], Northern [1], PCR [4], 454 [5],
+FT                   Illumina [6], CLIPseq [7]"
+FT   miRNA           60..81
+FT                   /accession="MIMAT0015091"
+FT                   /product="cel-let-7-3p"
+FT                   /evidence=experimental
+FT                   /experiment="CLIPseq [7]"
+XX
+SQ   Sequence 99 BP; 26 A; 19 C; 24 G; 0 T; 30 other;
+     uacacugugg auccggugag guaguagguu guauaguuug gaauauuacc accggugaac        60
+     uaugcaauuu ucuaccuuac cggagacaga acucuucga                               99
+//
+ID   cel-lin-4         standard; RNA; CEL; 94 BP.
+XX
+AC   MI0000002;
+XX
+DE   Caenorhabditis elegans lin-4 stem-loop
+XX
+RN   [1]
+RX   PUBMED; 11679671.
+RA   Lau NC, Lim LP, Weinstein EG, Bartel DP;
+RT   "An abundant class of tiny RNAs with probable regulatory roles in
+RT   Caenorhabditis elegans";
+RL   Science. 294:858-862(2001).
+XX
+RN   [2]
+RX   PUBMED; 10642801.
+RA   Olsen PH, Ambros V;
+RT   "The lin-4 regulatory RNA controls developmental timing in Caenorhabditis
+RT   elegans  by blocking LIN-14 protein synthesis after the initiation of
+RT   translation";
+RL   Dev Biol. 216:671-680(1999).
+XX
+RN   [3]
+RX   PUBMED; 12672692.
+RA   Lim LP, Lau NC, Weinstein EG, Abdelhakim A, Yekta S, Rhoades MW, Burge CB,
+RA   Bartel DP;
+RT   "The microRNAs of Caenorhabditis elegans";
+RL   Genes Dev. 17:991-1008(2003).
+XX
+RN   [4]
+RX   PUBMED; 12747828.
+RA   Ambros V, Lee RC, Lavanway A, Williams PT, Jewell D;
+RT   "MicroRNAs and other tiny endogenous RNAs in C. elegans";
+RL   Curr Biol. 13:807-818(2003).
+XX
+RN   [5]
+RX   PUBMED; 17174894.
+RA   Ruby JG, Jan C, Player C, Axtell MJ, Lee W, Nusbaum C, Ge H, Bartel DP;
+RT   "Large-scale sequencing reveals 21U-RNAs and additional microRNAs and
+RT   endogenous siRNAs in C. elegans";
+RL   Cell. 127:1193-1207(2006).
+XX
+RN   [6]
+RX   PUBMED; 19460142.
+RA   Kato M, de Lencastre A, Pincus Z, Slack FJ;
+RT   "Dynamic expression of small non-coding RNAs, including novel microRNAs
+RT   and piRNAs/21U-RNAs, during Caenorhabditis elegans development";
+RL   Genome Biol. 10:R54(2009).
+XX
+RN   [7]
+RX   PUBMED; 20062054.
+RA   Zisoulis DG, Lovci MT, Wilbert ML, Hutt KR, Liang TY, Pasquinelli AE, Yeo
+RA   GW;
+RT   "Comprehensive discovery of endogenous Argonaute binding sites in
+RT   Caenorhabditis elegans";
+RL   Nat Struct Mol Biol. 17:173-179(2010).
+XX
+DR   RFAM; RF00052; lin-4.
+DR   WORMBASE; F59G1/6156-6249; .
+XX
+CC   lin-4 is found on chromosome II in Caenorhabditis elegans [1] and is
+CC   complementary to sequences in the 3' untranslated region (UTR) of lin-14
+CC   mRNA. lin-4 acts to developmentally repress the accumulation of lin-14
+CC   protein. This repression is essential for the proper timing of numerous
+CC   events of Caenorhabditis elegans larval development [2].
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   miRNA           16..36
+FT                   /accession="MIMAT0000002"
+FT                   /product="cel-lin-4-5p"
+FT                   /evidence=experimental
+FT                   /experiment="cloned [1,3-4], 454 [5], Illumina [6],
+FT                   CLIPseq [7]"
+FT   miRNA           55..76
+FT                   /accession="MIMAT0015092"
+FT                   /product="cel-lin-4-3p"
+FT                   /evidence=experimental
+FT                   /experiment="CLIPseq [7]"
+XX
+SQ   Sequence 94 BP; 17 A; 25 C; 26 G; 0 T; 26 other;
+     augcuuccgg ccuguucccu gagaccucaa gugugagugu acuauugaug cuucacaccu        60
+     gggcucuccg gguaccagga cgguuugagc agau                                    94
+//
+ID   cel-mir-1         standard; RNA; CEL; 96 BP.
+XX
+AC   MI0000003;
+XX
+DE   Caenorhabditis elegans miR-1 stem-loop
+XX
+RN   [1]
+RX   PUBMED; 11679671.
+RA   Lau NC, Lim LP, Weinstein EG, Bartel DP;
+RT   "An abundant class of tiny RNAs with probable regulatory roles in
+RT   Caenorhabditis elegans";
+RL   Science. 294:858-862(2001).
+XX
+RN   [2]
+RX   PUBMED; 11679672.
+RA   Lee RC, Ambros V;
+RT   "An extensive class of small RNAs in Caenorhabditis elegans";
+RL   Science. 294:862-864(2001).
+XX
+RN   [3]
+RX   PUBMED; 11679670.
+RA   Lagos-Quintana M, Rauhut R, Lendeckel W, Tuschl T;
+RT   "Identification of novel genes coding for small expressed RNAs";
+RL   Science. 294:853-858(2001).
+XX
+RN   [4]
+RX   PUBMED; 12672692.
+RA   Lim LP, Lau NC, Weinstein EG, Abdelhakim A, Yekta S, Rhoades MW, Burge CB,
+RA   Bartel DP;
+RT   "The microRNAs of Caenorhabditis elegans";
+RL   Genes Dev. 17:991-1008(2003).
+XX
+RN   [5]
+RX   PUBMED; 12747828.
+RA   Ambros V, Lee RC, Lavanway A, Williams PT, Jewell D;
+RT   "MicroRNAs and other tiny endogenous RNAs in C. elegans";
+RL   Curr Biol. 13:807-818(2003).
+XX
+RN   [6]
+RX   PUBMED; 12769849.
+RA   Grad Y, Aach J, Hayes GD, Reinhart BJ, Church GM, Ruvkun G, Kim J;
+RT   "Computational and experimental identification of C. elegans microRNAs";
+RL   Mol Cell. 11:1253-1263(2003).
+XX
+RN   [7]
+RX   PUBMED; 17174894.
+RA   Ruby JG, Jan C, Player C, Axtell MJ, Lee W, Nusbaum C, Ge H, Bartel DP;
+RT   "Large-scale sequencing reveals 21U-RNAs and additional microRNAs and
+RT   endogenous siRNAs in C. elegans";
+RL   Cell. 127:1193-1207(2006).
+XX
+RN   [8]
+RX   PUBMED; 19460142.
+RA   Kato M, de Lencastre A, Pincus Z, Slack FJ;
+RT   "Dynamic expression of small non-coding RNAs, including novel microRNAs
+RT   and piRNAs/21U-RNAs, during Caenorhabditis elegans development";
+RL   Genome Biol. 10:R54(2009).
+XX
+RN   [9]
+RX   PUBMED; 20062054.
+RA   Zisoulis DG, Lovci MT, Wilbert ML, Hutt KR, Liang TY, Pasquinelli AE, Yeo
+RA   GW;
+RT   "Comprehensive discovery of endogenous Argonaute binding sites in
+RT   Caenorhabditis elegans";
+RL   Nat Struct Mol Biol. 17:173-179(2010).
+XX
+RN   [10]
+RX   PUBMED; 21307183.
+RA   Warf MB, Johnson WE, Bass BL;
+RT   "Improved annotation of C. elegans microRNAs by deep sequencing reveals
+RT   structures associated with processing by Drosha and Dicer";
+RL   RNA. 17:563-577(2011).
+XX
+DR   RFAM; RF00103; mir-1.
+DR   WORMBASE; T09B4/23107-23012; .
+XX
+CC   miR-1 was independently identified in C. elegans [1,2] and Drosophila
+CC   melanogaster (MIR:MI0000116) [3].  The sequence is also conserved in C.
+CC   briggsae (MIR:MI0000493).
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   miRNA           21..42
+FT                   /accession="MIMAT0020301"
+FT                   /product="cel-miR-1-5p"
+FT                   /evidence=experimental
+FT                   /experiment="Illumina [10]"
+FT   miRNA           61..81
+FT                   /accession="MIMAT0000003"
+FT                   /product="cel-miR-1-3p"
+FT                   /evidence=experimental
+FT                   /experiment="cloned [1-2,4-5], Northern [1], Illumina
+FT                   [10,8], PCR [6], 454 [7], CLIPseq [9]"
+XX
+SQ   Sequence 96 BP; 32 A; 16 C; 23 G; 0 T; 25 other;
+     aaagugaccg uaccgagcug cauacuuccu uacaugccca uacuauauca uaaauggaua        60
+     uggaauguaa agaaguaugu agaacggggu gguagu                                  96
+//
