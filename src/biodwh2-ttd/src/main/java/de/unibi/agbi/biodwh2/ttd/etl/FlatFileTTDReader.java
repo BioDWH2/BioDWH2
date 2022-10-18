@@ -10,13 +10,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-
-public class FlatFileTTDReader implements Iterable<FlatFileTTDEntry>, AutoCloseable {
+public final class FlatFileTTDReader implements Iterable<FlatFileTTDEntry>, AutoCloseable {
     private final BufferedReader reader;
     private FlatFileTTDEntry lastEntry;
     private FlatFileTTDEntry currentEntry = new FlatFileTTDEntry();
-    private String identifier = "";
 
+    @SuppressWarnings("unused")
     public FlatFileTTDReader(final String filePath, final Charset charset) throws IOException {
         this(FileUtils.openInputStream(new File(filePath)), charset);
     }
@@ -36,7 +35,7 @@ public class FlatFileTTDReader implements Iterable<FlatFileTTDEntry>, AutoClosea
         final FlatFileTTDEntry entry = currentEntry;
         String currentIdentifier = entry.getID();
         String line;
-        Boolean hasNext = false;
+        boolean hasNext = false;
         while ((line = readLineSafe()) != null) {
             if (StringUtils.isNotBlank(line)) {
                 final String[] parts = StringUtils.split(line, "\t", 3);
@@ -62,7 +61,6 @@ public class FlatFileTTDReader implements Iterable<FlatFileTTDEntry>, AutoClosea
         return entry.properties.size() > 0 ? entry : null;
     }
 
-
     private String readLineSafe() {
         try {
             return reader.readLine();
@@ -70,7 +68,6 @@ public class FlatFileTTDReader implements Iterable<FlatFileTTDEntry>, AutoClosea
         }
         return null;
     }
-
 
     @Override
     public Iterator<FlatFileTTDEntry> iterator() {

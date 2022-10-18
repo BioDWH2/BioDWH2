@@ -5,7 +5,7 @@
     <parent>
         <artifactId>biodwh2</artifactId>
         <groupId>de.unibi.agbi.biodwh2</groupId>
-        <version>0.4.4</version> <!-- BioDWH2 version -->
+        <version>0.4.6</version> <!-- BioDWH2 version -->
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -17,12 +17,6 @@
             <groupId>de.unibi.agbi.biodwh2</groupId>
             <artifactId>biodwh2-core</artifactId>
             <version>${project.parent.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.dhatim</groupId>
-            <artifactId>fastexcel-reader</artifactId>
-            <version>0.12.13</version>
         </dependency>
 
         <dependency>
