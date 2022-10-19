@@ -11,5 +11,4 @@ public class WikiPathwayToTarget {
     public String wikiPathwayId;
     @JsonProperty("Wiki pathway name")
     public String wikiPathwayName;
-
 }

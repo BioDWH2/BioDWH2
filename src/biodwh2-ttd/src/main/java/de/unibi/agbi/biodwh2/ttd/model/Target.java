@@ -5,8 +5,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @GraphNodeLabel("Target")
 public class Target {
-    @GraphProperty("identifier")
-    public String identifier;
+    @GraphProperty("id")
+    public String id;
     @GraphProperty("former_target_id")
     public String formerTargetId;
     @GraphProperty("uniprot_id")
@@ -21,8 +21,8 @@ public class Target {
     public String[] synonyms;
     @GraphProperty("function")
     public String function;
-    @GraphProperty("pdb_structurs")
-    public String[] pdbStructurs;
+    @GraphProperty("pdb_structures")
+    public String[] pdbStructures;
     @GraphProperty("ec_number")
     public String ecNumber;
     @GraphProperty("sequence")

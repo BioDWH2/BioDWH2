@@ -19,4 +19,9 @@ public class FlatFileTTDEntry {
     public void setID(String id) {
         this.id = id;
     }
+
+    public String getFirst(final String key) {
+        final List<String> values = properties.get(key);
+        return values != null && values.size() > 0 ? values.get(0) : null;
+    }
 }

@@ -5,8 +5,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @GraphNodeLabel("Drug")
 public class Drug {
-    @GraphProperty("identifier")
-    public String identifier;
+    @GraphProperty("id")
+    public String id;
     @GraphProperty("trade_name")
     public String tradeName;
     @GraphProperty("company")
@@ -20,7 +20,7 @@ public class Drug {
     @GraphProperty("synonyms")
     public String[] synonyms;
     @GraphProperty("inchi_key")
-    public String inchikey;
+    public String inchiKey;
     @GraphProperty("canonical_smiles")
     public String canonicalSmiles;
     @GraphProperty("highest_status")
@@ -36,7 +36,7 @@ public class Drug {
     @GraphProperty("pubchem_sids")
     public String[] pubChemSID;
     @GraphProperty("chebi_id")
-    public String chEBIid;
+    public String chebiId;
     @GraphProperty("superdrug_atcs")
     public String[] superDrugATC;
     @GraphProperty("superdrug_cas")

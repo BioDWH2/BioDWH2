@@ -20,7 +20,7 @@ public class TTDDataSource extends DataSource {
 
     @Override
     public String getDescription() {
-        return "The TTD provides information about therapeutic protein and nucleic acid targets,the targeted disease, pathway information and the corresponding drugs directed at each of these targets.";
+        return "TTD provides information about therapeutic protein and nucleic acid targets,the targeted disease, pathway information and the corresponding drugs directed at each of these targets.";
     }
 
     @Override

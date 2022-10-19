@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TTDUpdater extends Updater<TTDDataSource> {
+    private static final String VERSION_URL = "http://db.idrblab.net/ttd/full-data-download";
     private static final String DOWNLOAD_URL_PREFIX = "http://db.idrblab.net/ttd/sites/default/files/ttd_database/";
     static final String DRUG_SDF_FILE_NAME = "P3-01-All.sdf";
     static final String KEGG_PATHWAY_TO_TARGET_TSV = "P4-01-Target-KEGGpathway_all.txt";
@@ -29,19 +30,18 @@ public class TTDUpdater extends Updater<TTDDataSource> {
     static final String DRUG_DISEASE_FLAT_FILE = "P1-05-Drug_disease.txt";
     static final String TARGET_COMPOUND_ACTIVITY_TSV = "P1-09-Target_compound_activity.txt";
     static final String TARGET_COMPOUND_MAPPIN_XLSX = "P1-07-Drug-TargetMapping.xlsx";
-
+    static final String SEQUENCE_ALL_FILE_NAME = "P2-06-TTD_sequence_all.txt";
     private static final String[] FILE_NAMES = {
             TARGET_RAW_FLAT_FILE, DRUG_RAW_FLAT_FILE, DRUG_CROSSREF_FLAT_FILE, DRUG_SYNONYMS_FLAT_FILE,
             DRUG_DISEASE_FLAT_FILE, TARGET_DISEASE_FLAT_FILE, TARGET_COMPOUND_MAPPIN_XLSX, BIOMARKER_DISEASE_TSV,
-            TARGET_COMPOUND_ACTIVITY_TSV, TARGET_UNIPORT_FLAT_FILE, "P2-06-TTD_sequence_all.txt", DRUG_SDF_FILE_NAME,
+            TARGET_COMPOUND_ACTIVITY_TSV, TARGET_UNIPORT_FLAT_FILE, SEQUENCE_ALL_FILE_NAME, DRUG_SDF_FILE_NAME,
             KEGG_PATHWAY_TO_TARGET_TSV, WIKI_PATHWAY_TO_TARGET_TSV
-
     };
 
     private final Map<String, Integer> monthNameNumberMap = new HashMap<>();
     private final Pattern versionPattern;
 
-    public TTDUpdater(TTDDataSource dataSource) {
+    public TTDUpdater(final TTDDataSource dataSource) {
         super(dataSource);
         final String[] months = {
                 "January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
@@ -57,7 +57,7 @@ public class TTDUpdater extends Updater<TTDDataSource> {
     @Override
     protected Version getNewestVersion() throws UpdaterException {
         try {
-            final String source = HTTPClient.getWebsiteSource("http://db.idrblab.net/ttd/full-data-download");
+            final String source = HTTPClient.getWebsiteSource(VERSION_URL);
             final Matcher matcher = versionPattern.matcher(source);
             if (matcher.find()) {
                 return new Version(Integer.parseInt(matcher.group(4)), monthNameNumberMap.get(matcher.group(1)),
@@ -70,8 +70,7 @@ public class TTDUpdater extends Updater<TTDDataSource> {
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
-
+    protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         try {
             for (String fileName : FILE_NAMES) {
                 HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + fileName,
