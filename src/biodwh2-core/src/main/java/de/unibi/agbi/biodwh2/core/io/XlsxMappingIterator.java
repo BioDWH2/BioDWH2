@@ -112,7 +112,7 @@ public class XlsxMappingIterator<T> implements Iterator<T>, AutoCloseable {
             if (cell.getType() == CellType.NUMBER)
                 appendNumericCell(tsvBuilder, cell);
             if (cell.getType() == CellType.FORMULA)
-                throw new RuntimeException("Unable to parse XLSX formula cell value");
+                appendStringCell(tsvBuilder, StringUtils.strip(cell.getText(), " \t\u00A0"));
         }
         tsvBuilder.append('\n');
     }
