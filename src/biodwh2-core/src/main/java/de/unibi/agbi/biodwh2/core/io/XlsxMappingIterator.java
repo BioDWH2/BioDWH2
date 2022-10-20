@@ -130,7 +130,8 @@ public class XlsxMappingIterator<T> implements Iterator<T>, AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
-        workbook.close();
+    public void close() throws IOException {
+        if (workbook != null)
+            workbook.close();
     }
 }

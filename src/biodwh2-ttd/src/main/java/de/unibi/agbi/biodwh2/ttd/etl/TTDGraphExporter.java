@@ -4,9 +4,8 @@ import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
-import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserFileNotFoundException;
-import de.unibi.agbi.biodwh2.core.exceptions.ParserFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.XlsxMappingIterator;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
@@ -18,9 +17,9 @@ import de.unibi.agbi.biodwh2.ttd.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -54,7 +53,7 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
         final Map<String, Target> idTargetMap = new HashMap<>();
         final Map<String, Drug> idDrugMap = new HashMap<>();
         final Map<String, List<String>> dictionaryTargetIdToPathways = new HashMap<>();
-        final Map<String, Map<String, TargetDrugEdge>> dictionaryTargetIdToDrugsToEdgeInfo = new HashMap<>();
+        final Map<String, Map<String, TargetDrugEdge>> targetIdDrugEdgeMap = new HashMap<>();
         // prepare drug information
         try {
             extractDrugsFromFlatFile(workspace, idDrugMap);
@@ -62,12 +61,12 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
             throw new ExporterException("Failed to export TTD Flat File Drug", e);
         }
         try {
-            extractDrugFlatFileCrossRef(workspace, idDrugMap);
+            extractDrugCrossRefsFromFlatFile(workspace, idDrugMap);
         } catch (IOException e) {
             throw new ExporterException("Failed to export TTD Flat File Drug Cross", e);
         }
         try {
-            extractDrugFlatFileSynonyms(workspace, idDrugMap);
+            extractDrugSynonymsFromFlatFile(workspace, idDrugMap);
         } catch (IOException e) {
             throw new ExporterException("Failed to export TTD Flat File Drug synonyms", e);
         }
@@ -79,7 +78,7 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
         //prepare Target information
         try {
             extractTargetFlatFile(workspace, graph, setOfPathwayIds, idTargetMap, dictionaryTargetIdToPathways,
-                                  dictionaryTargetIdToDrugsToEdgeInfo, idDrugMap);
+                                  targetIdDrugEdgeMap, idDrugMap);
         } catch (IOException e) {
             throw new ExporterException("Failed to export TTD Flat File Target", e);
         }
@@ -93,30 +92,28 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
         } catch (IOException e) {
             throw new ExporterException("Failed to export TTD Flat File Target disease", e);
         }
-        addTargetToData(graph, idTargetMap);
-        Set<String> setOfTargetIds = new HashSet<>(idTargetMap.keySet());
+        createTargetNodes(graph, idTargetMap);
         idTargetMap.clear();
         // drug target edges
         final Map<String, Map<String, TargetDrugEdge>> dictionaryTargetIdToCompoundToEdgeInfo = exportTargetCompoundActivityTSV(
-                workspace, graph, idDrugMap, setOfTargetIds, dictionaryTargetIdToDrugsToEdgeInfo);
-        addDrugToData(graph, idDrugMap);
-        final Set<String> setOfDrugIds = new HashSet<>(idDrugMap.keySet());
+                workspace, graph, idDrugMap, targetIdDrugEdgeMap);
+        createDrugNodes(graph, idDrugMap);
         idDrugMap.clear();
-        exportTargetDrugExcel(workspace, graph, setOfDrugIds, setOfTargetIds, dictionaryTargetIdToDrugsToEdgeInfo);
-        addTargetDrugEdges(graph, dictionaryTargetIdToDrugsToEdgeInfo, DRUG_LABEL);
+        exportTargetDrugExcel(workspace, graph, targetIdDrugEdgeMap);
+        addTargetDrugEdges(graph, targetIdDrugEdgeMap, DRUG_LABEL);
         addTargetDrugEdges(graph, dictionaryTargetIdToCompoundToEdgeInfo, COMPOUND_LABEL);
         // pathway and target-pathway edges
         addTargetPathwayToData(graph, dictionaryTargetIdToPathways);
         exportPathwayKeggTargetTSV(workspace, graph, TTDUpdater.KEGG_PATHWAY_TO_TARGET_TSV, setOfPathwayIds,
-                                   setOfTargetIds, dictionaryTargetIdToPathways);
+                                   dictionaryTargetIdToPathways);
         exportPathwayWikiTargetTSV(workspace, graph, TTDUpdater.WIKI_PATHWAY_TO_TARGET_TSV, setOfPathwayIds,
-                                   setOfTargetIds, dictionaryTargetIdToPathways);
+                                   dictionaryTargetIdToPathways);
         dictionaryTargetIdToPathways.clear();
         // prepare disease and biomarker
         final Set<String> setOfDiseaseIds = exportBiomarkerDiseaseTSV(workspace, graph);
         // edges to disease
         try {
-            extractTargetDiseaseFlatFile(workspace, graph, setOfDiseaseIds, setOfTargetIds);
+            extractTargetDiseaseFlatFile(workspace, graph, setOfDiseaseIds);
         } catch (IOException e) {
             throw new ExporterException("Failed to export TTD Flat File Target disease", e);
         }
@@ -132,40 +129,81 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                                           final Map<String, Drug> idDrugMap) throws IOException {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export Drug Flat File ...");
-        final FlatFileTTDReader reader = new FlatFileTTDReader(
-                FileUtils.openInput(workspace, dataSource, TTDUpdater.DRUG_RAW_FLAT_FILE), StandardCharsets.UTF_8);
-        for (final FlatFileTTDEntry entry : reader) {
-            final String id = entry.getFirst("DRUG__ID");
-            if (id != null) {
-                final Drug drug = new Drug();
-                drug.id = id;
-                drug.tradeName = entry.getFirst("TRADNAME");
-                drug.company = entry.getFirst("DRUGCOMP");
-                drug.type = entry.getFirst("DRUGTYPE");
-                drug.inchi = entry.getFirst("DRUGINCH");
-                drug.inchiKey = entry.getFirst("DRUGINKE");
-                drug.canonicalSmiles = entry.getFirst("DRUGSMIL");
-                drug.highestStatus = entry.getFirst("HIGHSTAT");
-                drug.adiID = entry.getFirst("DRUADIID");
-                drug.therapeuticClass = entry.getFirst("THERCLAS");
-                drug.drugClass = entry.getFirst("DRUGCLAS");
-                drug.compoundClass = entry.getFirst("COMPCLAS");
-                idDrugMap.put(id, drug);
+        try (FlatFileTTDReader reader = openFlatFile(workspace, TTDUpdater.DRUG_RAW_FLAT_FILE)) {
+            for (final FlatFileTTDEntry entry : reader) {
+                final String id = entry.getFirst("DRUG__ID");
+                if (id != null) {
+                    final Drug drug = new Drug();
+                    drug.id = id;
+                    drug.tradeName = entry.getFirst("TRADNAME");
+                    drug.company = entry.getFirst("DRUGCOMP");
+                    drug.type = entry.getFirst("DRUGTYPE");
+                    drug.inchi = entry.getFirst("DRUGINCH");
+                    drug.inchiKey = entry.getFirst("DRUGINKE");
+                    drug.canonicalSmiles = entry.getFirst("DRUGSMIL");
+                    drug.highestStatus = entry.getFirst("HIGHSTAT");
+                    drug.adiID = entry.getFirst("DRUADIID");
+                    drug.therapeuticClass = entry.getFirst("THERCLAS");
+                    drug.drugClass = entry.getFirst("DRUGCLAS");
+                    drug.compoundClass = entry.getFirst("COMPCLAS");
+                    idDrugMap.put(id, drug);
+                }
             }
         }
     }
 
-    /**
-     * Parse tsv into an iterator of a given class.
-     */
-    private <T> Iterable<T> parseTsvFile(final Workspace workspace, final Class<T> typeVariableClass,
-                                         final String fileName) throws ExporterException {
-        try {
-            MappingIterator<T> iterator = FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource, fileName,
-                                                                                    typeVariableClass);
-            return () -> iterator;
-        } catch (IOException e) {
-            throw new ExporterException("Failed to parse the file '" + fileName + "'", e);
+    private FlatFileTTDReader openFlatFile(final Workspace workspace, final String fileName) throws IOException {
+        return new FlatFileTTDReader(FileUtils.openInput(workspace, dataSource, fileName), StandardCharsets.UTF_8);
+    }
+
+    private void extractDrugCrossRefsFromFlatFile(final Workspace workspace,
+                                                  final Map<String, Drug> idDrugMap) throws IOException {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Export Drug-Crossref Flat File ...");
+        try (FlatFileTTDReader reader = openFlatFile(workspace, TTDUpdater.DRUG_CROSSREF_FLAT_FILE)) {
+            for (final FlatFileTTDEntry entry : reader) {
+                final String id = entry.getFirst("TTDDRUID");
+                if (id != null) {
+                    Drug drug = getOrCreateDrug(id, idDrugMap);
+                    drug.name = entry.getFirst("DRUGNAME");
+                    drug.casNumber = entry.getFirst("CASNUMBE");
+                    drug.formular = entry.getFirst("D_FOMULA");
+                    if (entry.properties.get("PUBCHCID") != null)
+                        drug.pubChemCID = entry.getFirst("PUBCHCID").split("; ");
+                    if (entry.properties.get("PUBCHSID") != null)
+                        drug.pubChemSID = entry.getFirst("PUBCHSID").split("; ");
+                    drug.chebiId = entry.getFirst("ChEBI_ID");
+                    if (entry.properties.get("SUPDRATC") != null)
+                        drug.superDrugATC = entry.getFirst("SUPDRATC").split("; ");
+                    drug.superDrugCas = entry.getFirst("SUPDRCAS");
+                }
+            }
+        }
+    }
+
+    private Drug getOrCreateDrug(final String id, final Map<String, Drug> idDrugMap) {
+        Drug drug = idDrugMap.get(id);
+        if (drug == null) {
+            drug = new Drug();
+            drug.id = id;
+            idDrugMap.put(id, drug);
+        }
+        return drug;
+    }
+
+    private void extractDrugSynonymsFromFlatFile(final Workspace workspace,
+                                                 final Map<String, Drug> idDrugMap) throws IOException {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Export Drug-Synonyms Flat File ...");
+        try (FlatFileTTDReader reader = openFlatFile(workspace, TTDUpdater.DRUG_SYNONYMS_FLAT_FILE)) {
+            for (final FlatFileTTDEntry entry : reader) {
+                final String drugId = entry.getFirst("TTDDRUID");
+                if (drugId != null) {
+                    final Drug drug = getOrCreateDrug(drugId, idDrugMap);
+                    drug.name = entry.getFirst("DRUGNAME");
+                    drug.synonyms = entry.properties.get("SYNONYMS").toArray(new String[0]);
+                }
+            }
         }
     }
 
@@ -219,56 +257,69 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
         return setOfDiseaseIds;
     }
 
+    private <T> Iterable<T> parseTsvFile(final Workspace workspace, final Class<T> typeVariableClass,
+                                         final String fileName) throws ExporterException {
+        try {
+            MappingIterator<T> iterator = FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource, fileName,
+                                                                                    typeVariableClass);
+            return () -> iterator;
+        } catch (IOException e) {
+            throw new ExporterException("Failed to parse the file '" + fileName + "'", e);
+        }
+    }
+
     /**
      * Open the target-disease flat file and parse with TTD reader. The target is checked if exist or generate new and
      * for all disease the node is checked or created and a new edge is generated.
      */
-    private boolean extractTargetDiseaseFlatFile(final Workspace workspace, final Graph graph,
-                                                 final Set<String> setOfDiseaseIds,
-                                                 final Set<String> setOfTargetIds) throws IOException {
+    private void extractTargetDiseaseFlatFile(final Workspace workspace, final Graph graph,
+                                              final Set<String> setOfDiseaseIds) throws IOException {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export Target-Disease Flat File ...");
-        final FlatFileTTDReader reader = new FlatFileTTDReader(
-                FileUtils.openInput(workspace, dataSource, TTDUpdater.TARGET_DISEASE_FLAT_FILE),
-                StandardCharsets.UTF_8);
-        for (final FlatFileTTDEntry entry : reader) {
-            final String targetId = entry.getFirst("TARGETID");
-            if (targetId == null)
-                continue;
-            final Node target;
-            if (!setOfTargetIds.contains(targetId)) {
-                target = graph.addNode(TARGET_LABEL, "name", entry.getFirst("TARGNAME"), "id", targetId);
-                setOfTargetIds.add(targetId);
-            } else
-                target = graph.findNode(TARGET_LABEL, "id", targetId);
-
-            for (String diseaseInfo : entry.properties.get("INDICATI")) {
-                String[] splitDiseaseInfo = diseaseInfo.split("\t");
-                String diseaseNameId = splitDiseaseInfo[1];
-                String[] splitDiseaseNameID = diseaseNameId.split(" \\[");
-                String diseaseId = splitDiseaseNameID[1].substring(0, splitDiseaseNameID[1].length() - 1).replace(
-                        "ICD-11: ", "");
-                String clincalStatus = splitDiseaseInfo[0];
-                Node disease;
-                if (!setOfDiseaseIds.contains(diseaseId)) {
-                    disease = graph.addNode(DISEASE_LABEL, "name", splitDiseaseInfo[1], "id", diseaseId, "ICD11",
-                                            diseaseId.split(", "));
-                    setOfDiseaseIds.add(diseaseId);
-                } else
-                    disease = graph.findNode(DISEASE_LABEL, "id", diseaseId);
-                graph.addEdge(target, disease, "ASSOCIATED_WITH", "clinical_status", clincalStatus, "disease_name",
-                              splitDiseaseInfo[1]);
+        try (FlatFileTTDReader reader = openFlatFile(workspace, TTDUpdater.TARGET_DISEASE_FLAT_FILE)) {
+            for (final FlatFileTTDEntry entry : reader) {
+                final String targetId = entry.getFirst("TARGETID");
+                if (targetId == null)
+                    continue;
+                final Node targetNode = getOrCreateTargetNode(graph, targetId, entry.getFirst("TARGNAME"));
+                for (String diseaseInfo : entry.properties.get("INDICATI")) {
+                    String[] splitDiseaseInfo = diseaseInfo.split("\t");
+                    String diseaseNameId = splitDiseaseInfo[1];
+                    String[] splitDiseaseNameID = diseaseNameId.split(" \\[");
+                    String diseaseId = splitDiseaseNameID[1].substring(0, splitDiseaseNameID[1].length() - 1).replace(
+                            "ICD-11: ", "");
+                    String clincalStatus = splitDiseaseInfo[0];
+                    Node disease;
+                    if (!setOfDiseaseIds.contains(diseaseId)) {
+                        disease = graph.addNode(DISEASE_LABEL, "name", splitDiseaseInfo[1], "id", diseaseId, "ICD11",
+                                                diseaseId.split(", "));
+                        setOfDiseaseIds.add(diseaseId);
+                    } else
+                        disease = graph.findNode(DISEASE_LABEL, "id", diseaseId);
+                    graph.addEdge(targetNode, disease, "ASSOCIATED_WITH", "clinical_status", clincalStatus,
+                                  "disease_name", splitDiseaseInfo[1]);
+                }
             }
         }
-        return true;
+    }
+
+    private Node getOrCreateTargetNode(final Graph graph, final String id, final String name) {
+        Node node = graph.findNode(TARGET_LABEL, "id", id);
+        if (node == null) {
+            if (name != null)
+                node = graph.addNode(TARGET_LABEL, "id", id, "name", name);
+            else
+                node = graph.addNode(TARGET_LABEL, "id", id);
+        }
+        return node;
     }
 
     /**
      * Open the drug-disease flat file and parse with TTD reader. The  target is checked if exist or generate new and
      * for all disease the node is checked or created and a new edge is generated.
      */
-    private boolean extractDrugDiseaseFlatFile(final Workspace workspace, final Graph graph,
-                                               final Set<String> setOfDiseaseIds) throws IOException {
+    private void extractDrugDiseaseFlatFile(final Workspace workspace, final Graph graph,
+                                            final Set<String> setOfDiseaseIds) throws IOException {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export Drug-Disease Flat File ...");
         final FlatFileWithoutIDTTDReader reader = new FlatFileWithoutIDTTDReader(
@@ -294,7 +345,6 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                               splitDiseaseInfo[0]);
             }
         }
-        return true;
     }
 
     private Node findOrCreatePathwayNode(final Graph graph, final Set<String> setOfPathwayIds, final String pathwayId,
@@ -312,7 +362,7 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
      * do not exist generate a new node.
      */
     private void exportPathwayKeggTargetTSV(final Workspace workspace, final Graph graph, String fileName,
-                                            Set<String> setOfPathwayIds, Set<String> setOfTargetIds,
+                                            Set<String> setOfPathwayIds,
                                             final Map<String, List<String>> dictionaryTargetIdToPathways) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export KEGG pathway Target TSV ...");
@@ -335,14 +385,7 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                 dictionaryTargetIdToPathways.put(targetId, new ArrayList<>());
             dictionaryTargetIdToPathways.get(targetId).add(pathwayId);
             Node node = findOrCreatePathwayNode(graph, setOfPathwayIds, pathwayId, entry.keggPathwayName, "KEGG");
-            Node targetNode;
-            if (!setOfTargetIds.contains(targetId)) {
-                targetNode = graph.addNode(TARGET_LABEL, "id", targetId);
-                setOfTargetIds.add(targetId);
-            } else {
-                targetNode = graph.findNode(TARGET_LABEL, "id", targetId);
-            }
-            graph.addEdge(targetNode, node, "ASSOCIATED_WITH");
+            graph.addEdge(getOrCreateTargetNode(graph, targetId, null), node, "ASSOCIATED_WITH");
         }
     }
 
@@ -351,7 +394,7 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
      * do not exist generate a new node.
      */
     private void exportPathwayWikiTargetTSV(final Workspace workspace, final Graph graph, String fileName,
-                                            Set<String> setOfPathwayIds, Set<String> setOfTargetIds,
+                                            Set<String> setOfPathwayIds,
                                             final Map<String, List<String>> dictionaryTargetIdToPathways) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export Wiki pathway Target TSV ...");
@@ -372,13 +415,7 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
             }
             final Node node = findOrCreatePathwayNode(graph, setOfPathwayIds, pathwayId, entry.wikiPathwayName,
                                                       "WikiPathway");
-            final Node targetNode;
-            if (!setOfTargetIds.contains(targetId)) {
-                targetNode = graph.addNode(TARGET_LABEL, "id", targetId);
-                setOfTargetIds.add(targetId);
-            } else
-                targetNode = graph.findNode(TARGET_LABEL, "id", targetId);
-            graph.addEdge(targetNode, node, "ASSOCIATED_WITH");
+            graph.addEdge(getOrCreateTargetNode(graph, targetId, null), node, "ASSOCIATED_WITH");
         }
     }
 
@@ -398,31 +435,25 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
 
     private void prepareEdgeInformationForDrugCompoundToTarget(final Graph graph,
                                                                final Map<String, Drug> dictionaryNodeIdToDrug,
-                                                               final Set<String> setOfTargetIds, final String targetId,
-                                                               final String nodeId,
-                                                               final Map<String, Map<String, TargetDrugEdge>> dictionaryTargetIdToNodeToEdgeInfo,
+                                                               final String targetId, final String nodeId,
+                                                               final Map<String, Map<String, TargetDrugEdge>> targetIdNodeEdgeMap,
                                                                final TargetCompoundActivity entry) {
         TargetDrugEdge targetDrugEdge = new TargetDrugEdge();
-        if (dictionaryTargetIdToNodeToEdgeInfo.containsKey(targetId) && dictionaryTargetIdToNodeToEdgeInfo.get(targetId)
-                                                                                                          .containsKey(
-                                                                                                                  nodeId))
-            targetDrugEdge = dictionaryTargetIdToNodeToEdgeInfo.get(targetId).get(nodeId);
-        else if (dictionaryTargetIdToNodeToEdgeInfo.containsKey(targetId))
-            dictionaryTargetIdToNodeToEdgeInfo.get(targetId).put(nodeId, targetDrugEdge);
+        if (targetIdNodeEdgeMap.containsKey(targetId) && targetIdNodeEdgeMap.get(targetId).containsKey(nodeId))
+            targetDrugEdge = targetIdNodeEdgeMap.get(targetId).get(nodeId);
+        else if (targetIdNodeEdgeMap.containsKey(targetId))
+            targetIdNodeEdgeMap.get(targetId).put(nodeId, targetDrugEdge);
         else {
-            dictionaryTargetIdToNodeToEdgeInfo.put(targetId, new HashMap<>());
-            dictionaryTargetIdToNodeToEdgeInfo.get(targetId).put(nodeId, targetDrugEdge);
+            targetIdNodeEdgeMap.put(targetId, new HashMap<>());
+            targetIdNodeEdgeMap.get(targetId).put(nodeId, targetDrugEdge);
         }
-        if (dictionaryTargetIdToNodeToEdgeInfo.containsKey(targetId)) {
+        if (targetIdNodeEdgeMap.containsKey(targetId)) {
             if (targetDrugEdge.activity != null) {
                 System.out.println("different edges have the same pair");
             }
         }
         targetDrugEdge.activity = entry.activity;
-        if (!setOfTargetIds.contains(targetId)) {
-            graph.addNode(TARGET_LABEL, "id", targetId);
-            setOfTargetIds.add(targetId);
-        }
+        getOrCreateTargetNode(graph, targetId, null);
         if (!dictionaryNodeIdToDrug.containsKey(nodeId)) {
             Drug drug = new Drug();
             if (nodeId.startsWith("D")) {
@@ -446,27 +477,25 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
     private Map<String, Map<String, TargetDrugEdge>> exportTargetCompoundActivityTSV(final Workspace workspace,
                                                                                      final Graph graph,
                                                                                      final Map<String, Drug> idDrugMap,
-                                                                                     final Set<String> setOfTargetIds,
-                                                                                     final Map<String, Map<String, TargetDrugEdge>> dictionaryTargetIdToDrugsToEdgeInfo) {
+                                                                                     final Map<String, Map<String, TargetDrugEdge>> targetIdDrugEdgeMap) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export Target-Drug activity TSV ...");
-        final Map<String, Map<String, TargetDrugEdge>> dictionaryTargetIdToCompoundToEdgeInfo = new HashMap<>();
-        final Map<String, Drug> dictionaryCompoundIdToDrug = new HashMap<>();
+        final Map<String, Map<String, TargetDrugEdge>> targetIdCompoundEdgeMap = new HashMap<>();
+        final Map<String, Drug> compoundIdDrugMap = new HashMap<>();
         for (final TargetCompoundActivity entry : parseTsvFile(workspace, TargetCompoundActivity.class,
                                                                TTDUpdater.TARGET_COMPOUND_ACTIVITY_TSV)) {
 
             final String targetId = entry.ttdTargetId;
             final String drugId = entry.ttdDrugId;
             if (drugId.startsWith("D")) {
-                prepareEdgeInformationForDrugCompoundToTarget(graph, idDrugMap, setOfTargetIds, targetId, drugId,
-                                                              dictionaryTargetIdToDrugsToEdgeInfo, entry);
-            } else {
-                prepareEdgeInformationForDrugCompoundToTarget(graph, dictionaryCompoundIdToDrug, setOfTargetIds,
-                                                              targetId, drugId, dictionaryTargetIdToCompoundToEdgeInfo,
+                prepareEdgeInformationForDrugCompoundToTarget(graph, idDrugMap, targetId, drugId, targetIdDrugEdgeMap,
                                                               entry);
+            } else {
+                prepareEdgeInformationForDrugCompoundToTarget(graph, compoundIdDrugMap, targetId, drugId,
+                                                              targetIdCompoundEdgeMap, entry);
             }
         }
-        return dictionaryTargetIdToCompoundToEdgeInfo;
+        return targetIdCompoundEdgeMap;
     }
 
     /**
@@ -486,71 +515,49 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
         }
     }
 
-    private <T> List<T> tryLoadXlsxTable(final Workspace workspace, final String fileName,
-                                         final Class<T> type) throws ParserException {
-        try {
-            return loadXlsxTable(workspace, fileName, type);
-        } catch (IOException e) {
-            if (e instanceof FileNotFoundException)
-                throw new ParserFileNotFoundException(fileName);
-            else
-                throw new ParserFormatException(e);
-        }
-    }
-
-    private <T> List<T> loadXlsxTable(final Workspace workspace, final String fileName,
-                                      final Class<T> type) throws IOException {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
-        final FileInputStream file = new FileInputStream(filePath);
-        final XlsxMappingIterator<T> mappingIterator = new XlsxMappingIterator<>(type, file);
-        final List<T> result = new ArrayList<>();
-        while (mappingIterator.hasNext())
-            result.add(mappingIterator.next());
-        return result;
-    }
-
     /**
      * Go through the target exel file and update the different edge information or add new pairs.
      */
-    private void exportTargetDrugExcel(final Workspace workspace, final Graph graph, final Set<String> setOfDrugIds,
-                                       final Set<String> setOfTargetIds,
-                                       final Map<String, Map<String, TargetDrugEdge>> dictionaryTargetIdToDrugsToEdgeInfo) {
+    private void exportTargetDrugExcel(final Workspace workspace, final Graph graph,
+                                       final Map<String, Map<String, TargetDrugEdge>> targetIdDrugEdgeMap) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export Target-Drug mapping Excel ...");
         try {
-            for (final DrugTargetMapping entry : tryLoadXlsxTable(workspace, TTDUpdater.TARGET_COMPOUND_MAPPIN_XLSX,
-                                                                  DrugTargetMapping.class)) {
+            final InputStream stream = FileUtils.openInput(workspace, dataSource,
+                                                           TTDUpdater.TARGET_COMPOUND_MAPPIN_XLSX);
+            final XlsxMappingIterator<DrugTargetMapping> mappingIterator = new XlsxMappingIterator<>(
+                    DrugTargetMapping.class, stream);
+            while (mappingIterator.hasNext()) {
+                final DrugTargetMapping entry = mappingIterator.next();
                 final String targetId = entry.targetId;
                 final String drugId = entry.drugId;
                 TargetDrugEdge targetDrugEdge = new TargetDrugEdge();
-                if (dictionaryTargetIdToDrugsToEdgeInfo.containsKey(targetId) &&
-                    dictionaryTargetIdToDrugsToEdgeInfo.get(targetId).containsKey(drugId))
-                    targetDrugEdge = dictionaryTargetIdToDrugsToEdgeInfo.get(targetId).get(drugId);
-                else if (dictionaryTargetIdToDrugsToEdgeInfo.containsKey(targetId))
-                    dictionaryTargetIdToDrugsToEdgeInfo.get(targetId).put(drugId, targetDrugEdge);
+                if (targetIdDrugEdgeMap.containsKey(targetId) && targetIdDrugEdgeMap.get(targetId).containsKey(drugId))
+                    targetDrugEdge = targetIdDrugEdgeMap.get(targetId).get(drugId);
+                else if (targetIdDrugEdgeMap.containsKey(targetId))
+                    targetIdDrugEdgeMap.get(targetId).put(drugId, targetDrugEdge);
                 else {
-                    dictionaryTargetIdToDrugsToEdgeInfo.put(targetId, new HashMap<>());
-                    dictionaryTargetIdToDrugsToEdgeInfo.get(targetId).put(drugId, targetDrugEdge);
+                    targetIdDrugEdgeMap.put(targetId, new HashMap<>());
+                    targetIdDrugEdgeMap.get(targetId).put(drugId, targetDrugEdge);
                 }
                 if (targetDrugEdge.moa != null) {
                     System.out.println("different edges have the same pair");
                 }
                 targetDrugEdge.moa = entry.moa;
-                if (!setOfTargetIds.contains(targetId)) {
-                    graph.addNode(TARGET_LABEL, "id", targetId);
-                    setOfTargetIds.add(targetId);
-                }
-                if (!setOfDrugIds.contains(drugId)) {
+                getOrCreateTargetNode(graph, targetId, null);
+                if (graph.findNode(DRUG_LABEL, "id", drugId) == null)
                     graph.addNode(DRUG_LABEL, "id", drugId);
-                    setOfDrugIds.add(drugId);
-                }
             }
-        } catch (ParserException e) {
-            throw new RuntimeException(e);
+            mappingIterator.close();
+        } catch (IOException e) {
+            if (e instanceof FileNotFoundException)
+                throw new ExporterException(new ParserFileNotFoundException(TTDUpdater.TARGET_COMPOUND_MAPPIN_XLSX));
+            else
+                throw new ExporterFormatException(e);
         }
     }
 
-    private void addTargetToData(final Graph graph, final Map<String, Target> idTargetMap) {
+    private void createTargetNodes(final Graph graph, final Map<String, Target> idTargetMap) {
         for (final Target target : idTargetMap.values())
             graph.addNodeFromModel(target);
     }
@@ -579,22 +586,21 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
      * Go through the target flat file with the flat file reader. Extract Target information and edges to drug and
      * pathways. Also add pathway and drug information.
      */
-    private boolean extractTargetFlatFile(final Workspace workspace, final Graph graph,
-                                          final Set<String> setOfPathwayIds, final Map<String, Target> idTargetMap,
-                                          final Map<String, List<String>> dictionaryTargetIdToPathways,
-                                          final Map<String, Map<String, TargetDrugEdge>> dictionaryTargetIdToDrugsToEdgeInfo,
-                                          final Map<String, Drug> idDrugMap) throws IOException {
+    private void extractTargetFlatFile(final Workspace workspace, final Graph graph, final Set<String> setOfPathwayIds,
+                                       final Map<String, Target> idTargetMap,
+                                       final Map<String, List<String>> targetIdPathwayMap,
+                                       final Map<String, Map<String, TargetDrugEdge>> dictionaryTargetIdToDrugsToEdgeInfo,
+                                       final Map<String, Drug> idDrugMap) throws IOException {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export raw Target Flat File ...");
-        final FlatFileTTDReader reader = new FlatFileTTDReader(
-                FileUtils.openInput(workspace, dataSource, TTDUpdater.TARGET_RAW_FLAT_FILE), StandardCharsets.UTF_8);
+        final FlatFileTTDReader reader = openFlatFile(workspace, TTDUpdater.TARGET_RAW_FLAT_FILE);
         for (final FlatFileTTDEntry entry : reader) {
             if (entry.properties.get("TARGETID") == null)
                 continue;
             String targetId = entry.getFirst("TARGETID");
             Target target = targetFromFlatEntry(entry);
             idTargetMap.put(targetId, target);
-            dictionaryTargetIdToPathways.put(targetId, new ArrayList<>());
+            targetIdPathwayMap.put(targetId, new ArrayList<>());
             if (entry.properties.get("DRUGINFO") != null) {
                 dictionaryTargetIdToDrugsToEdgeInfo.put(targetId, new HashMap<>());
                 for (String drugInfo : entry.properties.get("DRUGINFO")) {
@@ -614,38 +620,37 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
             }
             if (entry.properties.get("KEGGPATH") != null) {
                 extractPathwayInformation(graph, entry.properties.get("KEGGPATH"), setOfPathwayIds, "KEGG", targetId,
-                                          dictionaryTargetIdToPathways);
+                                          targetIdPathwayMap);
             }
             if (entry.properties.get("WIKIPATH") != null) {
                 extractPathwayInformation(graph, entry.properties.get("WIKIPATH"), setOfPathwayIds, "WikiPathway",
-                                          targetId, dictionaryTargetIdToPathways);
+                                          targetId, targetIdPathwayMap);
             }
             if (entry.properties.get("WHIZPATH") != null) {
                 extractPathwayInformation(graph, entry.properties.get("WHIZPATH"), setOfPathwayIds, "PathWhiz Pathway",
-                                          targetId, dictionaryTargetIdToPathways);
+                                          targetId, targetIdPathwayMap);
             }
             if (entry.properties.get("REACPATH") != null) {
                 extractPathwayInformation(graph, entry.properties.get("REACPATH"), setOfPathwayIds, "Reactome",
-                                          targetId, dictionaryTargetIdToPathways);
+                                          targetId, targetIdPathwayMap);
             }
             if (entry.properties.get("NET_PATH") != null) {
                 extractPathwayInformation(graph, entry.properties.get("NET_PATH"), setOfPathwayIds, "NetPathway",
-                                          targetId, dictionaryTargetIdToPathways);
+                                          targetId, targetIdPathwayMap);
             }
             if (entry.properties.get("INTEPATH") != null) {
                 extractPathwayInformation(graph, entry.properties.get("INTEPATH"), setOfPathwayIds, "Pathway Interact",
-                                          targetId, dictionaryTargetIdToPathways);
+                                          targetId, targetIdPathwayMap);
             }
             if (entry.properties.get("PANTPATH") != null) {
                 extractPathwayInformation(graph, entry.properties.get("PANTPATH"), setOfPathwayIds, "PANTHER Pathway",
-                                          targetId, dictionaryTargetIdToPathways);
+                                          targetId, targetIdPathwayMap);
             }
             if (entry.properties.get("BIOCPATH") != null) {
                 extractPathwayInformation(graph, entry.properties.get("BIOCPATH"), setOfPathwayIds, "BioCyc", targetId,
-                                          dictionaryTargetIdToPathways);
+                                          targetIdPathwayMap);
             }
         }
-        return true;
     }
 
     /**
@@ -677,14 +682,13 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                                                             final Map<String, Target> idTargetMap) throws IOException {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export Target-Disease Flat File ...");
-        final FlatFileTTDReader reader = new FlatFileTTDReader(
-                FileUtils.openInput(workspace, dataSource, TTDUpdater.TARGET_DISEASE_FLAT_FILE),
-                StandardCharsets.UTF_8);
-        for (final FlatFileTTDEntry entry : reader) {
-            final String id = entry.getFirst("TARGETID");
-            if (id != null) {
-                final Target target = getOrCreateTarget(id, idTargetMap);
-                target.name = entry.getFirst("TARGNAME");
+        try (FlatFileTTDReader reader = openFlatFile(workspace, TTDUpdater.TARGET_DISEASE_FLAT_FILE)) {
+            for (final FlatFileTTDEntry entry : reader) {
+                final String id = entry.getFirst("TARGETID");
+                if (id != null) {
+                    final Target target = getOrCreateTarget(id, idTargetMap);
+                    target.name = entry.getFirst("TARGNAME");
+                }
             }
         }
     }
@@ -706,21 +710,20 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                                               final Map<String, Target> idTargetMap) throws IOException {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export Target-UniProt Flat File ...");
-        final FlatFileTTDReader reader = new FlatFileTTDReader(
-                FileUtils.openInput(workspace, dataSource, TTDUpdater.TARGET_UNIPORT_FLAT_FILE),
-                StandardCharsets.UTF_8);
-        for (final FlatFileTTDEntry entry : reader) {
-            final String id = entry.getFirst("TARGETID");
-            if (id != null) {
-                final Target target = getOrCreateTarget(id, idTargetMap);
-                target.name = entry.getFirst("TARGNAME");
-                target.type = entry.getFirst("TARGTYPE");
-                target.uniProtID = entry.getFirst("UNIPROID");
+        try (FlatFileTTDReader reader = openFlatFile(workspace, TTDUpdater.TARGET_UNIPORT_FLAT_FILE)) {
+            for (final FlatFileTTDEntry entry : reader) {
+                final String id = entry.getFirst("TARGETID");
+                if (id != null) {
+                    final Target target = getOrCreateTarget(id, idTargetMap);
+                    target.name = entry.getFirst("TARGNAME");
+                    target.type = entry.getFirst("TARGTYPE");
+                    target.uniProtID = entry.getFirst("UNIPROID");
+                }
             }
         }
     }
 
-    private void addDrugToData(final Graph graph, final Map<String, Drug> idDrugMap) {
+    private void createDrugNodes(final Graph graph, final Map<String, Drug> idDrugMap) {
         for (final Drug drug : idDrugMap.values())
             graph.addNodeFromModel(drug);
     }
@@ -742,79 +745,5 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                 drug.name = entry.getFirst("DRUGNAME");
             }
         }
-    }
-
-    private Drug getOrCreateDrug(final String id, final Map<String, Drug> idDrugMap) {
-        Drug drug = idDrugMap.get(id);
-        if (drug == null) {
-            drug = new Drug();
-            drug.id = id;
-            idDrugMap.put(id, drug);
-        }
-        return drug;
-    }
-
-    /**
-     * Open the flat file drug-cross reference and add the information to the existing drugs or generate new drugs.
-     */
-    private void extractDrugFlatFileCrossRef(final Workspace workspace,
-                                             final Map<String, Drug> idDrugMap) throws IOException {
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Export Drug-Crossref Flat File ...");
-        final FlatFileTTDReader reader = new FlatFileTTDReader(
-                FileUtils.openInput(workspace, dataSource, TTDUpdater.DRUG_CROSSREF_FLAT_FILE), StandardCharsets.UTF_8);
-        for (final FlatFileTTDEntry entry : reader) {
-            final String drugId = entry.getFirst("TTDDRUID");
-            if (drugId != null)
-                drugCrossRefFromFlatEntry(entry, drugId, idDrugMap);
-        }
-    }
-
-    /**
-     * Generate for not existing drug ids a Drug node with identifier. The get the drug model from the map with
-     * identifier and add information from drug-cross reference file. Some are arrays and some are only string.
-     */
-    private void drugCrossRefFromFlatEntry(final FlatFileTTDEntry entry, final String id,
-                                           final Map<String, Drug> idDrugMap) {
-        Drug drug = getOrCreateDrug(id, idDrugMap);
-        drug.name = entry.getFirst("DRUGNAME");
-        drug.casNumber = entry.getFirst("CASNUMBE");
-        drug.formular = entry.getFirst("D_FOMULA");
-        if (entry.properties.get("PUBCHCID") != null)
-            drug.pubChemCID = entry.getFirst("PUBCHCID").split("; ");
-        if (entry.properties.get("PUBCHSID") != null)
-            drug.pubChemSID = entry.getFirst("PUBCHSID").split("; ");
-        drug.chebiId = entry.getFirst("ChEBI_ID");
-        if (entry.properties.get("SUPDRATC") != null)
-            drug.superDrugATC = entry.getFirst("SUPDRATC").split("; ");
-        drug.superDrugCas = entry.getFirst("SUPDRCAS");
-    }
-
-    /**
-     * Open the drug-synonym flat file and parse with TTD reader. The information of the file are added to the existing
-     * drug or generate new drugs.
-     */
-    private void extractDrugFlatFileSynonyms(final Workspace workspace,
-                                             final Map<String, Drug> idDrugMap) throws IOException {
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Export Drug-Synonyms Flat File ...");
-        final FlatFileTTDReader reader = new FlatFileTTDReader(
-                FileUtils.openInput(workspace, dataSource, TTDUpdater.DRUG_SYNONYMS_FLAT_FILE), StandardCharsets.UTF_8);
-        for (final FlatFileTTDEntry entry : reader) {
-            final String drugId = entry.getFirst("TTDDRUID");
-            if (drugId != null)
-                drugSynonymsFromFlatEntry(entry, drugId, idDrugMap);
-        }
-    }
-
-    /**
-     * Generate for not existing drug ids a Drug node with identifier. The get the drug model from the map with
-     * identifier and add name and synonym information to model from file Drug-synonyms.
-     */
-    private void drugSynonymsFromFlatEntry(final FlatFileTTDEntry entry, final String id,
-                                           final Map<String, Drug> idDrugMap) {
-        final Drug drug = getOrCreateDrug(id, idDrugMap);
-        drug.name = entry.getFirst("DRUGNAME");
-        drug.synonyms = entry.properties.get("SYNONYMS").toArray(new String[0]);
     }
 }
