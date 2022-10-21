@@ -37,7 +37,7 @@ public class UNIIUpdater extends Updater<UNIIDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         Version newestVersion = null;
         try {
             final Document document = Jsoup.parse(HTTPClient.getWebsiteSource(WEBSITE_URL));

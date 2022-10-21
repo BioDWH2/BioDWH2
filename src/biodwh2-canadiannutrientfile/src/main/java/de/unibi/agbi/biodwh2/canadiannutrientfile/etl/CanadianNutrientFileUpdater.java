@@ -26,7 +26,7 @@ public class CanadianNutrientFileUpdater extends Updater<CanadianNutrientFileDat
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             final String source = HTTPClient.getWebsiteSource(CNF_MAIN_URL);
             final Pattern versionPattern = Pattern.compile(

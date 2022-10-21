@@ -25,7 +25,7 @@ public class NegatomeUpdater extends Updater<NegatomeDataSource> {
     }
 
     @Override
-    protected Version getNewestVersion() throws UpdaterException {
+    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             final String html = HTTPClient.getWebsiteSource(DONWLOAD_URL_PREFIX);
             final Matcher matcher = VERSION_PATTERN.matcher(html);

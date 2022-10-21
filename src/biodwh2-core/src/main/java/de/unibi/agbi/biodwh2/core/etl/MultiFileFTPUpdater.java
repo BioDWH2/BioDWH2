@@ -16,7 +16,7 @@ public abstract class MultiFileFTPUpdater<D extends DataSource> extends Updater<
     }
 
     @Override
-    public final Version getNewestVersion() throws UpdaterException {
+    public final Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         final AnonymousFTPClient ftpClient = connectToFTP();
         Version latestVersion = null;
         for (final String filePath : getFTPFilePaths()) {

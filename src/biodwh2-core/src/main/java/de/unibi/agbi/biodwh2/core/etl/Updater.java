@@ -31,9 +31,9 @@ public abstract class Updater<D extends DataSource> {
         this.dataSource = dataSource;
     }
 
-    public final Version tryGetNewestVersion() {
+    public final Version tryGetNewestVersion(final Workspace workspace) {
         try {
-            return getNewestVersion();
+            return getNewestVersion(workspace);
         } catch (UpdaterException e) {
             final DataSourceVersion latest = OnlineVersionCache.getInstance().getLatest(dataSource.getId());
             if (latest == null || latest.getVersion() == null) {
@@ -50,10 +50,10 @@ public abstract class Updater<D extends DataSource> {
         return null;
     }
 
-    protected abstract Version getNewestVersion() throws UpdaterException;
+    protected abstract Version getNewestVersion(final Workspace workspace) throws UpdaterException;
 
     public final UpdateState update(final Workspace workspace) throws UpdaterException {
-        final Version newestVersion = tryGetNewestVersion();
+        final Version newestVersion = tryGetNewestVersion(workspace);
         final Version workspaceVersion = dataSource.getMetadata().version;
         final boolean expectedFilesPresent = areExpectedFilesPresent(workspace);
         final boolean isUpToDate = isDataSourceUpToDate(newestVersion, workspaceVersion);
@@ -112,8 +112,8 @@ public abstract class Updater<D extends DataSource> {
         Collections.addAll(metadata.sourceFileNames, dataSource.listSourceFiles(workspace));
     }
 
-    public final boolean isDataSourceUpToDate() {
-        final Version newestVersion = tryGetNewestVersion();
+    public final boolean isDataSourceUpToDate(final Workspace workspace) {
+        final Version newestVersion = tryGetNewestVersion(workspace);
         final Version workspaceVersion = dataSource.getMetadata().version;
         return isDataSourceUpToDate(newestVersion, workspaceVersion);
     }

@@ -24,7 +24,7 @@ public class AACTUpdater extends Updater<AACTDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         final String url = getDownloadFileUrl();
         final String[] parts = StringUtils.split(url, '/');
         final String version = StringUtils.split(parts[parts.length - 1], '_')[0];

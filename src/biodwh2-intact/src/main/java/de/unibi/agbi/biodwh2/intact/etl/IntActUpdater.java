@@ -23,7 +23,7 @@ public class IntActUpdater extends Updater<IntActDataSource> {
     }
 
     @Override
-    protected Version getNewestVersion() throws UpdaterException {
+    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             final HTTPFTPClient.Entry[] entries = new HTTPFTPClient(
                     "http://ftp.ebi.ac.uk/pub/databases/intact/").listDirectory();

@@ -18,7 +18,7 @@ public abstract class OBOOntologyUpdater<D extends DataSource> extends Updater<D
     }
 
     @Override
-    public final Version getNewestVersion() throws UpdaterException {
+    public final Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             return getVersionFromDownloadFile();
         } catch (IOException e) {

@@ -13,7 +13,7 @@ public class ABDAMED2Updater extends Updater<ABDAMED2DataSource> {
     }
 
     @Override
-    public Version getNewestVersion() {
+    public Version getNewestVersion(final Workspace workspace) {
         return null;
     }
 

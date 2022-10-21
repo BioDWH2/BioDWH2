@@ -24,7 +24,7 @@ public final class ReDODBUpdater extends Updater<ReDODBDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             final String source = HTTPClient.getWebsiteSource("https://www.anticancerfund.org/en/redo-db");
             final Matcher matcher = VERSION_PATTERN.matcher(source);

@@ -27,7 +27,7 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         final String url = getDrugCentralFileUrl();
         final String version = StringUtils.split(StringUtils.splitByWholeSeparator(url, "dump.")[1], '.')[0];
         if (version.contains("_")) {

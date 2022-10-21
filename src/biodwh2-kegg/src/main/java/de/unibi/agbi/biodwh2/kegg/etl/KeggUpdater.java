@@ -35,7 +35,7 @@ public class KeggUpdater extends Updater<KeggDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         AnonymousFTPClient ftpClient = connectToFTP();
         List<LocalDateTime> folderDateTimes = new ArrayList<>();
         folderDateTimes.add(ftpClient.getModificationTimeFromServer(FTP_BASE_PATH + "dgroup/dgroup"));

@@ -25,7 +25,7 @@ public class TissuesUpdater extends Updater<TissuesDataSource> {
      * TISSUES is a weekly updated web resource, so we assume every monday as a new version.
      */
     @Override
-    protected Version getNewestVersion() {
+    protected Version getNewestVersion(final Workspace workspace) {
         final Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
         return new Version(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));

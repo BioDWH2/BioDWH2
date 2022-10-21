@@ -55,7 +55,7 @@ public class TTDUpdater extends Updater<TTDDataSource> {
     }
 
     @Override
-    protected Version getNewestVersion() throws UpdaterException {
+    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             final String source = HTTPClient.getWebsiteSource(VERSION_URL);
             final Matcher matcher = versionPattern.matcher(source);

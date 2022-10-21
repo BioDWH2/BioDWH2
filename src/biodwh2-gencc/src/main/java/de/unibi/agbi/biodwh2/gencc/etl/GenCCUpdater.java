@@ -19,7 +19,7 @@ public class GenCCUpdater extends Updater<GenCCDataSource> {
     }
 
     @Override
-    protected Version getNewestVersion() throws UpdaterException {
+    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         // TODO: maybe once API is available
         return null;
     }

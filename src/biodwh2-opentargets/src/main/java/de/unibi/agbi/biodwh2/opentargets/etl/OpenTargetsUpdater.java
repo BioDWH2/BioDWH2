@@ -16,7 +16,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Optional;
@@ -46,7 +48,7 @@ public class OpenTargetsUpdater extends Updater<OpenTargetsDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         final JsonNode json = loadDataVersionJson();
         return parseVersion(json);
     }

@@ -30,7 +30,7 @@ public class EMAUpdater extends Updater<EMADataSource> {
      * EMA updates these medicine data tables once a day
      */
     @Override
-    public Version getNewestVersion() {
+    public Version getNewestVersion(final Workspace workspace) {
         final Calendar today = Calendar.getInstance();
         return new Version(today.get(Calendar.YEAR), today.get(Calendar.MONTH) + 1, today.get(Calendar.DAY_OF_MONTH));
     }

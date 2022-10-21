@@ -45,7 +45,7 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             Version latestVersion = null;
             for (final String filePath : getFilePaths()) {

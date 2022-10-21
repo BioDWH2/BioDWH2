@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import de.unibi.agbi.biodwh2.core.etl.GraphMapper;
 import de.unibi.agbi.biodwh2.core.etl.GraphMerger;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.*;
+import de.unibi.agbi.biodwh2.core.exceptions.DataSourceException;
+import de.unibi.agbi.biodwh2.core.exceptions.MergerException;
+import de.unibi.agbi.biodwh2.core.exceptions.WorkspaceException;
 import de.unibi.agbi.biodwh2.core.model.*;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.migration.GraphMigrator;
@@ -103,7 +105,7 @@ public final class Workspace {
     public void checkState(final boolean verbose) {
         if (prepareDataSources() && LOGGER.isInfoEnabled()) {
             LOGGER.info(createStateTable(verbose));
-            final List<String> notUpToDate = Arrays.stream(dataSources).filter(d -> !d.isUpToDate()).map(
+            final List<String> notUpToDate = Arrays.stream(dataSources).filter(d -> !d.isUpToDate(this)).map(
                     DataSource::getId).collect(Collectors.toList());
             final int countUpToDate = dataSources.length - notUpToDate.size();
             LOGGER.info((countUpToDate == dataSources.length) ? "All data sources are up-to-date." :
@@ -146,9 +148,9 @@ public final class Workspace {
     private List<String> createDataSourceStateRow(final DataSource dataSource, final boolean verbose) {
         final List<String> row = new ArrayList<>();
         final DataSourceMetadata metadata = dataSource.getMetadata();
-        final Version latestVersion = dataSource.getNewestVersion();
+        final Version latestVersion = dataSource.getNewestVersion(this);
         final LocalDateTime updateDateTime = metadata.getLocalUpdateDateTime();
-        Collections.addAll(row, dataSource.getId(), dataSource.isUpToDate() ? "true" : "-",
+        Collections.addAll(row, dataSource.getId(), dataSource.isUpToDate(this) ? "true" : "-",
                            metadata.version == null ? "-" : metadata.version.toString(),
                            latestVersion == null ? "-" : latestVersion.toString(),
                            updateDateTime == null ? "-" : updateDateTime.toString(),

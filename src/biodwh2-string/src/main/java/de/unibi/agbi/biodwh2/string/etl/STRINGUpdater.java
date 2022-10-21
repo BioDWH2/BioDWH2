@@ -30,7 +30,7 @@ public class STRINGUpdater extends Updater<STRINGDataSource> {
     }
 
     @Override
-    protected Version getNewestVersion() throws UpdaterException {
+    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         Version version = null;
         try {
             final String source = HTTPClient.getWebsiteSource(DOWNLOAD_PAGE_URL);

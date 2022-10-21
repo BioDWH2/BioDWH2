@@ -26,7 +26,7 @@ public final class GWASCatalogUpdater extends Updater<GWASCatalogDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             final String fileName = HTTPClient.resolveFileName(ASSOCIATIONS_FILE_URL);
             final Matcher matcher = VERSION_PATTERN.matcher(fileName);

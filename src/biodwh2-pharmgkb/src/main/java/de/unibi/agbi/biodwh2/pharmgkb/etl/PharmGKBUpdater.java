@@ -9,7 +9,9 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.pharmgkb.PharmGKBDataSource;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.zip.ZipEntry;
@@ -27,7 +29,7 @@ public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         LocalDateTime stringDate = null;
         try {
             File f = File.createTempFile("biodwh2pharmgkb-drugLabels", ".zip");

@@ -23,7 +23,7 @@ public class InterProUpdater extends Updater<InterProDataSource> {
     }
 
     @Override
-    protected Version getNewestVersion() throws UpdaterException {
+    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             final String source = HTTPClient.getWebsiteSource(RELEASE_NOTES_URL);
             final Matcher releaseMatcher = RELEASE_PATTERN.matcher(source);

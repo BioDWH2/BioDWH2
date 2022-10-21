@@ -31,7 +31,7 @@ public class T3DBUpdater extends Updater<T3DBDataSource> {
     }
 
     @Override
-    protected Version getNewestVersion() throws UpdaterException {
+    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         final String source;
         try {
             source = HTTPClient.getWebsiteSource("http://www.t3db.ca/downloads");

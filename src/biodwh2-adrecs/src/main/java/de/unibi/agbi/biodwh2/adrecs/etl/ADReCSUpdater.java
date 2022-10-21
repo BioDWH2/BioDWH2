@@ -25,7 +25,7 @@ public class ADReCSUpdater extends Updater<ADReCSDataSource> {
     }
 
     @Override
-    protected Version getNewestVersion() throws UpdaterException {
+    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         Version version = null;
         try {
             final String source = HTTPClient.getWebsiteSource("http://bioinf.xmu.edu.cn/ADReCS/update.jsp");

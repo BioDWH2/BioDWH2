@@ -25,7 +25,7 @@ public class Gene2PhenotypeUpdater extends Updater<Gene2PhenotypeDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             final String source = HTTPClient.getWebsiteSource(G2P_MAIN_URL);
             final Pattern versionPattern = Pattern.compile("<strong>([0-9]{4}-[0-9]{2}-[0-9]{2})</strong>");

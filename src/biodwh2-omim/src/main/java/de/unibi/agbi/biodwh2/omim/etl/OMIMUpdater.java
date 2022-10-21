@@ -39,7 +39,7 @@ public class OMIMUpdater extends Updater<OMIMDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             final String html = HTTPClient.getWebsiteSource(OMIM_PAGE_URL);
             final Matcher matcher = DOWNLOAD_URL_PATTERN.matcher(html);

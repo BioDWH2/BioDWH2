@@ -12,7 +12,7 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.drugbank.DrugBankDataSource;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.Map;
 
 public class DrugBankUpdater extends Updater<DrugBankDataSource> {
@@ -29,7 +29,7 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         final JsonNode json = loadReleasesJson();
         final String version = getFirstReleaseVersion(json);
         return parseVersion(version);

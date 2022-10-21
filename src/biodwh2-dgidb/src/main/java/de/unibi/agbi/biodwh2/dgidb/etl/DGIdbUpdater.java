@@ -40,7 +40,7 @@ public class DGIdbUpdater extends Updater<DGIdbDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         final DownloadVersion newestVersion = getNewestDownloadVersion();
         return newestVersion == null ? null : newestVersion.version;
     }

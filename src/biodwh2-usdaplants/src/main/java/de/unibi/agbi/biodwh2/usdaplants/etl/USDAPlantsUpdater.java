@@ -21,7 +21,7 @@ public class USDAPlantsUpdater extends Updater<USDAPlantsDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() {
+    public Version getNewestVersion(final Workspace workspace) {
         return null;
     }
 

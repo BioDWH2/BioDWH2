@@ -11,7 +11,7 @@ public class MockUpdater<T extends DataSource> extends Updater<T> {
     }
 
     @Override
-    public Version getNewestVersion() {
+    public Version getNewestVersion(final Workspace workspace) {
         return new Version(1, 0);
     }
 

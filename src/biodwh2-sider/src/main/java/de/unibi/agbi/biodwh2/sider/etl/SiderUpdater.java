@@ -27,7 +27,7 @@ public class SiderUpdater extends Updater<SiderDataSource> {
     }
 
     @Override
-    protected Version getNewestVersion() throws UpdaterException {
+    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             final String html = HTTPClient.getWebsiteSource(VERSION_URL);
             final Matcher matcher = VERSION_PATTERN.matcher(html);

@@ -34,7 +34,7 @@ public class ITISUpdater extends Updater<ITISDataSource> {
     }
 
     @Override
-    public Version getNewestVersion() throws UpdaterException {
+    public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             String html = HTTPClient.getWebsiteSource(VERSION_URL);
             html = StringUtils.splitByWholeSeparator(html, "Database download files are currently from the")[1];

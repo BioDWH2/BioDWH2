@@ -19,7 +19,7 @@ public class TarBaseUpdater extends Updater<TarBaseDataSource> {
     }
 
     @Override
-    protected Version getNewestVersion() {
+    protected Version getNewestVersion(final Workspace workspace) {
         return new Version(8, 0);
     }
 

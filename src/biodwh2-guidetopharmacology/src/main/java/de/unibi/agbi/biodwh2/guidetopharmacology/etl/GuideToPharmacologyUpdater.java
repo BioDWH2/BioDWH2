@@ -32,7 +32,7 @@ public class GuideToPharmacologyUpdater extends Updater<GuideToPharmacologyDataS
     }
 
     @Override
-    protected Version getNewestVersion() throws UpdaterException {
+    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         final Map<Version, String> versions = getFileUrlsWithVersion();
         final Optional<Version> maxVersion = versions.keySet().stream().max(Version::compareTo);
         return maxVersion.orElse(null);

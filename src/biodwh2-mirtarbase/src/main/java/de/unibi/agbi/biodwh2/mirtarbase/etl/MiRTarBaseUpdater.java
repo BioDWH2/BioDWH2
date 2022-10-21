@@ -26,7 +26,7 @@ public class MiRTarBaseUpdater extends Updater<MiRTarBaseDataSource> {
     }
 
     @Override
-    protected Version getNewestVersion() throws UpdaterException {
+    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         final String source;
         try {
             source = HTTPClient.getWebsiteSource(VERSION_URL);

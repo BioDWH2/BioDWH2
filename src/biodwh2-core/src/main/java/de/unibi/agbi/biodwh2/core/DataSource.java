@@ -200,12 +200,12 @@ public abstract class DataSource {
         return new String[0];
     }
 
-    public final boolean isUpToDate() {
-        return getUpdater().isDataSourceUpToDate();
+    public final boolean isUpToDate(final Workspace workspace) {
+        return getUpdater().isDataSourceUpToDate(workspace);
     }
 
-    public final Version getNewestVersion() {
-        return getUpdater().tryGetNewestVersion();
+    public final Version getNewestVersion(final Workspace workspace) {
+        return getUpdater().tryGetNewestVersion(workspace);
     }
 
     public Map<String, DataSourcePropertyType> getAvailableProperties() {
@@ -220,6 +220,14 @@ public abstract class DataSource {
 
     public final boolean getBooleanProperty(final Workspace workspace, final String key) {
         return "true".equalsIgnoreCase(getProperties(workspace).get(key));
+    }
+
+    public final Integer getIntegerProperty(final Workspace workspace, final String key) {
+        try {
+            return Integer.parseInt(getProperties(workspace).get(key));
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
     }
 
     void setVersion(final Workspace workspace, final Version version) {

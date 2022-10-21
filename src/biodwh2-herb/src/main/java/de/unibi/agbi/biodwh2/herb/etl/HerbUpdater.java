@@ -22,7 +22,7 @@ public class HerbUpdater extends Updater<HerbDataSource> {
     }
 
     @Override
-    protected Version getNewestVersion() {
+    protected Version getNewestVersion(final Workspace workspace) {
         return null;
     }
 

@@ -20,7 +20,7 @@ public class CMAUPUpdater extends Updater<CMAUPDataSource> {
     }
 
     @Override
-    protected Version getNewestVersion() throws UpdaterException {
+    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             final String source = HTTPClient.getWebsiteSource("http://bidd.group/CMAUP/download.html");
             final Matcher matcher = VERSION_PATTERN.matcher(source);
