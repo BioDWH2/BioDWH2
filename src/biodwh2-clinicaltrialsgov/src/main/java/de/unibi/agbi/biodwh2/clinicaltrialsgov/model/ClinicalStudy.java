@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 
 public class ClinicalStudy {
@@ -60,9 +59,9 @@ public class ClinicalStudy {
     @JacksonXmlElementWrapper(useWrapping = false)
     public ArrayList<ProtocolOutcomeStruct> otherOutcome;
     @JsonProperty(value = "number_of_arms")
-    public BigInteger numberOfArms;
+    public Integer numberOfArms;
     @JsonProperty(value = "number_of_groups")
-    public BigInteger numberOfGroups;
+    public Integer numberOfGroups;
     public EnrollmentStruct enrollment;
     @JacksonXmlElementWrapper(useWrapping = false)
     public ArrayList<String> condition;
