@@ -1,0 +1,20 @@
+package de.unibi.agbi.biodwh2.clinicaltrialsgov.model;
+
+import com.fasterxml.jackson.annotation.JsonValue;
+
+public enum ResponsiblePartyTypeEnum {
+    SPONSOR("Sponsor"),
+    PRINCIPAL_INVESTIGATOR("Principal Investigator"),
+    SPONSOR_INVESTIGATOR("Sponsor-Investigator");
+
+    ResponsiblePartyTypeEnum(String value) {
+        this.value = value;
+    }
+
+    public final String value;
+
+    @JsonValue
+    public String toValue() {
+        return value;
+    }
+}

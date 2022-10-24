@@ -64,6 +64,7 @@
         <module>biodwh2-mirbase</module>
         <module>biodwh2-mirtarbase</module>
         <module>biodwh2-tarbase</module>
+        <module>biodwh2-clinicaltrialsgov</module>
     </modules>
 
     <packaging>pom</packaging>
