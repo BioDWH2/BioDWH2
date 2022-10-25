@@ -368,7 +368,12 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
                 builder.withPropertyIfNotNull("status", location.status);
                 if (location.facility != null) {
                     builder.withPropertyIfNotNull("facility_name", location.facility.name);
-                    builder.withPropertyIfNotNull("facility_address", location.facility.address);
+                    if (location.facility.address != null) {
+                        builder.withPropertyIfNotNull("facility_address_city", location.facility.address.city);
+                        builder.withPropertyIfNotNull("facility_address_country", location.facility.address.country);
+                        builder.withPropertyIfNotNull("facility_address_zip", location.facility.address.zip);
+                        builder.withPropertyIfNotNull("facility_address_state", location.facility.address.state);
+                    }
                 }
                 final Node node = builder.build();
                 graph.addEdge(studyNode, node, "HAS_LOCATION");
