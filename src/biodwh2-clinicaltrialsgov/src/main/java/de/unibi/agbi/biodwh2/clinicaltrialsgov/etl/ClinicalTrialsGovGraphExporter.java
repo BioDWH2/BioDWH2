@@ -260,7 +260,6 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
         exportStudyConditions(graph, study, node);
         exportStudyInterventions(graph, study, node);
         exportStudyLinks(graph, study, node);
-        // TODO: ArrayList<LocationStruct> location
     }
 
     private void exportStudyReferences(final Graph graph, final ClinicalStudy study, final Node studyNode) {
@@ -334,21 +333,82 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
     }
 
     private void exportStudyPeople(final Graph graph, final ClinicalStudy study, final Node studyNode) {
+        final Map<String, Long> contactKeyNodeIdMap = new HashMap<>();
         if (study.overallContact != null) {
             final Node personNode = createPerson(graph, study.overallContact);
+            final String personKey = study.overallContact.firstName + '|' + study.overallContact.middleName + '|' +
+                                     study.overallContact.lastName + '|' + study.overallContact.degrees;
+            contactKeyNodeIdMap.put(personKey, personNode.getId());
             graph.addEdge(studyNode, personNode, "HAS_CONTACT");
         }
         if (study.overallContactBackup != null) {
             final Node personNode = createPerson(graph, study.overallContactBackup);
+            final String personKey = study.overallContact.firstName + '|' + study.overallContact.middleName + '|' +
+                                     study.overallContact.lastName + '|' + study.overallContact.degrees;
+            contactKeyNodeIdMap.put(personKey, personNode.getId());
             graph.addEdge(studyNode, personNode, "HAS_CONTACT", "is_backup", true);
         }
+        final Map<String, Long> investigatorKeyNodeIdMap = new HashMap<>();
         if (study.overallOfficial != null) {
             for (final InvestigatorStruct investigator : study.overallOfficial) {
                 final Node personNode = createPerson(graph, investigator);
+                final String personKey =
+                        investigator.firstName + '|' + investigator.middleName + '|' + investigator.lastName + '|' +
+                        investigator.degrees + '|' + investigator.affiliation;
+                investigatorKeyNodeIdMap.put(personKey, personNode.getId());
                 if (investigator.role != null)
                     graph.addEdge(studyNode, personNode, "HAS_INVESTIGATOR", "role", investigator.role.value);
                 else
                     graph.addEdge(studyNode, personNode, "HAS_INVESTIGATOR");
+            }
+        }
+        if (study.location != null) {
+            for (final LocationStruct location : study.location) {
+                final NodeBuilder builder = graph.buildNode().withLabel("Location");
+                builder.withPropertyIfNotNull("status", location.status);
+                if (location.facility != null) {
+                    builder.withPropertyIfNotNull("facility_name", location.facility.name);
+                    builder.withPropertyIfNotNull("facility_address", location.facility.address);
+                }
+                final Node node = builder.build();
+                graph.addEdge(studyNode, node, "HAS_LOCATION");
+                if (location.contact != null) {
+                    final String personKey = location.contact.firstName + '|' + location.contact.middleName + '|' +
+                                             location.contact.lastName + '|' + location.contact.degrees;
+                    Long contactNodeId = contactKeyNodeIdMap.get(personKey);
+                    if (contactNodeId == null) {
+                        final Node personNode = createPerson(graph, location.contact);
+                        contactKeyNodeIdMap.put(personKey, personNode.getId());
+                        contactNodeId = personNode.getId();
+                    }
+                    graph.addEdge(contactNodeId, node, "LOCATED_AT");
+                }
+                if (location.contactBackup != null) {
+                    final String personKey =
+                            location.contactBackup.firstName + '|' + location.contactBackup.middleName + '|' +
+                            location.contactBackup.lastName + '|' + location.contactBackup.degrees;
+                    Long contactNodeId = contactKeyNodeIdMap.get(personKey);
+                    if (contactNodeId == null) {
+                        final Node personNode = createPerson(graph, location.contactBackup);
+                        contactKeyNodeIdMap.put(personKey, personNode.getId());
+                        contactNodeId = personNode.getId();
+                    }
+                    graph.addEdge(contactNodeId, node, "LOCATED_AT");
+                }
+                if (location.investigator != null) {
+                    for (final InvestigatorStruct investigator : location.investigator) {
+                        final String personKey =
+                                investigator.firstName + '|' + investigator.middleName + '|' + investigator.lastName +
+                                '|' + investigator.degrees + '|' + investigator.affiliation;
+                        Long investigatorNodeId = investigatorKeyNodeIdMap.get(personKey);
+                        if (investigatorNodeId == null) {
+                            final Node personNode = createPerson(graph, investigator);
+                            investigatorKeyNodeIdMap.put(personKey, personNode.getId());
+                            investigatorNodeId = personNode.getId();
+                        }
+                        graph.addEdge(investigatorNodeId, node, "LOCATED_AT");
+                    }
+                }
             }
         }
     }
@@ -374,9 +434,15 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
         }
         if (study.providedDocumentSection != null && study.providedDocumentSection.providedDocument != null) {
             for (final ProvidedDocumentStruct document : study.providedDocumentSection.providedDocument) {
-                // TODO
-                //final Node documentNode = getOrCreateDocument(graph, document);
-                //graph.addEdge(node, documentNode, "HAS_DOCUMENT");
+                final NodeBuilder builder = graph.buildNode().withLabel("Document");
+                builder.withPropertyIfNotNull("date", document.documentDate);
+                builder.withPropertyIfNotNull("url", document.documentUrl);
+                builder.withPropertyIfNotNull("type", document.documentType);
+                builder.withPropertyIfNotNull("has_protocol", document.documentHasProtocol);
+                builder.withPropertyIfNotNull("has_icf", document.documentHasIcf);
+                builder.withPropertyIfNotNull("has_sap", document.documentHasSap);
+                final Node node = builder.build();
+                graph.addEdge(studyNode, node, "HAS_PROVIDED_DOCUMENT");
             }
         }
     }
@@ -384,8 +450,11 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
     private Node getOrCreateDocument(final Graph graph, final StudyDocStruct document) {
         Node node = graph.findNode("Document", "id", document.docId);
         if (node == null) {
-            graph.addNode("Document", "id", document.docId, "url", document.docUrl, "type", document.docType, "comment",
-                          document.docComment);
+            final NodeBuilder builder = graph.buildNode().withLabel("Document").withProperty("id", document.docId);
+            builder.withPropertyIfNotNull("url", document.docUrl);
+            builder.withPropertyIfNotNull("type", document.docType);
+            builder.withPropertyIfNotNull("comment", document.docComment);
+            node = builder.build();
         }
         return node;
     }
@@ -393,17 +462,23 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
     private void exportStudyOutcomes(final Graph graph, final ClinicalStudy study, final Node studyNode) {
         if (study.primaryOutcome != null) {
             for (final ProtocolOutcomeStruct outcome : study.primaryOutcome) {
-                // TODO
+                final Node outcomeNode = graph.addNode("Outcome", "measure", outcome.measure, "time_frame",
+                                                       outcome.timeFrame, "description", outcome.description);
+                graph.addEdge(studyNode, outcomeNode, "HAS_OUTCOME", "type", "primary");
             }
         }
         if (study.secondaryOutcome != null) {
             for (final ProtocolOutcomeStruct outcome : study.secondaryOutcome) {
-                // TODO
+                final Node outcomeNode = graph.addNode("Outcome", "measure", outcome.measure, "time_frame",
+                                                       outcome.timeFrame, "description", outcome.description);
+                graph.addEdge(studyNode, outcomeNode, "HAS_OUTCOME", "type", "secondary");
             }
         }
         if (study.otherOutcome != null) {
             for (final ProtocolOutcomeStruct outcome : study.otherOutcome) {
-                // TODO
+                final Node outcomeNode = graph.addNode("Outcome", "measure", outcome.measure, "time_frame",
+                                                       outcome.timeFrame, "description", outcome.description);
+                graph.addEdge(studyNode, outcomeNode, "HAS_OUTCOME", "type", "other");
             }
         }
     }
@@ -411,7 +486,9 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
     private void exportStudyArmGroups(final Graph graph, final ClinicalStudy study, final Node studyNode) {
         if (study.armGroup != null) {
             for (final ArmGroupStruct group : study.armGroup) {
-                // TODO
+                final Node node = graph.addNode("ArmGroup", "label", group.armGroupLabel, "type", group.armGroupType,
+                                                "description", group.description);
+                graph.addEdge(studyNode, node, "HAS_ARM_GROUP");
             }
         }
     }
