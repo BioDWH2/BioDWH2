@@ -340,6 +340,10 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
         return map.sizeAsLong();
     }
 
+    public Iterable<Long> getKeys() {
+        return map.keySet();
+    }
+
     public MVStoreIndex[] getIndices() {
         return indices.values().toArray(new MVStoreIndex[0]);
     }

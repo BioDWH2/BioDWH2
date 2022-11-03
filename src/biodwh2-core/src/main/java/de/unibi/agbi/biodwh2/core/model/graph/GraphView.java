@@ -18,6 +18,16 @@ public class GraphView extends BaseGraph {
     }
 
     @Override
+    public Iterable<Long> getNodeIds(final String label) {
+        return graph.getNodeIds();
+    }
+
+    @Override
+    public Iterable<Long> getEdgeIds(final String label) {
+        return graph.getEdgeIds();
+    }
+
+    @Override
     public Iterable<Node> getNodes() {
         return filterNodesIterable(graph.getNodes());
     }

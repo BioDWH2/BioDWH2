@@ -1,12 +1,26 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import de.unibi.agbi.biodwh2.core.collections.CombinedIterable;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 public abstract class BaseGraph {
+    public final Iterable<Long> getNodeIds() {
+        return new CombinedIterable<>(Arrays.stream(getNodeLabels()).map(this::getNodeIds)
+                                            .collect(Collectors.toList()));
+    }
+
+    public abstract Iterable<Long> getNodeIds(final String label);
+
+    public final Iterable<Long> getEdgeIds() {
+        return new CombinedIterable<>(Arrays.stream(getEdgeLabels()).map(this::getEdgeIds)
+                                            .collect(Collectors.toList()));
+    }
+
+    public abstract Iterable<Long> getEdgeIds(final String label);
+
     public abstract Iterable<Node> getNodes();
 
     public abstract Iterable<Edge> getEdges();
