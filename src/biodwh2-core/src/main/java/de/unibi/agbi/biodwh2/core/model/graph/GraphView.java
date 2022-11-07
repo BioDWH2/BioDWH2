@@ -278,7 +278,9 @@ public class GraphView extends BaseGraph {
             nextEdge = null;
             while (parent.hasNext()) {
                 nextEdge = parent.next();
-                if (edgeLabels.contains(nextEdge.getLabel())) {
+                if (edgeLabels.contains(nextEdge.getLabel()) && nodeLabels.contains(
+                        graph.getNodeLabel(nextEdge.getFromId())) && nodeLabels.contains(
+                        graph.getNodeLabel(nextEdge.getToId()))) {
                     break;
                 } else {
                     nextEdge = null;
