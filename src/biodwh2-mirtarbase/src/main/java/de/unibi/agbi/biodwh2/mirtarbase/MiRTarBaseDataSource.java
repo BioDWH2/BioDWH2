@@ -14,8 +14,13 @@ public class MiRTarBaseDataSource extends DataSource {
     }
 
     @Override
+    public String getLicenseUrl() {
+        return "https://mirtarbase.cuhk.edu.cn/~miRTarBase/miRTarBase_2022/cache/download/LICENSE";
+    }
+
+    @Override
     public DevelopmentState getDevelopmentState() {
-        return DevelopmentState.InDevelopment;
+        return DevelopmentState.Usable;
     }
 
     @Override
