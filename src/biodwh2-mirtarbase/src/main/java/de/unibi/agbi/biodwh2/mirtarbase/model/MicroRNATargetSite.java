@@ -17,7 +17,7 @@ public class MicroRNATargetSite {
     @JsonProperty("Target Gene")
     public String targetGene;
     @JsonProperty("Target Gene (Entrez ID)")
-    public Long targetGeneEntrezId;
+    public Integer targetGeneEntrezId;
     @JsonProperty("Species (Target Gene)")
     public String speciesTargetGene;
     @JsonProperty("Target Site")
@@ -27,5 +27,5 @@ public class MicroRNATargetSite {
     @JsonProperty("Support Type")
     public String supportType;
     @JsonProperty("References (PMID)")
-    public String references;
+    public Integer references;
 }

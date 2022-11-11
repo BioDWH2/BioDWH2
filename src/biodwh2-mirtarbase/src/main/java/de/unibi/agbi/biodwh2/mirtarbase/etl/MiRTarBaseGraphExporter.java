@@ -11,7 +11,10 @@ import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.mirtarbase.MiRTarBaseDataSource;
 import de.unibi.agbi.biodwh2.mirtarbase.model.MTIEntry;
+import de.unibi.agbi.biodwh2.mirtarbase.model.MicroRNATargetSite;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MiRTarBaseGraphExporter.class);
     private static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
     private static final String HAS_EVIDENCE_LABEL = "HAS_EVIDENCE";
     static final String MIRNA_LABEL = "miRNA";
@@ -44,11 +48,38 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
         graph.addIndex(IndexDescription.forNode(MIRNA_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(INTERACTION_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(PUBLICATION_LABEL, "pmid", IndexDescription.Type.UNIQUE));
-        exportInteractions(workspace, graph);
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Collecting interaction target sites...");
+        final Map<String, Map<Integer, Map<String, Map<String, String>>>> targetSiteMap = collectTargetSites(workspace);
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting interactions...");
+        exportInteractions(workspace, graph, targetSiteMap);
         return true;
     }
 
-    private void exportInteractions(final Workspace workspace, final Graph graph) {
+    private Map<String, Map<Integer, Map<String, Map<String, String>>>> collectTargetSites(final Workspace workspace) {
+        final Map<String, Map<Integer, Map<String, Map<String, String>>>> targetSiteMap = new HashMap<>();
+        try (final InputStream inputStream = FileUtils.openInput(workspace, dataSource, "MicroRNA_Target_Sites.xlsx");
+             final XlsxMappingIterator<MicroRNATargetSite> iterator = new XlsxMappingIterator<>(
+                     MicroRNATargetSite.class, inputStream)) {
+            while (iterator.hasNext()) {
+                final MicroRNATargetSite entry = iterator.next();
+                final Map<Integer, Map<String, Map<String, String>>> pmidExperimentMap = targetSiteMap.computeIfAbsent(
+                        entry.miRTarBaseId, k -> new HashMap<>());
+                final Map<String, Map<String, String>> experimentSupportTypeMap = pmidExperimentMap.computeIfAbsent(
+                        entry.references, k -> new HashMap<>());
+                final Map<String, String> supportTypeSequenceMap = experimentSupportTypeMap.computeIfAbsent(
+                        entry.experiments, k -> new HashMap<>());
+                supportTypeSequenceMap.put(entry.supportType, entry.targetSite);
+            }
+        } catch (IOException e) {
+            throw new ExporterFormatException(e);
+        }
+        return targetSiteMap;
+    }
+
+    private void exportInteractions(final Workspace workspace, final Graph graph,
+                                    final Map<String, Map<Integer, Map<String, Map<String, String>>>> targetSiteMap) {
         final Map<Long, Set<Long>> addedInteractionEdges = new HashMap<>();
         final Map<String, Long> geneKeyNodeIdMap = new HashMap<>();
         graph.beginEdgeIndicesDelay(HAS_EVIDENCE_LABEL);
@@ -56,7 +87,7 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
         try (final InputStream inputStream = FileUtils.openInput(workspace, dataSource, "miRTarBase_MTI.xlsx");
              final XlsxMappingIterator<MTIEntry> iterator = new XlsxMappingIterator<>(MTIEntry.class, inputStream)) {
             while (iterator.hasNext())
-                exportInteraction(graph, addedInteractionEdges, geneKeyNodeIdMap, iterator.next());
+                exportInteraction(graph, targetSiteMap, addedInteractionEdges, geneKeyNodeIdMap, iterator.next());
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
@@ -64,15 +95,25 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
         graph.endEdgeIndicesDelay(ASSOCIATED_WITH_LABEL);
     }
 
-    private void exportInteraction(final Graph graph, final Map<Long, Set<Long>> addedInteractionEdges,
+    private void exportInteraction(final Graph graph,
+                                   final Map<String, Map<Integer, Map<String, Map<String, String>>>> targetSiteMap,
+                                   final Map<Long, Set<Long>> addedInteractionEdges,
                                    final Map<String, Long> geneKeyNodeIdMap, final MTIEntry entry) {
         final Node interactionNode = getOrCreateInteractionNode(graph, entry.miRTarBaseId);
         final Node miRNANode = getOrCreateMiRNANode(graph, entry.miRNA, entry.speciesMiRNA);
         final Long geneNodeId = getOrCreateGeneNode(graph, geneKeyNodeIdMap, entry.targetGene, entry.speciesTargetGene,
                                                     entry.targetGeneEntrezId);
         final Node publicationNode = getOrCreatePublicationNode(graph, entry.references);
-        graph.addEdge(interactionNode, publicationNode, HAS_EVIDENCE_LABEL, "experiments",
-                      StringUtils.splitByWholeSeparator(entry.experiments, "//"), "support_type", entry.supportType);
+        final String targetSite = getTargetSiteForEntry(targetSiteMap, entry);
+        if (targetSite != null) {
+            graph.addEdge(interactionNode, publicationNode, HAS_EVIDENCE_LABEL, "experiments",
+                          StringUtils.splitByWholeSeparator(entry.experiments, "//"), "support_type", entry.supportType,
+                          "target_site", targetSite);
+        } else {
+            graph.addEdge(interactionNode, publicationNode, HAS_EVIDENCE_LABEL, "experiments",
+                          StringUtils.splitByWholeSeparator(entry.experiments, "//"), "support_type",
+                          entry.supportType);
+        }
         final Set<Long> edgeIds = addedInteractionEdges.computeIfAbsent(interactionNode.getId(), k -> new HashSet<>());
         if (!edgeIds.contains(miRNANode.getId())) {
             graph.addEdge(miRNANode, interactionNode, ASSOCIATED_WITH_LABEL);
@@ -115,5 +156,19 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
         if (node == null)
             node = graph.addNode(PUBLICATION_LABEL, "pmid", pmid);
         return node;
+    }
+
+    private String getTargetSiteForEntry(
+            final Map<String, Map<Integer, Map<String, Map<String, String>>>> targetSiteMap, final MTIEntry entry) {
+        final Map<Integer, Map<String, Map<String, String>>> pmidExperimentMap = targetSiteMap.get(entry.miRTarBaseId);
+        if (pmidExperimentMap == null)
+            return null;
+        final Map<String, Map<String, String>> experimentSupportTypeMap = pmidExperimentMap.get(entry.references);
+        if (experimentSupportTypeMap == null)
+            return null;
+        final Map<String, String> supportTypeSequenceMap = experimentSupportTypeMap.get(entry.experiments);
+        if (supportTypeSequenceMap == null)
+            return null;
+        return supportTypeSequenceMap.get(entry.supportType);
     }
 }
