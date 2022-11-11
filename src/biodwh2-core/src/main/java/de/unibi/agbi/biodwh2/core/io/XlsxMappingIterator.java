@@ -105,6 +105,8 @@ public class XlsxMappingIterator<T> implements Iterator<T>, AutoCloseable {
             if (!firstCell)
                 tsvBuilder.append('\t');
             firstCell = false;
+            if (cell == null)
+                continue;
             if (cell.getType() == CellType.STRING)
                 appendStringCell(tsvBuilder, StringUtils.strip(cell.asString(), " \t\u00A0"));
             if (cell.getType() == CellType.BOOLEAN)

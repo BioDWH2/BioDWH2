@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.mirtarbase.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 public class MiRTarBaseMappingDescriber extends MappingDescriber {
@@ -11,7 +12,26 @@ public class MiRTarBaseMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
+        if (MiRTarBaseGraphExporter.MIRNA_LABEL.equals(localMappingLabel))
+            return describeMiRNA(node);
+        if (MiRTarBaseGraphExporter.GENE_LABEL.equals(localMappingLabel))
+            return describeGene(node);
         return null;
+    }
+
+    private NodeMappingDescription[] describeMiRNA(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
+        description.addIdentifier(IdentifierType.MIRNA, node.<String>getProperty("id"));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeGene(final Node node) {
+        final String species = node.getProperty("species");
+        if (!"Homo sapiens".equalsIgnoreCase(species))
+            return null;
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        description.addIdentifier(IdentifierType.ENTREZ_GENE_ID, node.<Integer>getProperty("entrez_gene_id"));
+        return new NodeMappingDescription[]{description};
     }
 
     @Override
@@ -21,7 +41,9 @@ public class MiRTarBaseMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[0];
+        return new String[]{
+                MiRTarBaseGraphExporter.MIRNA_LABEL, MiRTarBaseGraphExporter.GENE_LABEL
+        };
     }
 
     @Override
