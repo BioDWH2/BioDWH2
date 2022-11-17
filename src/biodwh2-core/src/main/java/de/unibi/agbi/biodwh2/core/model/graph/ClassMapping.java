@@ -48,18 +48,30 @@ final class ClassMapping {
         }
     }
 
+    static final class ClassMappingNumberField extends ClassMappingField {
+        final GraphNumberProperty.Type type;
+
+        ClassMappingNumberField(final Field field, final String propertyName, final boolean ignoreEmpty,
+                                final String emptyPlaceholder, final GraphNumberProperty.Type type) {
+            super(field, propertyName, ignoreEmpty, emptyPlaceholder);
+            this.type = type;
+        }
+    }
+
     private static final Map<Class<?>, ClassMapping> cache = new HashMap<>();
 
     final String label;
     final ClassMappingField[] fields;
     final ClassMappingArrayField[] arrayFields;
     final ClassMappingBooleanField[] booleanFields;
+    final ClassMappingNumberField[] numberFields;
 
     ClassMapping(final Class<?> type) {
         label = loadLabel(type);
         fields = loadClassMappingFields(type);
         arrayFields = loadClassMappingArrayFields(type);
         booleanFields = loadClassMappingBooleanFields(type);
+        numberFields = loadClassMappingNumberFields(type);
     }
 
     private String loadLabel(final Class<?> type) {
@@ -119,11 +131,27 @@ final class ClassMapping {
         return new ClassMappingBooleanField(field, annotation.value(), annotation.truthValue());
     }
 
+    private ClassMappingNumberField[] loadClassMappingNumberFields(final Class<?> type) {
+        final List<ClassMappingNumberField> fieldsList = new ArrayList<>();
+        for (final Field field : getAllFieldsRecursive(new ArrayList<>(), type))
+            if (field.isAnnotationPresent(GraphNumberProperty.class))
+                fieldsList.add(loadClassMappingNumberField(field));
+        return fieldsList.toArray(new ClassMappingNumberField[0]);
+    }
+
+    private ClassMappingNumberField loadClassMappingNumberField(final Field field) {
+        field.setAccessible(true);
+        final GraphNumberProperty annotation = field.getAnnotation(GraphNumberProperty.class);
+        return new ClassMappingNumberField(field, annotation.value(), annotation.ignoreEmpty(),
+                                           annotation.emptyPlaceholder(), annotation.type());
+    }
+
     void setModelProperties(final MVStoreModel model, final Object obj) {
         try {
             setModelPropertiesFromFields(model, obj);
             setModelPropertiesFromArrayFields(model, obj);
             setModelPropertiesFromBooleanFields(model, obj);
+            setModelPropertiesFromNumberFields(model, obj);
         } catch (IllegalAccessException e) {
             throw new GraphCacheException(e);
         }
@@ -201,11 +229,29 @@ final class ClassMapping {
             model.setProperty(field.propertyName, field.truthValue.equalsIgnoreCase(value.toString()));
     }
 
+    private void setModelPropertiesFromNumberFields(final MVStoreModel model,
+                                                    final Object obj) throws IllegalAccessException {
+        for (final ClassMappingNumberField field : numberFields)
+            setModelPropertiesFromNumberField(model, obj, field);
+    }
+
+    private void setModelPropertiesFromNumberField(final MVStoreModel model, final Object obj,
+                                                   final ClassMappingNumberField field) throws IllegalAccessException {
+        final Object value = getFieldValue(obj, field);
+        if (value != null) {
+            if (field.type == GraphNumberProperty.Type.Int)
+                model.setProperty(field.propertyName, Integer.parseInt(value.toString()));
+            else if (field.type == GraphNumberProperty.Type.Long)
+                model.setProperty(field.propertyName, Long.parseLong(value.toString()));
+        }
+    }
+
     void setModelBuilderProperties(final ModelBuilder<?> builder, final Object obj) {
         try {
             setModelBuilderPropertiesFromFields(builder, obj);
             setModelBuilderPropertiesFromArrayFields(builder, obj);
             setModelBuilderPropertiesFromBooleanFields(builder, obj);
+            setModelBuilderPropertiesFromNumberFields(builder, obj);
         } catch (IllegalAccessException e) {
             throw new GraphCacheException(e);
         }
@@ -248,6 +294,23 @@ final class ClassMapping {
         final Object value = field.field.get(obj);
         if (value != null)
             builder.withProperty(field.propertyName, field.truthValue.equalsIgnoreCase(value.toString()));
+    }
+
+    private void setModelBuilderPropertiesFromNumberFields(final ModelBuilder<?> builder,
+                                                           final Object obj) throws IllegalAccessException {
+        for (final ClassMappingNumberField field : numberFields)
+            setModelBuilderPropertiesFromNumberField(builder, obj, field);
+    }
+
+    private void setModelBuilderPropertiesFromNumberField(final ModelBuilder<?> builder, final Object obj,
+                                                          final ClassMappingNumberField field) throws IllegalAccessException {
+        final Object value = getFieldValue(obj, field);
+        if (value != null) {
+            if (field.type == GraphNumberProperty.Type.Int)
+                builder.withProperty(field.propertyName, Integer.parseInt(value.toString()));
+            else if (field.type == GraphNumberProperty.Type.Long)
+                builder.withProperty(field.propertyName, Long.parseLong(value.toString()));
+        }
     }
 
     public static ClassMapping get(final Object obj) {
