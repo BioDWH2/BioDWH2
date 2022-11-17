@@ -8,16 +8,28 @@ import java.nio.charset.Charset;
 import java.util.Iterator;
 
 public final class FastaReader implements Iterable<FastaEntry>, AutoCloseable {
+    private final boolean sequenceAsSingleLine;
     private final BufferedReader reader;
     FastaEntry lastEntry;
     private String nextHeader;
 
     @SuppressWarnings("unused")
     public FastaReader(final String filePath, final Charset charset) throws IOException {
-        this(FileUtils.openInputStream(new File(filePath)), charset);
+        this(FileUtils.openInputStream(new File(filePath)), charset, true);
     }
 
     public FastaReader(final InputStream stream, final Charset charset) {
+        this(stream, charset, true);
+    }
+
+    @SuppressWarnings("unused")
+    public FastaReader(final String filePath, final Charset charset,
+                       final boolean sequenceAsSingleLine) throws IOException {
+        this(FileUtils.openInputStream(new File(filePath)), charset, sequenceAsSingleLine);
+    }
+
+    public FastaReader(final InputStream stream, final Charset charset, final boolean sequenceAsSingleLine) {
+        this.sequenceAsSingleLine = sequenceAsSingleLine;
         final InputStream baseStream = new BufferedInputStream(stream);
         reader = new BufferedReader(new InputStreamReader(baseStream, charset));
     }
@@ -54,8 +66,15 @@ public final class FastaReader implements Iterable<FastaEntry>, AutoCloseable {
             if (line.startsWith(">")) {
                 break;
             }
-            if (StringUtils.isNotBlank(line))
-                sequence.append(line.trim());
+            if (StringUtils.isNotBlank(line)) {
+                if (sequenceAsSingleLine) {
+                    sequence.append(line.trim());
+                } else {
+                    if (sequence.length() > 0)
+                        sequence.append('\n');
+                    sequence.append(line);
+                }
+            }
         }
         nextHeader = line;
         newEntry.setSequence(sequence.toString());
