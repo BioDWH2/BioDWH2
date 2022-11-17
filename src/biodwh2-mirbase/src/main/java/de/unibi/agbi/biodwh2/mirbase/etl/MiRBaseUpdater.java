@@ -22,14 +22,8 @@ public class MiRBaseUpdater extends MultiFileFTPWebUpdater<MiRBaseDataSource> {
     @Override
     protected String[] getFilePaths() {
         final List<String> fileNames = new ArrayList<>(
-                Arrays.asList("hairpin.fa.gz", "hairpin_high_conf.fa.gz", "mature.fa.gz", "mature_high_conf.fa.gz",
-                              "miRNA.dat.gz", "miRNA.str.gz", "miRNA_high_conf.dat.gz"));
+                Arrays.asList("hairpin.fa.gz", "mature.fa.gz", "miRNA.dat.gz", "miRNA.str.gz"));
         try {
-            final HTTPFTPClient.Entry[] genomeEntries = client.listDirectory("genomes");
-            for (final HTTPFTPClient.Entry entry : genomeEntries) {
-                if (entry.name.endsWith(".gff3"))
-                    fileNames.add("genomes/" + entry.name);
-            }
             final HTTPFTPClient.Entry[] dbEntries = client.listDirectory("database_files");
             for (final HTTPFTPClient.Entry entry : dbEntries) {
                 if (entry.name.endsWith(".gz"))
@@ -43,9 +37,6 @@ public class MiRBaseUpdater extends MultiFileFTPWebUpdater<MiRBaseDataSource> {
 
     @Override
     protected String[] expectedFileNames() {
-        return new String[]{
-                "hairpin.fa.gz", "hairpin_high_conf.fa.gz", "mature.fa.gz", "mature_high_conf.fa.gz", "miRNA.dat.gz",
-                "miRNA.str.gz", "miRNA_high_conf.dat.gz", "hsa.gff3"
-        };
+        return new String[]{"hairpin.fa.gz", "mature.fa.gz", "miRNA.dat.gz", "miRNA.str.gz"};
     }
 }

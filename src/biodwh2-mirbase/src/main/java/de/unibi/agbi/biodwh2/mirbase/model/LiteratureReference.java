@@ -8,7 +8,7 @@ public class LiteratureReference {
     @JsonProperty("auto_lit")
     public Long autoLit;
     @JsonProperty("medline")
-    public Long medline;
+    public String medline;
     @JsonProperty("title")
     public String title;
     @JsonProperty("author")

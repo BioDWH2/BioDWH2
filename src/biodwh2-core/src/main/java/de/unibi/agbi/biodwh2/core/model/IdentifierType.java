@@ -63,6 +63,7 @@ public enum IdentifierType {
     KEGG("KEGG"),
     MEDDRA("MEDDRA"),
     MESH("MeSH"),
+    MIRBASE("MIRBASE"),
     MIRNA("miRNA"),
     /**
      * Mondo Disease Ontology https://mondo.monarchinitiative.org

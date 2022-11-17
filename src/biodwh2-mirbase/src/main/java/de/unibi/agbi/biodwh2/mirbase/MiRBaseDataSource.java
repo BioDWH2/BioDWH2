@@ -14,8 +14,13 @@ public class MiRBaseDataSource extends DataSource {
     }
 
     @Override
+    public String getLicense() {
+        return "CC0 with attribution";
+    }
+
+    @Override
     public DevelopmentState getDevelopmentState() {
-        return DevelopmentState.InDevelopment;
+        return DevelopmentState.Usable;
     }
 
     @Override
