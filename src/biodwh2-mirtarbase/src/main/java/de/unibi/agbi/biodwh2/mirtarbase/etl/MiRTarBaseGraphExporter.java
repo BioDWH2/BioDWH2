@@ -104,15 +104,14 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
         final Long geneNodeId = getOrCreateGeneNode(graph, geneKeyNodeIdMap, entry.targetGene, entry.speciesTargetGene,
                                                     entry.targetGeneEntrezId);
         final Node publicationNode = getOrCreatePublicationNode(graph, entry.references);
+        final String[] experiments = StringUtils.splitByWholeSeparator(entry.experiments, "//");
         final String targetSite = getTargetSiteForEntry(targetSiteMap, entry);
         if (targetSite != null) {
-            graph.addEdge(interactionNode, publicationNode, HAS_EVIDENCE_LABEL, "experiments",
-                          StringUtils.splitByWholeSeparator(entry.experiments, "//"), "support_type", entry.supportType,
-                          "target_site", targetSite);
+            graph.addEdge(interactionNode, publicationNode, HAS_EVIDENCE_LABEL, "experiments", experiments,
+                          "support_type", entry.supportType, "target_site", targetSite);
         } else {
-            graph.addEdge(interactionNode, publicationNode, HAS_EVIDENCE_LABEL, "experiments",
-                          StringUtils.splitByWholeSeparator(entry.experiments, "//"), "support_type",
-                          entry.supportType);
+            graph.addEdge(interactionNode, publicationNode, HAS_EVIDENCE_LABEL, "experiments", experiments,
+                          "support_type", entry.supportType);
         }
         final Set<Long> edgeIds = addedInteractionEdges.computeIfAbsent(interactionNode.getId(), k -> new HashSet<>());
         if (!edgeIds.contains(miRNANode.getId())) {
