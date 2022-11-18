@@ -18,6 +18,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TarBaseGraphExporter extends GraphExporter<TarBaseDataSource> {
+    static final String GENE_LABEL = "Gene";
+    static final String MIRNA_LABEL = "miRNA";
+
     public TarBaseGraphExporter(final TarBaseDataSource dataSource) {
         super(dataSource);
     }
@@ -29,8 +32,8 @@ public class TarBaseGraphExporter extends GraphExporter<TarBaseDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode("Gene", "id", false, IndexDescription.Type.NON_UNIQUE));
-        graph.addIndex(IndexDescription.forNode("RNA", "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(GENE_LABEL, "id", false, IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode(MIRNA_LABEL, "id", false, IndexDescription.Type.UNIQUE));
         try (TarArchiveInputStream stream = FileUtils.openTarGzip(workspace, dataSource, TarBaseUpdater.FILE_NAME)) {
             while (stream.getNextTarEntry() != null)
                 exportEntries(graph, FileUtils.openSeparatedValuesFile(stream, Entry.class, '\t', true, false));
@@ -69,7 +72,7 @@ public class TarBaseGraphExporter extends GraphExporter<TarBaseDataSource> {
         if (geneNodeId == null) {
             final String geneId = stripSpecies(entry.geneId);
             final String geneName = stripSpecies(entry.geneName);
-            geneNodeId = graph.addNode("Gene", "id", geneId, "name", geneName, "species", entry.species).getId();
+            geneNodeId = graph.addNode(GENE_LABEL, "id", geneId, "name", geneName, "species", entry.species).getId();
             geneKeyNodeIdMap.put(entry.geneId + "|" + entry.species, geneNodeId);
         }
         return geneNodeId;
@@ -88,7 +91,7 @@ public class TarBaseGraphExporter extends GraphExporter<TarBaseDataSource> {
     private Long getOrCreateRNANode(final Graph graph, final Map<String, Long> rnaNodeIdMap, final Entry entry) {
         Long rnaNodeId = rnaNodeIdMap.get(entry.mirna);
         if (rnaNodeId == null) {
-            rnaNodeId = graph.addNode("RNA", "id", entry.mirna, "species", entry.species).getId();
+            rnaNodeId = graph.addNode(MIRNA_LABEL, "id", entry.mirna, "species", entry.species).getId();
             rnaNodeIdMap.put(entry.mirna, rnaNodeId);
         }
         return rnaNodeId;
