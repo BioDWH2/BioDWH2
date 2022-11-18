@@ -53,25 +53,25 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
         graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(RNA_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.beginEdgeIndicesDelay(INTERACTS_WITH_LABEL);
+        final Map<String, Long> rnaIdNodeIdMap = new HashMap<>();
         final Map<String, Long> rnaKeyNodeIdMap = new HashMap<>();
         for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RR_FILE_NAME)) {
             // Skip strange header line within RR and RP file
             if (SKIP_ROW_KEYWORD1.equals(entry.category1) || SKIP_ROW_KEYWORD2.equals(entry.category2))
                 continue;
             final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
-                                               entry.species1, rnaKeyNodeIdMap);
+                                               entry.species1, rnaIdNodeIdMap, rnaKeyNodeIdMap);
             final Long toId = getOrCreateRNA(graph, entry.interactor2Symbol, entry.rawId2, entry.category2,
-                                             entry.species2, rnaKeyNodeIdMap);
+                                             entry.species2, rnaIdNodeIdMap, rnaKeyNodeIdMap);
             createEdge(graph, fromId, toId, entry);
         }
-        rnaKeyNodeIdMap.clear();
         final Map<String, Long> proteinKeyNodeIdMap = new HashMap<>();
         for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RP_FILE_NAME)) {
             // Skip strange header line within RR and RP file
             if (SKIP_ROW_KEYWORD1.equals(entry.category1) || SKIP_ROW_KEYWORD2.equals(entry.category2))
                 continue;
             final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
-                                               entry.species1, rnaKeyNodeIdMap);
+                                               entry.species1, rnaIdNodeIdMap, rnaKeyNodeIdMap);
             final Long toId = getOrCreateProtein(graph, entry.interactor2Symbol, entry.rawId2, entry.category2,
                                                  entry.species2, proteinKeyNodeIdMap);
             createEdge(graph, fromId, toId, entry);
@@ -80,7 +80,7 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
         final Map<String, Long> geneKeyNodeIdMap = new HashMap<>();
         for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RD_FILE_NAME)) {
             final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
-                                               entry.species1, rnaKeyNodeIdMap);
+                                               entry.species1, rnaIdNodeIdMap, rnaKeyNodeIdMap);
             // DNA always has "DNA" category
             final Long toId = getOrCreateGene(graph, entry.interactor2Symbol, entry.rawId2, entry.species2,
                                               geneKeyNodeIdMap);
@@ -90,7 +90,7 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
         final Map<String, Long> compoundNameNodeIdMap = new HashMap<>();
         for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RC_FILE_NAME)) {
             final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
-                                               entry.species1, rnaKeyNodeIdMap);
+                                               entry.species1, rnaIdNodeIdMap, rnaKeyNodeIdMap);
             // Compound always has N/A species and "compound" category
             final Long toId = getOrCreateCompound(graph, entry.interactor2Symbol, entry.rawId2, compoundNameNodeIdMap);
             createEdge(graph, fromId, toId, entry);
@@ -99,7 +99,7 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
         final Map<String, Long> histoneModificationSymbolNodeIdMap = new HashMap<>();
         for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RH_FILE_NAME)) {
             final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
-                                               entry.species1, rnaKeyNodeIdMap);
+                                               entry.species1, rnaIdNodeIdMap, rnaKeyNodeIdMap);
             // Histone modification always has N/A species, N/A rawId and "histone modification" category
             final Long toId = getOrCreateHistoneModification(graph, entry.interactor2Symbol,
                                                              histoneModificationSymbolNodeIdMap);
@@ -124,7 +124,8 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
     }
 
     private Long getOrCreateRNA(final Graph graph, final String symbol, final String rawId, final String category,
-                                final String species, final Map<String, Long> keyNodeIdMap) {
+                                final String species, final Map<String, Long> idNodeIdMap,
+                                final Map<String, Long> keyNodeIdMap) {
         /*
         mRNA    -   messenger RNA
         rRNA    -   ribosomal RNA
@@ -172,12 +173,13 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
             }
             return nodeId;
         }
-        Node node = graph.findNode(RNA_LABEL, ID_KEY, rawId);
-        if (node == null) {
-            node = graph.addNode(RNA_LABEL, ID_KEY, rawId, SPECIES_KEY, species, SYMBOL_KEY, symbol, TYPE_KEY,
-                                 category);
+        Long nodeId = idNodeIdMap.get(rawId);
+        if (nodeId == null) {
+            nodeId = graph.addNode(RNA_LABEL, ID_KEY, rawId, SPECIES_KEY, species, SYMBOL_KEY, symbol, TYPE_KEY,
+                                   category).getId();
+            idNodeIdMap.put(rawId, nodeId);
         }
-        return node.getId();
+        return nodeId;
     }
 
     private void createEdge(final Graph graph, final Long from, final Long to, final Entry entry) {
