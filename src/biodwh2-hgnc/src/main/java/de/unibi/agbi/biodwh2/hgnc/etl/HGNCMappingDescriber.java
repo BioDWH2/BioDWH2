@@ -18,6 +18,8 @@ public class HGNCMappingDescriber extends MappingDescriber {
             return describeGene(node);
         if (HGNCGraphExporter.PROTEIN_LABEL.equals(localMappingLabel))
             return describeProtein(node);
+        if (HGNCGraphExporter.MI_RNA_LABEL.equals(localMappingLabel))
+            return describeMiRNA(node);
         return null;
     }
 
@@ -39,13 +41,22 @@ public class HGNCMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeProtein(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PROTEIN);
-        description.addIdentifier(IdentifierType.UNIPROT_KB, node.<String>getProperty("uniprot_id"));
+        description.addIdentifier(IdentifierType.UNIPROT_KB,
+                                  node.<String>getProperty(HGNCGraphExporter.UNIPROT_ID_KEY));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeMiRNA(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
+        description.addIdentifier(IdentifierType.MIRBASE, node.<String>getProperty("mirbase_accession"));
         return new NodeMappingDescription[]{description};
     }
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{HGNCGraphExporter.GENE_LABEL, HGNCGraphExporter.PROTEIN_LABEL};
+        return new String[]{
+                HGNCGraphExporter.GENE_LABEL, HGNCGraphExporter.PROTEIN_LABEL, HGNCGraphExporter.MI_RNA_LABEL
+        };
     }
 
     @Override
