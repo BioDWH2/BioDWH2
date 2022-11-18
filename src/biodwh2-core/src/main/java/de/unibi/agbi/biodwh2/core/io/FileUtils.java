@@ -177,6 +177,40 @@ public final class FileUtils {
         return openSeparatedValuesFile(stream, typeClass, '\t', true, false);
     }
 
+    public static <T> MappingIterator<T> openTarGzipTsv(final Workspace workspace, final DataSource dataSource,
+                                                        final String fileName,
+                                                        final Class<T> typeClass) throws IOException {
+        final TarArchiveInputStream stream = openTarGzip(workspace, dataSource, fileName);
+        stream.getNextTarEntry();
+        return openSeparatedValuesFile(stream, typeClass, '\t', false);
+    }
+
+    public static <T> MappingIterator<T> openTarGzipTsvWithoutQuoting(final Workspace workspace,
+                                                                      final DataSource dataSource,
+                                                                      final String fileName,
+                                                                      final Class<T> typeClass) throws IOException {
+        final TarArchiveInputStream stream = openTarGzip(workspace, dataSource, fileName);
+        stream.getNextTarEntry();
+        return openSeparatedValuesFile(stream, typeClass, '\t', false, false);
+    }
+
+    public static <T> MappingIterator<T> openTarGzipTsvWithHeader(final Workspace workspace,
+                                                                  final DataSource dataSource, final String fileName,
+                                                                  final Class<T> typeClass) throws IOException {
+        final TarArchiveInputStream stream = openTarGzip(workspace, dataSource, fileName);
+        stream.getNextTarEntry();
+        return openSeparatedValuesFile(stream, typeClass, '\t', true);
+    }
+
+    public static <T> MappingIterator<T> openTarGzipTsvWithHeaderWithoutQuoting(final Workspace workspace,
+                                                                                final DataSource dataSource,
+                                                                                final String fileName,
+                                                                                final Class<T> typeClass) throws IOException {
+        final TarArchiveInputStream stream = openTarGzip(workspace, dataSource, fileName);
+        stream.getNextTarEntry();
+        return openSeparatedValuesFile(stream, typeClass, '\t', true, false);
+    }
+
     public static Long tryGetGzipLineCount(final Workspace workspace, final DataSource dataSource,
                                            final String fileName) {
         try {
