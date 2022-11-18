@@ -13,6 +13,8 @@ public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
     static final String GENE_LABEL = "Gene";
     static final String PROTEIN_LABEL = "Protein";
     static final String CODES_FOR_LABEL = "CODES_FOR";
+    static final String UNIPROT_ID_KEY = "uniprot_id";
+    static final String HGNC_ID_KEY = "hgnc_id";
 
     public HGNCGraphExporter(final HGNCDataSource dataSource) {
         super(dataSource);
@@ -25,9 +27,9 @@ public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
-        graph.addIndex(IndexDescription.forNode(GENE_LABEL, "hgnc_id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(GENE_LABEL, HGNC_ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(GENE_LABEL, "symbol", IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, "uniprot_id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, UNIPROT_ID_KEY, IndexDescription.Type.UNIQUE));
         for (final Gene gene : dataSource.genes) {
             final Node node = graph.addNodeFromModel(gene);
             exportGeneProteins(graph, gene, node);
@@ -46,9 +48,9 @@ public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
     }
 
     private Node getOrCreateProteinNode(final Graph graph, final String uniprotId) {
-        Node node = graph.findNode(PROTEIN_LABEL, "uniprot_id", uniprotId);
+        Node node = graph.findNode(PROTEIN_LABEL, UNIPROT_ID_KEY, uniprotId);
         if (node == null)
-            node = graph.addNode(PROTEIN_LABEL, "uniprot_id", uniprotId);
+            node = graph.addNode(PROTEIN_LABEL, UNIPROT_ID_KEY, uniprotId);
         return node;
     }
 }

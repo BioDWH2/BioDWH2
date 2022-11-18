@@ -3,8 +3,8 @@ package de.unibi.agbi.biodwh2.hgnc.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @SuppressWarnings({"unused", "SpellCheckingInspection"})
 @JsonPropertyOrder({
@@ -75,7 +75,7 @@ public final class Gene {
     public String dateModified;
     @JsonProperty("entrez_id")
     @GraphProperty("entrez_id")
-    public String entrezId;
+    public Integer entrezId;
     @JsonProperty("ensembl_gene_id")
     @GraphProperty("ensembl_gene_id")
     public String ensemblGeneId;
