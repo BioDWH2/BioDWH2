@@ -24,14 +24,18 @@ public class MiRBaseMappingDescriber extends MappingDescriber {
     private NodeMappingDescription[] describePreMiRNA(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
         description.addIdentifier(IdentifierType.MIRBASE, node.<String>getProperty("accession"));
-        description.addName(node.getProperty("id"));
+        final String id = node.getProperty("id");
+        description.addIdentifier(IdentifierType.MIRNA, id);
+        description.addName(id);
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describeMiRNA(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
         description.addIdentifier(IdentifierType.MIRBASE, node.<String>getProperty("accession"));
-        description.addName(node.getProperty("id"));
+        final String id = node.getProperty("id");
+        description.addIdentifier(IdentifierType.MIRNA, id);
+        description.addName(id);
         return new NodeMappingDescription[]{description};
     }
 

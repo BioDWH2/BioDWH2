@@ -53,6 +53,7 @@ public class TarBaseMappingDescriber extends MappingDescriber {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
         final String id = node.getProperty("id");
         description.addIdentifier(IdentifierType.MIRNA, id);
+        description.addName(id);
         return new NodeMappingDescription[]{description};
     }
 

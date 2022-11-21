@@ -21,7 +21,9 @@ public class MiRTarBaseMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeMiRNA(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
-        description.addIdentifier(IdentifierType.MIRNA, node.<String>getProperty("id"));
+        final String id = node.getProperty("id");
+        description.addIdentifier(IdentifierType.MIRNA, id);
+        description.addName(id);
         return new NodeMappingDescription[]{description};
     }
 
