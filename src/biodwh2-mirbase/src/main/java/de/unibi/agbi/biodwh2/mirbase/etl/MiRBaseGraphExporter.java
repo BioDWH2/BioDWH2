@@ -10,6 +10,7 @@ import de.unibi.agbi.biodwh2.core.io.fasta.FastaEntry;
 import de.unibi.agbi.biodwh2.core.io.fasta.FastaReader;
 import de.unibi.agbi.biodwh2.core.io.flatfile.FlatFileEntry;
 import de.unibi.agbi.biodwh2.core.io.flatfile.FlatFileReader;
+import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -54,12 +55,15 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
         graph.addIndex(IndexDescription.forNode(FAMILY_LABEL, "accession", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(SPECIES_LABEL, "ncbi_taxid", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(REFERENCE_LABEL, "pmid", IndexDescription.Type.UNIQUE));
+        final Configuration.GlobalProperties.SpeciesFilter speciesFilter = workspace.getConfiguration()
+                                                                                    .getGlobalProperties()
+                                                                                    .getSpeciesFilter();
         logStep(1, "species");
-        final Map<Long, Long> speciesIdNodeIdMap = exportSpecies(workspace, graph);
+        final Map<Long, Long> speciesIdNodeIdMap = exportSpecies(workspace, graph, speciesFilter);
         logStep(2, "pre_miRNAs");
         final Map<Long, Long> mirnaIdNodeIdMap = exportMirnas(workspace, graph, speciesIdNodeIdMap);
         logStep(3, "miRNAs");
-        final Map<Long, Long> matureIdNodeIdMap = exportMirnaMatures(workspace, graph);
+        final Map<Long, Long> matureIdNodeIdMap = exportMirnaMatures(workspace, graph, mirnaIdNodeIdMap);
         logStep(4, "miRNA relations");
         exportMirnaMatureRelations(workspace, graph, mirnaIdNodeIdMap, matureIdNodeIdMap);
         logStep(5, "families");
@@ -78,11 +82,14 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
             LOGGER.info("(" + step + "/8) Exporting " + name + "...");
     }
 
-    private Map<Long, Long> exportSpecies(final Workspace workspace, final Graph graph) {
+    private Map<Long, Long> exportSpecies(final Workspace workspace, final Graph graph,
+                                          final Configuration.GlobalProperties.SpeciesFilter speciesFilter) {
         final Map<Long, Long> idNodeIdMap = new HashMap<>();
         for (final MirnaSpecies entry : parseGzipTsvFile(workspace, "mirna_species.txt.gz", MirnaSpecies.class)) {
-            final Node node = graph.addNodeFromModel(entry);
-            idNodeIdMap.put(entry.autoId, node.getId());
+            if (speciesFilter.isSpeciesAllowed("\\N".equals(entry.taxonId) ? null : Integer.parseInt(entry.taxonId))) {
+                final Node node = graph.addNodeFromModel(entry);
+                idNodeIdMap.put(entry.autoId, node.getId());
+            }
         }
         return idNodeIdMap;
     }
@@ -108,6 +115,9 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
         for (final Mirna entry : parseGzipTsvFile(workspace, "mirna.txt.gz", Mirna.class)) {
             if (entry.deadFlag != 0)
                 continue;
+            final Long speciesNodeId = speciesIdNodeIdMap.get(entry.autoSpecies);
+            if (speciesNodeId == null)
+                continue;
             final NodeBuilder builder = graph.buildNode().withLabel(PRE_MI_RNA_LABEL).withModel(entry);
             final Integer confidence = confidenceMap.get(entry.autoId);
             if (confidence != null)
@@ -130,7 +140,7 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
                 builder.withProperty("alignment", alignment);
             final Node node = builder.build();
             idNodeIdMap.put(entry.autoId, node.getId());
-            graph.addEdge(node, speciesIdNodeIdMap.get(entry.autoSpecies), "BELONGS_TO");
+            graph.addEdge(node, speciesNodeId, "BELONGS_TO");
             exportMirnaGene(graph, xrefs, node);
         }
         return idNodeIdMap;
@@ -223,12 +233,14 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
             graph.addEdge(node, mirnaNode, "TRANSCRIBES_TO");
     }
 
-    private Map<Long, Long> exportMirnaMatures(final Workspace workspace, final Graph graph) {
+    private Map<Long, Long> exportMirnaMatures(final Workspace workspace, final Graph graph,
+                                               final Map<Long, Long> mirnaIdNodeIdMap) {
+        final Set<Long> usedAutoMatures = getUsedAutoMatures(workspace, mirnaIdNodeIdMap);
         final Map<String, String> sequenceMap = getMatureSequenceMap(workspace);
         final Map<Long, Set<String>> xrefsMap = getMatureXrefMap(workspace);
         final Map<Long, Long> idNodeIdMap = new HashMap<>();
         for (final MirnaMature entry : parseGzipTsvFile(workspace, "mirna_mature.txt.gz", MirnaMature.class)) {
-            if (entry.deadFlag != 0)
+            if (entry.deadFlag != 0 || !usedAutoMatures.contains(entry.autoId))
                 continue;
             final NodeBuilder builder = graph.buildNode().withLabel(MI_RNA_LABEL).withModel(entry);
             final Set<String> xrefs = xrefsMap.get(entry.autoId);
@@ -241,6 +253,17 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
             idNodeIdMap.put(entry.autoId, node.getId());
         }
         return idNodeIdMap;
+    }
+
+    private Set<Long> getUsedAutoMatures(final Workspace workspace, final Map<Long, Long> mirnaIdNodeIdMap) {
+        final Set<Long> usedAutoMature = new HashSet<>();
+        for (final MirnaPreMature entry : parseGzipTsvFile(workspace, "mirna_pre_mature.txt.gz",
+                                                           MirnaPreMature.class)) {
+            final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
+            if (mirnaNodeId != null)
+                usedAutoMature.add(entry.autoMature);
+        }
+        return usedAutoMature;
     }
 
     private Map<String, String> getMatureSequenceMap(final Workspace workspace) {
@@ -288,10 +311,18 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
     }
 
     private void exportFamilies(final Workspace workspace, final Graph graph, final Map<Long, Long> mirnaIdNodeIdMap) {
+        final Set<Long> usedAutoPrefam = new HashSet<>();
+        for (final Mirna2Prefam entry : parseGzipTsvFile(workspace, "mirna_2_prefam.txt.gz", Mirna2Prefam.class)) {
+            final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
+            if (mirnaNodeId != null)
+                usedAutoPrefam.add(entry.autoPrefam);
+        }
         final Map<Long, Long> prefamIdNodeIdMap = new HashMap<>();
         for (final MirnaPrefam entry : parseGzipTsvFile(workspace, "mirna_prefam.txt.gz", MirnaPrefam.class)) {
-            final Node node = graph.addNodeFromModel(entry);
-            prefamIdNodeIdMap.put(entry.autoPrefam, node.getId());
+            if (usedAutoPrefam.contains(entry.autoPrefam)) {
+                final Node node = graph.addNodeFromModel(entry);
+                prefamIdNodeIdMap.put(entry.autoPrefam, node.getId());
+            }
         }
         for (final Mirna2Prefam entry : parseGzipTsvFile(workspace, "mirna_2_prefam.txt.gz", Mirna2Prefam.class)) {
             final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
@@ -307,6 +338,9 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
              final FlatFileReader reader = new FlatFileReader(input, StandardCharsets.UTF_8)) {
             for (final FlatFileEntry entry : reader) {
                 final String mirnaAccession = StringUtils.strip(entry.getProperty("AC").value, " ;");
+                final Node mirnaNode = graph.findNode(PRE_MI_RNA_LABEL, "accession", mirnaAccession);
+                if (mirnaNode == null)
+                    continue;
                 final List<List<FlatFileEntry.KeyValuePair>> references = entry.getComplexProperties("RN");
                 for (final List<FlatFileEntry.KeyValuePair> reference : references) {
                     Integer index = null;
@@ -350,7 +384,6 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
                         nodeId = builder.build().getId();
                         referenceKeyNodeIdMap.put(referenceKey, nodeId);
                     }
-                    final Node mirnaNode = graph.findNode(PRE_MI_RNA_LABEL, "accession", mirnaAccession);
                     graph.addEdge(mirnaNode, nodeId, "REFERENCES", "index", index);
                 }
             }

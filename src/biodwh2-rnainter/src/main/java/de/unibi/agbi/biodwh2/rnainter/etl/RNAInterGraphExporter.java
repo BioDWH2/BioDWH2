@@ -65,6 +65,7 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
                                              entry.species2, rnaIdNodeIdMap, rnaKeyNodeIdMap);
             createEdge(graph, fromId, toId, entry);
         }
+        final Map<String, Long> proteinIdNodeIdMap = new HashMap<>();
         final Map<String, Long> proteinKeyNodeIdMap = new HashMap<>();
         for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RP_FILE_NAME)) {
             // Skip strange header line within RR and RP file
@@ -73,9 +74,10 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
             final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
                                                entry.species1, rnaIdNodeIdMap, rnaKeyNodeIdMap);
             final Long toId = getOrCreateProtein(graph, entry.interactor2Symbol, entry.rawId2, entry.category2,
-                                                 entry.species2, proteinKeyNodeIdMap);
+                                                 entry.species2, proteinIdNodeIdMap, proteinKeyNodeIdMap);
             createEdge(graph, fromId, toId, entry);
         }
+        proteinIdNodeIdMap.clear();
         proteinKeyNodeIdMap.clear();
         final Map<String, Long> geneKeyNodeIdMap = new HashMap<>();
         for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RD_FILE_NAME)) {
@@ -197,7 +199,8 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
     }
 
     private Long getOrCreateProtein(final Graph graph, final String symbol, final String rawId, final String category,
-                                    final String species, final Map<String, Long> keyNodeIdMap) {
+                                    final String species, final Map<String, Long> idNodeIdMap,
+                                    final Map<String, Long> keyNodeIdMap) {
         final String type = !RNA_BINDING_PROTEIN_TYPE.equals(category) && !TF_TYPE.equals(category) ? PROTEIN_TYPE :
                             category;
         if (rawId == null || NOT_AVAILABLE_VALUE.equals(rawId)) {
@@ -209,12 +212,13 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
             }
             return nodeId;
         }
-        Node node = graph.findNode(PROTEIN_LABEL, ID_KEY, rawId);
-        if (node == null) {
-            node = graph.addNode(PROTEIN_LABEL, ID_KEY, rawId, SPECIES_KEY, species, SYMBOL_KEY, symbol, TYPE_KEY,
-                                 type);
+        Long nodeId = idNodeIdMap.get(rawId);
+        if (nodeId == null) {
+            nodeId = graph.addNode(PROTEIN_LABEL, ID_KEY, rawId, SPECIES_KEY, species, SYMBOL_KEY, symbol, TYPE_KEY,
+                                   type).getId();
+            idNodeIdMap.put(rawId, nodeId);
         }
-        return node.getId();
+        return nodeId;
     }
 
     private Long getOrCreateGene(final Graph graph, final String symbol, final String rawId, final String species,
