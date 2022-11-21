@@ -25,6 +25,8 @@ public final class DataSourceMetadata {
     public Boolean exportSuccessful;
     @JsonProperty("exportVersion")
     public Long exportVersion;
+    @JsonProperty("exportPropertiesHash")
+    public Integer exportPropertiesHash;
 
     public DataSourceMetadata() {
         sourceFileNames = new ArrayList<>();

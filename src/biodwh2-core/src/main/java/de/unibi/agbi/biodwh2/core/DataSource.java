@@ -172,6 +172,7 @@ public abstract class DataSource {
                     LOGGER.error("Failed to export data source '" + getId() + "'");
             } else {
                 metadata.exportVersion = graphExporter.getExportVersion();
+                metadata.exportPropertiesHash = workspace.getConfiguration().getDataSourcePropertiesHash(getId());
                 if (LOGGER.isInfoEnabled())
                     LOGGER.info("Successfully exported data source '" + getId() + "'");
             }

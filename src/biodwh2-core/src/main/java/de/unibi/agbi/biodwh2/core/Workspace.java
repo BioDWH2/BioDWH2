@@ -271,9 +271,20 @@ public final class Workspace {
         return Files.notExists(filePath);
     }
 
+    /**
+     * An export is outdated whenever:
+     * <ul>
+     *   <li>no prior export version exists</li>
+     *   <li>the exporter uses a higher export version</li>
+     *   <li>no prior export properties hash exists</li>
+     *   <li>the properties hash has changed.</li>
+     * </ul>
+     */
     private boolean isDataSourceExportOutdated(final DataSource dataSource, final DataSourceMetadata metadata) {
         return metadata.exportVersion == null ||
-               metadata.exportVersion < dataSource.getGraphExporter().getExportVersion();
+               metadata.exportVersion < dataSource.getGraphExporter().getExportVersion() ||
+               metadata.exportPropertiesHash == null || !Objects.equals(
+                configuration.getDataSourcePropertiesHash(dataSource.getId()), metadata.exportPropertiesHash);
     }
 
     private boolean isExportedGraphVersionOutdated(final DataSource dataSource) {

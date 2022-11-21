@@ -7,10 +7,7 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Configuration {
@@ -20,6 +17,8 @@ public final class Configuration {
     private final String creationDateTime;
     @JsonProperty("dataSourceIds")
     private final List<String> dataSourceIds;
+    @JsonProperty("globalProperties")
+    private final GlobalProperties globalProperties;
     @JsonProperty("dataSourceProperties")
     private final Map<String, Map<String, String>> dataSourceProperties;
     @JsonProperty("skipGraphMLExport")
@@ -31,6 +30,7 @@ public final class Configuration {
         version = Workspace.VERSION;
         creationDateTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         dataSourceIds = new ArrayList<>();
+        globalProperties = new GlobalProperties();
         dataSourceProperties = new HashMap<>();
     }
 
@@ -66,11 +66,67 @@ public final class Configuration {
         return properties == null ? new HashMap<>() : properties;
     }
 
+    public GlobalProperties getGlobalProperties() {
+        return globalProperties == null ? new GlobalProperties() : globalProperties;
+    }
+
+    public Integer getDataSourcePropertiesHash(final String dataSourceId) {
+        final Map<String, String> properties = dataSourceProperties.get(dataSourceId);
+        if (properties == null)
+            return null;
+        final int dataSourcePropertiesHash = properties.keySet().stream().sorted().map((k) -> (k + properties.get(
+                k)).hashCode()).reduce(0, Integer::sum);
+        return getGlobalProperties().hashCode() ^ dataSourcePropertiesHash;
+    }
+
     public boolean shouldSkipGraphMLExport() {
         return Boolean.TRUE.equals(skipGraphMLExport);
     }
 
     public boolean shouldSkipMetaGraphGeneration() {
         return Boolean.TRUE.equals(skipMetaGraphGeneration);
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class GlobalProperties {
+        private SpeciesFilter speciesFilterHelper;
+
+        @JsonProperty("speciesFilter")
+        private Integer[] speciesFilter;
+
+        public SpeciesFilter getSpeciesFilter() {
+            if (speciesFilterHelper == null)
+                speciesFilterHelper = new SpeciesFilter(speciesFilter);
+            return speciesFilterHelper;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            GlobalProperties that = (GlobalProperties) o;
+            return Arrays.equals(speciesFilter, that.speciesFilter);
+        }
+
+        @Override
+        public int hashCode() {
+            return Arrays.hashCode(speciesFilter);
+        }
+
+        public static class SpeciesFilter {
+            private final Set<Integer> taxonIds;
+
+            public SpeciesFilter(final Integer[] taxonIds) {
+                this.taxonIds = new HashSet<>();
+                if (taxonIds != null)
+                    this.taxonIds.addAll(Arrays.asList(taxonIds));
+            }
+
+            public boolean isSpeciesAllowed(final Integer taxonId) {
+                return taxonIds == null || taxonIds.size() == 0 || taxonIds.contains(taxonId);
+            }
+        }
     }
 }
