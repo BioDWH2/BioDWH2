@@ -37,8 +37,44 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
     private static final String ID_KEY = "id";
     private static final String SPECIES_KEY = "species";
 
+    private final Map<String, SpeciesLookup.Entry> speciesMap = new HashMap<>();
+
     public MiRTarBaseGraphExporter(final MiRTarBaseDataSource dataSource) {
         super(dataSource);
+        speciesMap.put("ath", SpeciesLookup.ARABIDOPSIS_THALIANA);
+        speciesMap.put("bmo", SpeciesLookup.BOMBYX_MORI);
+        speciesMap.put("bta", SpeciesLookup.BOS_TAURUS);
+        speciesMap.put("cel", SpeciesLookup.CAENORHABDITIS_ELEGANS);
+        speciesMap.put("cfa", SpeciesLookup.CANIS_FAMILIARIS);
+        speciesMap.put("cgr", SpeciesLookup.CRICETULUS_GRISEUS);
+        speciesMap.put("chi", SpeciesLookup.CAPRA_HIRCUS);
+        speciesMap.put("dme", SpeciesLookup.DROSOPHILA_MELANOGASTER);
+        speciesMap.put("dre", SpeciesLookup.DANIO_RERIO);
+        speciesMap.put("ebv", SpeciesLookup.EPSTEIN_BARR_VIRUS);
+        speciesMap.put("eca", SpeciesLookup.EQUUS_CABALLUS);
+        speciesMap.put("gga", SpeciesLookup.GALLUS_GALLUS);
+        speciesMap.put("ggo", SpeciesLookup.GORILLA_GORILLA);
+        speciesMap.put("gma", SpeciesLookup.GLYCINE_MAX);
+        speciesMap.put("hcmv", SpeciesLookup.HUMAN_CYTOMEGALOVIRUS);
+        speciesMap.put("hsa", SpeciesLookup.HOMO_SAPIENS);
+        speciesMap.put("kshv", SpeciesLookup.KAPOSI_SARCOMA_ASSOCIATED_HERPESVIRUS);
+        speciesMap.put("mdv1", SpeciesLookup.GALLID_ALPHAHERPESVIRUS_2);
+        speciesMap.put("mml", SpeciesLookup.MACACA_MULATTA);
+        speciesMap.put("mmu", SpeciesLookup.MUS_MUSCULUS);
+        speciesMap.put("mne", SpeciesLookup.MACACA_NEMESTRINA);
+        speciesMap.put("oar", SpeciesLookup.OVIS_ARIES);
+        speciesMap.put("ola", SpeciesLookup.ORYZIAS_LATIPES);
+        speciesMap.put("osa", SpeciesLookup.ORYZA_SATIVA);
+        speciesMap.put("ppa", SpeciesLookup.PAN_PANISCUS);
+        speciesMap.put("ppy", SpeciesLookup.PONGO_PYGMAEUS);
+        speciesMap.put("ptr", SpeciesLookup.PAN_TROGLODYTES);
+        speciesMap.put("rno", SpeciesLookup.RATTUS_NORVEGICUS);
+        speciesMap.put("sly", SpeciesLookup.SOLANUM_LYCOPERSICUM);
+        speciesMap.put("ssc", SpeciesLookup.SUS_SCROFA);
+        speciesMap.put("tgu", SpeciesLookup.TAENIOPYGIA_GUTTATA);
+        // speciesMap.put("vsv", SpeciesLookup.VESICULAR_STOMATITIS_INDIANA_VIRUS);
+        speciesMap.put("xla", SpeciesLookup.XENOPUS_LAEVIS);
+        speciesMap.put("xtr", SpeciesLookup.XENOPUS_TROPICALIS);
     }
 
     @Override
@@ -107,7 +143,7 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
                                    final Map<String, Map<Integer, Map<String, Map<String, String>>>> targetSiteMap,
                                    final Map<Long, Set<Long>> addedInteractionEdges,
                                    final Map<String, Long> geneKeyNodeIdMap, final MTIEntry entry) {
-        final Node miRNANode = getOrCreateMiRNANode(graph, speciesFilter, entry.miRNA, entry.speciesMiRNA);
+        final Node miRNANode = getOrCreateMiRNANode(graph, speciesFilter, entry.miRNA);
         final Long geneNodeId = getOrCreateGeneNode(graph, speciesFilter, geneKeyNodeIdMap, entry.targetGene,
                                                     entry.speciesTargetGene, entry.targetGeneEntrezId);
         if (miRNANode == null || geneNodeId == null)
@@ -135,16 +171,19 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
     }
 
     private Node getOrCreateMiRNANode(final Graph graph,
-                                      final Configuration.GlobalProperties.SpeciesFilter speciesFilter, final String id,
-                                      final String species) {
+                                      final Configuration.GlobalProperties.SpeciesFilter speciesFilter,
+                                      final String id) {
         Node node = graph.findNode(MIRNA_LABEL, ID_KEY, id);
         if (node == null) {
-            final Integer speciesNCBITaxId = getSpeciesTaxonomyId(species);
+            // entry.speciesMiRNA doesn't match the id in many cases, therefore we use a lookup from the id prefix.
+            final String speciesPrefix = StringUtils.split(id, "-", 2)[0];
+            final SpeciesLookup.Entry entry = speciesMap.get(speciesPrefix);
+            final Integer speciesNCBITaxId = entry != null ? entry.ncbiTaxId : null;
             if (!speciesFilter.isSpeciesAllowed(speciesNCBITaxId))
                 return null;
             final NodeBuilder builder = graph.buildNode().withLabel(MIRNA_LABEL);
             builder.withPropertyIfNotNull(ID_KEY, id);
-            builder.withPropertyIfNotNull(SPECIES_KEY, species);
+            builder.withPropertyIfNotNull(SPECIES_KEY, entry != null ? entry.scientificName : null);
             builder.withPropertyIfNotNull("species_ncbi_taxid", speciesNCBITaxId);
             node = builder.build();
         }
