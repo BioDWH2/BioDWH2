@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.mirbase.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.mirbase.etl.MiRBaseGraphExporter;
@@ -18,8 +19,8 @@ public class MirnaMature {
     @GraphProperty("id")
     public String matureName;
     @JsonProperty("previous_mature_id")
-    @GraphProperty("previous_id")
-    public String previousMatureId;
+    @GraphArrayProperty(value = "previous_ids", arrayDelimiter = ";")
+    public String previousMatureIds;
     @JsonProperty("mature_acc")
     @GraphProperty("accession")
     public String matureAcc;

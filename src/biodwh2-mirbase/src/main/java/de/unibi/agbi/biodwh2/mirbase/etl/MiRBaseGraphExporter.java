@@ -45,7 +45,7 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
