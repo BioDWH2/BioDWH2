@@ -51,9 +51,12 @@ public final class GraphMerger {
 
     private Map<String, DataSourceMetadata> getRequestedMergeStatus(final DataSource[] dataSources) {
         final Map<String, DataSourceMetadata> result = new HashMap<>();
-        for (final DataSource dataSource : dataSources)
-            result.put(dataSource.getId(), new DataSourceMetadata(dataSource.getId(), dataSource.getMetadata().version,
-                                                                  dataSource.getMetadata().exportVersion));
+        for (final DataSource dataSource : dataSources) {
+            final de.unibi.agbi.biodwh2.core.model.DataSourceMetadata metadata = dataSource.getMetadata();
+            result.put(dataSource.getId(),
+                       new DataSourceMetadata(dataSource.getId(), metadata.version, metadata.exportVersion,
+                                              metadata.exportPropertiesHash));
+        }
         return result;
     }
 
@@ -66,8 +69,10 @@ public final class GraphMerger {
                 for (final Node node : mergedGraph.findNodes("metadata", "type", "datasource")) {
                     final String id = node.getProperty("datasource_id");
                     final Long exportVersion = node.getProperty("export_version");
+                    final Integer exportPropertiesHash = node.getProperty("export_properties_hash");
                     result.put(id, new DataSourceMetadata(id, Version.tryParse(node.getProperty("version")),
-                                                          exportVersion != null ? exportVersion : -1));
+                                                          exportVersion != null ? exportVersion : -1,
+                                                          exportPropertiesHash));
                 }
             } catch (final Exception ex) {
                 // Reusing the merged graph is just an optimization, so don't throw and just notify
@@ -125,12 +130,13 @@ public final class GraphMerger {
     }
 
     private void addDataSourceMetadataNode(final DataSource dataSource, final Graph graph) {
-        final Version version = dataSource.getMetadata().version;
+        final de.unibi.agbi.biodwh2.core.model.DataSourceMetadata metadata = dataSource.getMetadata();
         final NodeBuilder builder = graph.buildNode().withLabel("metadata");
         builder.withProperty("type", "datasource");
         builder.withProperty("datasource_id", dataSource.getId());
-        builder.withProperty("version", version != null ? version.toString() : "");
-        builder.withProperty("export_version", dataSource.getMetadata().exportVersion);
+        builder.withProperty("version", metadata.version != null ? metadata.version.toString() : "");
+        builder.withProperty("export_version", metadata.exportVersion);
+        builder.withProperty("export_properties_hash", metadata.exportPropertiesHash);
         builder.withPropertyIfNotNull("license", dataSource.getLicense());
         builder.withPropertyIfNotNull("license_url", dataSource.getLicenseUrl());
         builder.build();
@@ -198,7 +204,9 @@ public final class GraphMerger {
                 else {
                     final DataSourceMetadata metadata = previousStatus.get(dataSource.getId());
                     final DataSourceMetadata requestedMetadata = requestedStatus.get(metadata.id);
-                    if (requestedMetadata.exportVersion > metadata.exportVersion || requestedMetadata.version.compareTo(
+                    if (metadata.exportPropertiesHash == null || !metadata.exportPropertiesHash.equals(
+                            requestedMetadata.exportPropertiesHash) ||
+                        requestedMetadata.exportVersion > metadata.exportVersion || requestedMetadata.version.compareTo(
                             metadata.version) > 0 || workspace.isDataSourceExportForced(metadata.id)) {
                         removePreviousDataSourceVersion(mergedGraph, dataSource.getId());
                         mergeDataSource(workspace, dataSource, mergedGraph);
@@ -230,11 +238,14 @@ public final class GraphMerger {
         public final String id;
         public final Version version;
         public final Long exportVersion;
+        public final Integer exportPropertiesHash;
 
-        private DataSourceMetadata(final String id, final Version version, final Long exportVersion) {
+        private DataSourceMetadata(final String id, final Version version, final Long exportVersion,
+                                   final Integer exportPropertiesHash) {
             this.id = id;
             this.version = version;
             this.exportVersion = exportVersion;
+            this.exportPropertiesHash = exportPropertiesHash;
         }
     }
 }
