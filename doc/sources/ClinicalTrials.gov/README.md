@@ -4,11 +4,11 @@
 
 ## Website
 
-[https://ClinicalTrials.gov](https://ClinicalTrials.gov)
+[https://clinicaltrials.gov](https://clinicaltrials.gov)
 
 ## License
 
-
+[https://clinicaltrials.gov/ct2/about-site/terms-conditions#Use](https://clinicaltrials.gov/ct2/about-site/terms-conditions)
 
 ## Citation
 
@@ -16,11 +16,11 @@
 
 ## Files used
 
-  * ```AllPublicXML.zip```
+Latest monthly archive file ```AllPublicXML.zip```
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
-|                |            |             |
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |
+|             |            |                                            |
