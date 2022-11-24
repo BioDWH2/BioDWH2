@@ -85,7 +85,7 @@ public class MiRDBGraphExporter extends GraphExporter<MiRDBDataSource> {
             return;
         Node mirnaNode = graph.findNode(MIRNA_LABEL, ID_KEY, entry.mirnaId);
         if (mirnaNode == null) {
-            final String prefix = StringUtils.split(entry.mirnaId, "-", 2)[1];
+            final String prefix = StringUtils.split(entry.mirnaId, "-", 2)[0];
             final SpeciesLookup.Entry speciesEntry = speciesMap.get(prefix);
             if (speciesFilter.isSpeciesAllowed(speciesEntry != null ? speciesEntry.ncbiTaxId : null)) {
                 if (speciesEntry != null) {

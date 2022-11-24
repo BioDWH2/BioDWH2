@@ -79,7 +79,7 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override

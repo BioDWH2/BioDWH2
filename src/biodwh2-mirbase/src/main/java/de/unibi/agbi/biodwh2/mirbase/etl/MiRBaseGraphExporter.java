@@ -288,6 +288,7 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
         for (final MatureDatabaseUrl entry : parseGzipTsvFile(workspace, "mature_database_url.txt.gz",
                                                               MatureDatabaseUrl.class)) {
             dbIdPrefixMap.put(entry.autoDb, entry.displayName);
+            // TODO: entry.type [0: Database links, 1: Predicted targets, 2: ?]
         }
         final Map<Long, Set<String>> result = new HashMap<>();
         for (final MatureDatabaseLink entry : parseGzipTsvFile(workspace, "mature_database_links.txt.gz",
