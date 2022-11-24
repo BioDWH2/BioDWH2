@@ -65,6 +65,7 @@
         <module>biodwh2-tarbase</module>
         <module>biodwh2-clinicaltrialsgov</module>
         <module>biodwh2-rnainter</module>
+        <module>biodwh2-mirdb</module>
     </modules>
 
     <packaging>pom</packaging>
