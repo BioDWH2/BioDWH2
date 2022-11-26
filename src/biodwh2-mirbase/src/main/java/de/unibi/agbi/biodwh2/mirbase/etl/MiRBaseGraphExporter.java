@@ -17,6 +17,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.mirbase.MiRBaseDataSource;
 import de.unibi.agbi.biodwh2.mirbase.model.*;
+import de.unibi.agbi.biodwh2.mirbase.utils.AlignmentUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,7 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -136,8 +137,10 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
             if (sequence != null)
                 builder.withProperty("sequence", sequence);
             final String alignment = alignmentMap.get(entry.mirnaId);
-            if (alignment != null)
-                builder.withProperty("alignment", alignment);
+            if (alignment != null) {
+                builder.withProperty("alignment", StringUtils.split(alignment, '\n'));
+                builder.withPropertyIfNotNull("fold", AlignmentUtils.getFoldStringFromHairpinAlignment(alignment));
+            }
             final Node node = builder.build();
             idNodeIdMap.put(entry.autoId, node.getId());
             graph.addEdge(node, speciesNodeId, "BELONGS_TO");
@@ -166,7 +169,7 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
     private Map<String, String> getMirnaAlignmentMap(final Workspace workspace) {
         final Map<String, String> result = new HashMap<>();
         try (final InputStream input = FileUtils.openGzip(workspace, dataSource, "miRNA.str.gz");
-             final FastaReader reader = new FastaReader(input, StandardCharsets.UTF_8)) {
+             final FastaReader reader = new FastaReader(input, StandardCharsets.UTF_8, false)) {
             for (final FastaEntry entry : reader) {
                 final String id = StringUtils.split(entry.getHeader(), " ")[0].substring(1);
                 result.put(id, entry.getSequence());
