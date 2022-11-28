@@ -43,6 +43,7 @@ public final class SpeciesLookup {
     public static final Entry TAENIOPYGIA_GUTTATA = new Entry(null, "Taeniopygia guttata", 59729, null);
     public static final Entry VESICULAR_STOMATITIS_INDIANA_VIRUS = new Entry(null, "Vesicular stomatitis Indiana virus",
                                                                              null, null);
+    public static final Entry VITIS_VINIFERA = new Entry(null, "Vitis vinifera", 29760, null);
     public static final Entry XENOPUS_LAEVIS = new Entry(null, "Xenopus laevis", 8355, null);
     public static final Entry XENOPUS_TROPICALIS = new Entry(null, "Xenopus tropicalis", 8364, null);
     public static final Entry ZEA_MAYS = new Entry(null, "Zea mays", 4577, null);
@@ -54,7 +55,7 @@ public final class SpeciesLookup {
             KAPOSI_SARCOMA_ASSOCIATED_HERPESVIRUS, MACACA_MULATTA, MACACA_NEMESTRINA, MEDICAGO_TRUNCATULA, MUS_MUSCULUS,
             ORYZA_SATIVA, ORYZIAS_LATIPES, OVIS_ARIES, PAN_PANISCUS, PAN_TROGLODYTES, PHYSCOMITRELLA_PATENS,
             PONGO_PYGMAEUS, RATTUS_NORVEGICUS, SOLANUM_LYCOPERSICUM, SUS_SCROFA, TAENIOPYGIA_GUTTATA,
-            VESICULAR_STOMATITIS_INDIANA_VIRUS, XENOPUS_LAEVIS, XENOPUS_TROPICALIS, ZEA_MAYS
+            VESICULAR_STOMATITIS_INDIANA_VIRUS, VITIS_VINIFERA, XENOPUS_LAEVIS, XENOPUS_TROPICALIS, ZEA_MAYS
     };
 
     private static final Map<String, Entry> scientificNameLookup = new HashMap<>();
