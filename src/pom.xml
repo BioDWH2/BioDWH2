@@ -66,6 +66,7 @@
         <module>biodwh2-clinicaltrialsgov</module>
         <module>biodwh2-rnainter</module>
         <module>biodwh2-mirdb</module>
+        <module>biodwh2-trrust</module>
     </modules>
 
     <packaging>pom</packaging>
