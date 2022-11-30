@@ -5,6 +5,7 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
+import de.unibi.agbi.biodwh2.core.mapping.SpeciesLookup;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -18,7 +19,6 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
@@ -34,41 +34,46 @@ public class InterProGraphExporter extends GraphExporter<InterProDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode(DOMAIN_LABEL, "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("ActiveSite", "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("BindingSite", "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("ConservedSite", "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Family", "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("HomologousSuperfamily", "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("PTM", "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Repeat", "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(PUBLICATION_LABEL, "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(CLASSIFICATION_LABEL, "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DOMAIN_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("ActiveSite", ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("BindingSite", ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("ConservedSite", ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Family", ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("HomologousSuperfamily", ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("PTM", ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Repeat", ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PUBLICATION_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(CLASSIFICATION_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         try {
-            if (LOGGER.isInfoEnabled())
-                LOGGER.info("Loading InterPro " + InterProUpdater.FILE_NAME + "...");
-            final InterproDB db = loadInterProDB(workspace);
-            if (LOGGER.isInfoEnabled())
-                LOGGER.info("Exporting entries...");
-            final Map<String, Long> idToNodeIdMap = new HashMap<>();
-            for (final Interpro entry : db.interpro)
-                exportEntry(graph, entry, idToNodeIdMap);
-            // Export the entry hierarchy
-            if (LOGGER.isInfoEnabled())
-                LOGGER.info("Exporting entry hierarchy...");
-            for (final Interpro entry : db.interpro)
-                if (entry.parentList != null)
-                    for (final RelRef parentRef : entry.parentList)
-                        graph.addEdge(idToNodeIdMap.get(entry.id), idToNodeIdMap.get(parentRef.iprRef), "CHILD_OF");
+            exportInterProDB(workspace, graph);
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
         return true;
+    }
+
+    private void exportInterProDB(final Workspace workspace, final Graph graph) throws IOException {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Loading InterPro " + InterProUpdater.FILE_NAME + "...");
+        final InterproDB db = loadInterProDB(workspace);
+        exportDBInfo(graph, db);
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting entries...");
+        final Map<String, Long> idToNodeIdMap = new HashMap<>();
+        for (final Interpro entry : db.interpro)
+            exportEntry(graph, entry, idToNodeIdMap);
+        // Export the entry hierarchy
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting entry hierarchy...");
+        for (final Interpro entry : db.interpro)
+            if (entry.parentList != null)
+                for (final RelRef parentRef : entry.parentList)
+                    graph.addEdge(idToNodeIdMap.get(entry.id), idToNodeIdMap.get(parentRef.iprRef), "CHILD_OF");
     }
 
     private InterproDB loadInterProDB(final Workspace workspace) throws IOException {
@@ -80,62 +85,65 @@ public class InterProGraphExporter extends GraphExporter<InterProDataSource> {
         return xmlMapper.readValue(zipStream, InterproDB.class);
     }
 
+    private void exportDBInfo(final Graph graph, final InterproDB db) {
+        for (final DBInfo info : db.release.dbInfo)
+            graph.addNode("DBInfo", "name", info.dbName, "version", info.version, "entry_count", info.entryCount,
+                          "file_date", info.fileDate);
+    }
+
     private void exportEntry(final Graph graph, final Interpro entry, final Map<String, Long> idToNodeIdMap) {
         // taxonomy_distribution is currently ignored, as all entries only contain "root" with varying protein count
-        String[] externalDocList = null;
-        if (entry.externalDocList != null) {
-            externalDocList = new String[entry.externalDocList.size()];
-            for (int i = 0; i < entry.externalDocList.size(); i++) {
-                final DBXref xref = entry.externalDocList.get(i);
-                externalDocList[i] = xref.db + ':' + xref.dbKey;
-            }
-        }
-        String[] structureDbLinks = null;
-        if (entry.structureDbLinks != null) {
-            structureDbLinks = new String[entry.structureDbLinks.size()];
+        final NodeBuilder builder = graph.buildNode().withLabel(getLabelForEntryType(entry.type));
+        builder.withProperty(ID_KEY, entry.id);
+        builder.withPropertyIfNotNull("short_name", entry.shortName);
+        builder.withPropertyIfNotNull("protein_count", entry.proteinCount);
+        builder.withPropertyIfNotNull("name", entry.name);
+        // builder.withPropertyIfNotNull("abstract", entry._abstract);
+        if (entry.structureDbLinks != null && entry.structureDbLinks.size() > 0) {
+            final String[] structureDbLinks = new String[entry.structureDbLinks.size()];
             for (int i = 0; i < entry.structureDbLinks.size(); i++) {
                 final DBXref xref = entry.structureDbLinks.get(i);
                 structureDbLinks[i] = xref.db + ':' + xref.dbKey;
             }
+            builder.withProperty("structure_db_links", structureDbLinks);
         }
-        String[] keySpeciesNames = null;
-        int[] keySpeciesProteinCounts = null;
-        if (entry.keySpecies != null) {
-            keySpeciesNames = new String[entry.keySpecies.size()];
-            keySpeciesProteinCounts = new int[entry.keySpecies.size()];
+        if (entry.externalDocList != null && entry.externalDocList.size() > 0) {
+            final String[] externalDocList = new String[entry.externalDocList.size()];
+            for (int i = 0; i < entry.externalDocList.size(); i++) {
+                final DBXref xref = entry.externalDocList.get(i);
+                externalDocList[i] = xref.db + ':' + xref.dbKey;
+            }
+            builder.withProperty("external_docs", externalDocList);
+        }
+        if (entry.keySpecies != null && entry.keySpecies.size() > 0) {
+            final String[] keySpeciesNames = new String[entry.keySpecies.size()];
+            final Integer[] keySpeciesNCBITaxIds = new Integer[entry.keySpecies.size()];
+            final Integer[] keySpeciesProteinCounts = new Integer[entry.keySpecies.size()];
             for (int i = 0; i < entry.keySpecies.size(); i++) {
                 final TaxonData taxon = entry.keySpecies.get(i);
+                final SpeciesLookup.Entry taxonEntry = SpeciesLookup.getByScientificName(taxon.name);
                 keySpeciesNames[i] = taxon.name;
+                keySpeciesNCBITaxIds[i] = taxonEntry != null ? taxonEntry.ncbiTaxId : null;
                 keySpeciesProteinCounts[i] = taxon.proteinsCount;
             }
+            builder.withProperty("key_species", keySpeciesNames);
+            builder.withProperty("key_species_ncbi_taxids", keySpeciesNCBITaxIds);
+            builder.withProperty("key_species_protein_counts", keySpeciesProteinCounts);
         }
-        String[] membersDbLinks = null;
-        String[] membersNames = null;
-        int[] membersProteinCounts = null;
-        if (entry.memberList != null) {
-            membersDbLinks = new String[entry.memberList.size()];
-            membersNames = new String[entry.memberList.size()];
-            membersProteinCounts = new int[entry.memberList.size()];
+        if (entry.memberList != null && entry.memberList.size() > 0) {
+            final String[] membersDbLinks = new String[entry.memberList.size()];
+            final String[] membersNames = new String[entry.memberList.size()];
+            final int[] membersProteinCounts = new int[entry.memberList.size()];
             for (int i = 0; i < entry.memberList.size(); i++) {
                 final DBXref xref = entry.memberList.get(i);
                 membersDbLinks[i] = xref.db + ':' + xref.dbKey;
                 membersNames[i] = xref.name;
                 membersProteinCounts[i] = xref.proteinCount;
             }
+            builder.withProperty("members", membersDbLinks);
+            builder.withProperty("members_names", membersNames);
+            builder.withProperty("members_protein_counts", membersProteinCounts);
         }
-        final NodeBuilder builder = graph.buildNode().withLabel(getLabelForEntryType(entry.type));
-        builder.withProperty("id", entry.id);
-        builder.withPropertyIfNotNull("short_name", entry.shortName);
-        builder.withPropertyIfNotNull("protein_count", entry.proteinCount);
-        builder.withPropertyIfNotNull("name", entry.name);
-        builder.withPropertyIfNotNull("structure_db_links", structureDbLinks);
-        builder.withPropertyIfNotNull("external_docs", externalDocList);
-        builder.withPropertyIfNotNull("key_species", keySpeciesNames);
-        builder.withPropertyIfNotNull("key_species_protein_counts", keySpeciesProteinCounts);
-        builder.withPropertyIfNotNull("members", membersDbLinks);
-        builder.withPropertyIfNotNull("members_names", membersNames);
-        builder.withPropertyIfNotNull("members_protein_counts", membersProteinCounts);
-        // builder.withPropertyIfNotNull("abstract", entry._abstract);
         final Node node = builder.build();
         idToNodeIdMap.put(entry.id, node.getId());
         if (entry.pubList != null) {
@@ -152,20 +160,21 @@ public class InterProGraphExporter extends GraphExporter<InterProDataSource> {
         }
     }
 
+    /**
+     * Convert an InterPro type such as "Homologous_superfamily" to a graph label "HomologousSuperfamily"
+     */
     private String getLabelForEntryType(String type) {
         int index = 0;
-        while ((index = type.indexOf("_", index)) != -1) {
-            type = type.substring(0, index) + ("" + type.charAt(index + 1)).toUpperCase(Locale.ROOT) + type.substring(
-                    index + 2);
-        }
+        while ((index = type.indexOf("_", index)) != -1)
+            type = type.substring(0, index) + Character.toUpperCase(type.charAt(index + 1)) + type.substring(index + 2);
         return type;
     }
 
     private Node getOrCreatePublication(final Graph graph, final Publication publication) {
-        Node node = graph.findNode(PUBLICATION_LABEL, "id", publication.id);
+        Node node = graph.findNode(PUBLICATION_LABEL, ID_KEY, publication.id);
         if (node == null) {
             final NodeBuilder builder = graph.buildNode().withLabel(PUBLICATION_LABEL);
-            builder.withProperty("id", publication.id);
+            builder.withProperty(ID_KEY, publication.id);
             builder.withPropertyIfNotNull("authors", publication.authorList);
             builder.withPropertyIfNotNull("title", publication.title);
             builder.withPropertyIfNotNull("book_title", publication.bookTitle);
@@ -192,9 +201,9 @@ public class InterProGraphExporter extends GraphExporter<InterProDataSource> {
     }
 
     private Node getOrCreateClassification(final Graph graph, final Classification classification) {
-        Node node = graph.findNode(CLASSIFICATION_LABEL, "id", classification.id);
+        Node node = graph.findNode(CLASSIFICATION_LABEL, ID_KEY, classification.id);
         if (node == null) {
-            node = graph.addNode(CLASSIFICATION_LABEL, "id", classification.id, "type", classification.classType,
+            node = graph.addNode(CLASSIFICATION_LABEL, ID_KEY, classification.id, "type", classification.classType,
                                  "category", classification.category, "description", classification.description);
         }
         return node;
