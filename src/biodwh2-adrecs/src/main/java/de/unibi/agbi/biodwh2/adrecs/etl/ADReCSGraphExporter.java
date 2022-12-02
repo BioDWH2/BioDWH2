@@ -1,12 +1,14 @@
 package de.unibi.agbi.biodwh2.adrecs.etl;
 
+import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.adrecs.ADReCSDataSource;
 import de.unibi.agbi.biodwh2.adrecs.model.ADROntologyEntry;
 import de.unibi.agbi.biodwh2.adrecs.model.DrugADREntry;
 import de.unibi.agbi.biodwh2.adrecs.model.DrugInformationEntry;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.exceptions.*;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.XlsxMappingIterator;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
@@ -16,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
@@ -33,41 +34,42 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 3;
+        return 4;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode(DRUG_LABEL, "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(ADR_LABEL, "id", false, IndexDescription.Type.NON_UNIQUE));
-        graph.addIndex(IndexDescription.forNode(ADR_LABEL, ADRECS_ID_KEY, false, IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DRUG_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(ADR_LABEL, ID_KEY, IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode(ADR_LABEL, ADRECS_ID_KEY, IndexDescription.Type.NON_UNIQUE));
         try {
             exportDrugs(workspace, graph);
             exportADROntology(workspace, graph);
             exportADRDrugAssociations(workspace, graph);
-        } catch (ParserException e) {
+        } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
         return true;
     }
 
-    private void exportDrugs(final Workspace workspace, final Graph graph) throws ParserException {
+    private void exportDrugs(final Workspace workspace, final Graph graph) throws IOException {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting Drug information...");
-        final XlsxMappingIterator<DrugInformationEntry> iterator = tryLoadXlsxTable(workspace,
-                                                                                    ADReCSUpdater.DRUG_INFO_FILE_NAME,
-                                                                                    DrugInformationEntry.class);
+        final GZIPInputStream stream = FileUtils.openGzip(workspace, dataSource, ADReCSUpdater.DRUG_INFO_FILE_NAME);
+        final XlsxMappingIterator<DrugInformationEntry> iterator = new XlsxMappingIterator<>(DrugInformationEntry.class,
+                                                                                             stream);
         while (iterator.hasNext())
             graph.addNodeFromModel(iterator.next());
+        iterator.close();
     }
 
-    private void exportADROntology(final Workspace workspace, final Graph graph) throws ParserException {
+    private void exportADROntology(final Workspace workspace, final Graph graph) throws IOException {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting ADR ontology...");
         final Map<String, Map<String, Map<String, Set<String>>>> hierarchy = new HashMap<>();
-        final XlsxMappingIterator<ADROntologyEntry> iterator = tryLoadXlsxTable(workspace,
-                                                                                ADReCSUpdater.ADR_ONTOLOGY_FILE_NAME,
-                                                                                ADROntologyEntry.class);
+        final GZIPInputStream stream = FileUtils.openGzip(workspace, dataSource, ADReCSUpdater.ADR_ONTOLOGY_FILE_NAME);
+        final XlsxMappingIterator<ADROntologyEntry> iterator = new XlsxMappingIterator<>(ADROntologyEntry.class,
+                                                                                         stream);
         while (iterator.hasNext()) {
             final ADROntologyEntry entry = iterator.next();
             graph.addNodeFromModel(entry);
@@ -87,6 +89,7 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
                 }
             }
         }
+        iterator.close();
         // Export the ADReCS id hierarchy
         for (final String level1Key : hierarchy.keySet()) {
             final Long[] level1Ids = getNodeIds(graph.findNodes(ADR_LABEL, ADRECS_ID_KEY, level1Key));
@@ -114,50 +117,45 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
         }
     }
 
-    private <T> XlsxMappingIterator<T> tryLoadXlsxTable(final Workspace workspace, final String fileName,
-                                                        final Class<T> type) throws ParserException {
-        try {
-            final GZIPInputStream stream = FileUtils.openGzip(workspace, dataSource, fileName);
-            return new XlsxMappingIterator<>(type, stream);
-        } catch (IOException e) {
-            if (e instanceof FileNotFoundException)
-                throw new ParserFileNotFoundException(fileName);
-            else
-                throw new ParserFormatException(e);
-        }
-    }
-
-    private void exportADRDrugAssociations(final Workspace workspace, final Graph graph) throws ParserException {
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Exporting ADR drug associations...");
-        final XlsxMappingIterator<DrugADREntry> iterator = tryLoadXlsxTable(workspace, ADReCSUpdater.DRUG_ADR_FILE_NAME,
-                                                                            DrugADREntry.class);
-        while (iterator.hasNext()) {
-            final DrugADREntry entry = iterator.next();
-            final Iterable<Node> adrNodes = graph.findNodes(ADR_LABEL, "id", entry.adrId);
-            final Node drugNode = graph.findNode(DRUG_LABEL, "id", entry.drugId);
-            final boolean hasFrequency = !"-".equals(entry.adrFrequencyFAERS);
-            final boolean hasSeverityGrade = !"-".equals(entry.adrSeverityGradeFAERS);
-            for (final Node adrNode : adrNodes) {
-                if (hasFrequency && hasSeverityGrade) {
-                    graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH", "frequency_faers", entry.adrFrequencyFAERS,
-                                  "severity_grade_faers", entry.adrSeverityGradeFAERS);
-                } else if (hasFrequency) {
-                    graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH", "frequency_faers", entry.adrFrequencyFAERS);
-                } else if (hasSeverityGrade) {
-                    graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH", "severity_grade_faers",
-                                  entry.adrSeverityGradeFAERS);
-                } else {
-                    graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH");
-                }
-            }
-        }
-    }
-
     private Long[] getNodeIds(Iterable<Node> nodes) {
         final List<Long> ids = new ArrayList<>();
         for (final Node n : nodes)
             ids.add(n.getId());
         return ids.toArray(new Long[0]);
+    }
+
+    private void exportADRDrugAssociations(final Workspace workspace, final Graph graph) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting ADR drug associations...");
+        try (final MappingIterator<DrugADREntry> iterator = FileUtils.openGzipTsv(workspace, dataSource,
+                                                                                  ADReCSUpdater.DRUG_ADR_FILE_NAME,
+                                                                                  DrugADREntry.class)) {
+            while (iterator.hasNext())
+                exportADRDrugAssociation(graph, iterator.next());
+        } catch (IOException e) {
+            throw new ExporterFormatException(e);
+        }
+    }
+
+    private void exportADRDrugAssociation(final Graph graph, final DrugADREntry entry) {
+        final Iterable<Node> adrNodes = graph.findNodes(ADR_LABEL, ID_KEY, entry.adrId);
+        final Node drugNode = graph.findNode(DRUG_LABEL, ID_KEY, entry.drugId);
+        final boolean hasFrequency = !"-".equals(entry.adrFrequencyFAERS) && !"Not Available".equals(
+                entry.adrFrequencyFAERS);
+        final boolean hasSeverityGrade = !"-".equals(entry.adrSeverityGradeFAERS) && !"Not Available".equals(
+                entry.adrSeverityGradeFAERS);
+        for (final Node adrNode : adrNodes) {
+            if (hasFrequency && hasSeverityGrade) {
+                graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH", "frequency_faers", entry.adrFrequencyFAERS,
+                              "severity_grade_faers", entry.adrSeverityGradeFAERS);
+            } else if (hasFrequency) {
+                graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH", "frequency_faers", entry.adrFrequencyFAERS);
+            } else if (hasSeverityGrade) {
+                graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH", "severity_grade_faers",
+                              entry.adrSeverityGradeFAERS);
+            } else {
+                graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH");
+            }
+        }
     }
 }

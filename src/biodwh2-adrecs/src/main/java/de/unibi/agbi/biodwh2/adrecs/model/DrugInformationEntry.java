@@ -6,7 +6,9 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
-@JsonPropertyOrder({"DRUG_ID", "DRUG_NAME", "DRUG_SYNONYMS", "DrugBank_ID", "PubChem_ID", "MESH_ID", "KEGG_ID"})
+@JsonPropertyOrder({
+        "DRUG_ID", "DRUG_NAME", "DRUG_SYNONYMS", "DrugBank_ID", "PubChem_ID", "MESH_ID", "KEGG_ID", "TTD_ID"
+})
 @GraphNodeLabel("Drug")
 public class DrugInformationEntry {
     @JsonProperty("DRUG_ID")
@@ -30,4 +32,7 @@ public class DrugInformationEntry {
     @JsonProperty("KEGG_ID")
     @GraphProperty(value = "kegg_id", emptyPlaceholder = "Not Available", ignoreEmpty = true)
     public String keggId;
+    @JsonProperty("TTD_ID")
+    @GraphProperty(value = "ttd_id", emptyPlaceholder = "Not Available", ignoreEmpty = true)
+    public String ttdId;
 }

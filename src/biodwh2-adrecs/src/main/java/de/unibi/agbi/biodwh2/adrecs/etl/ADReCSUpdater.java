@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 public class ADReCSUpdater extends Updater<ADReCSDataSource> {
     private static final Pattern UPDATE_DATE_PATTERN = Pattern.compile("[0-9]{4}/[0-9]{2}/[0-9]{2}");
     private static final String DOWNLOAD_URL_PREFIX = "http://bioinf.xmu.edu.cn/ADReCS/download/";
-    static final String DRUG_ADR_FILE_NAME = "Drug_ADR.xlsx.gz";
+    static final String DRUG_ADR_FILE_NAME = "Drug_ADR.txt.gz";
     static final String ADR_ONTOLOGY_FILE_NAME = "ADR_ontology.xlsx.gz";
     static final String DRUG_INFO_FILE_NAME = "Drug_information.xlsx.gz";
 
