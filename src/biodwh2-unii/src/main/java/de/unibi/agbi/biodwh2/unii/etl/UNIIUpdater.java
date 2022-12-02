@@ -10,27 +10,21 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.unii.UNIIDataSource;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class UNIIUpdater extends Updater<UNIIDataSource> {
     private static final String WEBSITE_URL = "https://precision.fda.gov/uniisearch/archive";
-    private static final String DOWNLOAD_URL_PREFIX = "https://qnyqxh695c.execute-api.us-east-1.amazonaws.com/production/v1/get-file/";
+    private static final String DOWNLOAD_URL_PREFIX = "https://precision.fda.gov/uniisearch/archive/latest/";
     private static final Pattern VERSION_PATTERN = Pattern.compile("[0-9]{4}-[0-9]{2}-[0-9]{2}");
     static final String UNIIS_FILE_NAME = "UNIIs.zip";
     static final String UNII_DATA_FILE_NAME = "UNII_Data.zip";
-
-    private String newestDataFileName = null;
-    private String newestNamesFileName = null;
 
     public UNIIUpdater(final UNIIDataSource dataSource) {
         super(dataSource);
@@ -64,17 +58,7 @@ public class UNIIUpdater extends Updater<UNIIDataSource> {
                 final Version version = Version.tryParse(StringUtils.replace(versionMatcher.group(0), "-", "."));
                 if (version != null && (newestVersion == null || version.compareTo(newestVersion) > 0)) {
                     newestVersion = version;
-                    newestDataFileName = fileName;
                 }
-            }
-        }
-        for (final JsonNode file : json.get("props").get("pageProps").get("namesRecords")) {
-            final String fileName = file.get("fileName").asText();
-            final Matcher versionMatcher = VERSION_PATTERN.matcher(fileName);
-            if (versionMatcher.find()) {
-                final Version version = Version.tryParse(StringUtils.replace(versionMatcher.group(0), "-", "."));
-                if (version != null && version.equals(newestVersion))
-                    newestNamesFileName = fileName;
             }
         }
         return newestVersion;
@@ -82,23 +66,15 @@ public class UNIIUpdater extends Updater<UNIIDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        downloadFile(DOWNLOAD_URL_PREFIX + newestNamesFileName,
-                     dataSource.resolveSourceFilePath(workspace, UNIIS_FILE_NAME));
-        downloadFile(DOWNLOAD_URL_PREFIX + newestDataFileName,
-                     dataSource.resolveSourceFilePath(workspace, UNII_DATA_FILE_NAME));
-        return true;
-    }
-
-    private void downloadFile(final String url, final String filePath) throws UpdaterException {
-        final File newFile = new File(filePath);
         try {
-            final ObjectMapper mapper = new ObjectMapper();
-            final JsonNode json = mapper.readTree(HTTPClient.getWebsiteSource(url));
-            final String resolvedDownloadUrl = json.get("url").asText();
-            FileUtils.copyURLToFile(new URL(resolvedDownloadUrl), newFile);
+            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + UNIIS_FILE_NAME,
+                                             dataSource.resolveSourceFilePath(workspace, UNIIS_FILE_NAME));
+            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + UNII_DATA_FILE_NAME,
+                                             dataSource.resolveSourceFilePath(workspace, UNII_DATA_FILE_NAME));
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
+        return true;
     }
 
     @Override

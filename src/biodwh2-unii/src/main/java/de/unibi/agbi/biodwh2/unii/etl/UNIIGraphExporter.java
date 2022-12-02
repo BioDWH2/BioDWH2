@@ -28,7 +28,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 3;
+        return 4;
     }
 
     @Override
@@ -36,7 +36,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
         itisIdNodeIdMap = new HashMap<>();
         ncbiTaxonomyIdNodeIdMap = new HashMap<>();
         usdaPlantsSymbolNodeIdMap = new HashMap<>();
-        graph.addIndex(IndexDescription.forNode(UNII_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(UNII_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         Map<String, List<UNIIEntry>> uniiEntriesMap = new HashMap<>();
         for (UNIIEntry entry : dataSource.uniiEntries) {
             if (!uniiEntriesMap.containsKey(entry.unii))
@@ -51,7 +51,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
     private void createUNIINode(final Graph graph, final List<UNIIEntry> entries, final UNIIDataEntry dataEntry) {
         Node uniiNode;
         if (dataEntry == null)
-            uniiNode = graph.addNode(UNII_LABEL, "id", entries.get(0).unii);
+            uniiNode = graph.addNode(UNII_LABEL, ID_KEY, entries.get(0).unii);
         else
             uniiNode = graph.addNodeFromModel(dataEntry);
         uniiNode.setProperty("name", entries.get(0).displayName);
