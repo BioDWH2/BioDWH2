@@ -12,11 +12,11 @@ public class Gene2PhenotypeMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if ("Gene".equalsIgnoreCase(localMappingLabel))
+        if (Gene2PhenotypeGraphExporter.GENE_LABEL.equalsIgnoreCase(localMappingLabel))
             return describeGene(node);
-        if ("Disease".equalsIgnoreCase(localMappingLabel))
+        if (Gene2PhenotypeGraphExporter.DISEASE_LABEL.equalsIgnoreCase(localMappingLabel))
             return describeDisease(node);
-        if ("Publication".equalsIgnoreCase(localMappingLabel))
+        if (Gene2PhenotypeGraphExporter.PUBLICATION_LABEL.equalsIgnoreCase(localMappingLabel))
             return describePublication(node);
         return null;
     }

@@ -1,8 +1,11 @@
 package de.unibi.agbi.biodwh2.gene2phenotype.etl;
 
+import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -10,8 +13,13 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.gene2phenotype.Gene2PhenotypeDataSource;
 import de.unibi.agbi.biodwh2.gene2phenotype.model.GeneDiseasePair;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 public class Gene2PhenotypeGraphExporter extends GraphExporter<Gene2PhenotypeDataSource> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Gene2PhenotypeGraphExporter.class);
     static final String PUBLICATION_LABEL = "Publication";
     static final String GENE_LABEL = "Gene";
     static final String PHENOTYPE_LABEL = "Phenotype";
@@ -32,13 +40,23 @@ public class Gene2PhenotypeGraphExporter extends GraphExporter<Gene2PhenotypeDat
         graph.addIndex(IndexDescription.forNode(PUBLICATION_LABEL, "pmid", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(PHENOTYPE_LABEL, "hpo_id", false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, "mim", false, IndexDescription.Type.UNIQUE));
-        exportGeneDiseasePairs(graph);
+        exportGeneDiseasePairs(workspace, graph);
         return true;
     }
 
-    private void exportGeneDiseasePairs(final Graph graph) {
-        for (final GeneDiseasePair association : dataSource.geneDiseasePairs)
-            exportGeneDiseasePair(graph, association);
+    private void exportGeneDiseasePairs(final Workspace workspace, final Graph graph) {
+        for (final String fileName : Gene2PhenotypeUpdater.FILE_NAMES) {
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("Exporting " + fileName + "...");
+            try (final MappingIterator<GeneDiseasePair> iterator = FileUtils.openGzipCsvWithHeader(workspace,
+                                                                                                   dataSource, fileName,
+                                                                                                   GeneDiseasePair.class)) {
+                while (iterator.hasNext())
+                    exportGeneDiseasePair(graph, iterator.next());
+            } catch (IOException e) {
+                throw new ExporterFormatException(e);
+            }
+        }
     }
 
     private void exportGeneDiseasePair(final Graph graph, final GeneDiseasePair association) {

@@ -17,7 +17,7 @@ public class Gene2PhenotypeUpdater extends Updater<Gene2PhenotypeDataSource> {
     private static final String G2P_MAIN_URL = "https://www.ebi.ac.uk/gene2phenotype";
     private static final String G2P_DOWNLOAD_URL = "https://www.ebi.ac.uk/gene2phenotype/downloads/";
     static final String[] FILE_NAMES = new String[]{
-            "CancerG2P.csv.gz", "DDG2P.csv.gz", "EyeG2P.csv.gz", "SkinG2P.csv.gz"
+            "CancerG2P.csv.gz", "CardiacG2P.csv.gz", "DDG2P.csv.gz", "EyeG2P.csv.gz", "SkinG2P.csv.gz"
     };
 
     public Gene2PhenotypeUpdater(final Gene2PhenotypeDataSource dataSource) {
