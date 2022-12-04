@@ -1,5 +1,45 @@
 # Changelog
 
+## 📦 Version v0.4.7
+
+Released: upcoming
+
+### 📚 Data Sources
+
+* ```[NDF-RT]``` #11 Fix NDF-RT updater
+* ```[HGNC]``` #13 Change HGNC entrez id to Integer and export miRNA nodes with mapping
+* ```[DrugCentral]``` #18 Fix DrugCentral updater and export new Vet information
+* ```[UNII]``` #29 Fix UNII updater and data model
+* ```[ClinicalTrials.gov]``` #50 Add ClinicalTrials.gov data source module, superseding AACT module
+* ```[Gene2Phenotype]``` #51 Add new Cardiac file to Gene2Phenotype
+* ```[ADReCS]``` #60 Fix ADReCS updater and data model
+* ```[TTD]``` #69 Add TTD data source module
+* ```[T3DB]``` #72 Add T3DB data source module
+* ```[TarBase]``` #73 Add TarBase data source module
+* ```[miRBase]``` #74 Add miRBase data source module
+* ```[miRTarBase]``` #75 Add miRTarBase data source module
+* ```[RNAInter]``` #77 Add RNAInter data source module
+* ```[miRDB]``` #78 Add miRDB data source module
+* ```[TRRUST]``` #79 Add TRRUST data source module
+
+### 🔧 Bug fixes and other changes
+
+* ```[docs]``` Update docs
+* ```[feature]``` Improve meta graph generation performance
+* ```[feature]``` Add retries and more date formats to MultiFileFTPWebUpdater
+* ```[feature]``` XLSX mapping iterator is now available in core module
+* ```[feature]``` Add FASTA file format reader to core module
+* ```[feature]``` Add FlatFile format reader to core module
+* ```[feature]``` Add Collection utilities to core module
+* ```[feature]``` Add SpeciesLookup to core module
+* ```[feature]``` BaseGraph now supports getNodeIds and getEdgeIds methods
+* ```[feature]``` Add GraphNumberProperty annotation for class mapping
+* ```[feature]``` Exports now store a config properties hash to re-export on config changes
+* ```[feature]``` Add global species filter to config file (data source modules will need to support it)
+* ```[feature]``` Add GraphNumberProperty annotation for class mapping
+* ```[feature]``` Fix html encoded characters for HTTPFTPClient
+* ```[chore]``` Update dependencies
+
 ## 📦 Version [v0.4.6](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.6)
 
 Released: 12.09.2022
