@@ -5,8 +5,12 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @GraphNodeLabel("Drug")
 public class Drug {
+    public Drug(final String id) {
+        this.id = id;
+    }
+
     @GraphProperty("id")
-    public String id;
+    public final String id;
     @GraphProperty("trade_name")
     public String tradeName;
     @GraphProperty("company")
@@ -29,8 +33,8 @@ public class Drug {
     public String adiID;
     @GraphProperty("cas_number")
     public String casNumber;
-    @GraphProperty("formular")
-    public String formular;
+    @GraphProperty("formula")
+    public String formula;
     @GraphProperty("pubchem_cids")
     public String[] pubChemCID;
     @GraphProperty("pubchem_sids")

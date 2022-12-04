@@ -78,7 +78,7 @@ public class FlatFileWithoutIDTTDReader implements Iterable<FlatFileTTDEntry>, A
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         if (reader != null)
             reader.close();
     }

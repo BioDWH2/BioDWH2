@@ -7,7 +7,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 public class Target {
     @GraphProperty("id")
     public String id;
-    @GraphProperty("former_target_id")
+    @GraphProperty("previous_id")
     public String formerTargetId;
     @GraphProperty("uniprot_id")
     public String uniProtID;

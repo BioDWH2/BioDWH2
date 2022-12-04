@@ -13,5 +13,4 @@ public class DrugTargetMapping {
     public String highestStatus;
     @JsonProperty("MOA")
     public String moa;
-
 }
