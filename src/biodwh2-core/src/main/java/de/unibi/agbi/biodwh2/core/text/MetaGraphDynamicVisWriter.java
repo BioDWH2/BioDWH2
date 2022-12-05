@@ -21,16 +21,30 @@ public final class MetaGraphDynamicVisWriter {
         builder.append("<html lang=\"en\">\n");
         builder.append("  <head>\n");
         builder.append("    <style type=\"text/css\">\n");
-        builder.append("      html, body { margin: 0; padding: 0; color: #d3d3d3; background-color: #222222; }\n");
-        builder.append("      #surface { width: 100%; height: 100vh; background-color: #222222; }\n");
+        builder.append("      html, body { margin: 0; padding: 0; color: #000000; background-color: #FFFFFF; }\n");
+        builder.append("      #surface { width: 100%; height: 100vh; background-color: #FFFFFF; }\n");
         builder.append("    </style>\n");
         builder.append(
-                "    <script type=\"text/javascript\" src=\"https://unpkg.com/vis-network/standalone/umd/vis-network.min.js\"></script>\n");
+                "    <script type=\"text/javascript\" src=\"https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.0/echarts.min.js\"></script>\n");
         builder.append("  </head>\n");
         builder.append("  <body>\n");
         builder.append("    <div id=\"surface\"></div>\n");
         builder.append("    <script type=\"text/javascript\">\n");
-        builder.append("      var nodes = new vis.DataSet([\n");
+        builder.append("      var graphChart = echarts.init(document.getElementById('surface'));\n");
+        builder.append("      var options = {\n");
+        builder.append("        series: [{\n");
+        builder.append("          type: 'graph',\n");
+        builder.append("          layout: 'force',\n");
+        builder.append("          roam: true,\n");
+        builder.append("          draggable: true,\n");
+        builder.append("          symbol: 'roundRect',\n");
+        builder.append("          symbolSize: [20, 10],\n");
+        builder.append("          label: { show: true, fontWeight: 'bold' },\n");
+        builder.append("          itemStyle: { borderWidth: 1, borderColor: '#000000' },\n");
+        builder.append("          edgeLabel: { show: true, fontWeight: 'bold', " +
+                       "formatter: function(params) { return params.data.name; } },\n");
+        builder.append("          lineStyle: { color: '#000000', width: 2 },\n");
+        builder.append("          nodes: [\n");
         int currentColor = 0;
         for (final MetaNode node : graph.getNodes()) {
             final Color color = Color.getHSBColor(currentColor / (float) graph.getNodeLabelCount(), 0.85f, 1.0f);
@@ -38,45 +52,25 @@ public final class MetaGraphDynamicVisWriter {
             currentColor++;
             builder.append("        { ");
             builder.append("id: \"").append(node.label).append("\", ");
-            builder.append("label: \"").append(node.label).append("\", ");
-            builder.append("color: \"").append(hexColor).append("\", ");
+            builder.append("name: \"").append(node.label).append("\", ");
+            builder.append("itemStyle: { color: \"").append(hexColor).append("\" }, ");
+            if ("metadata".equals(node.label))
+                builder.append("symbol: 'diamond', ");
             builder.append("},\n");
         }
-        builder.append("      ]);\n");
-        builder.append("      var edges = new vis.DataSet([\n");
+        builder.append("          ],\n");
+        builder.append("          edges: [\n");
         for (final MetaEdge edge : graph.getEdges()) {
             builder.append("        { ");
-            builder.append("from: \"").append(edge.fromLabel).append("\", ");
-            builder.append("to: \"").append(edge.toLabel).append("\", ");
-            builder.append("label: \"").append(edge.label).append("\", ");
+            builder.append("source: \"").append(edge.fromLabel).append("\", ");
+            builder.append("target: \"").append(edge.toLabel).append("\", ");
+            builder.append("name: \"").append(edge.label).append("\", ");
             builder.append("},\n");
         }
-        builder.append("      ]);\n");
-        builder.append("      var container = document.getElementById(\"surface\");\n");
-        builder.append("      var data = { nodes: nodes, edges: edges };\n");
-        builder.append("      var options = {\n");
-        builder.append("        nodes: {\n");
-        builder.append("          shadow: {enabled: true},\n");
-        builder.append("          font: {\n");
-        builder.append("            color: \"#FFFFFF\",\n");
-        builder.append("            strokeColor: \"#000000\",\n");
-        builder.append("            strokeWidth: 3,\n");
-        builder.append("          }\n");
-        builder.append("        },\n");
-        builder.append("        edges: {\n");
-        builder.append("          color: \"#FFFFFF\",\n");
-        builder.append("          arrows: \"to\",\n");
-        builder.append("          length: 300,\n");
-        builder.append("          shadow: {enabled: true},\n");
-        builder.append("          font: {\n");
-        builder.append("            color: \"#FFFFFF\",\n");
-        builder.append("            strokeColor: \"#000000\",\n");
-        builder.append("            strokeWidth: 3,\n");
-        builder.append("            align: \"middle\",\n");
-        builder.append("          }\n");
-        builder.append("        },\n");
+        builder.append("          ]\n");
+        builder.append("        }]\n");
         builder.append("      };\n");
-        builder.append("      var network = new vis.Network(container, data, options);\n");
+        builder.append("      graphChart.setOption(options);\n");
         builder.append("    </script>\n");
         builder.append("  </body>\n");
         builder.append("</html>\n");
