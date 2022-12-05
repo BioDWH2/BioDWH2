@@ -1,7 +1,10 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
+import de.unibi.agbi.biodwh2.core.etl.GraphMapper;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -30,13 +33,15 @@ public final class NodeMappingDescription {
         PROTEIN_DOMAIN,
         PUBLICATION,
         RNA,
-        //SIDE_EFFECT, //-------
         SYMPTOM,
         TARGET,
         TAXON,
         UNKNOWN,
         VARIANT
     }
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GraphMapper.class);
+    private static final Map<IdentifierType, Set<Class<?>>> loggedIdentifierMismatchTypes = new HashMap<>();
 
     private final String type;
     private final Map<String, Set<String>> identifier;
@@ -71,43 +76,66 @@ public final class NodeMappingDescription {
     }
 
     public void addIdentifier(final IdentifierType type, final Collection<?> ids) {
-        if (ids != null)
-            for (final Object value : ids)
-                addIdentifier(type.prefix, value.toString());
-    }
-
-    public void addIdentifier(final IdentifierType type, final Long longValue) {
-        if (longValue != null)
-            addIdentifier(type.prefix, longValue.toString());
-    }
-
-    public void addIdentifier(final String type, final String value) {
-        if (StringUtils.isNotEmpty(value)) {
-            if (!identifier.containsKey(type))
-                identifier.put(type, new HashSet<>());
-            identifier.get(type).add(value);
-            identifierCache = null;
+        if (ids != null) {
+            for (final Object id : ids) {
+                checkIdentifierRecommendedTypeIfAvailable(type, id);
+                addIdentifierWithoutChecks(type.prefix, id.toString());
+            }
         }
     }
 
-    public void addIdentifier(final IdentifierType type, final String value) {
-        if (StringUtils.isNotEmpty(value))
-            addIdentifier(type.prefix, value);
+    private void checkIdentifierRecommendedTypeIfAvailable(final IdentifierType type, final Object id) {
+        if (id != null && type.expectedType != null && !type.expectedType.isAssignableFrom(id.getClass())) {
+            final Set<Class<?>> loggedTypes = loggedIdentifierMismatchTypes.computeIfAbsent(type, k -> new HashSet<>());
+            if (loggedTypes.contains(id.getClass()))
+                return;
+            loggedTypes.add(id.getClass());
+            if (LOGGER.isWarnEnabled())
+                LOGGER.warn(
+                        "Identifier type '" + type + "' recommends java type '" + type.expectedType + "' but the id '" +
+                        id + "' is of type '" + id.getClass() + "' (logged only once)");
+        }
     }
 
-    public void addIdentifier(final IdentifierType type, final Integer intValue) {
-        if (intValue != null)
-            addIdentifier(type.prefix, intValue.toString());
+    private void addIdentifierWithoutChecks(final String type, final String id) {
+        identifier.computeIfAbsent(type, k -> new HashSet<>()).add(id);
+        identifierCache = null;
     }
 
-    public void addIdentifier(final String type, final Long longValue) {
-        if (longValue != null)
-            addIdentifier(type, longValue.toString());
+    public void addIdentifier(final IdentifierType type, final Long id) {
+        if (id != null) {
+            checkIdentifierRecommendedTypeIfAvailable(type, id);
+            addIdentifierWithoutChecks(type.prefix, id.toString());
+        }
     }
 
-    public void addIdentifier(final String type, final Integer intValue) {
-        if (intValue != null)
-            addIdentifier(type, intValue.toString());
+    public void addIdentifier(final String type, final String id) {
+        if (StringUtils.isNotEmpty(id))
+            addIdentifierWithoutChecks(type, id);
+    }
+
+    public void addIdentifier(final IdentifierType type, final String id) {
+        if (StringUtils.isNotEmpty(id)) {
+            checkIdentifierRecommendedTypeIfAvailable(type, id);
+            addIdentifierWithoutChecks(type.prefix, id);
+        }
+    }
+
+    public void addIdentifier(final IdentifierType type, final Integer id) {
+        if (id != null) {
+            checkIdentifierRecommendedTypeIfAvailable(type, id);
+            addIdentifierWithoutChecks(type.prefix, id.toString());
+        }
+    }
+
+    public void addIdentifier(final String type, final Long id) {
+        if (id != null)
+            addIdentifierWithoutChecks(type, id.toString());
+    }
+
+    public void addIdentifier(final String type, final Integer id) {
+        if (id != null)
+            addIdentifierWithoutChecks(type, id.toString());
     }
 
     public Set<String> getIdentifiers() {
