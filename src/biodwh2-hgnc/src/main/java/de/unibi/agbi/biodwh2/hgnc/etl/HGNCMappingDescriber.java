@@ -6,7 +6,6 @@ import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 public class HGNCMappingDescriber extends MappingDescriber {
-    private static final String OMIM_ID_KEY = "omim_id";
 
     public HGNCMappingDescriber(final DataSource dataSource) {
         super(dataSource);
@@ -29,14 +28,18 @@ public class HGNCMappingDescriber extends MappingDescriber {
         description.addNames(node.<String[]>getProperty("alias_names"));
         description.addIdentifier(IdentifierType.HGNC_ID, getHGNCIdFromNode(node));
         description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("symbol"));
-        description.addIdentifier(IdentifierType.OMIM, node.<String>getProperty(OMIM_ID_KEY));
+        final String[] omimIds = node.getProperty("omim_ids");
+        if (omimIds != null)
+            for (final String omimId : omimIds)
+                description.addIdentifier(IdentifierType.OMIM, Integer.parseInt(omimId));
         description.addIdentifier(IdentifierType.ENSEMBL_GENE_ID, node.<String>getProperty("ensembl_gene_id"));
         description.addIdentifier(IdentifierType.ENTREZ_GENE_ID, node.<Integer>getProperty("entrez_id"));
         return new NodeMappingDescription[]{description};
     }
 
-    private String getHGNCIdFromNode(final Node node) {
-        return node.<String>getProperty(HGNCGraphExporter.HGNC_ID_KEY).replace("HGNC:", "");
+    private Integer getHGNCIdFromNode(final Node node) {
+        final String id = node.getProperty(HGNCGraphExporter.HGNC_ID_KEY);
+        return Integer.parseInt(id.replace("HGNC:", ""));
     }
 
     private NodeMappingDescription[] describeProtein(final Node node) {

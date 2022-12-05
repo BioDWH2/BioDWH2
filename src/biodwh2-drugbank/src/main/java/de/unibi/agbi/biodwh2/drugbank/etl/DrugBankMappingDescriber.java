@@ -94,7 +94,7 @@ public class DrugBankMappingDescriber extends MappingDescriber {
             final Node adjacentNode = graph.getNode(nodeId);
             if ("HUGO Gene Nomenclature Committee (HGNC)".equals(adjacentNode.getProperty("resource"))) {
                 final String hgncLabel = adjacentNode.getProperty("id");
-                final String correctedLabel = hgncLabel.replaceFirst("HGNC:", "");
+                final Integer correctedLabel = Integer.parseInt(hgncLabel.replace("HGNC:", ""));
                 description.addIdentifier(IdentifierType.HGNC_ID, correctedLabel);
             } else if ("GenAtlas".equals(adjacentNode.getProperty("resource"))) {
                 description.addIdentifier(IdentifierType.GEN_ATLAS, adjacentNode.<String>getProperty("id"));

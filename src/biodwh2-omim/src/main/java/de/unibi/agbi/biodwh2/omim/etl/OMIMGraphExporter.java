@@ -37,25 +37,25 @@ public class OMIMGraphExporter extends GraphExporter<OMIMDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.addIndex(IndexDescription.forNode(GENE_LABEL, MIM_NUMBER_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(PHENOTYPE_LABEL, MIM_NUMBER_KEY, IndexDescription.Type.UNIQUE));
-        final Map<String, MIMTitles> mimNumberToTitles = loadMimTitles(workspace);
+        final Map<Integer, MIMTitles> mimNumberToTitles = loadMimTitles(workspace);
         exportGeneMap2(workspace, graph, mimNumberToTitles);
         return true;
     }
 
-    private Map<String, MIMTitles> loadMimTitles(final Workspace workspace) {
+    private Map<Integer, MIMTitles> loadMimTitles(final Workspace workspace) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Loading MIM titles...");
-        final Map<String, MIMTitles> result = new HashMap<>();
+        final Map<Integer, MIMTitles> result = new HashMap<>();
         for (final MIMTitles entry : parseTsvFile(workspace, MIMTitles.class, OMIMUpdater.MIMTITLES_FILENAME))
             if (!entry.prefix.equalsIgnoreCase("Caret"))
-                result.put(entry.mimNumber, entry);
+                result.put(Integer.parseInt(entry.mimNumber), entry);
         return result;
     }
 
@@ -71,7 +71,7 @@ public class OMIMGraphExporter extends GraphExporter<OMIMDataSource> {
     }
 
     private void exportGeneMap2(final Workspace workspace, final Graph graph,
-                                final Map<String, MIMTitles> mimNumberToTitles) {
+                                final Map<Integer, MIMTitles> mimNumberToTitles) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Export GeneMap2...");
         for (final GeneMap2 entry : parseTsvFile(workspace, GeneMap2.class, OMIMUpdater.GENEMAP2_FILENAME)) {
@@ -98,14 +98,15 @@ public class OMIMGraphExporter extends GraphExporter<OMIMDataSource> {
         return Arrays.stream(StringUtils.splitByWholeSeparator(titles, ";;")).map(String::trim).toArray(String[]::new);
     }
 
-    private void exportEntryPhenotypes(final Graph graph, final Map<String, MIMTitles> mimNumberToTitles,
+    private void exportEntryPhenotypes(final Graph graph, final Map<Integer, MIMTitles> mimNumberToTitles,
                                        final Node geneNode, final GeneMap2 entry) {
         for (final String phenotype : StringUtils.split(entry.phenotypes, ';')) {
             final Matcher longMatcher = LONG_PHENOTYPE_PATTERN.matcher(phenotype.trim());
             final Matcher shortMatcher = SHORT_PHENOTYPE_PATTERN.matcher(phenotype.trim());
             Node phenotypeNode = null;
             if (longMatcher.find()) {
-                phenotypeNode = getOrCreatePhenotypeNode(graph, mimNumberToTitles, longMatcher.group(2),
+                phenotypeNode = getOrCreatePhenotypeNode(graph, mimNumberToTitles,
+                                                         Integer.parseInt(longMatcher.group(2)),
                                                          longMatcher.group(1).trim(), longMatcher.group(3),
                                                          longMatcher.group(5));
             } else if (shortMatcher.find()) {
@@ -119,8 +120,8 @@ public class OMIMGraphExporter extends GraphExporter<OMIMDataSource> {
         }
     }
 
-    private Node getOrCreatePhenotypeNode(final Graph graph, final Map<String, MIMTitles> mimNumberToTitles,
-                                          final String mimNumber, String name, final String mappingKey,
+    private Node getOrCreatePhenotypeNode(final Graph graph, final Map<Integer, MIMTitles> mimNumberToTitles,
+                                          final Integer mimNumber, String name, final String mappingKey,
                                           final String inheritance) {
         final Node node = graph.findNode(PHENOTYPE_LABEL, MIM_NUMBER_KEY, mimNumber);
         if (node != null)
@@ -128,8 +129,8 @@ public class OMIMGraphExporter extends GraphExporter<OMIMDataSource> {
         return createPhenotypeNode(graph, mimNumberToTitles, mimNumber, name, mappingKey, inheritance);
     }
 
-    private Node createPhenotypeNode(final Graph graph, final Map<String, MIMTitles> mimNumberToTitles,
-                                     final String mimNumber, String name, final String mappingKey,
+    private Node createPhenotypeNode(final Graph graph, final Map<Integer, MIMTitles> mimNumberToTitles,
+                                     final Integer mimNumber, String name, final String mappingKey,
                                      final String inheritance) {
         final NodeBuilder builder = graph.buildNode().withLabel(PHENOTYPE_LABEL);
         builder.withProperty(MIM_NUMBER_KEY, mimNumber);

@@ -23,9 +23,9 @@ public class OMIMMappingDescriber extends MappingDescriber {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
         description.addNames(node.getProperty("name"), node.getProperty("preferred_title"));
         description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("approved_gene_symbol"));
-        description.addIdentifier(IdentifierType.OMIM, node.<String>getProperty(OMIMGraphExporter.MIM_NUMBER_KEY));
+        description.addIdentifier(IdentifierType.OMIM, node.<Integer>getProperty(OMIMGraphExporter.MIM_NUMBER_KEY));
         description.addIdentifier(IdentifierType.ENSEMBL_GENE_ID, node.<String>getProperty("ensembl_gene_id"));
-        description.addIdentifier(IdentifierType.ENTREZ_GENE_ID, node.<String>getProperty("entrez_gene_id"));
+        description.addIdentifier(IdentifierType.ENTREZ_GENE_ID, node.<Integer>getProperty("entrez_gene_id"));
         return new NodeMappingDescription[]{description};
     }
 
@@ -33,7 +33,7 @@ public class OMIMMappingDescriber extends MappingDescriber {
         final NodeMappingDescription description = new NodeMappingDescription(
                 NodeMappingDescription.NodeType.PHENOTYPE);
         description.addNames(node.getProperty("name"), node.getProperty("preferred_title"));
-        description.addIdentifier(IdentifierType.OMIM, node.<String>getProperty(OMIMGraphExporter.MIM_NUMBER_KEY));
+        description.addIdentifier(IdentifierType.OMIM, node.<Integer>getProperty(OMIMGraphExporter.MIM_NUMBER_KEY));
         return new NodeMappingDescription[]{description};
     }
 

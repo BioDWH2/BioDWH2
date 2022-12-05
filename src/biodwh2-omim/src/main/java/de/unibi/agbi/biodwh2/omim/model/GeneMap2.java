@@ -31,7 +31,7 @@ public class GeneMap2 {
     public String computedCytoLocation;
     @JsonProperty("MIM Number")
     @GraphProperty("mim_number")
-    public String mimNumber;
+    public Integer mimNumber;
     @JsonProperty("Gene Symbols")
     @GraphArrayProperty(value = "gene_symbols", arrayDelimiter = ", ")
     public String geneSymbols;
@@ -43,7 +43,7 @@ public class GeneMap2 {
     public String approvedGeneSymbol;
     @JsonProperty("Entrez Gene ID")
     @GraphProperty("entrez_gene_id")
-    public String entrezGeneID;
+    public Integer entrezGeneID;
     @JsonProperty("Ensembl Gene ID")
     @GraphProperty("ensembl_gene_id")
     public String ensemblGeneID;

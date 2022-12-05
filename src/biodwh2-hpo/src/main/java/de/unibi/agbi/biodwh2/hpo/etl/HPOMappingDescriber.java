@@ -35,7 +35,7 @@ public final class HPOMappingDescriber extends MappingDescriber {
         final String[] idParts = StringUtils.split(id, ":", 2);
         if (idParts != null && idParts.length == 2) {
             if ("OMIM".equals(idParts[0]))
-                description.addIdentifier(IdentifierType.OMIM, idParts[1]);
+                description.addIdentifier(IdentifierType.OMIM, Integer.parseInt(idParts[1]));
             else if ("DECIPHER".equals(idParts[0]))
                 description.addIdentifier("DECIPHER", idParts[1]);
             else if ("ORPHA".equals(idParts[0]))

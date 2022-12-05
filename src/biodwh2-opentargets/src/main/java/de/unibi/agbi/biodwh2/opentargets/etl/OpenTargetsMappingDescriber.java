@@ -92,7 +92,7 @@ public class OpenTargetsMappingDescriber extends MappingDescriber {
                         description.addIdentifier(IdentifierType.ICD10, parts[1]);
                         break;
                     case "OMIM":
-                        description.addIdentifier(IdentifierType.OMIM, parts[1]);
+                        description.addIdentifier(IdentifierType.OMIM, Integer.parseInt(parts[1]));
                         break;
                     case "UMLS":
                         description.addIdentifier(IdentifierType.UMLS_CUI, parts[1]);
