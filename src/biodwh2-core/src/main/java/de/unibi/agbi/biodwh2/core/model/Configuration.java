@@ -12,7 +12,7 @@ import java.util.*;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Configuration {
     @JsonProperty("version")
-    private int version;
+    private final int version;
     @JsonProperty("creationDateTime")
     private final String creationDateTime;
     @JsonProperty("dataSourceIds")
@@ -22,9 +22,9 @@ public final class Configuration {
     @JsonProperty("dataSourceProperties")
     private final Map<String, Map<String, String>> dataSourceProperties;
     @JsonProperty("skipGraphMLExport")
-    private Boolean skipGraphMLExport;
+    private final Boolean skipGraphMLExport;
     @JsonProperty("skipMetaGraphGeneration")
-    private Boolean skipMetaGraphGeneration;
+    private final Boolean skipMetaGraphGeneration;
 
     public Configuration() {
         version = Workspace.VERSION;
@@ -32,11 +32,8 @@ public final class Configuration {
         dataSourceIds = new ArrayList<>();
         globalProperties = new GlobalProperties();
         dataSourceProperties = new HashMap<>();
-    }
-
-    @JsonIgnore
-    public LocalDateTime getLocalCreationDateTime() {
-        return LocalDateTime.parse(creationDateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        skipGraphMLExport = false;
+        skipMetaGraphGeneration = false;
     }
 
     public String[] getDataSourceIds() {
@@ -87,13 +84,18 @@ public final class Configuration {
         return Boolean.TRUE.equals(skipMetaGraphGeneration);
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonIgnoreProperties(ignoreUnknown = true, value = {"speciesFilterHelper"})
     public static class GlobalProperties {
         private SpeciesFilter speciesFilterHelper;
 
         @JsonProperty("speciesFilter")
         private Integer[] speciesFilter;
 
+        public GlobalProperties() {
+            speciesFilter = new Integer[0];
+        }
+
+        @JsonIgnore
         public SpeciesFilter getSpeciesFilter() {
             if (speciesFilterHelper == null)
                 speciesFilterHelper = new SpeciesFilter(speciesFilter);

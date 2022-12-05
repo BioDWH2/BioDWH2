@@ -1,5 +1,13 @@
 # Changelog
 
+## 📦 Version [v0.4.8](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.8)
+
+Released: 05.12.2022
+
+### 🔧 Bug fixes and other changes
+
+* ```[fix]``` Fix workspace creation with species filter
+
 ## 📦 Version [v0.4.7](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.7)
 
 Released: 04.12.2022
