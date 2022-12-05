@@ -31,7 +31,15 @@ public final class MetaGraphDynamicVisWriter {
         builder.append("    <div id=\"surface\"></div>\n");
         builder.append("    <script type=\"text/javascript\">\n");
         builder.append("      var graphChart = echarts.init(document.getElementById('surface'));\n");
+        builder.append("      var categories = [");
+        if (graph.isMappedGraph())
+            builder.append("{ name: 'Mapping', symbol: 'circle', symbolSize: 20 }, ");
+        for (final String dataSourceId : graph.getDataSourceIds())
+            builder.append("{ name: '").append(dataSourceId).append("' }, ");
+        builder.append("];\n");
         builder.append("      var options = {\n");
+        builder.append("        legend: [{ data: categories.map(function(a) { return a.name; }) }],\n");
+        builder.append("        toolbox: { feature: { saveAsImage: { show: true } } },\n");
         builder.append("        series: [{\n");
         builder.append("          type: 'graph',\n");
         builder.append("          layout: 'force',\n");
@@ -44,16 +52,21 @@ public final class MetaGraphDynamicVisWriter {
         builder.append("          edgeLabel: { show: true, fontWeight: 'bold', " +
                        "formatter: function(params) { return params.data.name; } },\n");
         builder.append("          lineStyle: { color: '#000000', width: 2 },\n");
+        builder.append("          categories: categories,\n");
         builder.append("          nodes: [\n");
         int currentColor = 0;
         for (final MetaNode node : graph.getNodes()) {
             final Color color = Color.getHSBColor(currentColor / (float) graph.getNodeLabelCount(), 0.85f, 1.0f);
             final String hexColor = String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
             currentColor++;
-            builder.append("        { ");
+            builder.append("            { ");
             builder.append("id: \"").append(node.label).append("\", ");
-            builder.append("name: \"").append(node.label).append("\", ");
-            builder.append("itemStyle: { color: \"").append(hexColor).append("\" }, ");
+            builder.append("name: \"").append(node.label).append("\\n(").append(node.count).append(")\", ");
+            if (node.dataSourceId != null)
+                builder.append("category: '").append(node.dataSourceId).append("', ");
+            else if (node.isMappingLabel)
+                builder.append("category: 'Mapping', ");
+            builder.append("itemStyle: { color: '").append(hexColor).append("' }, ");
             if ("metadata".equals(node.label))
                 builder.append("symbol: 'diamond', ");
             builder.append("},\n");
@@ -61,10 +74,10 @@ public final class MetaGraphDynamicVisWriter {
         builder.append("          ],\n");
         builder.append("          edges: [\n");
         for (final MetaEdge edge : graph.getEdges()) {
-            builder.append("        { ");
+            builder.append("            { ");
             builder.append("source: \"").append(edge.fromLabel).append("\", ");
             builder.append("target: \"").append(edge.toLabel).append("\", ");
-            builder.append("name: \"").append(edge.label).append("\", ");
+            builder.append("name: \"").append(edge.label).append("\\n(").append(edge.count).append(")\", ");
             builder.append("},\n");
         }
         builder.append("          ]\n");
