@@ -12,7 +12,7 @@ import java.io.IOException;
 
 public class GenCCUpdater extends Updater<GenCCDataSource> {
     private static final String DOWNLOAD_URL = "https://search.thegencc.org/download/action/submissions-export-tsv";
-    public static final String FILE_NAME = "gencc-submissions.tsv";
+    static final String FILE_NAME = "gencc-submissions.tsv";
 
     public GenCCUpdater(final GenCCDataSource dataSource) {
         super(dataSource);
