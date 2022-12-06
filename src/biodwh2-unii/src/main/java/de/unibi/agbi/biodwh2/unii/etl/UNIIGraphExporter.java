@@ -18,8 +18,8 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
     static final String ITIS_IDS_KEY = "itis_ids";
     static final String NCBI_TAXONOMY_IDS_KEY = "ncbi_taxonomy_ids";
     static final String USDA_PLANTS_SYMBOLS_KEY = "usda_plants_symbols";
-    private Map<Long, Long> itisIdNodeIdMap;
-    private Map<Long, Long> ncbiTaxonomyIdNodeIdMap;
+    private Map<Integer, Long> itisIdNodeIdMap;
+    private Map<Integer, Long> ncbiTaxonomyIdNodeIdMap;
     private Map<String, Long> usdaPlantsSymbolNodeIdMap;
 
     public UNIIGraphExporter(final UNIIDataSource dataSource) {
@@ -28,7 +28,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 4;
+        return 5;
     }
 
     @Override
@@ -78,15 +78,15 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
         final Set<Long> matchedNodeIds = new HashSet<>();
         if (dataEntry.itis != null && itisIdNodeIdMap.containsKey(dataEntry.itis))
             matchedNodeIds.add(itisIdNodeIdMap.get(dataEntry.itis));
-        Long entryNcbi = dataEntry.ncbi != null ? parseNCBIId(dataEntry.ncbi) : null;
+        Integer entryNcbi = dataEntry.ncbi != null ? parseNCBIId(dataEntry.ncbi) : null;
         if (dataEntry.ncbi != null && ncbiTaxonomyIdNodeIdMap.containsKey(entryNcbi))
             matchedNodeIds.add(ncbiTaxonomyIdNodeIdMap.get(entryNcbi));
         if (dataEntry.plants != null && usdaPlantsSymbolNodeIdMap.containsKey(dataEntry.plants))
             matchedNodeIds.add(usdaPlantsSymbolNodeIdMap.get(dataEntry.plants));
-        final Set<Long> itisIds = new HashSet<>();
+        final Set<Integer> itisIds = new HashSet<>();
         if (dataEntry.itis != null)
             itisIds.add(dataEntry.itis);
-        final Set<Long> ncbiTaxonomyIds = new HashSet<>();
+        final Set<Integer> ncbiTaxonomyIds = new HashSet<>();
         if (dataEntry.ncbi != null)
             ncbiTaxonomyIds.add(entryNcbi);
         final Set<String> usdaPlantsSymbols = new HashSet<>();
@@ -102,13 +102,13 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
             final int itisIdsSize = itisIds.size();
             final int ncbiTaxonomyIdsSize = ncbiTaxonomyIds.size();
             final int usdaPlantsSymbolsSize = usdaPlantsSymbols.size();
-            itisIds.addAll(node.<Set<Long>>getProperty(ITIS_IDS_KEY));
-            ncbiTaxonomyIds.addAll(node.<Set<Long>>getProperty(NCBI_TAXONOMY_IDS_KEY));
+            itisIds.addAll(node.<Set<Integer>>getProperty(ITIS_IDS_KEY));
+            ncbiTaxonomyIds.addAll(node.<Set<Integer>>getProperty(NCBI_TAXONOMY_IDS_KEY));
             usdaPlantsSymbols.addAll(node.<Set<String>>getProperty(USDA_PLANTS_SYMBOLS_KEY));
             for (int i = 1; i < matchedNodeIdsArray.length; i++) {
                 final Node nodeToMerge = graph.getNode(matchedNodeIdsArray[i]);
-                itisIds.addAll(nodeToMerge.<Set<Long>>getProperty(ITIS_IDS_KEY));
-                ncbiTaxonomyIds.addAll(nodeToMerge.<Set<Long>>getProperty(NCBI_TAXONOMY_IDS_KEY));
+                itisIds.addAll(nodeToMerge.<Set<Integer>>getProperty(ITIS_IDS_KEY));
+                ncbiTaxonomyIds.addAll(nodeToMerge.<Set<Integer>>getProperty(NCBI_TAXONOMY_IDS_KEY));
                 usdaPlantsSymbols.addAll(nodeToMerge.<Set<String>>getProperty(USDA_PLANTS_SYMBOLS_KEY));
                 graph.mergeNodes(node, nodeToMerge);
             }
@@ -120,16 +120,16 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
                 graph.update(node);
             }
         }
-        for (final Long itisId : itisIds)
+        for (final Integer itisId : itisIds)
             itisIdNodeIdMap.put(itisId, node.getId());
-        for (final Long ncbiTaxonomyId : ncbiTaxonomyIds)
+        for (final Integer ncbiTaxonomyId : ncbiTaxonomyIds)
             ncbiTaxonomyIdNodeIdMap.put(ncbiTaxonomyId, node.getId());
         for (final String usdaPlantsSymbol : usdaPlantsSymbols)
             usdaPlantsSymbolNodeIdMap.put(usdaPlantsSymbol, node.getId());
         return node;
     }
 
-    private Long parseNCBIId(final String ncbi) {
-        return Long.parseLong(ncbi.replace("NCBI:", "").replace("txid", ""));
+    private Integer parseNCBIId(final String ncbi) {
+        return Integer.parseInt(ncbi.replace("NCBI:", "").replace("txid", ""));
     }
 }

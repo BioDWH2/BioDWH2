@@ -50,7 +50,7 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
             if (reference.startsWith("DrugBank"))
                 description.addIdentifier(IdentifierType.DRUG_BANK, getIdFromPrefixIdPair(reference));
             else if (reference.startsWith("PubChem Compound"))
-                description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, getIdFromPrefixIdPair(reference));
+                description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, getIntIdFromPrefixIdPair(reference));
             else if (reference.startsWith("Chemical Abstracts Service"))
                 description.addIdentifier(IdentifierType.CAS, getIdFromPrefixIdPair(reference));
             else if (reference.startsWith("KEGG Compound"))
@@ -67,6 +67,10 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
         if (isChemicalADrug(node))
             return new NodeMappingDescription[]{description, describeDrug(node)};
         return new NodeMappingDescription[]{description};
+    }
+
+    private Integer getIntIdFromPrefixIdPair(final String pair) {
+        return Integer.parseInt(getIdFromPrefixIdPair(pair));
     }
 
     private boolean isChemicalADrug(final Node node) {
@@ -133,7 +137,7 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
             //else if (reference.startsWith("Ensembl"))
             //    description.addIdentifier(IdentifierType.ENSEMBL_GENE_ID, getIdFromPrefixIdPair(reference));
             else if (reference.startsWith("NCBI Gene"))
-                description.addIdentifier(IdentifierType.NCBI_GENE, getIdFromPrefixIdPair(reference));
+                description.addIdentifier(IdentifierType.NCBI_GENE, getIntIdFromPrefixIdPair(reference));
             /*
             "ALFRED", "Comparative Toxicogenomics Database", "GO", "HumanCyc Gene", "ModBase", "MutDB",
             "OMIM", "RefSeq DNA", "RefSeq Protein", "RefSeq RNA", "UCSC Genome Browser", "UniProtKB", "IUPHAR Receptor",

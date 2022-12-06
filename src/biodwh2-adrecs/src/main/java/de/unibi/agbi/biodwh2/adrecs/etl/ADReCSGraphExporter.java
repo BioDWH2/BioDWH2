@@ -34,7 +34,7 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 4;
+        return 5;
     }
 
     @Override

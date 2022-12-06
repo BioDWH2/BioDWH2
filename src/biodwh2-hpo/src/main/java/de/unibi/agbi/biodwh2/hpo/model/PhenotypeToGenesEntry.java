@@ -13,7 +13,7 @@ public final class PhenotypeToGenesEntry {
     @JsonProperty("HPO label")
     public String hpoLabel;
     @JsonProperty("entrez-gene-id")
-    public String entrezGeneId;
+    public Integer entrezGeneId;
     @JsonProperty("entrez-gene-symbol")
     public String entrezGeneSymbol;
     @JsonProperty("Additional Info from G-D source")

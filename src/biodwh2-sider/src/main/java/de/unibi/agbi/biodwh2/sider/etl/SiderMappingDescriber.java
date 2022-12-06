@@ -38,7 +38,7 @@ public class SiderMappingDescriber extends MappingDescriber {
     private NodeMappingDescription[] describeDrug(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
         final String id = StringUtils.stripStart(node.getProperty("flat_id"), "CID");
-        description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, "" + Long.parseLong(id));
+        description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, Integer.parseInt(id));
         return new NodeMappingDescription[]{description};
     }
 

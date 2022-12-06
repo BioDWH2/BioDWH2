@@ -41,7 +41,7 @@ public class KeggMappingDescriber extends MappingDescriber {
                 final String[] nameTags = StringUtils.split(name.substring(startIndex + 1, name.length() - 1), '/');
                 for (final String nameTag : nameTags)
                     if (nameTag.equals("INN")) {
-                        description.addIdentifier(IdentifierType.INTERNATIONAL_NONPROPRIETARY_NAMES, nameWithoutTags);
+                        description.addIdentifier(IdentifierType.INN, nameWithoutTags);
                         break;
                     }
             }

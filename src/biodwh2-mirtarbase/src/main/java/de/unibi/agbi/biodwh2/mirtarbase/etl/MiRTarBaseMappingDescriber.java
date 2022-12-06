@@ -32,7 +32,7 @@ public class MiRTarBaseMappingDescriber extends MappingDescriber {
         if (!"Homo sapiens".equalsIgnoreCase(species))
             return null;
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
-        description.addIdentifier(IdentifierType.ENTREZ_GENE_ID, node.<Integer>getProperty("entrez_gene_id"));
+        description.addIdentifier(IdentifierType.NCBI_GENE, node.<Integer>getProperty("entrez_gene_id"));
         return new NodeMappingDescription[]{description};
     }
 

@@ -39,7 +39,7 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
                     NodeMappingDescription.NodeType.PUBLICATION);
             description.addName(node.getProperty("title"));
             description.addName(generateAMACitation(node));
-            description.addIdentifier(IdentifierType.PUBMED_ID, node.<String>getProperty("pmid"));
+            description.addIdentifier(IdentifierType.PUBMED_ID, node.<Integer>getProperty("pmid"));
             description.addIdentifier(IdentifierType.DOI, node.<String>getProperty("doi"));
             return new NodeMappingDescription[]{description};
         }
@@ -159,7 +159,7 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
             return null;
         final NodeMappingDescription geneDescription = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
         geneDescription.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("gene"));
-        geneDescription.addIdentifier(IdentifierType.NCBI_GENE, node.<String>getProperty("geneid"));
+        geneDescription.addIdentifier(IdentifierType.NCBI_GENE, node.<Integer>getProperty("geneid"));
         final NodeMappingDescription proteinDescription = new NodeMappingDescription(
                 NodeMappingDescription.NodeType.PROTEIN);
         proteinDescription.addIdentifier(IdentifierType.UNIPROT_KB, node.<String>getProperty("accession"));

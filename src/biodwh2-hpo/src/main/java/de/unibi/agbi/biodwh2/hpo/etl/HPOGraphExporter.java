@@ -34,7 +34,7 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -44,8 +44,8 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode(GENE_LABEL, "id", IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(GENE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         omimLicensed = dataSource.getBooleanProperty(workspace, "omimLicensed");
         return super.exportGraph(workspace, graph) && exportAnnotations(workspace, graph);
     }
@@ -70,7 +70,7 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
     }
 
     private void exportPhenotypeAnnotation(final Graph graph, final PhenotypeAnnotation entry) {
-        final Node termNode = graph.findNode(TERM_LABEL, "id", entry.hpoId);
+        final Node termNode = graph.findNode(TERM_LABEL, ID_KEY, entry.hpoId);
         // If referencing an obsolete term excluded via config file, just skip this annotation
         if (termNode == null || !isPhenotypeAnnotationAllowed(entry))
             return;
@@ -93,9 +93,9 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
     }
 
     private Node getOrCreateDiseaseNode(final Graph graph, final String diseaseId, final String diseaseName) {
-        Node node = graph.findNode(DISEASE_LABEL, "id", diseaseId);
+        Node node = graph.findNode(DISEASE_LABEL, ID_KEY, diseaseId);
         if (node == null)
-            node = graph.addNode(DISEASE_LABEL, "id", diseaseId, "names",
+            node = graph.addNode(DISEASE_LABEL, ID_KEY, diseaseId, "names",
                                  new HashSet<>(Collections.singletonList(diseaseName)));
         else {
             // Add name if not already added to the disease node
@@ -119,7 +119,7 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
     }
 
     private void exportPhenotypeGeneAssociation(final Graph graph, final PhenotypeToGenesEntry entry) {
-        final Node termNode = graph.findNode(TERM_LABEL, "id", entry.hpoId);
+        final Node termNode = graph.findNode(TERM_LABEL, ID_KEY, entry.hpoId);
         // If referencing an obsolete term excluded via config file, just skip this annotation
         if (termNode == null)
             return;
@@ -137,10 +137,10 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
                 entry.additionalInfoFromGDSource);
     }
 
-    private Node getOrCreateGeneNode(final Graph graph, final String id, final String symbol) {
-        Node node = graph.findNode(GENE_LABEL, "id", id);
+    private Node getOrCreateGeneNode(final Graph graph, final Integer id, final String symbol) {
+        Node node = graph.findNode(GENE_LABEL, ID_KEY, id);
         if (node == null)
-            node = graph.addNode(GENE_LABEL, "id", id, "symbol", symbol);
+            node = graph.addNode(GENE_LABEL, ID_KEY, id, "symbol", symbol);
         return node;
     }
 }

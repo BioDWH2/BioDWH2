@@ -49,7 +49,7 @@ public class UNIIDataEntry {
      * https://www.itis.gov/
      */
     @JsonProperty("ITIS")
-    public Long itis;
+    public Integer itis;
     /*
      * NCBI taxonomy organism ID
      * https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Root

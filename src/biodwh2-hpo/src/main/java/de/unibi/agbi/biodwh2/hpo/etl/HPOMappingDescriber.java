@@ -24,7 +24,7 @@ public final class HPOMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeGene(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
-        description.addIdentifier(IdentifierType.NCBI_GENE, node.<String>getProperty("id"));
+        description.addIdentifier(IdentifierType.NCBI_GENE, node.<Integer>getProperty("id"));
         description.addName(node.getProperty("symbol"));
         return new NodeMappingDescription[]{description};
     }

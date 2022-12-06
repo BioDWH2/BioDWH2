@@ -28,19 +28,18 @@ public class UNIIMappingDescriber extends MappingDescriber {
         description.addNames(node.<String[]>getProperty("official_names"));
         description.addIdentifier(IdentifierType.UNII, node.<String>getProperty("id"));
         description.addIdentifier(IdentifierType.CAS, node.<String>getProperty("cas"));
-        final Long pubchemCid = tryParseLong(node.getProperty("pubchem_cid"));
+        final Integer pubchemCid = tryParseInt(node.getProperty("pubchem_cid"));
         if (pubchemCid != null)
             description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, pubchemCid);
         description.addIdentifier(IdentifierType.EUROPEAN_CHEMICALS_AGENCY_EC, node.<String>getProperty("ec"));
         description.addIdentifier(IdentifierType.RX_NORM_CUI, node.<String>getProperty("rx_cui"));
-        description.addIdentifier(IdentifierType.INTERNATIONAL_NONPROPRIETARY_NAMES,
-                                  node.<String>getProperty("inn_id"));
+        description.addIdentifier(IdentifierType.INN, node.<String>getProperty("inn_id"));
         return new NodeMappingDescription[]{description};
     }
 
-    public Long tryParseLong(final String value) {
+    public Integer tryParseInt(final String value) {
         try {
-            return Long.parseLong(value);
+            return Integer.parseInt(value);
         } catch (NumberFormatException e) {
             return null;
         }
@@ -48,10 +47,9 @@ public class UNIIMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeSpecies(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.TAXON);
-        description.addIdentifier(IdentifierType.ITIS_TAXON,
-                                  node.<Set<Long>>getProperty(UNIIGraphExporter.ITIS_IDS_KEY));
+        description.addIdentifier(IdentifierType.ITIS, node.<Set<Integer>>getProperty(UNIIGraphExporter.ITIS_IDS_KEY));
         description.addIdentifier(IdentifierType.NCBI_TAXON,
-                                  node.<Set<Long>>getProperty(UNIIGraphExporter.NCBI_TAXONOMY_IDS_KEY));
+                                  node.<Set<Integer>>getProperty(UNIIGraphExporter.NCBI_TAXONOMY_IDS_KEY));
         description.addIdentifier(IdentifierType.USDA_PLANTS_SYMBOL,
                                   node.<Set<String>>getProperty(UNIIGraphExporter.USDA_PLANTS_SYMBOLS_KEY));
         return new NodeMappingDescription[]{description};

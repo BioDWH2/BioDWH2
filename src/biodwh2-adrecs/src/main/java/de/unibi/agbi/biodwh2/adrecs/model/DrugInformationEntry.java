@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNumberProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @JsonPropertyOrder({
@@ -24,7 +25,7 @@ public class DrugInformationEntry {
     @GraphProperty(value = "drugbank_id", emptyPlaceholder = "Not Available", ignoreEmpty = true)
     public String drugBankId;
     @JsonProperty("PubChem_ID")
-    @GraphProperty(value = "pubchem_id", emptyPlaceholder = "Not Available", ignoreEmpty = true)
+    @GraphNumberProperty(value = "pubchem_id", emptyPlaceholder = "Not Available", ignoreEmpty = true, type = GraphNumberProperty.Type.Int)
     public String pubchemId;
     @JsonProperty("MESH_ID")
     @GraphProperty(value = "mesh_id", emptyPlaceholder = "Not Available", ignoreEmpty = true)

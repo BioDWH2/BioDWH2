@@ -2,22 +2,23 @@ package de.unibi.agbi.biodwh2.drugcentral.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
+import de.unibi.agbi.biodwh2.drugcentral.etl.DrugCentralGraphExporter;
 
 @SuppressWarnings("unused")
 @JsonPropertyOrder({
         "id", "pmid", "doi", "document_id", "type", "authors", "title", "isbn10", "url", "journal", "volume", "issue",
         "dp_year", "pages"
 })
-@GraphNodeLabel("Reference")
+@GraphNodeLabel(DrugCentralGraphExporter.REFERENCE_LABEL)
 public final class Reference {
     @JsonProperty("id")
     @GraphProperty("id")
     public String id;
     @JsonProperty("pmid")
     @GraphProperty("pmid")
-    public String pmid;
+    public Integer pmid;
     @JsonProperty("doi")
     @GraphProperty("doi")
     public String doi;

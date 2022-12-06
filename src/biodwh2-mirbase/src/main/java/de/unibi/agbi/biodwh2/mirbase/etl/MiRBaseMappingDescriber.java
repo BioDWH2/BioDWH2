@@ -46,7 +46,7 @@ public class MiRBaseMappingDescriber extends MappingDescriber {
             description.addIdentifier(IdentifierType.HGNC_ID, hgncId);
         final Integer entrezId = node.<Integer>getProperty("entrez_gene_id");
         if (entrezId != null)
-            description.addIdentifier(IdentifierType.ENTREZ_GENE_ID, entrezId);
+            description.addIdentifier(IdentifierType.NCBI_GENE, entrezId);
         return new NodeMappingDescription[]{description};
     }
 

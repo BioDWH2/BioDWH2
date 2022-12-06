@@ -23,7 +23,7 @@ public class ADReCSMappingDescriber extends MappingDescriber {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
         description.addName(node.getProperty("name"));
         description.addNames(node.<String[]>getProperty("synonyms"));
-        description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, node.<String>getProperty("pubchem_id"));
+        description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, node.<Integer>getProperty("pubchem_id"));
         description.addIdentifier(IdentifierType.KEGG, node.<String>getProperty("kegg_id"));
         description.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
         return new NodeMappingDescription[]{description};

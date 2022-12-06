@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugCentralGraphExporter.class);
     static final String DRUG_LABEL_LABEL = "DrugLabel";
-    static final String REFERENCE_LABEL = "Reference";
+    public static final String REFERENCE_LABEL = "Reference";
     static final String ATTRIBUTE_TYPE_LABEL = "AttributeType";
     public static final String FAERS_LABEL = "FAERS";
     static final String INN_STEM_LABEL = "InnStem";
@@ -45,7 +45,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
 
     @Override
     public long getExportVersion() {
-        return 3;
+        return 4;
     }
 
     @Override
@@ -53,19 +53,19 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         final boolean skipLINCSSignatures = dataSource.getBooleanProperty(workspace, "skipLINCSSignatures");
         final boolean skipFAERSReports = dataSource.getBooleanProperty(workspace, "skipFAERSReports");
         final boolean skipDrugLabelFullTexts = dataSource.getBooleanProperty(workspace, "skipDrugLabelFullTexts");
-        g.addIndex(IndexDescription.forNode(DRUG_LABEL_LABEL, "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode(REFERENCE_LABEL, "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode(ATTRIBUTE_TYPE_LABEL, "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode(FAERS_LABEL, "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode(INN_STEM_LABEL, "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode(ORANGE_BOOK_EXCLUSIVITY_LABEL, "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode(ORANGE_BOOK_PRODUCT_LABEL, "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode(STRUCTURE_LABEL, "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode(GO_TERM_LABEL, "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode(TARGET_KEYWORD_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(DRUG_LABEL_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(REFERENCE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(ATTRIBUTE_TYPE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(FAERS_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(INN_STEM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(ORANGE_BOOK_EXCLUSIVITY_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(ORANGE_BOOK_PRODUCT_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(STRUCTURE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(GO_TERM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(TARGET_KEYWORD_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         g.addIndex(IndexDescription.forNode(INN_STEM_LABEL, "stem", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode(VET_PROD_LABEL, "id", IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode(VET_OMOP_LABEL, "id", IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(VET_PROD_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        g.addIndex(IndexDescription.forNode(VET_OMOP_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         // "ddi_risk.tsv", "approval_type.tsv", "target_class.tsv", "ref_type.tsv", "protein_type.tsv",
         // "ijc_connect_items.tsv", "ijc_connect_structures.tsv", "struct_type_def.tsv" are ignored because no necessary
         // additional info is included
@@ -213,7 +213,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
             final Node node = g.addNodeFromModel(property, "type_category", type.category, "type_name", type.name,
                                                  "type_units", type.units);
             g.addEdge(structureIdNodeIdMap.get(property.structId), node, "HAS_PROPERTY");
-            g.addEdge(node, g.findNode(REFERENCE_LABEL, "id", property.referenceId), "HAS_REFERENCE");
+            g.addEdge(node, g.findNode(REFERENCE_LABEL, ID_KEY, property.referenceId), "HAS_REFERENCE");
         }
     }
 
@@ -409,9 +409,9 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
             if (bioactivity.actionType != null)
                 g.addEdge(node, g.findNode(ACTION_TYPE_LABEL, "type", bioactivity.actionType), "OF_TYPE");
             if (bioactivity.moaRefId != null)
-                g.addEdge(node, g.findNode(REFERENCE_LABEL, "id", bioactivity.moaRefId), "HAS_MOA_REFERENCE");
+                g.addEdge(node, g.findNode(REFERENCE_LABEL, ID_KEY, bioactivity.moaRefId), "HAS_MOA_REFERENCE");
             if (bioactivity.actRefId != null)
-                g.addEdge(node, g.findNode(REFERENCE_LABEL, "id", bioactivity.actRefId), "HAS_REFERENCE");
+                g.addEdge(node, g.findNode(REFERENCE_LABEL, ID_KEY, bioactivity.actRefId), "HAS_REFERENCE");
         }
     }
 

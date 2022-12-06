@@ -46,7 +46,7 @@ public final class ReDOTrialsDBMappingDescriber extends MappingDescriber {
     private NodeMappingDescription[] describeDrug(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
         description.addName(node.getProperty("name"));
-        description.addIdentifier(IdentifierType.INTERNATIONAL_NONPROPRIETARY_NAMES, node.<String>getProperty("name"));
+        description.addIdentifier(IdentifierType.INN, node.<String>getProperty("name"));
         description.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
         return new NodeMappingDescription[]{description};
     }

@@ -29,7 +29,7 @@ public final class TargetComponent {
     public String gene;
     @JsonProperty("geneid")
     @GraphProperty("geneid")
-    public String geneId;
+    public Integer geneId;
     @JsonProperty("tdl")
     @GraphProperty("tdl")
     public String tdl;
