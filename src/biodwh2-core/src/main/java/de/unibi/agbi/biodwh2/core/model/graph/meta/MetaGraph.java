@@ -22,8 +22,9 @@ public final class MetaGraph {
     }
 
     private void collectDataSourceIds(final BaseGraph graph) {
-        for (final Node node : graph.getNodes(METADATA_LABEL))
-            dataSourceIds.add(node.getProperty("datasource_id"));
+        if (Arrays.asList(graph.getNodeLabels()).contains(METADATA_LABEL))
+            for (final Node node : graph.getNodes(METADATA_LABEL))
+                dataSourceIds.add(node.getProperty("datasource_id"));
         dataSourceIds.sort(String::compareTo);
     }
 
@@ -48,8 +49,6 @@ public final class MetaGraph {
     private String determineDataSourceIdForNodeLabel(final String label) {
         if (METADATA_LABEL.equals(label))
             return null;
-        if (!isMappedGraph)
-            return dataSourceIds.get(0);
         if (label.contains("_"))
             for (final String dataSourceId : dataSourceIds)
                 if (label.startsWith(dataSourceId + '_'))
