@@ -254,6 +254,11 @@
         </dependency>
         <dependency>
             <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-diseases</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
             <artifactId>biodwh2-ttd</artifactId>
             <version>0.1</version>
         </dependency>

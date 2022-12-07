@@ -34,8 +34,8 @@ public class TissuesGraphExporter extends GraphExporter<TissuesDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode("Gene", "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Tissue", "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Gene", ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Tissue", ID_KEY, IndexDescription.Type.UNIQUE));
         final Map<String, Long> geneIdNodeIdMap = exportGenes(workspace, graph);
         final Map<String, Long> tissueIdNodeIdMap = exportTissues(workspace, graph);
         exportEdges(workspace, graph, geneIdNodeIdMap, tissueIdNodeIdMap);
@@ -63,9 +63,9 @@ public class TissuesGraphExporter extends GraphExporter<TissuesDataSource> {
             final String name = genes.get(id);
             final Node node;
             if (id.equals(name))
-                node = graph.addNode("Gene", "id", id);
+                node = graph.addNode("Gene", ID_KEY, id);
             else
-                node = graph.addNode("Gene", "id", id, "name", name);
+                node = graph.addNode("Gene", ID_KEY, id, "name", name);
             geneIdNodeIdMap.put(id, node.getId());
         }
         return geneIdNodeIdMap;
@@ -82,8 +82,8 @@ public class TissuesGraphExporter extends GraphExporter<TissuesDataSource> {
     }
 
     private void updateEntityEntry(final Map<String, String> entries, final String id, final String name) {
-        final String geneName = entries.get(id);
-        entries.put(id, geneName == null ? name : geneName);
+        final String existingName = entries.get(id);
+        entries.put(id, existingName == null ? name : existingName);
     }
 
     private Map<String, Long> exportTissues(final Workspace workspace, final Graph graph) {
@@ -107,9 +107,9 @@ public class TissuesGraphExporter extends GraphExporter<TissuesDataSource> {
             final String name = tissues.get(id);
             final Node node;
             if (id.equals(name))
-                node = graph.addNode("Tissue", "id", id);
+                node = graph.addNode("Tissue", ID_KEY, id);
             else
-                node = graph.addNode("Tissue", "id", id, "name", name);
+                node = graph.addNode("Tissue", ID_KEY, id, "name", name);
             tissueIdNodeIdMap.put(id, node.getId());
         }
         return tissueIdNodeIdMap;

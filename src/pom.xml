@@ -54,6 +54,7 @@
         <module>biodwh2-herb</module>
         <module>biodwh2-cmaup</module>
         <module>biodwh2-tissues</module>
+        <module>biodwh2-diseases</module>
         <module>biodwh2-ttd</module>
         <module>biodwh2-guidetopharmacology</module>
         <module>biodwh2-negatome</module>
