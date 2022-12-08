@@ -68,6 +68,7 @@
         <module>biodwh2-rnainter</module>
         <module>biodwh2-mirdb</module>
         <module>biodwh2-trrust</module>
+        <module>biodwh2-refseq</module>
     </modules>
 
     <packaging>pom</packaging>
