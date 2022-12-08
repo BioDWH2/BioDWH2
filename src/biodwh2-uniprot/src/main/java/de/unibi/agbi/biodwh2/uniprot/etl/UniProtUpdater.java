@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.uniprot.etl;
 
+import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPWebUpdater;
 import de.unibi.agbi.biodwh2.uniprot.UniProtDataSource;
 
@@ -16,7 +17,7 @@ public class UniProtUpdater extends MultiFileFTPWebUpdater<UniProtDataSource> {
     }
 
     @Override
-    protected String[] getFilePaths() {
+    protected String[] getFilePaths(final Workspace workspace) {
         return new String[]{HUMAN_SPROT_FILE_NAME};
     }
 

@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.medrt.etl;
 
+import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPWebUpdater;
 import de.unibi.agbi.biodwh2.medrt.MEDRTDataSource;
 
@@ -16,7 +17,7 @@ public class MEDRTUpdater extends MultiFileFTPWebUpdater<MEDRTDataSource> {
     }
 
     @Override
-    protected String[] getFilePaths() {
+    protected String[] getFilePaths(final Workspace workspace) {
         return new String[]{FILE_NAME};
     }
 

@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.ncbi.etl;
 
+import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPWebUpdater;
 import de.unibi.agbi.biodwh2.core.net.HTTPFTPClient;
 import de.unibi.agbi.biodwh2.ncbi.NCBIDataSource;
@@ -20,7 +21,7 @@ public class NCBIUpdater extends MultiFileFTPWebUpdater<NCBIDataSource> {
     }
 
     @Override
-    protected String[] getFilePaths() {
+    protected String[] getFilePaths(final Workspace workspace) {
         final String genePrefix = "gene/DATA/";
         List<String> files = new ArrayList<>();
         Collections.addAll(files, genePrefix + "gene_group.gz", genePrefix + "gene_history.gz",
@@ -31,7 +32,6 @@ public class NCBIUpdater extends MultiFileFTPWebUpdater<NCBIDataSource> {
                            genePrefix + "mim2gene_medgen", genePrefix + "stopwords_gene", genePrefix + "README",
                            genePrefix + "README_ensembl");
         try {
-            HTTPFTPClient client = new HTTPFTPClient(getFTPIndexUrl());
             String pubchemPrefix = "pubchem/Compound/CURRENT-Full/SDF/";
             HTTPFTPClient.Entry[] pubchemEntries = client.listDirectory(pubchemPrefix);
             for (HTTPFTPClient.Entry entry : pubchemEntries)

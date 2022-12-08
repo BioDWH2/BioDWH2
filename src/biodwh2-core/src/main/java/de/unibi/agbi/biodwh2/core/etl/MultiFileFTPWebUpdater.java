@@ -48,7 +48,7 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
     public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
             Version latestVersion = null;
-            for (final String filePath : getFilePaths()) {
+            for (final String filePath : getFilePaths(workspace)) {
                 final Version fileVersion = getNewestVersionFromFilePath(Paths.get(filePath));
                 if (latestVersion == null || (fileVersion != null && fileVersion.compareTo(latestVersion) > 0))
                     latestVersion = fileVersion;
@@ -62,7 +62,7 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
     private Version getNewestVersionFromFilePath(final Path filePath) throws IOException {
         final Path directoryPath = filePath.getParent();
         final HTTPFTPClient.Entry[] entries = directoryPath == null ? client.listDirectory() : client.listDirectory(
-                directoryPath.toString());
+                directoryPath.toString().replace("\\", "/"));
         for (final HTTPFTPClient.Entry entry : entries)
             if (entry.name.equals(filePath.getFileName().toString()))
                 return getVersionForFileName(entry);
@@ -87,7 +87,7 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        for (final String fileName : getFilePaths()) {
+        for (final String fileName : getFilePaths(workspace)) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Downloading '" + fileName + "'...");
             int tries = 1;
@@ -118,5 +118,5 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
 
     protected abstract String getFTPIndexUrl();
 
-    protected abstract String[] getFilePaths();
+    protected abstract String[] getFilePaths(final Workspace workspace) throws UpdaterException;
 }

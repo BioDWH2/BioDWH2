@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.mirbase.etl;
 
+import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPWebUpdater;
 import de.unibi.agbi.biodwh2.core.net.HTTPFTPClient;
 import de.unibi.agbi.biodwh2.mirbase.MiRBaseDataSource;
@@ -20,7 +21,7 @@ public class MiRBaseUpdater extends MultiFileFTPWebUpdater<MiRBaseDataSource> {
     }
 
     @Override
-    protected String[] getFilePaths() {
+    protected String[] getFilePaths(final Workspace workspace) {
         final List<String> fileNames = new ArrayList<>(
                 Arrays.asList("hairpin.fa.gz", "mature.fa.gz", "miRNA.dat.gz", "miRNA.str.gz"));
         try {

@@ -5,7 +5,6 @@ import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.ncbi.etl.NCBIGraphExporter;
 import de.unibi.agbi.biodwh2.ncbi.etl.NCBIMappingDescriber;
-import de.unibi.agbi.biodwh2.ncbi.etl.NCBIParser;
 import de.unibi.agbi.biodwh2.ncbi.etl.NCBIUpdater;
 
 public class NCBIDataSource extends DataSource {
@@ -26,7 +25,7 @@ public class NCBIDataSource extends DataSource {
 
     @Override
     protected Parser<NCBIDataSource> getParser() {
-        return new NCBIParser(this);
+        return new PassThroughParser<>(this);
     }
 
     @Override
