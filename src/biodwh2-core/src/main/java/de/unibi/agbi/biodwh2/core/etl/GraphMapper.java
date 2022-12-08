@@ -279,8 +279,11 @@ public final class GraphMapper {
         for (int i = 0; i < nodes.length; i++)
             nodes[i] = graph.getNode(pathIds[i * 2]);
         final Edge[] edges = new Edge[pathIds.length / 2];
-        for (int i = 0; i < edges.length; i++)
-            edges[i] = graph.getEdge(pathIds[i * 2 + 1]);
+        final long[] edgeIds = new long[edges.length];
+        for (int i = 0; i < edges.length; i++) {
+            edgeIds[i] = pathIds[i * 2 + 1];
+            edges[i] = graph.getEdge(edgeIds[i]);
+        }
         final PathMappingDescription mappingDescription = describer.describe(graph, nodes, edges);
         if (mappingDescription != null) {
             final String mappedLabel = mappingDescription.getType();
@@ -293,7 +296,8 @@ public final class GraphMapper {
                                                                                 MAPPED_TO_EDGE_LABEL);
             for (final Long fromNodeId : mappedFromNodeIds)
                 for (final Long toNodeId : mappedToNodeIds)
-                    graph.addEdge(fromNodeId, toNodeId, mappedLabel, "source", describer.getDataSourceId());
+                    graph.addEdge(fromNodeId, toNodeId, mappedLabel, "source", describer.getDataSourceId(),
+                                  "path_edge_ids", edgeIds);
         }
     }
 
