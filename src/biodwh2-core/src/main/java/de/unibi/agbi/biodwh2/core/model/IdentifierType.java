@@ -34,7 +34,7 @@ public enum IdentifierType {
      * EMA CTR (Clinical Trials Registry) https://www.clinicaltrialsregister.eu
      */
     EMA_CTR("EMA_CTR", null, null, null),
-    ENSEMBL_GENE_ID("ENSEMBL_Gene", CharSequence.class, null, null),
+    ENSEMBL("ENSEMBL", CharSequence.class, null, null),
     EUROPEAN_CHEMICALS_AGENCY_EC("ECA_EC", null, null, null),
     FDA_SPL("FDA_SPL", null, null, null),
     GENE_CARD("GeneCard", null, null, null),
@@ -83,6 +83,7 @@ public enum IdentifierType {
      * NCBI Entrez Gene ID
      */
     NCBI_GENE("NCBIGene", Integer.class, "ncbigene", "^\\d+$"),
+    GENBANK("Genbank", CharSequence.class, null, null),
     /**
      * NIH NCI (National Cancer Institute) https://www.cancer.gov/about-cancer/treatment/clinical-trials
      */

@@ -1,5 +1,26 @@
 # Changelog
 
+## 📦 Version v0.4.9
+
+Released: upcoming
+
+### 📚 Data Sources
+
+* ```[GenCC]``` #70 Add GenCC gene and disease mapping
+* ```[DISEASES]``` #81 Add DISEASES data source module
+* ```[RefSeq]``` #82 Add RefSeq data source module
+
+### 🔧 Bug fixes and other changes
+
+* ```[fix]``` **Breaking change** of ENSEMBL_Gene mapping identifier type to ENSEMBL
+* ```[fix]``` Fix identifier java types in many data source modules
+* ```[feature]``` Check expected java type for identifier types in node mapping
+* ```[feature]``` Switch generated html meta graph visualization to echarts
+* ```[feature]``` Html meta graph visualization shows node/edge counts
+* ```[feature]``` Html meta graph visualization shows node categories which can be toggled
+* ```[feature]``` Path mapping edges now expose the path edge ids as a property
+* ```[chore]``` Update dependencies
+
 ## 📦 Version [v0.4.8](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.8)
 
 Released: 05.12.2022

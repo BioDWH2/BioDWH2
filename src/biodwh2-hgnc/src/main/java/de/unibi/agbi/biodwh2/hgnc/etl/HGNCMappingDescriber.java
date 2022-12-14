@@ -32,7 +32,7 @@ public class HGNCMappingDescriber extends MappingDescriber {
         if (omimIds != null)
             for (final String omimId : omimIds)
                 description.addIdentifier(IdentifierType.OMIM, Integer.parseInt(omimId));
-        description.addIdentifier(IdentifierType.ENSEMBL_GENE_ID, node.<String>getProperty("ensembl_gene_id"));
+        description.addIdentifier(IdentifierType.ENSEMBL, node.<String>getProperty("ensembl_gene_id"));
         description.addIdentifier(IdentifierType.NCBI_GENE, node.<Integer>getProperty("entrez_id"));
         return new NodeMappingDescription[]{description};
     }

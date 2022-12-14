@@ -41,7 +41,7 @@ public class TarBaseMappingDescriber extends MappingDescriber {
                         // Check if species matches prefix
                         if (!ENSEMBL_HUMAN_GENE_ID_PREFIX.equals(ensemblGeneIdPrefix) ||
                             SpeciesLookup.HOMO_SAPIENS.scientificName.equals(species))
-                            description.addIdentifier(IdentifierType.ENSEMBL_GENE_ID, id);
+                            description.addIdentifier(IdentifierType.ENSEMBL, id);
                     }
                 }
             }
