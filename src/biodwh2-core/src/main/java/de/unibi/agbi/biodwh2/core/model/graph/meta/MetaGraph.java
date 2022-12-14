@@ -47,8 +47,10 @@ public final class MetaGraph {
     }
 
     private String determineDataSourceIdForNodeLabel(final String label) {
-        if (METADATA_LABEL.equals(label))
-            return null;
+        return METADATA_LABEL.equals(label) ? null : determineDataSourceIdForLabel(label);
+    }
+
+    private String determineDataSourceIdForLabel(final String label) {
         if (label.contains("_"))
             for (final String dataSourceId : dataSourceIds)
                 if (label.startsWith(dataSourceId + '_'))
@@ -58,13 +60,15 @@ public final class MetaGraph {
 
     private void addMetaEdges(final BaseGraph graph) {
         for (final String label : graph.getEdgeLabels()) {
+            final String dataSourceId = determineDataSourceIdForNodeLabel(label);
+            final boolean isMappingLabel = isMappedGraph && dataSourceId == null;
             for (final Edge edge : graph.getEdges(label)) {
                 final String fromLabel = graph.getNodeLabel(edge.getFromId());
                 final String toLabel = graph.getNodeLabel(edge.getToId());
                 final String key = label + '|' + fromLabel + '|' + toLabel;
                 MetaEdge metaEdge = edges.get(key);
                 if (metaEdge == null) {
-                    metaEdge = new MetaEdge(fromLabel, toLabel, label);
+                    metaEdge = new MetaEdge(fromLabel, toLabel, label, dataSourceId, isMappingLabel);
                     edges.put(key, metaEdge);
                 }
                 metaEdge.count++;

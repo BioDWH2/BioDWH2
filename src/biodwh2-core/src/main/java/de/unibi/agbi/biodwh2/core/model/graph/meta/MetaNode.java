@@ -6,7 +6,7 @@ public final class MetaNode {
     public final boolean isMappingLabel;
     public long count;
 
-    public MetaNode(final String label, String dataSourceId, boolean isMappingLabel) {
+    public MetaNode(final String label, final String dataSourceId, final boolean isMappingLabel) {
         this.label = label;
         this.dataSourceId = dataSourceId;
         this.isMappingLabel = isMappingLabel;

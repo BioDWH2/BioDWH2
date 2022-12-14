@@ -7,6 +7,9 @@ import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaNode;
 
 import java.awt.*;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class MetaGraphDynamicVisWriter {
     private final MetaGraph graph;
@@ -32,10 +35,21 @@ public final class MetaGraphDynamicVisWriter {
         builder.append("    <script type=\"text/javascript\">\n");
         builder.append("      var graphChart = echarts.init(document.getElementById('surface'));\n");
         builder.append("      var categories = [");
-        if (graph.isMappedGraph())
-            builder.append("{ name: 'Mapping', symbol: 'circle', symbolSize: 20 }, ");
-        for (final String dataSourceId : graph.getDataSourceIds())
-            builder.append("{ name: '").append(dataSourceId).append("' }, ");
+        final Map<String, String> categoryColorMap = new HashMap<>();
+        if (graph.isMappedGraph()) {
+            categoryColorMap.put("Mapping", "#000000");
+            builder.append("{ name: 'Mapping', symbol: 'circle', symbolSize: 20, itemStyle: { color: '#000000' } }, ");
+        }
+        int currentColor = 0;
+        final Collection<String> dataSourceIds = graph.getDataSourceIds();
+        for (final String dataSourceId : dataSourceIds) {
+            final Color color = Color.getHSBColor(currentColor / (float) dataSourceIds.size(), 0.85f, 1.0f);
+            currentColor++;
+            final String hexColor = getColorHex(color);
+            categoryColorMap.put(dataSourceId, hexColor);
+            builder.append("{ name: '").append(dataSourceId).append("', itemStyle: { color: '").append(hexColor).append(
+                    "' } }, ");
+        }
         builder.append("];\n");
         builder.append("      var options = {\n");
         builder.append("        legend: [{ data: categories.map(function(a) { return a.name; }) }],\n");
@@ -45,39 +59,45 @@ public final class MetaGraphDynamicVisWriter {
         builder.append("          layout: 'force',\n");
         builder.append("          roam: true,\n");
         builder.append("          draggable: true,\n");
-        builder.append("          symbol: 'roundRect',\n");
+        builder.append("          symbol: 'rect',\n");
         builder.append("          symbolSize: [20, 10],\n");
         builder.append("          label: { show: true, fontWeight: 'bold' },\n");
-        builder.append("          itemStyle: { borderWidth: 1, borderColor: '#000000' },\n");
+        builder.append("          itemStyle: { borderColor: '#000000' },\n");
         builder.append("          edgeLabel: { show: true, fontWeight: 'bold', " +
                        "formatter: function(params) { return params.data.name; } },\n");
-        builder.append("          lineStyle: { color: '#000000', width: 2 },\n");
+        builder.append("          lineStyle: { color: '#000000', width: 2, opacity: 1 },\n");
         builder.append("          categories: categories,\n");
         builder.append("          nodes: [\n");
-        int currentColor = 0;
+        currentColor = 0;
         for (final MetaNode node : graph.getNodes()) {
-            final Color color = Color.getHSBColor(currentColor / (float) graph.getNodeLabelCount(), 0.85f, 1.0f);
-            final String hexColor = String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
-            currentColor++;
             builder.append("            { ");
-            builder.append("id: \"").append(node.label).append("\", ");
-            builder.append("name: \"").append(node.label).append("\\n(").append(node.count).append(")\", ");
-            if (node.dataSourceId != null)
-                builder.append("category: '").append(node.dataSourceId).append("', ");
-            else if (node.isMappingLabel)
-                builder.append("category: 'Mapping', ");
-            builder.append("itemStyle: { color: '").append(hexColor).append("' }, ");
+            builder.append("id: '").append(node.label).append("', ");
+            builder.append("name: '").append(node.label).append("\\n(").append(node.count).append(")', ");
+            String category = node.isMappingLabel ? "Mapping" : node.dataSourceId;
+            if (category != null) {
+                builder.append("category: '").append(category).append("', itemStyle: { color: '").append(
+                        categoryColorMap.get(category)).append("' }, ");
+            } else {
+                final Color color = Color.getHSBColor(currentColor / (float) graph.getNodeLabelCount(), 0.85f, 1.0f);
+                currentColor++;
+                builder.append("itemStyle: { color: '").append(getColorHex(color)).append("' }, ");
+            }
             if ("metadata".equals(node.label))
-                builder.append("symbol: 'diamond', ");
+                builder.append("symbol: 'diamond', itemStyle: { color: '#FFFFFF' }, ");
             builder.append("},\n");
         }
         builder.append("          ],\n");
         builder.append("          edges: [\n");
         for (final MetaEdge edge : graph.getEdges()) {
             builder.append("            { ");
-            builder.append("source: \"").append(edge.fromLabel).append("\", ");
-            builder.append("target: \"").append(edge.toLabel).append("\", ");
-            builder.append("name: \"").append(edge.label).append("\\n(").append(edge.count).append(")\", ");
+            builder.append("source: '").append(edge.fromLabel).append("', ");
+            builder.append("target: '").append(edge.toLabel).append("', ");
+            builder.append("name: '").append(edge.label).append("\\n(").append(edge.count).append(")', ");
+            String category = edge.isMappingLabel ? "Mapping" : edge.dataSourceId;
+            if (category != null) {
+                builder.append("category: '").append(category).append("', lineStyle: { color: '").append(
+                        categoryColorMap.get(category)).append("' }, ");
+            }
             builder.append("},\n");
         }
         builder.append("          ]\n");
@@ -88,5 +108,9 @@ public final class MetaGraphDynamicVisWriter {
         builder.append("  </body>\n");
         builder.append("</html>\n");
         FileUtils.writeTextToUTF8File(outputFilePath, builder.toString());
+    }
+
+    private String getColorHex(final Color color) {
+        return String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
     }
 }
