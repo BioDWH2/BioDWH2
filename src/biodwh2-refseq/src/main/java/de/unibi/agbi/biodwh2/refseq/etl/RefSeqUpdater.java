@@ -13,7 +13,8 @@ import java.util.regex.Pattern;
 
 public class RefSeqUpdater extends MultiFileFTPWebUpdater<RefSeqDataSource> {
     private static final Pattern VERSION_PATTERN = Pattern.compile("GCF_\\d+\\.(\\d+)_.+");
-    private static final Pattern FEATURE_TABLE_PATTERN = Pattern.compile(".+_feature_table\\.txt\\.gz");
+    // GCF_000001405.40_GRCh38.p14_genomic.gff.gz
+    private static final Pattern GENOMIC_GFF_PATTERN = Pattern.compile(".+_genomic\\.gff\\.gz");
     private static final String HOMO_SAPIENS_ASSEMBLIES_PATH = "vertebrate_mammalian/Homo_sapiens/all_assembly_versions/";
 
     public RefSeqUpdater(final RefSeqDataSource dataSource) {
@@ -31,7 +32,7 @@ public class RefSeqUpdater extends MultiFileFTPWebUpdater<RefSeqDataSource> {
         try {
             final HTTPFTPClient.Entry[] assemblyFiles = client.listDirectory(assemblyPath);
             for (final HTTPFTPClient.Entry file : assemblyFiles) {
-                final Matcher matcher = FEATURE_TABLE_PATTERN.matcher(file.name);
+                final Matcher matcher = GENOMIC_GFF_PATTERN.matcher(file.name);
                 if (matcher.find())
                     return new String[]{assemblyPath + '/' + file.name};
             }
