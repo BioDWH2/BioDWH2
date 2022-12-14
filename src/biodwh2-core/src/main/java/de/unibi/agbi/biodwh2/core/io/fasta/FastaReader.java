@@ -90,7 +90,7 @@ public final class FastaReader implements Iterable<FastaEntry>, AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         if (reader != null)
             reader.close();
     }

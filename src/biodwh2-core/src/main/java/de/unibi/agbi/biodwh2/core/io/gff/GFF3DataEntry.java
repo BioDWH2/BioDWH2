@@ -4,11 +4,17 @@ import java.util.Map;
 
 public class GFF3DataEntry implements GFF3Entry {
     public enum Strand {
-        POSITIVE,
-        NEGATIVE,
-        UNSTRANDED,
-        RELEVANT_BUT_UNKNOWN,
-        UNKNOWN_VALUE
+        POSITIVE('+'),
+        NEGATIVE('-'),
+        UNSTRANDED(null),
+        RELEVANT_BUT_UNKNOWN('?'),
+        UNKNOWN_VALUE(null);
+
+        public final Character value;
+
+        Strand(Character value) {
+            this.value = value;
+        }
     }
 
     private final String seqId;
@@ -109,6 +115,10 @@ public class GFF3DataEntry implements GFF3Entry {
 
     public Iterable<String> getAttributeKeys() {
         return attributes.keySet();
+    }
+
+    public boolean hasAttribute(final String key) {
+        return attributes.containsKey(key);
     }
 
     public String getAttribute(final String key) {

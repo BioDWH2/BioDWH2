@@ -28,13 +28,16 @@ public final class GMTReader implements Iterable<GeneSet>, AutoCloseable {
         return new Iterator<GeneSet>() {
             @Override
             public boolean hasNext() {
-                lastEntry = readNextEntry();
+                if (lastEntry == null)
+                    lastEntry = readNextEntry();
                 return lastEntry != null;
             }
 
             @Override
             public GeneSet next() {
-                return lastEntry;
+                final GeneSet entry = lastEntry;
+                lastEntry = null;
+                return entry;
             }
         };
     }
@@ -69,7 +72,7 @@ public final class GMTReader implements Iterable<GeneSet>, AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         if (reader != null)
             reader.close();
     }

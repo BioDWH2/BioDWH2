@@ -68,13 +68,16 @@ public final class GFF3Reader implements Iterable<GFF3Entry>, AutoCloseable {
         return new Iterator<GFF3Entry>() {
             @Override
             public boolean hasNext() {
-                lastEntry = readNextEntry();
+                if (lastEntry == null)
+                    lastEntry = readNextEntry();
                 return lastEntry != null;
             }
 
             @Override
             public GFF3Entry next() {
-                return lastEntry;
+                final GFF3Entry entry = lastEntry;
+                lastEntry = null;
+                return entry;
             }
         };
     }
@@ -82,7 +85,7 @@ public final class GFF3Reader implements Iterable<GFF3Entry>, AutoCloseable {
     GFF3Entry readNextEntry() {
         String line;
         while ((line = readLineSafe()) != null) {
-            if (line.trim().length() <= 0)
+            if (line.trim().length() == 0)
                 continue;
             if (nextSequenceTag != null) {
                 final String tag = nextSequenceTag;
@@ -207,7 +210,7 @@ public final class GFF3Reader implements Iterable<GFF3Entry>, AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         if (reader != null)
             reader.close();
     }

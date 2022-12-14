@@ -25,13 +25,16 @@ public final class SdfReader implements Iterable<SdfEntry>, AutoCloseable {
         return new Iterator<SdfEntry>() {
             @Override
             public boolean hasNext() {
-                lastEntry = readNextEntry();
+                if (lastEntry == null)
+                    lastEntry = readNextEntry();
                 return lastEntry != null;
             }
 
             @Override
             public SdfEntry next() {
-                return lastEntry;
+                final SdfEntry entry = lastEntry;
+                lastEntry = null;
+                return entry;
             }
         };
     }
@@ -95,7 +98,7 @@ public final class SdfReader implements Iterable<SdfEntry>, AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         if (reader != null)
             reader.close();
     }

@@ -112,7 +112,7 @@ public final class OboReader implements Iterable<OboEntry>, AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         if (reader != null)
             reader.close();
     }
