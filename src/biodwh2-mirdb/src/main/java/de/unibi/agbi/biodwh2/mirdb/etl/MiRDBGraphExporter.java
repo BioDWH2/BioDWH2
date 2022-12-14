@@ -20,8 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MiRDBGraphExporter extends GraphExporter<MiRDBDataSource> {
-    static final String MIRNA_LABEL = "miRNA";
-    static final String GENE_LABEL = "Gene";
+    static final String MI_RNA_LABEL = "miRNA";
+    static final String M_RNA_LABEL = "mRNA";
     static final String TARGETS_LABEL = "TARGETS";
     static final String GENBANK_ACCESSION_KEY = "genbank_accession";
 
@@ -38,13 +38,13 @@ public class MiRDBGraphExporter extends GraphExporter<MiRDBDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode(MIRNA_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(GENE_LABEL, GENBANK_ACCESSION_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(MI_RNA_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(M_RNA_LABEL, GENBANK_ACCESSION_KEY, IndexDescription.Type.UNIQUE));
         final Configuration.GlobalProperties.SpeciesFilter speciesFilter = workspace.getConfiguration()
                                                                                     .getGlobalProperties()
                                                                                     .getSpeciesFilter();
@@ -83,24 +83,24 @@ public class MiRDBGraphExporter extends GraphExporter<MiRDBDataSource> {
                              final double scoreThreshold) {
         if (entry.targetScore != null && entry.targetScore < scoreThreshold)
             return;
-        Node mirnaNode = graph.findNode(MIRNA_LABEL, ID_KEY, entry.mirnaId);
+        Node mirnaNode = graph.findNode(MI_RNA_LABEL, ID_KEY, entry.mirnaId);
         if (mirnaNode == null) {
             final String prefix = StringUtils.split(entry.mirnaId, "-", 2)[0];
             final SpeciesLookup.Entry speciesEntry = speciesMap.get(prefix);
             if (speciesFilter.isSpeciesAllowed(speciesEntry != null ? speciesEntry.ncbiTaxId : null)) {
                 if (speciesEntry != null) {
-                    mirnaNode = graph.addNode(MIRNA_LABEL, ID_KEY, entry.mirnaId, "species_ncbi_taxid",
+                    mirnaNode = graph.addNode(MI_RNA_LABEL, ID_KEY, entry.mirnaId, "species_ncbi_taxid",
                                               speciesEntry.ncbiTaxId);
                 } else {
-                    mirnaNode = graph.addNode(MIRNA_LABEL, ID_KEY, entry.mirnaId);
+                    mirnaNode = graph.addNode(MI_RNA_LABEL, ID_KEY, entry.mirnaId);
                 }
             }
         }
         if (mirnaNode != null) {
-            Node geneNode = graph.findNode(GENE_LABEL, GENBANK_ACCESSION_KEY, entry.genBankAccession);
-            if (geneNode == null)
-                geneNode = graph.addNode(GENE_LABEL, GENBANK_ACCESSION_KEY, entry.genBankAccession);
-            graph.addEdge(mirnaNode, geneNode, TARGETS_LABEL, "score", entry.targetScore);
+            Node targetNode = graph.findNode(M_RNA_LABEL, GENBANK_ACCESSION_KEY, entry.genBankAccession);
+            if (targetNode == null)
+                targetNode = graph.addNode(M_RNA_LABEL, GENBANK_ACCESSION_KEY, entry.genBankAccession);
+            graph.addEdge(mirnaNode, targetNode, TARGETS_LABEL, "score", entry.targetScore);
         }
     }
 }

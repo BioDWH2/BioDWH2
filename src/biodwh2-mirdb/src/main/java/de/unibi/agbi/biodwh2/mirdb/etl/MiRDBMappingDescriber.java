@@ -12,12 +12,21 @@ public class MiRDBMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if (MiRDBGraphExporter.MIRNA_LABEL.equals(localMappingLabel))
-            return describeMirna(node);
+        if (MiRDBGraphExporter.M_RNA_LABEL.equals(localMappingLabel))
+            return describeMRNA(node);
+        if (MiRDBGraphExporter.MI_RNA_LABEL.equals(localMappingLabel))
+            return describeMiRNA(node);
         return null;
     }
 
-    private NodeMappingDescription[] describeMirna(final Node node) {
+    private NodeMappingDescription[] describeMRNA(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
+        description.addIdentifier(IdentifierType.GENBANK,
+                                  node.<String>getProperty(MiRDBGraphExporter.GENBANK_ACCESSION_KEY));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeMiRNA(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
         description.addIdentifier(IdentifierType.MIRNA, node.<String>getProperty("id"));
         return new NodeMappingDescription[]{description};
@@ -30,7 +39,7 @@ public class MiRDBMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{MiRDBGraphExporter.MIRNA_LABEL};
+        return new String[]{MiRDBGraphExporter.M_RNA_LABEL, MiRDBGraphExporter.MI_RNA_LABEL};
     }
 
     @Override
