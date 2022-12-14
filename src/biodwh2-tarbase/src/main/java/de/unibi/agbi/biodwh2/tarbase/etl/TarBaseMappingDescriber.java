@@ -26,23 +26,29 @@ public class TarBaseMappingDescriber extends MappingDescriber {
     }
 
     private static NodeMappingDescription[] describeGene(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
         final String id = node.getProperty("id");
-        final String species = node.getProperty("species");
+        if (id == null)
+            return null;
+        // If we have an actual mRNA identifier from GenBank, we map it as such
+        if (id.startsWith("NM_") || id.startsWith("XM_")) {
+            final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
+            description.addName(node.getProperty("name"));
+            description.addIdentifier(IdentifierType.GENBANK, id);
+            return new NodeMappingDescription[]{description};
+        }
+        // Otherwise we have to go with a Gene
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
         description.addName(node.getProperty("name"));
-        if (id != null) {
-            if (id.startsWith("WBGene")) {
-                description.addIdentifier(IdentifierType.WORM_BASE, id);
-            } else if (id.startsWith("NM_")) {
-                // TODO description.addIdentifier(IdentifierType., id);
-            } else {
-                for (final String ensemblGeneIdPrefix : ENSEMBL_GENE_ID_PREFIXES) {
-                    if (id.startsWith(ensemblGeneIdPrefix)) {
-                        // Check if species matches prefix
-                        if (!ENSEMBL_HUMAN_GENE_ID_PREFIX.equals(ensemblGeneIdPrefix) ||
-                            SpeciesLookup.HOMO_SAPIENS.scientificName.equals(species))
-                            description.addIdentifier(IdentifierType.ENSEMBL, id);
-                    }
+        if (id.startsWith("WBGene")) {
+            description.addIdentifier(IdentifierType.WORM_BASE, id);
+        } else {
+            final String species = node.getProperty("species");
+            for (final String ensemblGeneIdPrefix : ENSEMBL_GENE_ID_PREFIXES) {
+                if (id.startsWith(ensemblGeneIdPrefix)) {
+                    // Check if species matches prefix
+                    if (!ENSEMBL_HUMAN_GENE_ID_PREFIX.equals(ensemblGeneIdPrefix) ||
+                        SpeciesLookup.HOMO_SAPIENS.scientificName.equals(species))
+                        description.addIdentifier(IdentifierType.ENSEMBL, id);
                 }
             }
         }

@@ -7,6 +7,7 @@ Released: upcoming
 ### 📚 Data Sources
 
 * ```[GenCC]``` #70 Add GenCC gene and disease mapping
+* ```[TarBase]``` #73 Map TarBase genes to RNA where Genbank mRNA ids are available
 * ```[miRDB]``` #78 Replace miRDB Gene nodes with mRNA nodes as it provides Genbank mRNA ids 
 * ```[DISEASES]``` #81 Add DISEASES data source module
 * ```[RefSeq]``` #82 Add RefSeq data source module
