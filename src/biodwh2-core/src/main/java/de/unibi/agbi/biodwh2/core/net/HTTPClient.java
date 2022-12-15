@@ -5,12 +5,16 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.Base64;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 
 public final class HTTPClient {
     @SuppressWarnings("SpellCheckingInspection")
@@ -117,5 +121,26 @@ public final class HTTPClient {
             }
         }
         return FilenameUtils.getName(redirectedUrl);
+    }
+
+    public static LocalDateTime peekZipModificationDateTime(final String url) throws IOException {
+        final InputStream stream = getUrlInputStream(url);
+        if (stream != null) {
+            final byte[] data = new byte[14];
+            final int bytesRead = stream.read(data);
+            stream.close();
+            if (bytesRead >= 14) {
+                final int time = data[10] + (data[11] << 8);
+                final int seconds = (time & 0x1F) * 2;
+                final int minutes = (time >> 5) & 0x3F;
+                final int hours = (time >> 11) & 0x1F;
+                final int date = data[12] + (data[13] << 8);
+                final int day = date & 0x1F;
+                final int month = (date >> 5) & 0x0F;
+                final int year = 1980 + ((date >> 9) & 0x7F);
+                return LocalDateTime.of(year, month, day, hours, minutes, seconds);
+            }
+        }
+        return null;
     }
 }
