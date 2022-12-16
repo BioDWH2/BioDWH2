@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.core.net;
 
+import de.unibi.agbi.biodwh2.core.BinaryUtils;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -129,17 +130,8 @@ public final class HTTPClient {
             final byte[] data = new byte[14];
             final int bytesRead = stream.read(data);
             stream.close();
-            if (bytesRead >= 14) {
-                final int time = data[10] + (data[11] << 8);
-                final int seconds = (time & 0x1F) * 2;
-                final int minutes = (time >> 5) & 0x3F;
-                final int hours = (time >> 11) & 0x1F;
-                final int date = data[12] + (data[13] << 8);
-                final int day = date & 0x1F;
-                final int month = (date >> 5) & 0x0F;
-                final int year = 1980 + ((date >> 9) & 0x7F);
-                return LocalDateTime.of(year, month, day, hours, minutes, seconds);
-            }
+            if (bytesRead >= 14)
+                return BinaryUtils.parseMSDOSDateTime(data[10], data[11], data[12], data[13]);
         }
         return null;
     }
