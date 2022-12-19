@@ -127,8 +127,8 @@ public final class GraphMapper {
         // Export logging
         final Node logMergedNode = SerializableUtils.clone(mergedNode);
         if (logMergedNode != null) {
-            final Node sourceLogNode = createMappingNode(logGraph, mappedNode.getLabel(), description.getIdentifiers(),
-                                                         description.getNames());
+            final Node sourceLogNode = createMappingNode(logGraph, description.getType(), description.getIdentifiers(),
+                                                         description.getNames(), description.getAdditionalProperties());
             sourceLogNode.setProperty("source_node_id", mappedNode.getId());
             sourceLogNode.setProperty(MAPPED_NODE_PROPERTY, false);
             logGraph.update(sourceLogNode);
@@ -142,9 +142,11 @@ public final class GraphMapper {
 
     private Set<Long> matchNodesFromIds(final Map<String, Long> idNodeIdMap, final NodeMappingDescription description) {
         final Set<Long> matchedNodeIds = new HashSet<>();
-        for (final String id : description.getIdentifiers())
-            if (idNodeIdMap.containsKey(id))
-                matchedNodeIds.add(idNodeIdMap.get(id));
+        for (final String id : description.getIdentifiers()) {
+            final Long nodeId = idNodeIdMap.get(id);
+            if (nodeId != null)
+                matchedNodeIds.add(nodeId);
+        }
         return matchedNodeIds;
     }
 
@@ -152,6 +154,7 @@ public final class GraphMapper {
                                           final Set<Long> matchedNodeIds) {
         final Set<String> ids = new HashSet<>(description.getIdentifiers());
         final Set<String> names = description.getNames();
+        final Map<String, Object> additionalProperties = description.getAdditionalProperties();
         Node mergedNode = null;
         for (final Long nodeId : matchedNodeIds) {
             final Node matchedNode = graph.getNode(nodeId);
@@ -163,23 +166,55 @@ public final class GraphMapper {
             final Set<String> nodeNames = matchedNode.getProperty(NAMES_NODE_PROPERTY);
             if (nodeNames != null)
                 names.addAll(nodeNames);
+            if (additionalProperties != null) {
+                for (final String key : additionalProperties.keySet()) {
+                    final Object value = additionalProperties.get(key);
+                    final Object matchedValue = matchedNode.getProperty(key);
+                    if (matchedValue != null) {
+                        if (value == null)
+                            additionalProperties.put(key, matchedValue);
+                            // TODO: equals for collections/arrays
+                        else if (!matchedValue.equals(value)) {
+                            // TODO: handle mismatch!
+                            LOGGER.warn("Mismatch in mapping additional property '" + key + "': '" + value + "' <> '" +
+                                        matchedValue + "'");
+                        }
+                    }
+                }
+            }
             if (mergedNode == null)
                 mergedNode = matchedNode;
             else
                 graph.mergeNodes(mergedNode, matchedNode);
         }
         if (mergedNode == null) {
-            mergedNode = createMappingNode(graph, description.getType(), ids, names);
+            mergedNode = createMappingNode(graph, description.getType(), ids, names, additionalProperties);
         } else {
             mergedNode.setProperty(IDS_NODE_PROPERTY, ids);
             mergedNode.setProperty(NAMES_NODE_PROPERTY, names);
+            if (additionalProperties != null) {
+                for (final String key : additionalProperties.keySet()) {
+                    final Object value = additionalProperties.get(key);
+                    if (value != null)
+                        mergedNode.setProperty(key, value);
+
+                }
+            }
             graph.update(mergedNode);
         }
         return mergedNode;
     }
 
-    private Node createMappingNode(final Graph g, final String label, final Set<String> ids, final Set<String> names) {
-        return g.addNode(label, MAPPED_NODE_PROPERTY, true, IDS_NODE_PROPERTY, ids, NAMES_NODE_PROPERTY, names);
+    private Node createMappingNode(final Graph graph, final String label, final Set<String> ids,
+                                   final Set<String> names, final Map<String, Object> additionalProperties) {
+        final NodeBuilder builder = graph.buildNode().withLabel(label);
+        builder.withProperty(MAPPED_NODE_PROPERTY, true);
+        builder.withProperty(IDS_NODE_PROPERTY, ids);
+        builder.withProperty(NAMES_NODE_PROPERTY, names);
+        if (additionalProperties != null)
+            for (final String key : additionalProperties.keySet())
+                builder.withPropertyIfNotNull(key, additionalProperties.get(key));
+        return builder.build();
     }
 
     private boolean hasMatchedNodeSameLabel(final NodeMappingDescription description, final Node node) {

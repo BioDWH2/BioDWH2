@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public final class NodeMappingDescription {
+public class NodeMappingDescription {
     @SuppressWarnings({"unused", "SpellCheckingInspection"})
     public enum NodeType {
         ADVERSE_EVENT,
@@ -173,5 +173,9 @@ public final class NodeMappingDescription {
 
     public String getType() {
         return type;
+    }
+
+    public Map<String, Object> getAdditionalProperties() {
+        return null;
     }
 }
