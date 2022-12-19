@@ -11,6 +11,7 @@ Released: upcoming
 * ```[miRDB]``` #78 Replace miRDB Gene nodes with mRNA nodes as it provides Genbank mRNA ids 
 * ```[DISEASES]``` #81 Add DISEASES data source module
 * ```[RefSeq]``` #82 Add RefSeq data source module
+* ```[RNALocate]``` #83 Add RNALocate data source module
 
 ### 🔧 Bug fixes and other changes
 
