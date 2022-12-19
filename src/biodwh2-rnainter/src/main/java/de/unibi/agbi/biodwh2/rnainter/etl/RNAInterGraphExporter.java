@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
+import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
@@ -11,6 +12,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.rnainter.RNAInterDataSource;
 import de.unibi.agbi.biodwh2.rnainter.model.Entry;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,20 +24,20 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RNAInterGraphExporter.class);
     private static final String SKIP_ROW_KEYWORD1 = "Category1";
     private static final String SKIP_ROW_KEYWORD2 = "Category2";
-    private static final String COMPOUND_LABEL = "Compound";
-    private static final String GENE_LABEL = "Gene";
-    private static final String PROTEIN_LABEL = "Protein";
-    public static final String HISTONE_MODIFICATION_LABEL = "HistoneModification";
-    public static final String RNA_LABEL = "RNA";
+    static final String COMPOUND_LABEL = "Compound";
+    static final String GENE_LABEL = "Gene";
+    static final String PROTEIN_LABEL = "Protein";
+    private static final String HISTONE_MODIFICATION_LABEL = "HistoneModification";
+    static final String RNA_LABEL = "RNA";
     private static final String INTERACTS_WITH_LABEL = "INTERACTS_WITH";
     private static final String NOT_AVAILABLE_VALUE = "N/A";
-    public static final String SYMBOL_KEY = "symbol";
-    public static final String SPECIES_KEY = "species";
-    public static final String NAME_KEY = "name";
-    public static final String TYPE_KEY = "type";
-    public static final String RNA_BINDING_PROTEIN_TYPE = "RBP";
-    public static final String TF_TYPE = "TF";
-    public static final String PROTEIN_TYPE = "P";
+    private static final String RNA_BINDING_PROTEIN_TYPE = "RBP";
+    private static final String TF_TYPE = "TF";
+    private static final String PROTEIN_TYPE = "P";
+    private static final String SYMBOL_KEY = "symbol";
+    private static final String SPECIES_KEY = "species";
+    static final String NAME_KEY = "name";
+    static final String TYPE_KEY = "type";
 
     public RNAInterGraphExporter(final RNAInterDataSource dataSource) {
         super(dataSource);
@@ -55,6 +57,17 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
         graph.beginEdgeIndicesDelay(INTERACTS_WITH_LABEL);
         final Map<String, Long> rnaIdNodeIdMap = new HashMap<>();
         final Map<String, Long> rnaKeyNodeIdMap = new HashMap<>();
+        exportRRInteractions(workspace, graph, rnaIdNodeIdMap, rnaKeyNodeIdMap);
+        exportRPInteractions(workspace, graph, rnaIdNodeIdMap, rnaKeyNodeIdMap);
+        exportRDInteractions(workspace, graph, rnaIdNodeIdMap, rnaKeyNodeIdMap);
+        exportRCInteractions(workspace, graph, rnaIdNodeIdMap, rnaKeyNodeIdMap);
+        exportRHInteractions(workspace, graph, rnaIdNodeIdMap, rnaKeyNodeIdMap);
+        graph.endEdgeIndicesDelay(INTERACTS_WITH_LABEL);
+        return true;
+    }
+
+    private void exportRRInteractions(final Workspace workspace, final Graph graph,
+                                      final Map<String, Long> rnaIdNodeIdMap, final Map<String, Long> rnaKeyNodeIdMap) {
         for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RR_FILE_NAME)) {
             // Skip strange header line within RR and RP file
             if (SKIP_ROW_KEYWORD1.equals(entry.category1) || SKIP_ROW_KEYWORD2.equals(entry.category2))
@@ -65,6 +78,23 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
                                              entry.species2, rnaIdNodeIdMap, rnaKeyNodeIdMap);
             createEdge(graph, fromId, toId, entry);
         }
+    }
+
+    private Iterable<Entry> parseTsvFile(final Workspace workspace, final String fileName) throws ExporterException {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting " + fileName + "...");
+        try {
+            //noinspection resource
+            final MappingIterator<Entry> iterator = FileUtils.openTarGzipTsvWithHeader(workspace, dataSource, fileName,
+                                                                                       Entry.class);
+            return () -> iterator;
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to export file '" + fileName + "'", e);
+        }
+    }
+
+    private void exportRPInteractions(final Workspace workspace, final Graph graph,
+                                      final Map<String, Long> rnaIdNodeIdMap, final Map<String, Long> rnaKeyNodeIdMap) {
         final Map<String, Long> proteinIdNodeIdMap = new HashMap<>();
         final Map<String, Long> proteinKeyNodeIdMap = new HashMap<>();
         for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RP_FILE_NAME)) {
@@ -79,6 +109,10 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
         }
         proteinIdNodeIdMap.clear();
         proteinKeyNodeIdMap.clear();
+    }
+
+    private void exportRDInteractions(final Workspace workspace, final Graph graph,
+                                      final Map<String, Long> rnaIdNodeIdMap, final Map<String, Long> rnaKeyNodeIdMap) {
         final Map<String, Long> geneKeyNodeIdMap = new HashMap<>();
         for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RD_FILE_NAME)) {
             final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
@@ -89,6 +123,10 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
             createEdge(graph, fromId, toId, entry);
         }
         geneKeyNodeIdMap.clear();
+    }
+
+    private void exportRCInteractions(final Workspace workspace, final Graph graph,
+                                      final Map<String, Long> rnaIdNodeIdMap, final Map<String, Long> rnaKeyNodeIdMap) {
         final Map<String, Long> compoundNameNodeIdMap = new HashMap<>();
         for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RC_FILE_NAME)) {
             final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
@@ -98,6 +136,10 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
             createEdge(graph, fromId, toId, entry);
         }
         compoundNameNodeIdMap.clear();
+    }
+
+    private void exportRHInteractions(final Workspace workspace, final Graph graph,
+                                      final Map<String, Long> rnaIdNodeIdMap, final Map<String, Long> rnaKeyNodeIdMap) {
         final Map<String, Long> histoneModificationSymbolNodeIdMap = new HashMap<>();
         for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RH_FILE_NAME)) {
             final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
@@ -108,64 +150,11 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
             createEdge(graph, fromId, toId, entry);
         }
         histoneModificationSymbolNodeIdMap.clear();
-        graph.endEdgeIndicesDelay(INTERACTS_WITH_LABEL);
-        return true;
-    }
-
-    private Iterable<Entry> parseTsvFile(final Workspace workspace, final String fileName) throws ExporterException {
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Exporting " + fileName + "...");
-        try {
-            //noinspection resource
-            final MappingIterator<Entry> iterator = FileUtils.openTarGzipTsvWithHeader(workspace, dataSource, fileName,
-                                                                                       Entry.class);
-            return () -> iterator;
-        } catch (IOException e) {
-            throw new ExporterException("Failed to parse the file '" + fileName + "'", e);
-        }
     }
 
     private Long getOrCreateRNA(final Graph graph, final String symbol, final String rawId, final String category,
                                 final String species, final Map<String, Long> idNodeIdMap,
                                 final Map<String, Long> keyNodeIdMap) {
-        /*
-        mRNA    -   messenger RNA
-        rRNA    -   ribosomal RNA
-        tRNA    -   transfer RNA
-        lncRNA  -   long non-coding RNA
-        miRNA   -   micro RNA
-        snRNA   -   small nuclear RNA
-        snoRNA  -   small necleolar RNA
-        eRNA    -   enhancer RNA
-        vtRNAs  -   vault RNA
-        ncRNA   -   non-coding RNA
-        sncRNA  -   small non-coding RNA
-        circRNA -   circular RNA
-        lincRNA -   long intergenic non-coding RNA
-        piRNA   -   PIWI-interacting RNA
-        scaRNA  -   small cajal body-specific RNA
-        scRNA   -   small conditional RNA
-        shRNA   -   short hairpin RNA
-        sRNA    -   bacterial small RNA
-        misc_RNA
-        miscRNA
-        Mt_tRNA
-        antisense
-        non_stop_decay
-        nonsense_mediated_decay
-        PCG
-        processed_transcript
-        pseudo
-        repeats
-        retained_intron
-        ribozyme
-        TEC
-        TR_C_gene
-        tRF
-        unassigned RNA
-        unknown
-        others
-        */
         if (rawId == null || NOT_AVAILABLE_VALUE.equals(rawId)) {
             final String key = symbol + "|" + species + "|" + category;
             Long nodeId = keyNodeIdMap.get(key);
@@ -190,11 +179,11 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
         if (!NOT_AVAILABLE_VALUE.equals(entry.score))
             builder.withPropertyIfNotNull("score", entry.score);
         if (!NOT_AVAILABLE_VALUE.equals(entry.strong))
-            builder.withPropertyIfNotNull("strong", entry.strong);
+            builder.withPropertyIfNotNull("strong", StringUtils.splitByWholeSeparator(entry.strong, "//"));
         if (!NOT_AVAILABLE_VALUE.equals(entry.weak))
-            builder.withPropertyIfNotNull("weak", entry.weak);
+            builder.withPropertyIfNotNull("weak", StringUtils.splitByWholeSeparator(entry.weak, "//"));
         if (!NOT_AVAILABLE_VALUE.equals(entry.predict))
-            builder.withPropertyIfNotNull("predict", entry.predict);
+            builder.withPropertyIfNotNull("predict", StringUtils.splitByWholeSeparator(entry.predict, "//"));
         builder.build();
     }
 
