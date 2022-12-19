@@ -22,6 +22,8 @@ Released: upcoming
 * ```[feature]``` Html meta graph visualization shows node/edge counts
 * ```[feature]``` Html meta graph visualization shows node categories which can be toggled
 * ```[feature]``` Path mapping edges now expose the path edge ids as a property
+* ```[feature]``` Node mappings now allow more properties via specific node mapping descriptions
+* ```[feature]``` Add RNA type node mapping property
 * ```[chore]``` Update dependencies
 
 ## 📦 Version [v0.4.8](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.8)
