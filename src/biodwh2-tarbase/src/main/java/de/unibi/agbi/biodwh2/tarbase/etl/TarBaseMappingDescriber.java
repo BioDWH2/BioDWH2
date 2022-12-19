@@ -5,6 +5,7 @@ import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.mapping.SpeciesLookup;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.mapping.RNANodeMappingDescription;
 
 public class TarBaseMappingDescriber extends MappingDescriber {
     private static final String ENSEMBL_HUMAN_GENE_ID_PREFIX = "ENSG";
@@ -31,7 +32,8 @@ public class TarBaseMappingDescriber extends MappingDescriber {
             return null;
         // If we have an actual mRNA identifier from GenBank, we map it as such
         if (id.startsWith("NM_") || id.startsWith("XM_")) {
-            final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
+            final NodeMappingDescription description = new RNANodeMappingDescription(
+                    RNANodeMappingDescription.RNAType.M_RNA);
             description.addName(node.getProperty("name"));
             description.addIdentifier(IdentifierType.GENBANK, id);
             return new NodeMappingDescription[]{description};
@@ -56,7 +58,8 @@ public class TarBaseMappingDescriber extends MappingDescriber {
     }
 
     private static NodeMappingDescription[] describeRNA(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
+        final NodeMappingDescription description = new RNANodeMappingDescription(
+                RNANodeMappingDescription.RNAType.MI_RNA);
         final String id = node.getProperty("id");
         description.addIdentifier(IdentifierType.MIRNA, id);
         description.addName(id);

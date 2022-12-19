@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.mapping.RNANodeMappingDescription;
 
 public class MiRTarBaseMappingDescriber extends MappingDescriber {
     public MiRTarBaseMappingDescriber(final DataSource dataSource) {
@@ -20,7 +21,8 @@ public class MiRTarBaseMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeMiRNA(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
+        final NodeMappingDescription description = new RNANodeMappingDescription(
+                RNANodeMappingDescription.RNAType.MI_RNA);
         final String id = node.getProperty("id");
         description.addIdentifier(IdentifierType.MIRNA, id);
         description.addName(id);

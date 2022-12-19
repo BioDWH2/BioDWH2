@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.mapping.RNANodeMappingDescription;
 
 public class MiRBaseMappingDescriber extends MappingDescriber {
     public MiRBaseMappingDescriber(final DataSource dataSource) {
@@ -22,7 +23,8 @@ public class MiRBaseMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describePreMiRNA(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
+        final NodeMappingDescription description = new RNANodeMappingDescription(
+                RNANodeMappingDescription.RNAType.MI_RNA);
         description.addIdentifier(IdentifierType.MIRBASE, node.<String>getProperty("accession"));
         final String id = node.getProperty("id");
         description.addIdentifier(IdentifierType.MIRNA, id);
@@ -31,7 +33,8 @@ public class MiRBaseMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeMiRNA(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
+        final NodeMappingDescription description = new RNANodeMappingDescription(
+                RNANodeMappingDescription.RNAType.MI_RNA);
         description.addIdentifier(IdentifierType.MIRBASE, node.<String>getProperty("accession"));
         final String id = node.getProperty("id");
         description.addIdentifier(IdentifierType.MIRNA, id);

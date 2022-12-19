@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.mapping.RNANodeMappingDescription;
 import org.apache.commons.lang3.StringUtils;
 
 public class RefSeqMappingDescriber extends MappingDescriber {
@@ -16,19 +17,31 @@ public class RefSeqMappingDescriber extends MappingDescriber {
         switch (localMappingLabel) {
             case RefSeqGraphExporter.GENE_LABEL:
                 return describeGene(node);
-            case RefSeqGraphExporter.PRIMARY_TRANSCRIPT_LABEL:
             case RefSeqGraphExporter.M_RNA_LABEL:
+                return describeRNA(node, RNANodeMappingDescription.RNAType.M_RNA);
             case RefSeqGraphExporter.T_RNA_LABEL:
+                return describeRNA(node, RNANodeMappingDescription.RNAType.T_RNA);
             case RefSeqGraphExporter.R_RNA_LABEL:
+                return describeRNA(node, RNANodeMappingDescription.RNAType.R_RNA);
             case RefSeqGraphExporter.NC_RNA_LABEL:
+                return describeRNA(node, RNANodeMappingDescription.RNAType.UNKNOWN); // TODO
+            case RefSeqGraphExporter.PRIMARY_TRANSCRIPT_LABEL:
             case RefSeqGraphExporter.MI_RNA_LABEL:
+                return describeRNA(node, RNANodeMappingDescription.RNAType.MI_RNA);
             case RefSeqGraphExporter.SN_RNA_LABEL:
+                return describeRNA(node, RNANodeMappingDescription.RNAType.SN_RNA);
             case RefSeqGraphExporter.SC_RNA_LABEL:
+                return describeRNA(node, RNANodeMappingDescription.RNAType.SC_RNA);
             case RefSeqGraphExporter.SNO_RNA_LABEL:
+                return describeRNA(node, RNANodeMappingDescription.RNAType.SNO_RNA);
             case RefSeqGraphExporter.LNC_RNA_LABEL:
+                return describeRNA(node, RNANodeMappingDescription.RNAType.LNC_RNA);
             case RefSeqGraphExporter.VAULT_RNA_LABEL:
+                return describeRNA(node, RNANodeMappingDescription.RNAType.VT_RNA);
             case RefSeqGraphExporter.Y_RNA_LABEL:
-                return describeRNA(node);
+                return describeRNA(node, RNANodeMappingDescription.RNAType.Y_RNA);
+            case RefSeqGraphExporter.ANTISENSE_RNA_LABEL:
+                return describeRNA(node, RNANodeMappingDescription.RNAType.ANTISENSE_RNA);
             case RefSeqGraphExporter.CDS_LABEL:
                 return describeCDS(node);
         }
@@ -59,8 +72,8 @@ public class RefSeqMappingDescriber extends MappingDescriber {
         return new NodeMappingDescription[]{description};
     }
 
-    private NodeMappingDescription[] describeRNA(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.RNA);
+    private NodeMappingDescription[] describeRNA(final Node node, RNANodeMappingDescription.RNAType rnaType) {
+        final NodeMappingDescription description = new RNANodeMappingDescription(rnaType);
         description.addName(node.getProperty("name"));
         final String[] xrefs = node.getProperty("xrefs");
         if (xrefs != null) {

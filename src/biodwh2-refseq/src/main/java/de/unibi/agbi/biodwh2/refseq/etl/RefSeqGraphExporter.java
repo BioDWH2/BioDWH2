@@ -35,6 +35,7 @@ public class RefSeqGraphExporter extends GraphExporter<RefSeqDataSource> {
     static final String LNC_RNA_LABEL = "lncRNA";
     static final String VAULT_RNA_LABEL = "vaultRNA";
     static final String Y_RNA_LABEL = "YRNA";
+    static final String ANTISENSE_RNA_LABEL = "antisenseRNA";
     static final String CDS_LABEL = "CDS";
     static final String PRIMARY_TRANSCRIPT_LABEL = "PrimaryTranscript";
 
@@ -62,7 +63,7 @@ public class RefSeqGraphExporter extends GraphExporter<RefSeqDataSource> {
         featureTypeLabelMap.put("snoRNA", SNO_RNA_LABEL);
         featureTypeLabelMap.put("lnc_RNA", LNC_RNA_LABEL);
         featureTypeLabelMap.put("vault_RNA", VAULT_RNA_LABEL);
-        featureTypeLabelMap.put("antisense_RNA", "antisenseRNA");
+        featureTypeLabelMap.put("antisense_RNA", ANTISENSE_RNA_LABEL);
         featureTypeLabelMap.put("telomerase_RNA", "telomeraseRNA");
         featureTypeLabelMap.put("RNase_MRP_RNA", "RNaseMRPRNA");
         featureTypeLabelMap.put("RNase_P_RNA", "RNasePRNA");

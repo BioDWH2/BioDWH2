@@ -4,39 +4,12 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.mapping.RNANodeMappingDescription;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class GeneOntologyMappingDescriber extends MappingDescriber {
-    private final Map<String, NodeMappingDescription.NodeType> typeNodeTypeMap;
-
     public GeneOntologyMappingDescriber(final DataSource dataSource) {
         super(dataSource);
-        typeNodeTypeMap = new HashMap<>();
-        typeNodeTypeMap.put("protein", NodeMappingDescription.NodeType.PROTEIN);
-        typeNodeTypeMap.put("protein_complex", NodeMappingDescription.NodeType.PROTEIN);
-        typeNodeTypeMap.put("hammerhead_ribozyme", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("ribozyme", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("antisense_RNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("guide_RNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("lnc_RNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("miRNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("ncRNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("piRNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("RNase_MRP_RNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("RNase_P_RNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("rRNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("scRNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("snoRNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("snRNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("SRP_RNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("telomerase_RNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("tRNA", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("primary_transcript", NodeMappingDescription.NodeType.RNA);
-        typeNodeTypeMap.put("transcript", NodeMappingDescription.NodeType.RNA);
-        // gene_product is not further specified and a fallback, therefore a precise mapping is difficult
     }
 
     @Override
@@ -48,13 +21,49 @@ public class GeneOntologyMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeDBObject(final Node node) {
         final String type = node.getProperty("type");
-        if (typeNodeTypeMap.containsKey(type))
-            return new NodeMappingDescription[]{createDescription(node, typeNodeTypeMap.get(type))};
+        if (type != null) {
+            // gene_product is not further specified and a fallback, therefore a precise mapping is difficult
+            switch (type) {
+                case "protein":
+                case "protein_complex":
+                    return populateDescription(node,
+                                               new NodeMappingDescription(NodeMappingDescription.NodeType.PROTEIN));
+                case "miRNA":
+                    return createRNAMappingDescription(node, RNANodeMappingDescription.RNAType.MI_RNA);
+                case "lnc_RNA":
+                    return createRNAMappingDescription(node, RNANodeMappingDescription.RNAType.LNC_RNA);
+                case "rRNA":
+                    return createRNAMappingDescription(node, RNANodeMappingDescription.RNAType.R_RNA);
+                case "tRNA":
+                    return createRNAMappingDescription(node, RNANodeMappingDescription.RNAType.T_RNA);
+                case "scRNA":
+                    return createRNAMappingDescription(node, RNANodeMappingDescription.RNAType.SC_RNA);
+                case "snoRNA":
+                    return createRNAMappingDescription(node, RNANodeMappingDescription.RNAType.SNO_RNA);
+                case "snRNA":
+                    return createRNAMappingDescription(node, RNANodeMappingDescription.RNAType.SN_RNA);
+                case "piRNA":
+                    return createRNAMappingDescription(node, RNANodeMappingDescription.RNAType.PI_RNA);
+                case "hammerhead_ribozyme":
+                case "ribozyme":
+                    return createRNAMappingDescription(node, RNANodeMappingDescription.RNAType.RIBOZYME);
+                case "antisense_RNA":
+                    return createRNAMappingDescription(node, RNANodeMappingDescription.RNAType.ANTISENSE_RNA);
+                case "ncRNA":
+                case "guide_RNA":
+                case "RNase_MRP_RNA":
+                case "RNase_P_RNA":
+                case "SRP_RNA":
+                case "telomerase_RNA":
+                case "primary_transcript":
+                case "transcript":
+                    return createRNAMappingDescription(node, RNANodeMappingDescription.RNAType.UNKNOWN);
+            }
+        }
         return null;
     }
 
-    private NodeMappingDescription createDescription(final Node node, final NodeMappingDescription.NodeType type) {
-        final NodeMappingDescription description = new NodeMappingDescription(type);
+    private NodeMappingDescription[] populateDescription(final Node node, final NodeMappingDescription description) {
         description.addName(node.getProperty("name"));
         description.addNames(node.<String[]>getProperty("synonyms"));
         final String id = node.getProperty("id");
@@ -72,7 +81,12 @@ public class GeneOntologyMappingDescriber extends MappingDescriber {
                     break;
             }
         }
-        return description;
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] createRNAMappingDescription(final Node node,
+                                                                 final RNANodeMappingDescription.RNAType rnaType) {
+        return populateDescription(node, new RNANodeMappingDescription(rnaType));
     }
 
     @Override
