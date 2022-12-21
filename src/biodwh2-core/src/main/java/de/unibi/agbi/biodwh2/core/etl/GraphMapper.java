@@ -127,7 +127,7 @@ public final class GraphMapper {
         // Export logging
         final Node logMergedNode = SerializableUtils.clone(mergedNode);
         if (logMergedNode != null) {
-            final Node sourceLogNode = createMappingNode(logGraph, description.getType(), description.getIdentifiers(),
+            final Node sourceLogNode = createMappingNode(logGraph, mappedNode.getLabel(), description.getIdentifiers(),
                                                          description.getNames(), description.getAdditionalProperties());
             sourceLogNode.setProperty("source_node_id", mappedNode.getId());
             sourceLogNode.setProperty(MAPPED_NODE_PROPERTY, false);
