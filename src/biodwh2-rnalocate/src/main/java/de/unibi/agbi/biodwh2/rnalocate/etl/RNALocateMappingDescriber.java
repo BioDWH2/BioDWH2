@@ -79,14 +79,12 @@ public class RNALocateMappingDescriber extends MappingDescriber {
                     description.addIdentifier(IdentifierType.MIRBASE, idParts[1]);
                     break;
                 case "NCBI":
-                    description.addIdentifier(IdentifierType.NCBI_GENE, idParts[1]);
+                    description.addIdentifier(IdentifierType.NCBI_GENE, Integer.parseInt(idParts[1]));
                     break;
+                // TODO
                 case "exoRBase":
-                    break;
                 case "circBase":
-                    break;
                 case "RNAcentral":
-                    break;
                 case "MGI":
                     break;
             }

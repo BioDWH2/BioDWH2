@@ -55,122 +55,138 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
         graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(RNA_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.beginEdgeIndicesDelay(INTERACTS_WITH_LABEL);
-        final Map<String, Long> rnaIdNodeIdMap = new HashMap<>();
-        final Map<String, Long> rnaKeyNodeIdMap = new HashMap<>();
-        exportRRInteractions(workspace, graph, rnaIdNodeIdMap, rnaKeyNodeIdMap);
-        exportRPInteractions(workspace, graph, rnaIdNodeIdMap, rnaKeyNodeIdMap);
-        exportRDInteractions(workspace, graph, rnaIdNodeIdMap, rnaKeyNodeIdMap);
-        exportRCInteractions(workspace, graph, rnaIdNodeIdMap, rnaKeyNodeIdMap);
-        exportRHInteractions(workspace, graph, rnaIdNodeIdMap, rnaKeyNodeIdMap);
+        final Map<String, Map<String, Map<String, Long>>> rnaKeyNodeIdMap = new HashMap<>();
+        exportRRInteractions(workspace, graph, rnaKeyNodeIdMap);
+        exportRPInteractions(workspace, graph, rnaKeyNodeIdMap);
+        exportRDInteractions(workspace, graph, rnaKeyNodeIdMap);
+        exportRCInteractions(workspace, graph, rnaKeyNodeIdMap);
+        exportRHInteractions(workspace, graph, rnaKeyNodeIdMap);
         graph.endEdgeIndicesDelay(INTERACTS_WITH_LABEL);
         return true;
     }
 
     private void exportRRInteractions(final Workspace workspace, final Graph graph,
-                                      final Map<String, Long> rnaIdNodeIdMap, final Map<String, Long> rnaKeyNodeIdMap) {
-        for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RR_FILE_NAME)) {
-            // Skip strange header line within RR and RP file
-            if (SKIP_ROW_KEYWORD1.equals(entry.category1) || SKIP_ROW_KEYWORD2.equals(entry.category2))
-                continue;
-            final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
-                                               entry.species1, rnaIdNodeIdMap, rnaKeyNodeIdMap);
-            final Long toId = getOrCreateRNA(graph, entry.interactor2Symbol, entry.rawId2, entry.category2,
-                                             entry.species2, rnaIdNodeIdMap, rnaKeyNodeIdMap);
-            createEdge(graph, fromId, toId, entry);
+                                      final Map<String, Map<String, Map<String, Long>>> rnaKeyNodeIdMap) {
+        try (final MappingIterator<Entry> iterator = parseTsvFile(workspace, RNAInterUpdater.RR_FILE_NAME)) {
+            while (iterator.hasNext()) {
+                final Entry entry = iterator.next();
+                // Skip strange header line within RR and RP file
+                if (SKIP_ROW_KEYWORD1.equals(entry.category1) || SKIP_ROW_KEYWORD2.equals(entry.category2))
+                    continue;
+                final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
+                                                   entry.species1, rnaKeyNodeIdMap);
+                final Long toId = getOrCreateRNA(graph, entry.interactor2Symbol, entry.rawId2, entry.category2,
+                                                 entry.species2, rnaKeyNodeIdMap);
+                createEdge(graph, fromId, toId, entry);
+            }
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to export file '" + RNAInterUpdater.RR_FILE_NAME + "'", e);
         }
     }
 
-    private Iterable<Entry> parseTsvFile(final Workspace workspace, final String fileName) throws ExporterException {
+    private MappingIterator<Entry> parseTsvFile(final Workspace workspace, final String fileName) throws IOException {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting " + fileName + "...");
-        try {
-            //noinspection resource
-            final MappingIterator<Entry> iterator = FileUtils.openTarGzipTsvWithHeader(workspace, dataSource, fileName,
-                                                                                       Entry.class);
-            return () -> iterator;
-        } catch (IOException e) {
-            throw new ExporterFormatException("Failed to export file '" + fileName + "'", e);
-        }
+        return FileUtils.openTarGzipTsvWithHeader(workspace, dataSource, fileName, Entry.class);
     }
 
     private void exportRPInteractions(final Workspace workspace, final Graph graph,
-                                      final Map<String, Long> rnaIdNodeIdMap, final Map<String, Long> rnaKeyNodeIdMap) {
-        final Map<String, Long> proteinIdNodeIdMap = new HashMap<>();
-        final Map<String, Long> proteinKeyNodeIdMap = new HashMap<>();
-        for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RP_FILE_NAME)) {
-            // Skip strange header line within RR and RP file
-            if (SKIP_ROW_KEYWORD1.equals(entry.category1) || SKIP_ROW_KEYWORD2.equals(entry.category2))
-                continue;
-            final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
-                                               entry.species1, rnaIdNodeIdMap, rnaKeyNodeIdMap);
-            final Long toId = getOrCreateProtein(graph, entry.interactor2Symbol, entry.rawId2, entry.category2,
-                                                 entry.species2, proteinIdNodeIdMap, proteinKeyNodeIdMap);
-            createEdge(graph, fromId, toId, entry);
+                                      final Map<String, Map<String, Map<String, Long>>> rnaKeyNodeIdMap) {
+        final Map<String, Map<String, Long>> proteinKeyNodeIdMap = new HashMap<>();
+        try (final MappingIterator<Entry> iterator = parseTsvFile(workspace, RNAInterUpdater.RP_FILE_NAME)) {
+            while (iterator.hasNext()) {
+                final Entry entry = iterator.next();
+                // Skip strange header line within RR and RP file
+                if (SKIP_ROW_KEYWORD1.equals(entry.category1) || SKIP_ROW_KEYWORD2.equals(entry.category2))
+                    continue;
+                final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
+                                                   entry.species1, rnaKeyNodeIdMap);
+                final Long toId = getOrCreateProtein(graph, entry.interactor2Symbol, entry.rawId2, entry.category2,
+                                                     entry.species2, proteinKeyNodeIdMap);
+                createEdge(graph, fromId, toId, entry);
+            }
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to export file '" + RNAInterUpdater.RP_FILE_NAME + "'", e);
         }
-        proteinIdNodeIdMap.clear();
         proteinKeyNodeIdMap.clear();
     }
 
     private void exportRDInteractions(final Workspace workspace, final Graph graph,
-                                      final Map<String, Long> rnaIdNodeIdMap, final Map<String, Long> rnaKeyNodeIdMap) {
+                                      final Map<String, Map<String, Map<String, Long>>> rnaKeyNodeIdMap) {
         final Map<String, Long> geneKeyNodeIdMap = new HashMap<>();
-        for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RD_FILE_NAME)) {
-            final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
-                                               entry.species1, rnaIdNodeIdMap, rnaKeyNodeIdMap);
-            // DNA always has "DNA" category
-            final Long toId = getOrCreateGene(graph, entry.interactor2Symbol, entry.rawId2, entry.species2,
-                                              geneKeyNodeIdMap);
-            createEdge(graph, fromId, toId, entry);
+        try (final MappingIterator<Entry> iterator = parseTsvFile(workspace, RNAInterUpdater.RD_FILE_NAME)) {
+            while (iterator.hasNext()) {
+                final Entry entry = iterator.next();
+                final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
+                                                   entry.species1, rnaKeyNodeIdMap);
+                // DNA always has "DNA" category
+                final Long toId = getOrCreateGene(graph, entry.interactor2Symbol, entry.rawId2, entry.species2,
+                                                  geneKeyNodeIdMap);
+                createEdge(graph, fromId, toId, entry);
+            }
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to export file '" + RNAInterUpdater.RD_FILE_NAME + "'", e);
         }
         geneKeyNodeIdMap.clear();
     }
 
     private void exportRCInteractions(final Workspace workspace, final Graph graph,
-                                      final Map<String, Long> rnaIdNodeIdMap, final Map<String, Long> rnaKeyNodeIdMap) {
+                                      final Map<String, Map<String, Map<String, Long>>> rnaKeyNodeIdMap) {
         final Map<String, Long> compoundNameNodeIdMap = new HashMap<>();
-        for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RC_FILE_NAME)) {
-            final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
-                                               entry.species1, rnaIdNodeIdMap, rnaKeyNodeIdMap);
-            // Compound always has N/A species and "compound" category
-            final Long toId = getOrCreateCompound(graph, entry.interactor2Symbol, entry.rawId2, compoundNameNodeIdMap);
-            createEdge(graph, fromId, toId, entry);
+        try (final MappingIterator<Entry> iterator = parseTsvFile(workspace, RNAInterUpdater.RC_FILE_NAME)) {
+            while (iterator.hasNext()) {
+                final Entry entry = iterator.next();
+                final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
+                                                   entry.species1, rnaKeyNodeIdMap);
+                // Compound always has N/A species and "compound" category
+                final Long toId = getOrCreateCompound(graph, entry.interactor2Symbol, entry.rawId2,
+                                                      compoundNameNodeIdMap);
+                createEdge(graph, fromId, toId, entry);
+            }
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to export file '" + RNAInterUpdater.RC_FILE_NAME + "'", e);
         }
         compoundNameNodeIdMap.clear();
     }
 
     private void exportRHInteractions(final Workspace workspace, final Graph graph,
-                                      final Map<String, Long> rnaIdNodeIdMap, final Map<String, Long> rnaKeyNodeIdMap) {
+                                      final Map<String, Map<String, Map<String, Long>>> rnaKeyNodeIdMap) {
         final Map<String, Long> histoneModificationSymbolNodeIdMap = new HashMap<>();
-        for (final Entry entry : parseTsvFile(workspace, RNAInterUpdater.RH_FILE_NAME)) {
-            final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
-                                               entry.species1, rnaIdNodeIdMap, rnaKeyNodeIdMap);
-            // Histone modification always has N/A species, N/A rawId and "histone modification" category
-            final Long toId = getOrCreateHistoneModification(graph, entry.interactor2Symbol,
-                                                             histoneModificationSymbolNodeIdMap);
-            createEdge(graph, fromId, toId, entry);
+        try (final MappingIterator<Entry> iterator = parseTsvFile(workspace, RNAInterUpdater.RH_FILE_NAME)) {
+            while (iterator.hasNext()) {
+                final Entry entry = iterator.next();
+                final Long fromId = getOrCreateRNA(graph, entry.interactor1Symbol, entry.rawId1, entry.category1,
+                                                   entry.species1, rnaKeyNodeIdMap);
+                // Histone modification always has N/A species, N/A rawId and "histone modification" category
+                final Long toId = getOrCreateHistoneModification(graph, entry.interactor2Symbol,
+                                                                 histoneModificationSymbolNodeIdMap);
+                createEdge(graph, fromId, toId, entry);
+            }
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to export file '" + RNAInterUpdater.RH_FILE_NAME + "'", e);
         }
         histoneModificationSymbolNodeIdMap.clear();
     }
 
     private Long getOrCreateRNA(final Graph graph, final String symbol, final String rawId, final String category,
-                                final String species, final Map<String, Long> idNodeIdMap,
-                                final Map<String, Long> keyNodeIdMap) {
+                                final String species, final Map<String, Map<String, Map<String, Long>>> keyNodeIdMap) {
         if (rawId == null || NOT_AVAILABLE_VALUE.equals(rawId)) {
-            final String key = symbol + "|" + species + "|" + category;
-            Long nodeId = keyNodeIdMap.get(key);
+            final Map<String, Map<String, Long>> categorySymbolNodeIdMap = keyNodeIdMap.computeIfAbsent(species,
+                                                                                                        k -> new HashMap<>());
+            final Map<String, Long> symbolNodeIdMap = categorySymbolNodeIdMap.computeIfAbsent(category,
+                                                                                              k -> new HashMap<>());
+            Long nodeId = symbolNodeIdMap.get(symbol);
             if (nodeId == null) {
                 nodeId = graph.addNode(RNA_LABEL, SPECIES_KEY, species, SYMBOL_KEY, symbol, TYPE_KEY, category).getId();
-                keyNodeIdMap.put(key, nodeId);
+                symbolNodeIdMap.put(symbol, nodeId);
             }
             return nodeId;
         }
-        Long nodeId = idNodeIdMap.get(rawId);
-        if (nodeId == null) {
-            nodeId = graph.addNode(RNA_LABEL, ID_KEY, rawId, SPECIES_KEY, species, SYMBOL_KEY, symbol, TYPE_KEY,
-                                   category).getId();
-            idNodeIdMap.put(rawId, nodeId);
-        }
-        return nodeId;
+        Node node = graph.findNode(RNA_LABEL, ID_KEY, rawId);
+        if (node == null)
+            node = graph.addNode(RNA_LABEL, ID_KEY, rawId, SPECIES_KEY, species, SYMBOL_KEY, symbol, TYPE_KEY,
+                                 category);
+        return node.getId();
     }
 
     private void createEdge(final Graph graph, final Long from, final Long to, final Entry entry) {
@@ -188,26 +204,23 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
     }
 
     private Long getOrCreateProtein(final Graph graph, final String symbol, final String rawId, final String category,
-                                    final String species, final Map<String, Long> idNodeIdMap,
-                                    final Map<String, Long> keyNodeIdMap) {
+                                    final String species, final Map<String, Map<String, Long>> keyNodeIdMap) {
         final String type = !RNA_BINDING_PROTEIN_TYPE.equals(category) && !TF_TYPE.equals(category) ? PROTEIN_TYPE :
                             category;
         if (rawId == null || NOT_AVAILABLE_VALUE.equals(rawId)) {
-            final String key = symbol + "|" + species;
-            Long nodeId = keyNodeIdMap.get(key);
+            final Map<String, Long> symbolNodeIdMap = keyNodeIdMap.computeIfAbsent(species, k -> new HashMap<>());
+            Long nodeId = symbolNodeIdMap.get(symbol);
             if (nodeId == null) {
                 nodeId = graph.addNode(PROTEIN_LABEL, SPECIES_KEY, species, SYMBOL_KEY, symbol, TYPE_KEY, type).getId();
-                keyNodeIdMap.put(key, nodeId);
+                symbolNodeIdMap.put(symbol, nodeId);
             }
             return nodeId;
         }
-        Long nodeId = idNodeIdMap.get(rawId);
-        if (nodeId == null) {
-            nodeId = graph.addNode(PROTEIN_LABEL, ID_KEY, rawId, SPECIES_KEY, species, SYMBOL_KEY, symbol, TYPE_KEY,
-                                   type).getId();
-            idNodeIdMap.put(rawId, nodeId);
-        }
-        return nodeId;
+        Node node = graph.findNode(PROTEIN_LABEL, ID_KEY, rawId);
+        if (node == null)
+            node = graph.addNode(PROTEIN_LABEL, ID_KEY, rawId, SPECIES_KEY, species, SYMBOL_KEY, symbol, TYPE_KEY,
+                                 type);
+        return node.getId();
     }
 
     private Long getOrCreateGene(final Graph graph, final String symbol, final String rawId, final String species,
