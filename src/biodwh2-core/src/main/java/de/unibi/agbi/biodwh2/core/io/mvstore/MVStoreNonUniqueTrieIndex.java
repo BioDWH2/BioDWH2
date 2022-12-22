@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.mvstore;
 import de.unibi.agbi.biodwh2.core.collections.ConcurrentDoublyLinkedList;
 import de.unibi.agbi.biodwh2.core.collections.LongTrie;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,6 +35,11 @@ public class MVStoreNonUniqueTrieIndex extends MVStoreIndex {
     @Override
     public boolean contains(final Comparable<?> propertyValue) {
         return map.containsKey(propertyValue) || (isDelayed && delayCache.containsKey(propertyValue));
+    }
+
+    @Override
+    public Collection<Comparable<?>> getIndexedValues() {
+        return map.keySet();
     }
 
     @Override

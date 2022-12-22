@@ -3,10 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.mvstore;
 import de.unibi.agbi.biodwh2.core.collections.ConcurrentDoublyLinkedList;
 import de.unibi.agbi.biodwh2.core.collections.Tuple2;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class MVStoreNonUniqueIndex extends MVStoreIndex {
     public static final int DEFAULT_PAGE_SIZE = 1000;
@@ -59,6 +56,11 @@ public class MVStoreNonUniqueIndex extends MVStoreIndex {
     @Override
     public boolean contains(final Comparable<?> propertyValue) {
         return map.containsKey(propertyValue);
+    }
+
+    @Override
+    public Collection<Comparable<?>> getIndexedValues() {
+        return map.keySet();
     }
 
     @Override

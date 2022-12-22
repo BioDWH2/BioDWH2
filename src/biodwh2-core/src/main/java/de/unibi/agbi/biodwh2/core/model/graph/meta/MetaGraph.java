@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core.model.graph.meta;
 
 import de.unibi.agbi.biodwh2.core.model.graph.BaseGraph;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
+import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 
 import java.util.*;
@@ -62,16 +63,28 @@ public final class MetaGraph {
         for (final String label : graph.getEdgeLabels()) {
             final String dataSourceId = determineDataSourceIdForNodeLabel(label);
             final boolean isMappingLabel = isMappedGraph && dataSourceId == null;
-            for (final Edge edge : graph.getEdges(label)) {
-                final String fromLabel = graph.getNodeLabel(edge.getFromId());
-                final String toLabel = graph.getNodeLabel(edge.getToId());
-                final String key = label + '|' + fromLabel + '|' + toLabel;
-                MetaEdge metaEdge = edges.get(key);
-                if (metaEdge == null) {
-                    metaEdge = new MetaEdge(fromLabel, toLabel, label, dataSourceId, isMappingLabel);
-                    edges.put(key, metaEdge);
+            if (graph instanceof Graph) {
+                final Map<String, Set<String>> fromToLabels = ((Graph) graph).getEdgeFromToLabels(label);
+                for (final String fromLabel : fromToLabels.keySet()) {
+                    for (final String toLabel : fromToLabels.get(fromLabel)) {
+                        final String key = label + '|' + fromLabel + '|' + toLabel;
+                        final MetaEdge metaEdge = new MetaEdge(fromLabel, toLabel, label, dataSourceId, isMappingLabel);
+                        edges.put(key, metaEdge);
+                        metaEdge.count++;
+                    }
                 }
-                metaEdge.count++;
+            } else {
+                for (final Edge edge : graph.getEdges(label)) {
+                    final String fromLabel = graph.getNodeLabel(edge.getFromId());
+                    final String toLabel = graph.getNodeLabel(edge.getToId());
+                    final String key = label + '|' + fromLabel + '|' + toLabel;
+                    MetaEdge metaEdge = edges.get(key);
+                    if (metaEdge == null) {
+                        metaEdge = new MetaEdge(fromLabel, toLabel, label, dataSourceId, isMappingLabel);
+                        edges.put(key, metaEdge);
+                    }
+                    metaEdge.count++;
+                }
             }
         }
     }

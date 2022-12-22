@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.core.io.mvstore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Set;
 
 public abstract class MVStoreIndex {
@@ -43,6 +44,8 @@ public abstract class MVStoreIndex {
     public abstract void put(final Object propertyValue, final long id);
 
     public abstract boolean contains(final Comparable<?> propertyValue);
+
+    public abstract Collection<Comparable<?>> getIndexedValues();
 
     public final MVIndexDescription getIndexDescription() {
         return indexDescription;

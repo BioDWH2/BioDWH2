@@ -340,7 +340,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
         return map.sizeAsLong();
     }
 
-    public Iterable<Long> getKeys() {
+    public Set<Long> keySet() {
         return map.keySet();
     }
 

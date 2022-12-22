@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
+import de.unibi.agbi.biodwh2.core.collections.LongTrie;
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
 import de.unibi.agbi.biodwh2.core.io.mvstore.*;
 import de.unibi.agbi.biodwh2.core.lang.Type;
@@ -216,23 +217,26 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
     @Override
     public Iterable<Long> getNodeIds(final String label) {
         final MVStoreCollection<Node> nodes = nodeRepositories.get(label);
-        return nodes != null ? nodes.getKeys() : Collections.emptyList();
+        return nodes != null ? nodes.keySet() : Collections.emptyList();
     }
 
     @Override
     public Iterable<Long> getEdgeIds(final String label) {
         final MVStoreCollection<Edge> edges = edgeRepositories.get(label);
-        return edges != null ? edges.getKeys() : Collections.emptyList();
+        return edges != null ? edges.keySet() : Collections.emptyList();
     }
 
+    @Override
     public final String[] getNodeLabels() {
         return nodeRepositories.keySet().toArray(new String[0]);
     }
 
+    @Override
     public final String[] getEdgeLabels() {
         return edgeRepositories.keySet().toArray(new String[0]);
     }
 
+    @Override
     public final Node getNode(final long nodeId) {
         for (final MVStoreCollection<Node> nodes : nodeRepositories.values()) {
             final Node node = nodes.get(nodeId);
@@ -243,13 +247,14 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
     }
 
     @Override
-    public String getNodeLabel(long nodeId) {
+    public String getNodeLabel(final long nodeId) {
         for (final String label : nodeRepositories.keySet())
             if (nodeRepositories.get(label).contains(nodeId))
                 return label;
         return null;
     }
 
+    @Override
     public final Edge getEdge(final long edgeId) {
         for (final MVStoreCollection<Edge> edges : edgeRepositories.values()) {
             final Edge edge = edges.get(edgeId);
@@ -260,11 +265,41 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
     }
 
     @Override
-    public String getEdgeLabel(long edgeId) {
+    public String getEdgeLabel(final long edgeId) {
         for (final String label : edgeRepositories.keySet())
             if (edgeRepositories.get(label).contains(edgeId))
                 return label;
         return null;
+    }
+
+    public Map<String, Set<String>> getEdgeFromToLabels(final String edgeLabel) {
+        final MVStoreCollection<Edge> edges = edgeRepositories.get(edgeLabel);
+        if (edges == null)
+            return null;
+        final Map<String, LongTrie> fromLabelEdgeIdsMap = new HashMap<>();
+        final MVStoreIndex fromIndex = edges.getIndex(Edge.FROM_ID_FIELD);
+        for (final Comparable<?> fromId : fromIndex.getIndexedValues()) {
+            final String fromLabel = getNodeLabel((Long) fromId);
+            final LongTrie edgeIds = fromLabelEdgeIdsMap.computeIfAbsent(fromLabel, k -> new LongTrie());
+            edgeIds.addAll(fromIndex.find(fromId));
+        }
+        final Map<String, Set<String>> result = new HashMap<>();
+        for (final String key : fromLabelEdgeIdsMap.keySet())
+            result.put(key, new HashSet<>());
+        final MVStoreIndex toIndex = edges.getIndex(Edge.TO_ID_FIELD);
+        for (final Comparable<?> toId : toIndex.getIndexedValues()) {
+            final String toLabel = getNodeLabel((Long) toId);
+            for (final Long edgeId : toIndex.find(toId)) {
+                for (final Map.Entry<String, LongTrie> fromEntries : fromLabelEdgeIdsMap.entrySet()) {
+                    if (fromEntries.getValue().contains(edgeId)) {
+                        result.get(fromEntries.getKey()).add(toLabel);
+                        fromEntries.getValue().remove(edgeId);
+                        break;
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     public Iterable<Node> findNodes(final String label) {

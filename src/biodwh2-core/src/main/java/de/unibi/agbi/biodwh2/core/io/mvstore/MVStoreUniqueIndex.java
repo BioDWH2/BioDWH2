@@ -3,7 +3,8 @@ package de.unibi.agbi.biodwh2.core.io.mvstore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 public final class MVStoreUniqueIndex extends MVStoreIndex {
@@ -31,6 +32,11 @@ public final class MVStoreUniqueIndex extends MVStoreIndex {
     @Override
     public boolean contains(final Comparable<?> propertyValue) {
         return map.containsKey(propertyValue);
+    }
+
+    @Override
+    public Collection<Comparable<?>> getIndexedValues() {
+        return map.keySet();
     }
 
     @Override
@@ -65,11 +71,8 @@ public final class MVStoreUniqueIndex extends MVStoreIndex {
 
     @Override
     public Set<Long> find(final Comparable<?> propertyValue) {
-        final Set<Long> ids = new HashSet<>();
         final Long id = map.get(propertyValue);
-        if (id != null)
-            ids.add(id);
-        return ids;
+        return id != null ? Collections.singleton(id) : Collections.emptySet();
     }
 
     @Override
