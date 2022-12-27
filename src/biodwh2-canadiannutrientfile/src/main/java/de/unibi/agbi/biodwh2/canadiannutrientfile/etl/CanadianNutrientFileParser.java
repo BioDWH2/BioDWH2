@@ -46,8 +46,8 @@ public class CanadianNutrientFileParser extends Parser<CanadianNutrientFileDataS
 
     private <T> List<T> readAllZipCsvFile(final Workspace workspace, final String fileName, final Class<T> type,
                                           final String search, final String replace) throws ParserFormatException {
-        try {
-            return parseZipCsvFile(workspace, fileName, type, search, replace).readAll();
+        try (final MappingIterator<T> iterator = parseZipCsvFile(workspace, fileName, type, search, replace)) {
+            return iterator.readAll();
         } catch (IOException e) {
             throw new ParserFormatException("Failed to parse file '" + fileName + "'", e);
         }

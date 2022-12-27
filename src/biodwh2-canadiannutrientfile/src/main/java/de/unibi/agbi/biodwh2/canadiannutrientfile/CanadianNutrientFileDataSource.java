@@ -27,7 +27,6 @@ public class CanadianNutrientFileDataSource extends DataSource {
     public List<RefuseAmount> refuseAmounts = new ArrayList<>();
     public List<ConversionFactor> conversionFactors = new ArrayList<>();
     public List<NutrientAmount> nutrientAmounts = new ArrayList<>();
-
     public List<Food> foods = new ArrayList<>();
 
     @Override
@@ -69,5 +68,10 @@ public class CanadianNutrientFileDataSource extends DataSource {
         foodGroups = null;
         foodSources = null;
         nutrientSources = null;
+        yieldAmounts = null;
+        refuseAmounts = null;
+        conversionFactors = null;
+        nutrientAmounts = null;
+        foods = null;
     }
 }

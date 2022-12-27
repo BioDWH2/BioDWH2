@@ -39,11 +39,11 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode("Trial", "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Trial", ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Condition", "mesh_id", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Intervention", "mesh_id", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Reference", "pmid", IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Document", "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Document", ID_KEY, IndexDescription.Type.UNIQUE));
         exportClinicalTrials(workspace, graph);
         return true;
     }
@@ -61,7 +61,7 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
 
     private void exportClinicalTrial(final Graph graph, final InputStream stream) throws IOException {
         final ClinicalStudy study = xmlMapper.readValue(stream, ClinicalStudy.class);
-        final NodeBuilder builder = graph.buildNode().withLabel("Trial").withProperty("id", study.idInfo.nctId);
+        final NodeBuilder builder = graph.buildNode().withLabel("Trial").withProperty(ID_KEY, study.idInfo.nctId);
         builder.withPropertyIfNotNull("org_study_id", study.idInfo.orgStudyId);
         if (study.idInfo.secondaryId != null && study.idInfo.secondaryId.size() > 0)
             builder.withPropertyIfNotNull("secondary_ids", study.idInfo.secondaryId.toArray(new String[0]));
@@ -453,9 +453,9 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
     }
 
     private Node getOrCreateDocument(final Graph graph, final StudyDocStruct document) {
-        Node node = graph.findNode("Document", "id", document.docId);
+        Node node = graph.findNode("Document", ID_KEY, document.docId);
         if (node == null) {
-            final NodeBuilder builder = graph.buildNode().withLabel("Document").withProperty("id", document.docId);
+            final NodeBuilder builder = graph.buildNode().withLabel("Document").withProperty(ID_KEY, document.docId);
             builder.withPropertyIfNotNull("url", document.docUrl);
             builder.withPropertyIfNotNull("type", document.docType);
             builder.withPropertyIfNotNull("comment", document.docComment);
