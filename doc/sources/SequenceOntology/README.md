@@ -1,14 +1,14 @@
-# Mondo
+# SequenceOntology
 
 
 
 ## Website
 
-[https://mondo.monarchinitiative.org](https://mondo.monarchinitiative.org)
+[http://www.sequenceontology.org](http://www.sequenceontology.org)
 
 ## License
 
-Mondo Disease Ontology is licensed under the Creative Commons Attribution 3.0 Unported (CC BY 3.0)
+CC BY-SA 4.0
 
 ## Citation
 
@@ -16,7 +16,7 @@ Mondo Disease Ontology is licensed under the Creative Commons Attribution 3.0 Un
 
 ## Files used
 
-  * ```mondo.obo```
+ * ```so.obo```
 
 ## Configuration properties
 

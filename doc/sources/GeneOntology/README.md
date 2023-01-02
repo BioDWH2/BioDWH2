@@ -24,8 +24,8 @@ For citation information see http://geneontology.org/docs/go-citation-policy/
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
+| Property       | Values     | Description                                              |
+|----------------|------------|----------------------------------------------------------|
+| forceExport    | true/false | Force graph export even if nothing changed               |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
-|                |            |             |
+|                |            |                                                          |

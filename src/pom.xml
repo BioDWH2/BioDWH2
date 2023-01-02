@@ -71,6 +71,7 @@
         <module>biodwh2-refseq</module>
         <module>biodwh2-rnalocate</module>
         <module>biodwh2-rnadisease</module>
+        <module>biodwh2-sequenceontology</module>
     </modules>
 
     <packaging>pom</packaging>
