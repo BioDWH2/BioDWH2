@@ -6,12 +6,15 @@ Released: upcoming
 
 ### 📚 Data Sources
 
+* ```[TTD]``` #69 Fix TTD array properties and placeholder
 * ```[GenCC]``` #70 Add GenCC gene and disease mapping
 * ```[TarBase]``` #73 Map TarBase genes to RNA where Genbank mRNA ids are available
 * ```[miRDB]``` #78 Replace miRDB Gene nodes with mRNA nodes as it provides Genbank mRNA ids 
 * ```[DISEASES]``` #81 Add DISEASES data source module
 * ```[RefSeq]``` #82 Add RefSeq data source module
 * ```[RNALocate]``` #83 Add RNALocate data source module
+* ```[RNADisease]``` #84 Add RNADisease data source module
+* ```[SequenceOntology]``` #85 Add SequenceOntology data source module
 
 ### 🔧 Bug fixes and other changes
 
@@ -24,7 +27,11 @@ Released: upcoming
 * ```[feature]``` Path mapping edges now expose the path edge ids as a property
 * ```[feature]``` Node mappings now allow more properties via specific node mapping descriptions
 * ```[feature]``` Add RNA type node mapping property
+* ```[feature]``` Speedup meta graph edge generation
+* ```[feature]``` Move from logback to log4j2 as a logging framework
+* ```[feature]``` Add minimal, modified h2-mvstore to project
 * ```[chore]``` Update dependencies
+* ```[chore]``` Add third party license readme
 
 ## 📦 Version [v0.4.8](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.8)
 
