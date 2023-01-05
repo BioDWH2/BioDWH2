@@ -11,8 +11,8 @@ import de.unibi.agbi.biodwh2.core.io.gff.GFF3Reader;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.refseq.RefSeqDataSource;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class RefSeqGraphExporter extends GraphExporter<RefSeqDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RefSeqGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(RefSeqGraphExporter.class);
     static final String ASSEMBLY_LABEL = "Assembly";
     static final String CHROMOSOME_LABEL = "Chromosome";
     static final String GENE_LABEL = "Gene";

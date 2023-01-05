@@ -15,8 +15,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.ttd.TTDDataSource;
 import de.unibi.agbi.biodwh2.ttd.model.*;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TTDGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(TTDGraphExporter.class);
     static final String PATHWAY_LABEL = "Pathway";
     static final String TARGET_LABEL = "Target";
     static final String DRUG_LABEL = "Drug";

@@ -13,8 +13,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.uniprot.UniProtDataSource;
 import de.unibi.agbi.biodwh2.uniprot.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -28,7 +28,7 @@ import java.util.zip.GZIPInputStream;
 import static java.util.stream.Collectors.groupingBy;
 
 public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UniProtGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(UniProtGraphExporter.class);
     private static final Map<String, Long> dbReferenceCitationNodeIdMap = new HashMap<>();
 
     public UniProtGraphExporter(final UniProtDataSource dataSource) {

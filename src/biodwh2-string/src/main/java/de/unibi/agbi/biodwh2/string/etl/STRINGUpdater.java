@@ -7,8 +7,8 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.string.STRINGDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -17,7 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class STRINGUpdater extends Updater<STRINGDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(STRINGUpdater.class);
+    private static final Logger LOGGER = LogManager.getLogger(STRINGUpdater.class);
     private static final String DOWNLOAD_PAGE_URL = "https://string-db.org/cgi/download?species_text=Homo+sapiens";
     private static final Pattern FILE_URL_PATTERN = Pattern.compile(
             "https://stringdb-static\\.org/download/([a-zA-Z.]+\\.v)([0-9]+\\.[0-9]+)(/9606\\.\\1\\2)?\\.(txt|fa)(\\.gz)?");

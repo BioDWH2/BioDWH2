@@ -12,8 +12,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.interpro.InterProDataSource;
 import de.unibi.agbi.biodwh2.interpro.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 public class InterProGraphExporter extends GraphExporter<InterProDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(InterProGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(InterProGraphExporter.class);
     private static final String CLASSIFICATION_LABEL = "Classification";
     static final String PUBLICATION_LABEL = "Publication";
     static final String DOMAIN_LABEL = "Domain";

@@ -13,15 +13,15 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.rnainter.RNAInterDataSource;
 import de.unibi.agbi.biodwh2.rnainter.model.Entry;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RNAInterGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(RNAInterGraphExporter.class);
     private static final String SKIP_ROW_KEYWORD1 = "Category1";
     private static final String SKIP_ROW_KEYWORD2 = "Category2";
     static final String COMPOUND_LABEL = "Compound";

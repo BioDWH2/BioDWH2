@@ -8,13 +8,13 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.rnainter.RNAInterDataSource;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
 public class RNAInterUpdater extends Updater<RNAInterDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RNAInterUpdater.class);
+    private static final Logger LOGGER = LogManager.getLogger(RNAInterUpdater.class);
     private static final String DOWNLOAD_URL_PREFIX = "http://www.rnainter.org/raidMedia/download/";
     static final String RR_FILE_NAME = "Download_data_RR.tar.gz";
     static final String RP_FILE_NAME = "Download_data_RP.tar.gz";

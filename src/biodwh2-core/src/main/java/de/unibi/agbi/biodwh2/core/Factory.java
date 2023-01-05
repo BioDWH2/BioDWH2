@@ -1,7 +1,7 @@
 package de.unibi.agbi.biodwh2.core;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +11,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public final class Factory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Factory.class);
+    private static final Logger LOGGER = LogManager.getLogger(Factory.class);
     private static final List<String> IGNORED_JARS = Arrays.asList("rt.jar", "idea_rt.jar", "aws-java-sdk-ec2",
                                                                    "proto-", "google-cloud-", "google-api-",
                                                                    "openstack4j-core", "selenium-", "google-api-client",

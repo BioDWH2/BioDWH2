@@ -9,8 +9,8 @@ import de.unibi.agbi.biodwh2.itis.ITISDataSource;
 import de.unibi.agbi.biodwh2.itis.model.*;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +22,7 @@ import java.util.Map;
  * https://www.itis.gov/pdf/ITIS_ConceptualModelEntityDefinition.pdf
  */
 public class ITISParser extends Parser<ITISDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ITISParser.class);
+    private static final Logger LOGGER = LogManager.getLogger(ITISParser.class);
 
     public ITISParser(final ITISDataSource dataSource) {
         super(dataSource);

@@ -19,8 +19,8 @@ import de.unibi.agbi.biodwh2.mirbase.MiRBaseDataSource;
 import de.unibi.agbi.biodwh2.mirbase.model.*;
 import de.unibi.agbi.biodwh2.mirbase.utils.AlignmentUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MiRBaseGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(MiRBaseGraphExporter.class);
     private static final Pattern MIRNA_ACCESSION_PATTERN = Pattern.compile("MI[0-9]+");
     private static final Pattern MATURE_ACCESSION_PATTERN = Pattern.compile("MIMAT[0-9]+");
     public static final String PRE_MI_RNA_LABEL = "pre_miRNA";

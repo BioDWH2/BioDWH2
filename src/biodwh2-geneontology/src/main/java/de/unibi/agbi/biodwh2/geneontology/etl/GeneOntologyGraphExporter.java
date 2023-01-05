@@ -10,14 +10,14 @@ import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.geneontology.GeneOntologyDataSource;
 import de.unibi.agbi.biodwh2.geneontology.model.GAFEntry;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.Locale;
 
 public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntologyDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GeneOntologyGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(GeneOntologyGraphExporter.class);
     static final String DB_OBJECT_LABEL = "DBObject";
 
     public GeneOntologyGraphExporter(final GeneOntologyDataSource dataSource) {

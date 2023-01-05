@@ -13,8 +13,8 @@ import de.unibi.agbi.biodwh2.omim.OMIMDataSource;
 import de.unibi.agbi.biodwh2.omim.model.GeneMap2;
 import de.unibi.agbi.biodwh2.omim.model.MIMTitles;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -24,7 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class OMIMGraphExporter extends GraphExporter<OMIMDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OMIMGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(OMIMGraphExporter.class);
     public static final String GENE_LABEL = "Gene";
     static final String PHENOTYPE_LABEL = "Phenotype";
     static final String MIM_NUMBER_KEY = "mim_number";

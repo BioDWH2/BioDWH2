@@ -16,8 +16,8 @@ import de.unibi.agbi.biodwh2.mirtarbase.MiRTarBaseDataSource;
 import de.unibi.agbi.biodwh2.mirtarbase.model.MTIEntry;
 import de.unibi.agbi.biodwh2.mirtarbase.model.MicroRNATargetSite;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MiRTarBaseGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(MiRTarBaseGraphExporter.class);
     private static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
     private static final String HAS_EVIDENCE_LABEL = "HAS_EVIDENCE";
     static final String MIRNA_LABEL = "miRNA";

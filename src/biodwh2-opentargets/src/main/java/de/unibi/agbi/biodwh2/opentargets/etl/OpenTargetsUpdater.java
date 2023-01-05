@@ -13,8 +13,8 @@ import de.unibi.agbi.biodwh2.core.net.HTTPFTPClient;
 import de.unibi.agbi.biodwh2.opentargets.OpenTargetsDataSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public class OpenTargetsUpdater extends Updater<OpenTargetsDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OpenTargetsUpdater.class);
+    private static final Logger LOGGER = LogManager.getLogger(OpenTargetsUpdater.class);
     private static final String DATA_VERSION_URL = "https://api.platform.opentargets.org/api/v4/graphql?query={meta{dataVersion{year,month,iteration}}}";
     private static final String FTP_BASE_URL = "http://ftp.ebi.ac.uk/pub/databases/opentargets/platform/latest/output/etl/json/";
     static final String BASELINE_EXPRESSION_FILE_NAME = "baselineExpression.json";

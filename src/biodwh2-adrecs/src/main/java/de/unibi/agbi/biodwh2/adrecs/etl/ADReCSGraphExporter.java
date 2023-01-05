@@ -15,15 +15,15 @@ import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ADReCSGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(ADReCSGraphExporter.class);
     static final String DRUG_LABEL = "Drug";
     static final String ADR_LABEL = "ADR";
     private static final String ADRECS_ID_KEY = "adrecs_id";

@@ -10,22 +10,24 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
-import de.unibi.agbi.biodwh2.core.io.mixml.*;
-import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
+import de.unibi.agbi.biodwh2.core.io.mixml.BioSource;
+import de.unibi.agbi.biodwh2.core.io.mixml.Entry;
+import de.unibi.agbi.biodwh2.core.io.mixml.EntrySet;
+import de.unibi.agbi.biodwh2.core.io.mixml.Interactor;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.intact.IntActDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.io.*;
-import java.nio.file.Path;
+import java.io.File;
+import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class IntActGraphExporter extends GraphExporter<IntActDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(IntActGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(IntActGraphExporter.class);
 
     public IntActGraphExporter(final IntActDataSource dataSource) {
         super(dataSource);

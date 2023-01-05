@@ -1,7 +1,7 @@
 package de.unibi.agbi.biodwh2.core;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 public final class DataSourceLoader {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceLoader.class);
+    private static final Logger LOGGER = LogManager.getLogger(DataSourceLoader.class);
 
     private final List<DataSource> dataSources;
 

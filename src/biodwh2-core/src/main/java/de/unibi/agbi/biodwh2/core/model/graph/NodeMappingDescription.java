@@ -3,8 +3,8 @@ package de.unibi.agbi.biodwh2.core.model.graph;
 import de.unibi.agbi.biodwh2.core.etl.GraphMapper;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
@@ -40,7 +40,7 @@ public class NodeMappingDescription {
         VARIANT
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GraphMapper.class);
+    private static final Logger LOGGER = LogManager.getLogger(GraphMapper.class);
     private static final Map<IdentifierType, Set<Class<?>>> loggedIdentifierMismatchTypes = new HashMap<>();
 
     private final String type;

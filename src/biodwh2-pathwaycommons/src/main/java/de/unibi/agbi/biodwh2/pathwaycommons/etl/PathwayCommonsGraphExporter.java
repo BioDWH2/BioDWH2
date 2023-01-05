@@ -15,8 +15,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.pathwaycommons.PathwayCommonsDataSource;
 import de.unibi.agbi.biodwh2.pathwaycommons.model.InteractionEntry;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -25,7 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public class PathwayCommonsGraphExporter extends GraphExporter<PathwayCommonsDataSource> {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(PathwayCommonsGraphExporter.class);
+    protected static final Logger LOGGER = LogManager.getLogger(PathwayCommonsGraphExporter.class);
 
     static final String PATHWAY_LABEL = "Pathway";
     static final String GENE_LABEL = "Gene";

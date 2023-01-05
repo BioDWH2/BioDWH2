@@ -10,13 +10,13 @@ import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.herb.HerbDataSource;
 import de.unibi.agbi.biodwh2.herb.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
 public class HerbGraphExporter extends GraphExporter<HerbDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HerbGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(HerbGraphExporter.class);
 
     public HerbGraphExporter(final HerbDataSource dataSource) {
         super(dataSource);

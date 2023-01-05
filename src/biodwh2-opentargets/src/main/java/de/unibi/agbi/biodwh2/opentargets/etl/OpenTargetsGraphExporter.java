@@ -10,8 +10,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.opentargets.OpenTargetsDataSource;
 import de.unibi.agbi.biodwh2.opentargets.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,7 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class OpenTargetsGraphExporter extends GraphExporter<OpenTargetsDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OpenTargetsGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(OpenTargetsGraphExporter.class);
     public static final String MOLECULE_LABEL = "Molecule";
     public static final String DISEASE_LABEL = "Disease";
     public static final String REFERENCE_LABEL = "Reference";

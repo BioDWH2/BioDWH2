@@ -11,8 +11,8 @@ import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class DataSource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataSource.class);
+    private static final Logger LOGGER = LogManager.getLogger(DataSource.class);
     private static final String SOURCE_DIRECTORY_NAME = "source";
 
     private DataSourceMetadata metadata;

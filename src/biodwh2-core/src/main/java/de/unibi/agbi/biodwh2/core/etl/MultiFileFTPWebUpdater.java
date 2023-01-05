@@ -8,8 +8,8 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.core.net.HTTPFTPClient;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -19,7 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updater<D> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MultiFileFTPWebUpdater.class);
+    private static final Logger LOGGER = LogManager.getLogger(MultiFileFTPWebUpdater.class);
     private static final Map<String, Integer> THREE_LETTER_MONTHS = new HashMap<>();
 
     static {

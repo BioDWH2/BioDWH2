@@ -7,15 +7,15 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.mirtarbase.MiRTarBaseDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MiRTarBaseUpdater extends Updater<MiRTarBaseDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MiRTarBaseUpdater.class);
+    private static final Logger LOGGER = LogManager.getLogger(MiRTarBaseUpdater.class);
     private static final Pattern VERSION_PATTERN = Pattern.compile("Release ([0-9]+\\.[0-9]+(\\.[0-9]+)?) - Download");
     private static final Pattern DOWLOAD_FILE_PATTERN = Pattern.compile(
             "<a href=\"(.+/([a-zA-Z0-9_]+\\.xlsx))\">[a-zA-Z0-9_]+\\.xlsx</a>");

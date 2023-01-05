@@ -11,15 +11,15 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.guidetopharmacology.GuideToPharmacologyDataSource;
 import de.unibi.agbi.biodwh2.guidetopharmacology.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GuideToPharmacologyGraphExporter extends GraphExporter<GuideToPharmacologyDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GuideToPharmacologyGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(GuideToPharmacologyGraphExporter.class);
 
     public GuideToPharmacologyGraphExporter(final GuideToPharmacologyDataSource dataSource) {
         super(dataSource);

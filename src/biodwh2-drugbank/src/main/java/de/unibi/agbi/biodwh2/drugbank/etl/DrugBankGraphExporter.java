@@ -10,8 +10,8 @@ import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.drugbank.DrugBankDataSource;
 import de.unibi.agbi.biodwh2.drugbank.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -29,7 +29,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         String description;
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DrugBankGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(DrugBankGraphExporter.class);
     private static final String DRUGBANK_ID_KEY = "drugbank_id";
     private static final String DRUGBANK_IDS_KEY = "drugbank_ids";
     private static final String SMPDB_ID_KEY = "smpdb_id";

@@ -7,8 +7,8 @@ import de.unibi.agbi.biodwh2.core.io.ResourceUtils;
 import de.unibi.agbi.biodwh2.core.net.BioDWH2Updater;
 import de.unibi.agbi.biodwh2.core.text.TableFormatter;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
 
 import java.io.IOException;
@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class BioDWH2 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BioDWH2.class);
+    private static final Logger LOGGER = LogManager.getLogger(BioDWH2.class);
 
     private BioDWH2() {
     }

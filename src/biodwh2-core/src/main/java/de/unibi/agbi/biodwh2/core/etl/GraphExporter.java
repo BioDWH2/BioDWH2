@@ -7,17 +7,17 @@ import de.unibi.agbi.biodwh2.core.graphics.MetaGraphImage;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
-import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 
 public abstract class GraphExporter<D extends DataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(GraphExporter.class);
     public static final String ID_KEY = "id";
 
     protected final D dataSource;
@@ -59,7 +59,8 @@ public abstract class GraphExporter<D extends DataSource> {
     private void generateMetaGraphStatistics(final Workspace workspace, final Graph g) {
         final Path metaGraphImageFilePath = dataSource.getFilePath(workspace, DataSourceFileType.META_GRAPH_IMAGE);
         final Path metaGraphStatsFilePath = dataSource.getFilePath(workspace, DataSourceFileType.META_GRAPH_STATISTICS);
-        final Path metaGraphDynamicVisFilePath = dataSource.getFilePath(workspace, DataSourceFileType.META_GRAPH_DYNAMIC_VIS);
+        final Path metaGraphDynamicVisFilePath = dataSource.getFilePath(workspace,
+                                                                        DataSourceFileType.META_GRAPH_DYNAMIC_VIS);
         if (workspace.getConfiguration().shouldSkipMetaGraphGeneration()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Skipping '" + dataSource.getId() + "' meta graph generation as per configuration");

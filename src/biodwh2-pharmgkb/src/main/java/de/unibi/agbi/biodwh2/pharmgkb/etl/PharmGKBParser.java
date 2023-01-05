@@ -11,8 +11,8 @@ import de.unibi.agbi.biodwh2.core.exceptions.ParserFormatException;
 import de.unibi.agbi.biodwh2.pharmgkb.PharmGKBDataSource;
 import de.unibi.agbi.biodwh2.pharmgkb.model.*;
 import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.GuidelineAnnotation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +23,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class PharmGKBParser extends Parser<PharmGKBDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PharmGKBParser.class);
+    private static final Logger LOGGER = LogManager.getLogger(PharmGKBParser.class);
 
     public PharmGKBParser(final PharmGKBDataSource dataSource) {
         super(dataSource);

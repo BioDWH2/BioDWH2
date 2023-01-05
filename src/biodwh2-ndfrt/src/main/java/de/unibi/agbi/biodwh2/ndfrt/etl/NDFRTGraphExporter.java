@@ -9,8 +9,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.ndfrt.NDFRTDataSource;
 import de.unibi.agbi.biodwh2.ndfrt.model.*;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,7 +25,7 @@ public class NDFRTGraphExporter extends GraphExporter<NDFRTDataSource> {
         String sourceAuthority;
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NDFRTGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(NDFRTGraphExporter.class);
     private static final String IN_NAMESPACE_EDGE_LABEL = "IN_NAMESPACE";
 
     private Map<String, String> kindRefLabelMap;

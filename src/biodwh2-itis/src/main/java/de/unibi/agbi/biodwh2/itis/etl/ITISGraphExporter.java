@@ -9,8 +9,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.itis.ITISDataSource;
 import de.unibi.agbi.biodwh2.itis.model.*;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ITISGraphExporter extends GraphExporter<ITISDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ITISGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(ITISGraphExporter.class);
     static final String GEOGRAPHIC_DIVISION_LABEL = "GeographicDivision";
     static final String JURISDICTION_LABEL = "Jurisdiction";
     static final String EXPERT_LABEL = "Expert";

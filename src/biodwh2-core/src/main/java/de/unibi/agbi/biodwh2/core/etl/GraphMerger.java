@@ -18,8 +18,8 @@ import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
 import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 public final class GraphMerger {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GraphMerger.class);
+    private static final Logger LOGGER = LogManager.getLogger(GraphMerger.class);
 
     public void merge(final Workspace workspace, final DataSource[] dataSources) throws MergerException {
         final long start = System.currentTimeMillis();

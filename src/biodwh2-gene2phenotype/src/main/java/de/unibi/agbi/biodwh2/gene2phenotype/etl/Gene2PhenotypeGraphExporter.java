@@ -13,13 +13,13 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.gene2phenotype.Gene2PhenotypeDataSource;
 import de.unibi.agbi.biodwh2.gene2phenotype.model.GeneDiseasePair;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
 public class Gene2PhenotypeGraphExporter extends GraphExporter<Gene2PhenotypeDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Gene2PhenotypeGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(Gene2PhenotypeGraphExporter.class);
     static final String PUBLICATION_LABEL = "Publication";
     static final String GENE_LABEL = "Gene";
     static final String PHENOTYPE_LABEL = "Phenotype";

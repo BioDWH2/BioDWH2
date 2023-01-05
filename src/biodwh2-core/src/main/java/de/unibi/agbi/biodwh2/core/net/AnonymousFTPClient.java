@@ -3,15 +3,16 @@ package de.unibi.agbi.biodwh2.core.net;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public final class AnonymousFTPClient {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AnonymousFTPClient.class);
+    private static final Logger LOGGER = LogManager.getLogger(AnonymousFTPClient.class);
     private FTPClient client;
 
     public boolean connect(final String url) throws IOException {

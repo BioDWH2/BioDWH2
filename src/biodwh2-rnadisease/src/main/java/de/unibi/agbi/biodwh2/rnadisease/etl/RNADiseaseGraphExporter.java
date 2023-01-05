@@ -16,8 +16,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.rnadisease.RNADiseaseDataSource;
 import de.unibi.agbi.biodwh2.rnadisease.model.ExperimentalEntry;
 import de.unibi.agbi.biodwh2.rnadisease.model.PredictedEntry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class RNADiseaseGraphExporter extends GraphExporter<RNADiseaseDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RNADiseaseGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(RNADiseaseGraphExporter.class);
     static final String RNA_LABEL = "RNA";
     static final String DISEASE_LABEL = "Disease";
     static final String DO_ID_KEY = "do_id";

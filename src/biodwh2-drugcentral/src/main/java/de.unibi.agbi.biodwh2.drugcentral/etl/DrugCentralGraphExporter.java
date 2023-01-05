@@ -11,15 +11,15 @@ import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.drugcentral.DrugCentralDataSource;
 import de.unibi.agbi.biodwh2.drugcentral.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DrugCentralGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(DrugCentralGraphExporter.class);
     static final String DRUG_LABEL_LABEL = "DrugLabel";
     public static final String REFERENCE_LABEL = "Reference";
     static final String ATTRIBUTE_TYPE_LABEL = "AttributeType";

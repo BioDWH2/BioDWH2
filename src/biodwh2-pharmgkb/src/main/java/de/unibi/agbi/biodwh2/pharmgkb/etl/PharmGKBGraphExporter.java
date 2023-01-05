@@ -10,14 +10,14 @@ import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.Citation;
 import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.CrossReference;
 import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.GuidelineAnnotation;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PharmGKBGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(PharmGKBGraphExporter.class);
     public static final String QUOTED_ARRAY_DELIMITER = "\",\"";
     private static final String ESCAPED_DOUBLE_QUOTES = "\"";
     private static final String ID_PROPERTY = "id";

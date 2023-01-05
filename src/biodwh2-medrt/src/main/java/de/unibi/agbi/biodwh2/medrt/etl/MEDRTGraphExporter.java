@@ -8,13 +8,16 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.medrt.MEDRTDataSource;
 import de.unibi.agbi.biodwh2.medrt.model.*;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 
 public class MEDRTGraphExporter extends GraphExporter<MEDRTDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MEDRTGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(MEDRTGraphExporter.class);
     static final String HAS_PREFERRED_TERM_LABEL = "HAS_PREFERRED_TERM";
     static final String HAS_SYNONYM_LABEL = "HAS_SYNONYM";
     static final String TERM_LABEL = "Term";

@@ -10,8 +10,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -33,7 +33,7 @@ public final class GraphMLGraphWriter extends GraphWriter {
         String type;
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GraphMLGraphWriter.class);
+    private static final Logger LOGGER = LogManager.getLogger(GraphMLGraphWriter.class);
     private long labelKeyIdCounter;
     private final Map<String, String> labelKeyIdMap;
     private final List<Property> properties;

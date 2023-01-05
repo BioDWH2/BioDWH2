@@ -14,8 +14,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.migration.GraphMigrator;
 import de.unibi.agbi.biodwh2.core.text.TableFormatter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class Workspace {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Workspace.class);
+    private static final Logger LOGGER = LogManager.getLogger(Workspace.class);
 
     public static final int VERSION = 1;
     private static final String SOURCES_DIRECTORY_NAME = "sources";

@@ -10,11 +10,11 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.usdaplants.USDAPlantsDataSource;
 import de.unibi.agbi.biodwh2.usdaplants.model.Plant;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class USDAPlantsGraphExporter extends GraphExporter<USDAPlantsDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(USDAPlantsGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(USDAPlantsGraphExporter.class);
 
     public USDAPlantsGraphExporter(final USDAPlantsDataSource dataSource) {
         super(dataSource);

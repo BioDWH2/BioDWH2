@@ -5,14 +5,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.*;
 
 public final class OnlineVersionCache {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OnlineVersionCache.class);
+    private static final Logger LOGGER = LogManager.getLogger(OnlineVersionCache.class);
     private static final String VERSIONS_URL = "https://raw.githubusercontent.com/BioDWH2/DataSource-Status/main/result.min.json";
 
     private static OnlineVersionCache instance;

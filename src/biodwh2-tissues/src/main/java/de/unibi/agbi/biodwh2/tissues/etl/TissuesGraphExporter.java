@@ -12,15 +12,15 @@ import de.unibi.agbi.biodwh2.tissues.TissuesDataSource;
 import de.unibi.agbi.biodwh2.tissues.model.ExperimentEntry;
 import de.unibi.agbi.biodwh2.tissues.model.IntegratedEntry;
 import de.unibi.agbi.biodwh2.tissues.model.KnowledgeEntry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TissuesGraphExporter extends GraphExporter<TissuesDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TissuesGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(TissuesGraphExporter.class);
     private static final String EXPRESSED_IN_LABEL = "EXPRESSED_IN";
 
     public TissuesGraphExporter(final TissuesDataSource dataSource) {

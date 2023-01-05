@@ -7,8 +7,8 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.model.github.GithubAsset;
 import de.unibi.agbi.biodwh2.core.model.github.GithubRelease;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URL;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 public final class BioDWH2Updater {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BioDWH2Updater.class);
+    private static final Logger LOGGER = LogManager.getLogger(BioDWH2Updater.class);
 
     private BioDWH2Updater() {
     }

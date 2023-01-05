@@ -8,13 +8,16 @@ import de.unibi.agbi.biodwh2.core.exceptions.ParserFormatException;
 import de.unibi.agbi.biodwh2.kegg.KeggDataSource;
 import de.unibi.agbi.biodwh2.kegg.model.*;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,7 +37,7 @@ public class KeggParser extends Parser<KeggDataSource> {
         int lookAheadPosition;
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(KeggParser.class);
+    private static final Logger LOGGER = LogManager.getLogger(KeggParser.class);
     private static final Pattern REFERENCE_PATTERN = Pattern.compile(
             "PMID:([0-9]+)(([ \n\r]+\\(\\(?[a-zA-Z0-9/\n\r. ,_\\-]+\\)?\\))*)");
     private static final Pattern TARGET_IDS_PATTERN = Pattern.compile("\\[([A-Za-z]+:)([0-9A-Za-z]+( [0-9A-Za-z]+)*)]");

@@ -11,15 +11,15 @@ import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 
 public class CMAUPGraphExporter extends GraphExporter<CMAUPDataSource> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CMAUPGraphExporter.class);
+    private static final Logger LOGGER = LogManager.getLogger(CMAUPGraphExporter.class);
 
     public CMAUPGraphExporter(final CMAUPDataSource dataSource) {
         super(dataSource);

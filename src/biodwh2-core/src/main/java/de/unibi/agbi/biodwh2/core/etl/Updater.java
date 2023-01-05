@@ -7,8 +7,8 @@ import de.unibi.agbi.biodwh2.core.cache.OnlineVersionCache;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -23,7 +23,7 @@ public abstract class Updater<D extends DataSource> {
         UPDATED
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Updater.class);
+    private static final Logger LOGGER = LogManager.getLogger(Updater.class);
 
     protected final D dataSource;
 

@@ -1,13 +1,13 @@
 package de.unibi.agbi.biodwh2.core.io.mvstore;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 import java.util.Set;
 
 public abstract class MVStoreIndex {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(MVStoreIndex.class);
+    protected static final Logger LOGGER = LogManager.getLogger(MVStoreIndex.class);
 
     protected final String name;
     protected final String key;

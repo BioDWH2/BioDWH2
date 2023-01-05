@@ -1,14 +1,14 @@
 package de.unibi.agbi.biodwh2.core.io.mvstore;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
 public final class MVStoreUniqueIndex extends MVStoreIndex {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MVStoreUniqueIndex.class);
+    private static final Logger LOGGER = LogManager.getLogger(MVStoreUniqueIndex.class);
 
     private final MVMapWrapper<Comparable<?>, Long> map;
 
