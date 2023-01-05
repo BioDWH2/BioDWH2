@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.ttd.model;
 
+import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
@@ -9,11 +10,11 @@ public class Target {
     public String id;
     @GraphProperty("previous_id")
     public String formerTargetId;
-    @GraphProperty("uniprot_id")
+    @GraphArrayProperty(value = "uniprot_ids", arrayDelimiter = "; ")
     public String uniProtID;
     @GraphProperty("name")
     public String name;
-    @GraphProperty("gene_name")
+    @GraphArrayProperty(value = "gene_names", arrayDelimiter = "; ")
     public String geneName;
     @GraphProperty("type")
     public String type;

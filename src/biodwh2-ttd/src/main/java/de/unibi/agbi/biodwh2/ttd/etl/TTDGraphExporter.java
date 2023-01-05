@@ -42,7 +42,7 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
