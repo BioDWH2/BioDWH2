@@ -58,8 +58,8 @@
             <version>0.14.1</version>
         </dependency>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2-mvstore</artifactId>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-h2-mvstore</artifactId>
             <version>1.4.200</version>
         </dependency>
         <dependency>

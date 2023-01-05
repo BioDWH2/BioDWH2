@@ -70,6 +70,7 @@
         <module>biodwh2-trrust</module>
         <module>biodwh2-refseq</module>
         <module>biodwh2-rnalocate</module>
+        <module>biodwh2-h2-mvstore</module>
         <module>biodwh2-rnadisease</module>
         <module>biodwh2-sequenceontology</module>
     </modules>

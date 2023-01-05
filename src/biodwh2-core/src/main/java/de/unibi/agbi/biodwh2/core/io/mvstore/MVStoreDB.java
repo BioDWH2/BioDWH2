@@ -19,10 +19,7 @@ public final class MVStoreDB implements AutoCloseable {
 
     public MVStoreDB(final String filePath, final boolean readOnly) {
         this.readOnly = readOnly;
-        MVStore.Builder builder = new MVStore.Builder().compress().fileName(filePath);
-        if (readOnly)
-            builder = builder.readOnly();
-        store = builder.open();
+        store = new MVStore(filePath, readOnly);
         metaMap = openMap("!meta");
         collections = new HashMap<>();
         collectionNames = new ArrayList<>();

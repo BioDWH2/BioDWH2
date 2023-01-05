@@ -8,7 +8,7 @@ import java.nio.file.Path;
 public final class GraphMigrator {
     public static Integer peekVersion(final Path filePath) {
         Integer result = null;
-        try (MVStore store = new MVStore.Builder().compress().fileName(filePath.toString()).readOnly().open()) {
+        try (MVStore store = new MVStore(filePath.toString(), true)) {
             if (store.hasMap("metadata")) {
                 final MVMap<String, Object> map = store.openMap("metadata");
                 result = map.containsKey("version") ? (Integer) map.get("version") : null;
