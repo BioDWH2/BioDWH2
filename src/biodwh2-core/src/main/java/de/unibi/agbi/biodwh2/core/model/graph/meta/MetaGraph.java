@@ -64,13 +64,13 @@ public final class MetaGraph {
             final String dataSourceId = determineDataSourceIdForNodeLabel(label);
             final boolean isMappingLabel = isMappedGraph && dataSourceId == null;
             if (graph instanceof Graph) {
-                final Map<String, Set<String>> fromToLabels = ((Graph) graph).getEdgeFromToLabels(label);
+                final Map<String, Map<String, Long>> fromToLabels = ((Graph) graph).getEdgeFromToLabels(label);
                 for (final String fromLabel : fromToLabels.keySet()) {
-                    for (final String toLabel : fromToLabels.get(fromLabel)) {
+                    for (final String toLabel : fromToLabels.get(fromLabel).keySet()) {
                         final String key = label + '|' + fromLabel + '|' + toLabel;
                         final MetaEdge metaEdge = new MetaEdge(fromLabel, toLabel, label, dataSourceId, isMappingLabel);
                         edges.put(key, metaEdge);
-                        metaEdge.count++;
+                        metaEdge.count = fromToLabels.get(fromLabel).get(toLabel);
                     }
                 }
             } else {
@@ -111,6 +111,14 @@ public final class MetaGraph {
 
     public Collection<MetaEdge> getEdges() {
         return edges.values();
+    }
+
+    public MetaNode getNode(final String label) {
+        return nodes.get(label);
+    }
+
+    public MetaEdge getEdge(final String label) {
+        return edges.get(label);
     }
 
     public Collection<String> getDataSourceIds() {

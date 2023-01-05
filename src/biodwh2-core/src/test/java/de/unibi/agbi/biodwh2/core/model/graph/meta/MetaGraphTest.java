@@ -31,6 +31,10 @@ class MetaGraphTest {
             assertFalse(metaGraph.isMappedGraph());
             assertEquals(4, metaGraph.getNodeLabelCount());
             assertEquals(6, metaGraph.getEdgeLabelCount());
+            assertEquals(2, metaGraph.getEdge("E1|N1|N1").count);
+            assertEquals(1, metaGraph.getEdge("E2|N1|N2").count);
+            assertEquals(1, metaGraph.getEdge("E3|N1|N3").count);
+            assertEquals(2, metaGraph.getEdge("E4|N1|N4").count);
         }
     }
 }

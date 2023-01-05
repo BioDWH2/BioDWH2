@@ -272,7 +272,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         return null;
     }
 
-    public Map<String, Set<String>> getEdgeFromToLabels(final String edgeLabel) {
+    public Map<String, Map<String, Long>> getEdgeFromToLabels(final String edgeLabel) {
         final MVStoreCollection<Edge> edges = edgeRepositories.get(edgeLabel);
         if (edges == null)
             return null;
@@ -283,16 +283,18 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
             final LongTrie edgeIds = fromLabelEdgeIdsMap.computeIfAbsent(fromLabel, k -> new LongTrie());
             edgeIds.addAll(fromIndex.find(fromId));
         }
-        final Map<String, Set<String>> result = new HashMap<>();
+        final Map<String, Map<String, Long>> result = new HashMap<>();
         for (final String key : fromLabelEdgeIdsMap.keySet())
-            result.put(key, new HashSet<>());
+            result.put(key, new HashMap<>());
         final MVStoreIndex toIndex = edges.getIndex(Edge.TO_ID_FIELD);
         for (final Comparable<?> toId : toIndex.getIndexedValues()) {
             final String toLabel = getNodeLabel((Long) toId);
             for (final Long edgeId : toIndex.find(toId)) {
                 for (final Map.Entry<String, LongTrie> fromEntries : fromLabelEdgeIdsMap.entrySet()) {
                     if (fromEntries.getValue().contains(edgeId)) {
-                        result.get(fromEntries.getKey()).add(toLabel);
+                        final Map<String, Long> toLabelCountMap = result.get(fromEntries.getKey());
+                        Long edgeCount = toLabelCountMap.get(toLabel);
+                        toLabelCountMap.put(toLabel, edgeCount != null ? edgeCount + 1L : 1L);
                         fromEntries.getValue().remove(edgeId);
                         break;
                     }
