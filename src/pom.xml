@@ -73,6 +73,7 @@
         <module>biodwh2-h2-mvstore</module>
         <module>biodwh2-rnadisease</module>
         <module>biodwh2-sequenceontology</module>
+        <module>biodwh2-enzyme</module>
     </modules>
 
     <packaging>pom</packaging>
