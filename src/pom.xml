@@ -74,6 +74,7 @@
         <module>biodwh2-rnadisease</module>
         <module>biodwh2-sequenceontology</module>
         <module>biodwh2-enzyme</module>
+        <module>biodwh2-prosite</module>
     </modules>
 
     <packaging>pom</packaging>
