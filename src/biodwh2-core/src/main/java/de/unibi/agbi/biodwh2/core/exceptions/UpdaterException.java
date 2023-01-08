@@ -1,6 +1,6 @@
 package de.unibi.agbi.biodwh2.core.exceptions;
 
-public abstract class UpdaterException extends Exception {
+public class UpdaterException extends Exception {
     private static final long serialVersionUID = -3419111947147578768L;
 
     public UpdaterException() {
