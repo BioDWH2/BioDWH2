@@ -76,6 +76,7 @@
         <module>biodwh2-brenda</module>
         <module>biodwh2-enzyme</module>
         <module>biodwh2-prosite</module>
+        <module>biodwh2-hprd</module>
     </modules>
 
     <packaging>pom</packaging>
