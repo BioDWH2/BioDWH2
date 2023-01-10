@@ -149,7 +149,6 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
                 gene.swissProtIds = "-".equals(entry.swissProtId) ? null : Arrays.stream(
                         StringUtils.split(entry.swissProtId, ',')).filter(StringUtils::isNotEmpty).toArray(
                         String[]::new);
-                // TODO: accessions
             }
         } catch (IOException e) {
             throw new ExporterFormatException(e);
