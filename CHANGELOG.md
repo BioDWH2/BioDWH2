@@ -15,6 +15,10 @@ Released: upcoming
 * ```[RNALocate]``` #83 Add RNALocate data source module
 * ```[RNADisease]``` #84 Add RNADisease data source module
 * ```[SequenceOntology]``` #85 Add SequenceOntology data source module
+* ```[ENZYME]``` #86 Add ENZYME data source module
+* ```[PROSITE]``` #87 Add PROSITE data source module
+* ```[BRENDA]``` #88 Add BRENDA data source module
+* ```[HPRD]``` #89 Add HPRD data source module
 
 ### 🔧 Bug fixes and other changes
 
