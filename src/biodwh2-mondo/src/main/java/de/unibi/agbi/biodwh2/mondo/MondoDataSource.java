@@ -1,13 +1,13 @@
 package de.unibi.agbi.biodwh2.mondo;
 
-import de.unibi.agbi.biodwh2.core.DevelopmentState;
-import de.unibi.agbi.biodwh2.core.OntologyDataSource;
-import de.unibi.agbi.biodwh2.core.etl.*;
-import de.unibi.agbi.biodwh2.mondo.etl.MondoGraphExporter;
-import de.unibi.agbi.biodwh2.mondo.etl.MondoMappingDescriber;
-import de.unibi.agbi.biodwh2.mondo.etl.MondoUpdater;
+import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
+import de.unibi.agbi.biodwh2.core.model.Version;
+import de.unibi.agbi.biodwh2.core.text.License;
 
-public class MondoDataSource extends OntologyDataSource {
+@SuppressWarnings("unused")
+public class MondoDataSource extends SingleOBOOntologyDataSource {
+    private static final String FILE_NAME = "mondo.obo";
+
     @Override
     public String getId() {
         return "Mondo";
@@ -20,35 +20,23 @@ public class MondoDataSource extends OntologyDataSource {
 
     @Override
     public String getLicense() {
-        return "CC BY 4.0";
+        return License.CC_BY_4_0.getName();
     }
 
     @Override
-    public DevelopmentState getDevelopmentState() {
-        return DevelopmentState.InDevelopment;
+    protected String getDownloadUrl() {
+        return "http://purl.obolibrary.org/obo/" + FILE_NAME;
     }
 
     @Override
-    public Updater<MondoDataSource> getUpdater() {
-        return new MondoUpdater(this);
+    protected Version getVersionFromDataVersionLine(final String dataVersion) {
+        final String[] versionParts = dataVersion.split("releases/")[1].split("/")[0].split("-");
+        return new Version(Integer.parseInt(versionParts[0]), Integer.parseInt(versionParts[1]),
+                           Integer.parseInt(versionParts[2]));
     }
 
     @Override
-    protected Parser<MondoDataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
-    protected GraphExporter<MondoDataSource> getGraphExporter() {
-        return new MondoGraphExporter(this);
-    }
-
-    @Override
-    public MappingDescriber getMappingDescriber() {
-        return new MondoMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
+    protected String getTargetFileName() {
+        return FILE_NAME;
     }
 }

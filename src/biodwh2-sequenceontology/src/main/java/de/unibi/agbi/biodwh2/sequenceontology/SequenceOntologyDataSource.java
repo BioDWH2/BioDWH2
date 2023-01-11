@@ -1,14 +1,14 @@
 package de.unibi.agbi.biodwh2.sequenceontology;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
-import de.unibi.agbi.biodwh2.core.DevelopmentState;
-import de.unibi.agbi.biodwh2.core.OntologyDataSource;
-import de.unibi.agbi.biodwh2.core.etl.*;
-import de.unibi.agbi.biodwh2.sequenceontology.etl.SequenceOntologyGraphExporter;
-import de.unibi.agbi.biodwh2.sequenceontology.etl.SequenceOntologyMappingDescriber;
-import de.unibi.agbi.biodwh2.sequenceontology.etl.SequenceOntologyUpdater;
+import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
+import de.unibi.agbi.biodwh2.core.model.Version;
+import de.unibi.agbi.biodwh2.core.text.License;
+import org.apache.commons.lang3.StringUtils;
 
-public class SequenceOntologyDataSource extends OntologyDataSource {
+@SuppressWarnings("unused")
+public class SequenceOntologyDataSource extends SingleOBOOntologyDataSource {
+    static final String FILE_NAME = "so.obo";
+
     @Override
     public String getId() {
         return "SequenceOntology";
@@ -16,35 +16,23 @@ public class SequenceOntologyDataSource extends OntologyDataSource {
 
     @Override
     public String getLicense() {
-        return "CC BY-SA 4.0";
+        return License.CC_BY_SA_4_0.getName();
     }
 
     @Override
-    public DevelopmentState getDevelopmentState() {
-        return DevelopmentState.Usable;
+    protected String getDownloadUrl() {
+        return "https://github.com/The-Sequence-Ontology/SO-Ontologies/raw/master/Ontology_Files/" + FILE_NAME;
     }
 
     @Override
-    protected Updater<? extends DataSource> getUpdater() {
-        return new SequenceOntologyUpdater(this);
+    protected Version getVersionFromDataVersionLine(final String dataVersion) {
+        final String[] versionParts = StringUtils.split(StringUtils.split(dataVersion, ' ')[1], '-');
+        return new Version(Integer.parseInt(versionParts[0]), Integer.parseInt(versionParts[1]),
+                           Integer.parseInt(versionParts[2]));
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
-    protected GraphExporter<? extends DataSource> getGraphExporter() {
-        return new SequenceOntologyGraphExporter(this);
-    }
-
-    @Override
-    public MappingDescriber getMappingDescriber() {
-        return new SequenceOntologyMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
+    protected String getTargetFileName() {
+        return FILE_NAME;
     }
 }
