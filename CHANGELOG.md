@@ -19,6 +19,7 @@ Released: upcoming
 * ```[PROSITE]``` #87 Add PROSITE data source module
 * ```[BRENDA]``` #88 Add BRENDA data source module
 * ```[HPRD]``` #89 Add HPRD data source module
+* ```[DiseaseOntology]``` #90 Add DiseaseOntology data source module
 
 ### 🔧 Bug fixes and other changes
 
@@ -35,6 +36,7 @@ Released: upcoming
 * ```[feature]``` Move from logback to log4j2 as a logging framework
 * ```[feature]``` Add minimal, modified h2-mvstore to project
 * ```[chore]``` Update dependencies
+* ```[chore]``` Update documentation
 * ```[chore]``` Add third party license readme
 
 ## 📦 Version [v0.4.8](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.8)

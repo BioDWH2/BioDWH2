@@ -77,6 +77,7 @@
         <module>biodwh2-enzyme</module>
         <module>biodwh2-prosite</module>
         <module>biodwh2-hprd</module>
+        <module>biodwh2-diseaseontology</module>
     </modules>
 
     <packaging>pom</packaging>
