@@ -78,6 +78,7 @@
         <module>biodwh2-prosite</module>
         <module>biodwh2-hprd</module>
         <module>biodwh2-diseaseontology</module>
+        <module>biodwh2-basicformalontology</module>
     </modules>
 
     <packaging>pom</packaging>

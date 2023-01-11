@@ -20,6 +20,7 @@ Released: upcoming
 * ```[BRENDA]``` #88 Add BRENDA data source module
 * ```[HPRD]``` #89 Add HPRD data source module
 * ```[DiseaseOntology]``` #90 Add DiseaseOntology data source module
+* ```[BasicFormalOntology]``` #91 Add BasicFormalOntology data source module
 
 ### 🔧 Bug fixes and other changes
 
