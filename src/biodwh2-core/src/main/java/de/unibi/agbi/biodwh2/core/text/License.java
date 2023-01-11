@@ -7,7 +7,8 @@ public enum License {
     CC_BY_NC_4_0("CC BY-NC 4.0"),
     CC_BY_ND_4_0("CC BY-ND 4.0"),
     CC_BY_NC_ND_4_0("CC BY-NC-ND 4.0"),
-    CC_BY_NC_SA_4_0("CC BY-NC-SA 4.0");
+    CC_BY_NC_SA_4_0("CC BY-NC-SA 4.0"),
+    APACHE_2_0("Apache-2.0");
 
     private final String name;
 

@@ -30,33 +30,43 @@ The basic file structure is visualized below:
 |   |   +-- source
 |   |   |   +-- drugbank_all_full_database.xml.zip
 |   |   |   +-- drugbank_all_metabolite-structures.sdf.zip
+|   |   +-- intermediate.db
 |   |   +-- intermediate.graphml
+|   |   +-- meta-graph.html
 |   |   +-- meta-graph.png
 |   |   +-- meta-graph-statistics.txt
 |   |   +-- metadata.json
 |   +-- HGNC
 |   |   +-- source
 |   |   |   +-- hgnc_complete_set.txt
+|   |   +-- intermediate.db
 |   |   +-- intermediate.graphml
+|   |   +-- meta-graph.html
 |   |   +-- meta-graph.png
 |   |   +-- meta-graph-statistics.txt
 |   |   +-- metadata.json
 |   ...
+|   +-- merged.db
 |   +-- merged.graphml
+|   +-- merged-meta-graph.html
 |   +-- merged-meta-graph.png
 |   +-- merged-meta-graph-statistics.txt
+|   +-- mapped.db
 |   +-- mapped.graphml
+|   +-- mapped-meta-graph.html
 |   +-- mapped-meta-graph.png
 |   +-- mapped-meta-graph-statistics.txt
+|   +-- mapping-log.db
+|   +-- mapping-log-clusters.json
 ```
 
 ## Requirements
 
-BioDWH2 requires the Java Runtime Environment version 8 to be installed. The JRE 8 is available [here](https://www.oracle.com/java/technologies/javase-jre8-downloads.html).
+BioDWH2 requires the Java Runtime Environment version 8 or higher to be installed. The JRE 8 is available [here](https://www.oracle.com/java/technologies/javase-jre8-downloads.html).
 
 ## Creating a workspace
 
-> :warning: **Please note**: The following commands refer to the BioDWH2 executable as `BioDWH2.jar` for simplicity. The file name of the release downloads is versioned such as `BioDWH2-v0.3.9.jar`.
+> :warning: **Please note**: The following commands refer to the BioDWH2 executable as `BioDWH2.jar` for simplicity. The file name of the release downloads is versioned such as `BioDWH2-v0.4.8.jar`.
 
 The first step is to create a blank workspace in a new location using the `-c` or `--create` command line parameter.
 
@@ -88,6 +98,9 @@ Alternatively open the `config.json` in your workspace with any text editor and 
   "dataSourceIds" : ["HGNC", "MED-RT"],
   "skipGraphMLExport": false,
   "skipMetaGraphGeneration": false,
+  "globalProperties": {
+    "speciesFilter": []
+  },
   "dataSourceProperties": {}
 }
 ```
@@ -114,25 +127,23 @@ After creating and processing the workspace, the resulting graph can be analyzed
 
 ## Task command line parameters
 
-| Short parameter | Long parameter        | Values                           | Description                                     |
-| --------------- | --------------------- | -------------------------------- | ----------------------------------------------- |
-| -h              | --help                | -                                | Print the help message                          |
-|                 | --version             | -                                | Print the BioDWH2 version and check for updates |
-| -c              | --create              | \<workspacePath>                 | Create a new empty workspace                    |
-|                 | --data-sources        | -                                | List all available data sources                 |
-|                 | --add-data-source     | \<workspacePath> \<dataSourceId> | Add a data source to the configuration          |
-|                 | --remove-data-source  | \<workspacePath> \<dataSourceId> | Remove a data source from the configuration     |
-| -u              | --update              | \<workspacePath>                 | Update all data sources of a workspace          |
-| -s              | --status              | \<workspacePath>                 | Check and output the state of a workspace       |
-|                 |                       |                                  |                                                 |
+| Short parameter | Long parameter       | Values                           | Description                                     |
+|-----------------|----------------------|----------------------------------|-------------------------------------------------|
+| -h              | --help               | -                                | Print the help message                          |
+|                 | --version            | -                                | Print the BioDWH2 version and check for updates |
+| -c              | --create             | \<workspacePath>                 | Create a new empty workspace                    |
+|                 | --data-sources       | -                                | List all available data sources                 |
+|                 | --add-data-source    | \<workspacePath> \<dataSourceId> | Add a data source to the configuration          |
+|                 | --remove-data-source | \<workspacePath> \<dataSourceId> | Remove a data source from the configuration     |
+| -u              | --update             | \<workspacePath>                 | Update all data sources of a workspace          |
+| -s              | --status             | \<workspacePath>                 | Check and output the state of a workspace       |
 
 ## Additional command line parameters
 
-| Short parameter | Long parameter        | Values                           | Description                                 |
-| --------------- | --------------------- | -------------------------------- | ------------------------------------------- |
-|                 | --skip-update         | -                                | Skip update, only parse and export          |
-| -v              | --verbose             | -                                | Enable additional logging output            |
-|                 |                       |                                  |                                             |
+| Short parameter | Long parameter | Values | Description                        |
+|-----------------|----------------|--------|------------------------------------|
+|                 | --skip-update  | -      | Skip update, only parse and export |
+| -v              | --verbose      | -      | Enable additional logging output   |
 
 ## Parallelism
 
@@ -151,11 +162,10 @@ $ java -jar BioDWH2.jar -u /path/to/workspace -p
 ~~~
 
 
-| Short parameter | Long parameter        | Values                           | Description                                  |
-| --------------- | --------------------- | -------------------------------- | ---------------------------------------------|
-| -p              | --parallel            | -                                | Enable multithreading during supported steps |                                    
-| -t              | --threads             | <numThreads>                     | Number of threads used for processing        |                                     
-|                 |                       |                                  |                                              |
+| Short parameter | Long parameter | Values       | Description                                  |
+|-----------------|----------------|--------------|----------------------------------------------|
+| -p              | --parallel     | -            | Enable multithreading during supported steps |
+| -t              | --threads      | <numThreads> | Number of threads used for processing        |
 
 
 **Note:** Per default, the thread pool's size is equal to the number of cores available on the user's CPU minus 1. You may want to consider adjusting it
@@ -169,43 +179,69 @@ according to your needs if not all cores are available for execution at all time
   "dataSourceIds" : [string, string, ...],
   "skipGraphMLExport": boolean,
   "skipMetaGraphGeneration": boolean,
+  "globalProperties": {
+    "speciesFilter": [int, int, ...]
+  },
   "dataSourceProperties": {
-    "DrugBank": {
-      "forceExport": boolean,
-      "username": string,
-      "password": string,
-      "skipDrugInteractions": boolean
-    },
-    "DrugCentral": {
-      "forceExport": boolean,
-      "skipDrugLabelFullTexts": boolean,
-      "skipLINCSSignatures": boolean,
-      "skipFAERSReports": boolean
-    },
-    "HPO": {
-      "forceExport": boolean,
-      "omimLicensed": boolean,
-      "ignoreObsolete": boolean
-    },
-    "EFO": {
-      "forceExport": boolean,
-      "ignoreObsolete": boolean
-    },
-    "GeneOntology": {
-      "forceExport": boolean,
-      "ignoreObsolete": boolean
-    },
-    "Mondo": {
-      "forceExport": boolean,
-      "ignoreObsolete": boolean
-    },
-    "OMIM": {
-      "forceExport": boolean,
-      "downloadKey": string
-    },
-    "...": {
-      "forceExport": boolean
-    }
+    "ADReCS":               { "forceExport": boolean },
+    "BasicFormalOntology":  { "forceExport": boolean, "ignoreObsolete": boolean },
+    "BRENDA":               { "forceExport": boolean, "licenseAccepted": boolean },
+    "CanadianNutrientFile": { "forceExport": boolean },
+    "CancerDrugsDB":        { "forceExport": boolean },
+    "ClinicalTrials.gov":   { "forceExport": boolean },
+    "CMAUP":                { "forceExport": boolean },
+    "DGIdb":                { "forceExport": boolean },
+    "DiseaseOntology":      { "forceExport": boolean, "ignoreObsolete": boolean },
+    "DISEASES":             { "forceExport": boolean },
+    "DrugBank":             { "forceExport": boolean, "username": string, "password": string, "skipDrugInteractions": boolean },
+    "DrugCentral":          { "forceExport": boolean, "skipDrugLabelFullTexts": boolean, "skipLINCSSignatures": boolean, "skipFAERSReports": boolean },
+    "EFO":                  { "forceExport": boolean, "ignoreObsolete": boolean },
+    "EMA":                  { "forceExport": boolean },
+    "ENZYME":               { "forceExport": boolean },
+    "GenCC":                { "forceExport": boolean },
+    "Gene2Phenotype":       { "forceExport": boolean },
+    "GeneOntology":         { "forceExport": boolean, "ignoreObsolete": boolean },
+    "GuideToPharmacology":  { "forceExport": boolean },
+    "GWASCatalog":          { "forceExport": boolean },
+    "HERB":                 { "forceExport": boolean },
+    "HGNC":                 { "forceExport": boolean },
+    "HPO":                  { "forceExport": boolean, "ignoreObsolete": boolean, "omimLicensed": boolean },
+    "HPRD":                 { "forceExport": boolean },
+    "IntAct":               { "forceExport": boolean },
+    "InterPro":             { "forceExport": boolean },
+    "ITIS":                 { "forceExport": boolean },
+    "KEGG":                 { "forceExport": boolean },
+    "MED-RT":               { "forceExport": boolean },
+    "miRBase":              { "forceExport": boolean },
+    "miRDB":                { "forceExport": boolean, "scoreThreshold": float },
+    "miRTarBase":           { "forceExport": boolean },
+    "Mondo":                { "forceExport": boolean, "ignoreObsolete": boolean },
+    "NCBI":                 { "forceExport": boolean },
+    "NDF-RT":               { "forceExport": boolean },
+    "Negatome":             { "forceExport": boolean },
+    "OMIM":                 { "forceExport": boolean, "downloadKey": string },
+    "OpenTargets":          { "forceExport": boolean },
+    "PathwayCommons":       { "forceExport": boolean },
+    "PharmGKB":             { "forceExport": boolean },
+    "PROSITE":              { "forceExport": boolean },
+    "ReDO-DB":              { "forceExport": boolean },
+    "ReDOTrialsDB":         { "forceExport": boolean },
+    "RefSeq":               { "forceExport": boolean, "assembly": string },
+    "RNADisease":           { "forceExport": boolean },
+    "RNAInter":             { "forceExport": boolean },
+    "RNALocate":            { "forceExport": boolean },
+    "SequenceOntology":     { "forceExport": boolean, "ignoreObsolete": boolean },
+    "SIDER":                { "forceExport": boolean },
+    "STITCH":               { "forceExport": boolean },
+    "STRING":               { "forceExport": boolean },
+    "T3DB":                 { "forceExport": boolean },
+    "TarBase":              { "forceExport": boolean, "downloadUrl": string },
+    "TISSUES":              { "forceExport": boolean },
+    "TRRUST":               { "forceExport": boolean },
+    "TTD":                  { "forceExport": boolean },
+    "UNII":                 { "forceExport": boolean },
+    "UniProt":              { "forceExport": boolean },
+    "USDA-PLANTS":          { "forceExport": boolean }
   }
 }
 ```

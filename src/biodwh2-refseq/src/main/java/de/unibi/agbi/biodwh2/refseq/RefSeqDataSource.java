@@ -1,11 +1,14 @@
 package de.unibi.agbi.biodwh2.refseq;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DataSourcePropertyType;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.refseq.etl.RefSeqGraphExporter;
 import de.unibi.agbi.biodwh2.refseq.etl.RefSeqMappingDescriber;
 import de.unibi.agbi.biodwh2.refseq.etl.RefSeqUpdater;
+
+import java.util.Map;
 
 public class RefSeqDataSource extends DataSource {
     @Override
@@ -40,5 +43,12 @@ public class RefSeqDataSource extends DataSource {
 
     @Override
     protected void unloadData() {
+    }
+
+    @Override
+    public Map<String, DataSourcePropertyType> getAvailableProperties() {
+        final Map<String, DataSourcePropertyType> result = super.getAvailableProperties();
+        result.put("assembly", DataSourcePropertyType.STRING);
+        return result;
     }
 }

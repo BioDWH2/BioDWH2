@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.Version;
+import de.unibi.agbi.biodwh2.core.text.License;
 import de.unibi.agbi.biodwh2.efo.etl.EFOMappingDescriber;
 
 import java.util.regex.Matcher;
@@ -21,7 +22,7 @@ public class EFODataSource extends SingleOBOOntologyDataSource {
 
     @Override
     public String getLicense() {
-        return "Apache-2.0";
+        return License.APACHE_2_0.getName();
     }
 
     @Override

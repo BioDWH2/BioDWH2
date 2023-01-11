@@ -2,10 +2,10 @@
 In this example use-case, we're going to integrate the data sources ```DrugCentral``` and ```CancerDrugsDB``` in a fresh workspace and run simple analysis queries in Neo4j. The goal is to provide a step by step guide from download to finish.
 
 ## Downloading the software
-First, we need to download the required software. If not already present, a suitable Java Runtime Environment version 8 needs to be installed.
+First, we need to download the required software. If not already present, a suitable Java Runtime Environment version 8 or higher needs to be installed.
 
-* BioDWH2 for the data integration can be downloaded [here](https://github.com/BioDWH2/BioDWH2/releases/latest).
-* BioDWH2-Neo4j-Server for analysing the data warehouse in Neo4j can be downloaded [here](https://github.com/BioDWH2/BioDWH2-Neo4j-Server/releases/latest).
+* `BioDWH2` for the data integration can be downloaded [here](https://github.com/BioDWH2/BioDWH2/releases/latest).
+* `BioDWH2-Neo4j-Server` for analysing the data warehouse in Neo4j can be downloaded [here](https://github.com/BioDWH2/BioDWH2-Neo4j-Server/releases/latest).
 
 ## Creating a workspace
 Once all software is available, a new workspace can be created by running the following command in a terminal or cmd window:
@@ -57,10 +57,10 @@ After the integration process finished and no obvious errors have been output, w
 
 The output should look something like this:
 
-|    SourceID    | Version is up-to-date  |  Version   | new Version  |  Time of latest update   | Parse successful | Export successful  |
-| -------------- | ---------------------- | ---------- | ------------ | ------------------------ | ---------------- | ------------------ |
-|  DrugCentral   |          true          | 2020.9.18  |  2020.9.18   | 2021-05-07T13:06:51.631  |       true       |        true        |
-| CancerDrugsDB  |          true          |  21.4.28   |   21.4.28    | 2021-05-07T13:33:02.728  |       true       |        true        |
+|   SourceID    | Version is up-to-date |  Version  | new Version |  Time of latest update  | Parse successful | Export successful |
+|:-------------:|:---------------------:|:---------:|:-----------:|:-----------------------:|:----------------:|:-----------------:|
+|  DrugCentral  |         true          | 2020.9.18 |  2020.9.18  | 2021-05-07T13:06:51.631 |       true       |       true        |
+| CancerDrugsDB |         true          |  21.4.28  |   21.4.28   | 2021-05-07T13:33:02.728 |       true       |       true        |
 
 ## Getting started with Neo4j
 The workspace folder now contains the finished merged and mapped graph data warehouses. They are available at ```/path/to/workspace/sources/merged.graphml``` and ```/path/to/workspace/sources/mapped.graphml```.
@@ -110,7 +110,7 @@ RETURN n.name, o.name
 A small excerpt of the result looks like the following, which is looking promising.
 
 | n.name                | o.name                           |
-| --------------------- | -------------------------------- |
+|-----------------------|----------------------------------|
 | "Methotrexate"        | "methotrexate"                   |
 | "Lapatinib"           | "lapatinib"                      |
 | "Larotrectinib"       | "larotrectinib"                  |
@@ -135,9 +135,9 @@ ORDER BY drug1.name
 
 A result entry looks like the following:
 
-| cancerdrugsdb_name | drugcentral_name | cancerdrugsdb_indications | drugcentral_off_label_uses |
-| ------------------ | ---------------- | ------------------------- | -------------------------- |
-| "Cladribine" | "cladribine" | ["Cutaneous T-Cell Lymphoma (CTCL)", "Chronic Lymphocytic Leukaemia (CLL)", "Hairy Cell Leukemia (HCL)", "Non-Hodgkin's Lymphoma (NHL)"] | ["Waldenström macroglobulinemia"] |
+| cancerdrugsdb_name | drugcentral_name | cancerdrugsdb_indications                                                                                                                | drugcentral_off_label_uses        |
+|--------------------|------------------|------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------|
+| "Cladribine"       | "cladribine"     | ["Cutaneous T-Cell Lymphoma (CTCL)", "Chronic Lymphocytic Leukaemia (CLL)", "Hairy Cell Leukemia (HCL)", "Non-Hodgkin's Lymphoma (NHL)"] | ["Waldenström macroglobulinemia"] |
 
 As can be seen, aside from the indications, ```Cladribine``` is associated as off-label-use for the cancer [Waldenström macroglobulinemia](https://en.wikipedia.org/wiki/Waldenstr%C3%B6m%27s_macroglobulinemia).
 
