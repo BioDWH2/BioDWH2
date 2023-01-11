@@ -15,12 +15,18 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/**
+ * https://prosite.expasy.org/prosuser.html
+ * <p/>
+ * https://prosite.expasy.org/prorule_details.html
+ */
 public class PrositeGraphExporter extends GraphExporter<PrositeDataSource> {
     private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{2}-)?[A-Z]{3}-\\d{4}");
     static final String ACCESSION_KEY = "accession";
@@ -57,7 +63,7 @@ public class PrositeGraphExporter extends GraphExporter<PrositeDataSource> {
 
     private void exportPrositeEntry(final Graph graph, final FlatFileEntry entry) {
         final List<FlatFileEntry.KeyValuePair> properties = entry.properties.get(0);
-        final String[] id = collectTypeValues(properties, "ID");
+        final String[] id = collectTypeValuesJoinedLines(properties, "ID");
         if (id.length == 0)
             return;
         final String[] idParts = StringUtils.split(id[0], ";", 2);
@@ -65,20 +71,92 @@ public class PrositeGraphExporter extends GraphExporter<PrositeDataSource> {
         final String label = type.charAt(0) + type.substring(1).toLowerCase(Locale.ROOT);
         final NodeBuilder builder = graph.buildNode().withLabel(label);
         builder.withProperty(ID_KEY, idParts[0].trim());
-        final String[] accessions = collectTypeValues(properties, "AC");
-        builder.withProperty(ACCESSION_KEY, accessions[0].replace(";", "").trim());
+        final String accession = collectTypeValues(properties, "AC")[0].replace(";", "").trim();
+        builder.withProperty(ACCESSION_KEY, accession);
         final Matcher dtMatcher = DATE_PATTERN.matcher(collectTypeValues(properties, "DT")[0]);
-        dtMatcher.find();
-        builder.withProperty("creation_date", dtMatcher.group(0));
-        dtMatcher.find();
-        builder.withProperty("data_update_date", dtMatcher.group(0));
-        dtMatcher.find();
-        builder.withProperty("info_update_date", dtMatcher.group(0));
-        // TODO
+        if (dtMatcher.find()) {
+            builder.withProperty("creation_date", dtMatcher.group(0));
+            if (dtMatcher.find()) {
+                builder.withProperty("data_update_date", dtMatcher.group(0));
+                if (dtMatcher.find())
+                    builder.withProperty("info_update_date", dtMatcher.group(0));
+            }
+        }
+        builder.withProperty("description", collectTypeValuesJoinedLines(properties, "DE")[0]);
+        final String[] patterns = collectTypeValues(properties, "PA");
+        if (patterns.length == 1)
+            builder.withProperty("pattern", patterns[0]);
+        else if (patterns.length > 1)
+            builder.withProperty("patterns", patterns);
+        final String[] matrix = collectTypeValues(properties, "MA");
+        if (matrix.length > 0)
+            builder.withProperty("matrix", matrix);
+        builder.withProperty("post_processing", collectTypeValues(properties, "PP"));
+        builder.withProperty("numerical_results", collectTypeValues(properties, "NR"));
+        final String[] comments = collectSemicolonValues(properties, "CC");
+        final List<String> sites = new ArrayList<>();
+        final List<String> featureKeyDescriptionPairs = new ArrayList<>();
+        for (final String comment : comments) {
+            final String[] parts = StringUtils.split(comment, "=", 2);
+            final String commentValue = parts[1].trim();
+            switch (parts[0]) {
+                case "/TAXO-RANGE":
+                    builder.withProperty("taxonomic_range", commentValue);
+                    break;
+                case "/MAX-REPEAT":
+                    builder.withProperty("max_repeat", Integer.parseInt(commentValue));
+                    break;
+                case "/SITE":
+                    sites.add(commentValue);
+                    break;
+                case "/SKIP-FLAG":
+                    builder.withProperty("skip_flag", "TRUE".equalsIgnoreCase(commentValue));
+                    break;
+                case "/VERSION":
+                    builder.withProperty("version", Integer.parseInt(commentValue));
+                    break;
+                case "/AUTHOR":
+                    builder.withProperty("author", commentValue);
+                    break;
+                case "/MATRIX_TYPE":
+                    builder.withProperty("matrix_type", commentValue);
+                    break;
+                case "/SCALING_DB":
+                    builder.withProperty("scaling_db", commentValue);
+                    break;
+                case "/FT_KEY":
+                    featureKeyDescriptionPairs.add(commentValue);
+                    break;
+                case "/FT_DESC":
+                    String key = featureKeyDescriptionPairs.get(featureKeyDescriptionPairs.size() - 1);
+                    featureKeyDescriptionPairs.set(featureKeyDescriptionPairs.size() - 1, key + "=" + commentValue);
+                    break;
+            }
+        }
+        if (sites.size() > 0)
+            builder.withProperty("sites", sites.toArray(new String[0]));
+        if (featureKeyDescriptionPairs.size() > 0)
+            builder.withProperty("feature_key_descriptions", featureKeyDescriptionPairs.toArray(new String[0]));
+        for (final String uniProtReference : collectSemicolonValues(properties, "DR")) {
+            final String[] parts = StringUtils.split(uniProtReference, ',');
+            final String uniProtAccession = parts[0].trim();
+            final String uniProtName = parts[1].trim();
+            // T - true positive, P - 'potential' hit, N - false negative, ? - unknown, F - false positive
+            final String uniProtFlag = parts[2].trim();
+            // TODO
+        }
+        builder.withProperty("uniprot_xrefs", collectSemicolonValues(properties, "DR"));
+        builder.withProperty("pdb_xrefs", collectSemicolonValues(properties, "3D"));
+        collectSemicolonValues(properties, "PR"); // TODO
+        final String docId = collectTypeValues(properties, "DO")[0].replace(";", "").trim(); // TODO
         builder.build();
     }
 
     private String[] collectTypeValues(final List<FlatFileEntry.KeyValuePair> properties, final String key) {
+        return properties.stream().filter((p) -> key.equals(p.key)).map((p) -> p.value.trim()).toArray(String[]::new);
+    }
+
+    private String[] collectTypeValuesJoinedLines(final List<FlatFileEntry.KeyValuePair> properties, final String key) {
         final List<String> lines = properties.stream().filter((p) -> key.equals(p.key)).map((p) -> p.value.trim())
                                              .collect(Collectors.toList());
         for (int i = 0; i < lines.size() - 1; i++) {
@@ -88,6 +166,18 @@ public class PrositeGraphExporter extends GraphExporter<PrositeDataSource> {
             }
         }
         return lines.stream().map((l) -> l.substring(0, l.length() - 1)).toArray(String[]::new);
+    }
+
+    private String[] collectSemicolonValues(final List<FlatFileEntry.KeyValuePair> properties, final String key) {
+        final List<String> result = new ArrayList<>();
+        for (final FlatFileEntry.KeyValuePair pair : properties) {
+            if (key.equals(pair.key)) {
+                for (final String part : StringUtils.split(pair.value, ';')) {
+                    result.add(part.trim());
+                }
+            }
+        }
+        return result.toArray(new String[0]);
     }
 
     private void exportProruleEntry(final Graph graph, final FlatFileEntry entry) {
