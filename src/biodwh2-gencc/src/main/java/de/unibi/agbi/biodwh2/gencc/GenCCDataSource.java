@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.gencc;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.text.License;
 import de.unibi.agbi.biodwh2.gencc.etl.GenCCGraphExporter;
 import de.unibi.agbi.biodwh2.gencc.etl.GenCCMappingDescriber;
 import de.unibi.agbi.biodwh2.gencc.etl.GenCCUpdater;
@@ -15,7 +16,7 @@ public class GenCCDataSource extends DataSource {
 
     @Override
     public String getLicense() {
-        return "CC0 1.0";
+        return License.CC0_1_0.getName();
     }
 
     @Override

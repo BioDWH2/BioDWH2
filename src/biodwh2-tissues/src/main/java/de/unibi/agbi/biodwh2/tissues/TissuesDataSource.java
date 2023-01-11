@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.tissues;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.text.License;
 import de.unibi.agbi.biodwh2.tissues.etl.TissuesGraphExporter;
 import de.unibi.agbi.biodwh2.tissues.etl.TissuesMappingDescriber;
 import de.unibi.agbi.biodwh2.tissues.etl.TissuesUpdater;
@@ -15,7 +16,7 @@ public class TissuesDataSource extends DataSource {
 
     @Override
     public String getLicense() {
-        return "CC BY 4.0";
+        return License.CC_BY_4_0.getName();
     }
 
     @Override

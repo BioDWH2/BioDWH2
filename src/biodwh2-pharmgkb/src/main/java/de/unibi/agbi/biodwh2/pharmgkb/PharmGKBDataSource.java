@@ -6,6 +6,7 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
+import de.unibi.agbi.biodwh2.core.text.License;
 import de.unibi.agbi.biodwh2.pharmgkb.etl.PharmGKBGraphExporter;
 import de.unibi.agbi.biodwh2.pharmgkb.etl.PharmGKBMappingDescriber;
 import de.unibi.agbi.biodwh2.pharmgkb.etl.PharmGKBParser;
@@ -45,7 +46,7 @@ public class PharmGKBDataSource extends DataSource {
 
     @Override
     public String getLicense() {
-        return "CC BY-SA 4.0";
+        return License.CC_BY_SA_4_0.getName();
     }
 
     @Override

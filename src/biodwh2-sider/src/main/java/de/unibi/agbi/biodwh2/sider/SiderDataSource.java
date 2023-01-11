@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.sider;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.text.License;
 import de.unibi.agbi.biodwh2.sider.etl.SiderGraphExporter;
 import de.unibi.agbi.biodwh2.sider.etl.SiderMappingDescriber;
 import de.unibi.agbi.biodwh2.sider.etl.SiderUpdater;
@@ -15,7 +16,7 @@ public class SiderDataSource extends DataSource {
 
     @Override
     public String getLicense() {
-        return "CC BY-NC-SA 4.0";
+        return License.CC_BY_NC_SA_4_0.getName();
     }
 
     @Override

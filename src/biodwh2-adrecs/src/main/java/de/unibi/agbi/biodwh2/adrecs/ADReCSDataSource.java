@@ -6,6 +6,7 @@ import de.unibi.agbi.biodwh2.adrecs.etl.ADReCSUpdater;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.text.License;
 
 public class ADReCSDataSource extends DataSource {
     @Override
@@ -15,7 +16,7 @@ public class ADReCSDataSource extends DataSource {
 
     @Override
     public String getLicense() {
-        return "CC BY-NC-SA 4.0";
+        return License.CC_BY_NC_SA_4_0.getName();
     }
 
     @Override

@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.geneontology;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.OntologyDataSource;
 import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.text.License;
 import de.unibi.agbi.biodwh2.geneontology.etl.GeneOntologyGraphExporter;
 import de.unibi.agbi.biodwh2.geneontology.etl.GeneOntologyMappingDescriber;
 import de.unibi.agbi.biodwh2.geneontology.etl.GeneOntologyUpdater;
@@ -15,7 +16,7 @@ public class GeneOntologyDataSource extends OntologyDataSource {
 
     @Override
     public String getLicense() {
-        return "CC BY 4.0";
+        return License.CC_BY_4_0.getName();
     }
 
     @Override

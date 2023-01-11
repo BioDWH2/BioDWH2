@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DataSourcePropertyType;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.text.License;
 import de.unibi.agbi.biodwh2.drugcentral.etl.DrugCentralGraphExporter;
 import de.unibi.agbi.biodwh2.drugcentral.etl.DrugCentralMappingDescriber;
 import de.unibi.agbi.biodwh2.drugcentral.etl.DrugCentralUpdater;
@@ -18,7 +19,7 @@ public class DrugCentralDataSource extends DataSource {
 
     @Override
     public String getLicense() {
-        return "CC BY-SA 4.0";
+        return License.CC_BY_SA_4_0.getName();
     }
 
     @Override

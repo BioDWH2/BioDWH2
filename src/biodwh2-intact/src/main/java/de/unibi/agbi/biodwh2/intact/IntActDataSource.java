@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.intact;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.text.License;
 import de.unibi.agbi.biodwh2.intact.etl.IntActGraphExporter;
 import de.unibi.agbi.biodwh2.intact.etl.IntActMappingDescriber;
 import de.unibi.agbi.biodwh2.intact.etl.IntActUpdater;
@@ -25,7 +26,7 @@ public class IntActDataSource extends DataSource {
 
     @Override
     public String getLicense() {
-        return "CC BY 4.0";
+        return License.CC_BY_4_0.getName();
     }
 
     @Override

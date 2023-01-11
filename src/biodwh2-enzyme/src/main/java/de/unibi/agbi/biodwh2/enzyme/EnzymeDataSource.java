@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.enzyme;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.text.License;
 import de.unibi.agbi.biodwh2.enzyme.etl.EnzymeGraphExporter;
 import de.unibi.agbi.biodwh2.enzyme.etl.EnzymeMappingDescriber;
 import de.unibi.agbi.biodwh2.enzyme.etl.EnzymeUpdater;
@@ -20,7 +21,7 @@ public class EnzymeDataSource extends DataSource {
 
     @Override
     public String getLicense() {
-        return "CC BY 4.0";
+        return License.CC_BY_4_0.getName();
     }
 
     @Override

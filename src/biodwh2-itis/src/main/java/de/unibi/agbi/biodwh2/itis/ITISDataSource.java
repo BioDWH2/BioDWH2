@@ -6,6 +6,7 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
+import de.unibi.agbi.biodwh2.core.text.License;
 import de.unibi.agbi.biodwh2.itis.etl.ITISGraphExporter;
 import de.unibi.agbi.biodwh2.itis.etl.ITISMappingDescriber;
 import de.unibi.agbi.biodwh2.itis.etl.ITISParser;
@@ -42,7 +43,7 @@ public class ITISDataSource extends DataSource {
 
     @Override
     public String getLicense() {
-        return "CC0";
+        return License.CC0_1_0.getName();
     }
 
     @Override
