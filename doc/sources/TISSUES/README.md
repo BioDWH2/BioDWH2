@@ -12,7 +12,7 @@ Tissue expression database
 
 ## Citation
 
-> Oana Palasca, Alberto Santos, Christian Stolte, Jan Gorodkin, Lars Juhl Jensen, TISSUES 2.0: an integrative web resource on mammalian tissue expression, Database, Volume 2018, 2018, bay003, https://doi.org/10.1093/database/bay003
+> Palasca O, Santos A, Stolte C, Gorodkin J, Jensen LJ. TISSUES 2.0: an integrative web resource on mammalian tissue expression. Database. 2018;2018. doi: [10.1093/database/bay003](https://doi.org/10.1093/database/bay003)
 
 ## Files used
 
@@ -25,4 +25,3 @@ Tissue expression database
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

@@ -16,29 +16,28 @@ CC0 with attribution
 
 ## Files used
 
-  * ```confidence.txt.gz```
-  * ```confidence_score.txt.gz```
-  * ```dead_mirna.txt.gz```
-  * ```hairpin.fa.gz```
-  * ```mature.fa.gz```
-  * ```mature_database_links.txt.gz```
-  * ```mature_database_url.txt.gz```
-  * ```miRNA.dat.gz```
-  * ```miRNA.str.gz```
-  * ```mirna.txt.gz```
-  * ```mirna_2_prefam.txt.gz```
-  * ```mirna_chromosome_build.txt.gz```
-  * ```mirna_context.txt.gz```
-  * ```mirna_database_links.txt.gz```
-  * ```mirna_database_url.txt.gz```
-  * ```mirna_mature.txt.gz```
-  * ```mirna_prefam.txt.gz```
-  * ```mirna_pre_mature.txt.gz```
-  * ```mirna_species.txt.gz```
+  * `confidence.txt.gz`
+  * `confidence_score.txt.gz`
+  * `dead_mirna.txt.gz`
+  * `hairpin.fa.gz`
+  * `mature.fa.gz`
+  * `mature_database_links.txt.gz`
+  * `mature_database_url.txt.gz`
+  * `miRNA.dat.gz`
+  * `miRNA.str.gz`
+  * `mirna.txt.gz`
+  * `mirna_2_prefam.txt.gz`
+  * `mirna_chromosome_build.txt.gz`
+  * `mirna_context.txt.gz`
+  * `mirna_database_links.txt.gz`
+  * `mirna_database_url.txt.gz`
+  * `mirna_mature.txt.gz`
+  * `mirna_prefam.txt.gz`
+  * `mirna_pre_mature.txt.gz`
+  * `mirna_species.txt.gz`
 
 ## Configuration properties
 
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

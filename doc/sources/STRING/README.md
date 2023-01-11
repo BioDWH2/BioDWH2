@@ -16,7 +16,7 @@ When using the data, please provide appropriate credit — and inform users of a
 
 ## Citation
 
-> Szklarczyk, D., Gable, A. L., Lyon, D., Junge, A., Wyder, S., Huerta-Cepas, J., Simonovic, M., Doncheva, N. T., Morris, J. H., Bork, P., Jensen, L. J., & Mering, C. von. (2018). STRING v11: protein–protein association networks with increased coverage, supporting functional discovery in genome-wide experimental datasets. In Nucleic Acids Research (Vol. 47, Issue D1, pp. D607–D613). Oxford University Press (OUP). doi: [10.1093/nar/gky1131](https://dx.doi.org/10.1093/nar/gky1131)
+> Szklarczyk, D., Gable, A. L., Lyon, D., Junge, A., Wyder, S., Huerta-Cepas, J., Simonovic, M., Doncheva, N. T., Morris, J. H., Bork, P., Jensen, L. J., & Mering, C. von. (2018). STRING v11: protein–protein association networks with increased coverage, supporting functional discovery in genome-wide experimental datasets. In Nucleic Acids Research (Vol. 47, Issue D1, pp. D607–D613). Oxford University Press (OUP). doi: [10.1093/nar/gky1131](https://doi.org/10.1093/nar/gky1131)
 
 ## Files used
 
@@ -24,7 +24,6 @@ When using the data, please provide appropriate credit — and inform users of a
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
-|                |            |             |
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |

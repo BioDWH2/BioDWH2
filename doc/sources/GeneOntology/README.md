@@ -16,11 +16,11 @@ For citation information see http://geneontology.org/docs/go-citation-policy/
 
 ## Files used
 
-  * ```go.obo```
-  * ```goa_human.gaf.gz```
-  * ```goa_human_complex.gaf.gz```
-  * ```goa_human_isoform.gaf.gz```
-  * ```goa_human_rna.gaf.gz```
+  * `go.obo`
+  * `goa_human.gaf.gz`
+  * `goa_human_complex.gaf.gz`
+  * `goa_human_isoform.gaf.gz`
+  * `goa_human_rna.gaf.gz`
 
 ## Configuration properties
 
@@ -28,4 +28,3 @@ For citation information see http://geneontology.org/docs/go-citation-policy/
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
-|                |            |                                                          |

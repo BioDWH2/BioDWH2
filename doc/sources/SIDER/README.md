@@ -23,21 +23,20 @@ For commercial use or customized versions, please contact biobyte solutions GmbH
 
 ## Citation
 
-> Kuhn M, Letunic I, Jensen LJ, Bork P. The SIDER database of drugs and side effects. Nucleic Acids Res. 2015 Oct 19. doi: [10.1093/nar/gkv1075](http://dx.doi.org/10.1093/nar/gkv1075)
+> Kuhn M, Letunic I, Jensen LJ, Bork P. The SIDER database of drugs and side effects. Nucleic Acids Res. 2015 Oct 19. doi: [10.1093/nar/gkv1075](http://doi.org/10.1093/nar/gkv1075)
 
 > Kuhn M, Campillos M, Letunic I, Jensen LJ, Bork P. A side effect resource to capture phenotypic effects of drugs. Mol Syst Biol. 2010;6:343. Epub 2010 Jan 19.
 
 ## Files used
 
-  * ```meddra_all_indications.tsv.gz```
-  * ```meddra_all_se.tsv.gz```
-  * ```meddra_freq.tsv.gz```
-  * ```drug_names.tsv```
-  * ```drug_atc.tsv```
+  * `meddra_all_indications.tsv.gz`
+  * `meddra_all_se.tsv.gz`
+  * `meddra_freq.tsv.gz`
+  * `drug_names.tsv`
+  * `drug_atc.tsv`
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
-|                |            |             |
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |

@@ -16,11 +16,10 @@ Plant information, including the distribution maps, lists, and text, is not copy
 
 ## Files used
 
-The only file used is the ```plantlst.txt``` CSV file.
+  * `plantlst.txt`
 
 ## Configuration properties
 
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

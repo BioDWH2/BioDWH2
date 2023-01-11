@@ -16,11 +16,10 @@
 
 ## Files used
 
-Latest monthly archive file ```AllPublicXML.zip```
+  * `AllPublicXML.zip` (Latest monthly archive file)
 
 ## Configuration properties
 
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

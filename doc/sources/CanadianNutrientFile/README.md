@@ -17,11 +17,10 @@ Health Canada publishes databases which list nutrient values in Canadian foods. 
 
 ## Files used
 
-  * ```cnf-fcen-csv.zip```
+  * `cnf-fcen-csv.zip`
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
-|                |            |             |
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |

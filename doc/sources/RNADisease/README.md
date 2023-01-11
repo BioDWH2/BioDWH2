@@ -16,15 +16,14 @@ non-commercial with attribution
 
 ## Files used
 
-* `RNA-disease_experiment_all.zip`
-* `RNA-disease_miRNA_predict.zip`
-* `RNA-disease_lncRNA_predict.zip`
-* `RNA-disease_circRNA_predict.zip`
-* `RNA-disease_piRNA_predict.zip`
+  * `RNA-disease_experiment_all.zip`
+  * `RNA-disease_miRNA_predict.zip`
+  * `RNA-disease_lncRNA_predict.zip`
+  * `RNA-disease_circRNA_predict.zip`
+  * `RNA-disease_piRNA_predict.zip`
 
 ## Configuration properties
 
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

@@ -8,7 +8,7 @@
 
 ## License
 
-Mondo Disease Ontology is licensed under the Creative Commons Attribution 3.0 Unported (CC BY 3.0)
+CC BY 4.0
 
 ## Citation
 
@@ -16,7 +16,7 @@ Mondo Disease Ontology is licensed under the Creative Commons Attribution 3.0 Un
 
 ## Files used
 
-  * ```mondo.obo```
+  * `mondo.obo`
 
 ## Configuration properties
 
@@ -24,4 +24,3 @@ Mondo Disease Ontology is licensed under the Creative Commons Attribution 3.0 Un
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
-|                |            |                                                          |

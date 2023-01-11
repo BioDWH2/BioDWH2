@@ -16,7 +16,7 @@
 
 ## Files used
 
-  * ```tarbase_data.tar.gz```
+  * `tarbase_data.tar.gz`
 
 ## Configuration properties
 
@@ -24,4 +24,3 @@
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
 | downloadUrl | String     | Download URL provided on request           |
-|             |            |                                            |

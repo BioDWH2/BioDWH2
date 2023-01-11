@@ -12,14 +12,13 @@ Apache License 2.0
 
 ## Files used
 
-  * ```CancerG2P.csv.gz```
-  * ```DDG2P.csv.gz```
-  * ```EyeG2P.csv.gz```
-  * ```SkinG2P.csv.gz```
+  * `CancerG2P.csv.gz`
+  * `DDG2P.csv.gz`
+  * `EyeG2P.csv.gz`
+  * `SkinG2P.csv.gz`
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
-|                |            |             |
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |

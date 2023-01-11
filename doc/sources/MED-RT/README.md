@@ -25,4 +25,3 @@ https://evs.nci.nih.gov/ftp1/MED-RT/medrt_about.html
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

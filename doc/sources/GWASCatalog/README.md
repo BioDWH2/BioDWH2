@@ -18,13 +18,12 @@ Nucleic Acids Research, 2019, Vol. 47 (Database issue): D1005-D1012.
 
 ## Files used
 
-  * ```gwas_catalog_v1.0.2-associations.tsv```
-  * ```gwas_catalog_v1.0.2-studies.tsv```
-  * ```gwas_catalog-ancestry.tsv```
+  * `gwas_catalog_v1.0.2-associations.tsv`
+  * `gwas_catalog_v1.0.2-studies.tsv`
+  * `gwas_catalog-ancestry.tsv`
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
-|                |            |             |
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |

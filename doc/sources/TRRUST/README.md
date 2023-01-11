@@ -16,12 +16,11 @@ Transcriptional Regulatory Relationships Unraveled by Sentence-based Text mining
 
 ## Files used
 
-  * ```trrust_rawdata.human.bioc.xml```
-  * ```trrust_rawdata.mouse.bioc.xml```
+  * `trrust_rawdata.human.bioc.xml`
+  * `trrust_rawdata.mouse.bioc.xml`
 
 ## Configuration properties
 
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

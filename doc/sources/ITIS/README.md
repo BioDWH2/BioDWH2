@@ -16,11 +16,11 @@ Integrated Taxonomic Information System
 
 > To direct readers to the entire ITIS website, it is sufficient to give the address of the site in text:
 
-> Retrieved [month, day, year], from the Integrated Taxonomic Information System (ITIS), www.itis.gov. https://doi.org/10.5066/F7KH0KBK
+> Retrieved [month, day, year], from the Integrated Taxonomic Information System (ITIS), www.itis.gov. doi: [10.5066/F7KH0KBK](https://doi.org/10.5066/F7KH0KBK)
 
 > To cite data obtained from ITIS, the following citation format is offered as a suggestion:
 
-> Retrieved [month, day, year], from the Integrated Taxonomic Information System (ITIS) on-line database, www.itis.gov. https://doi.org/10.5066/F7KH0KBK
+> Retrieved [month, day, year], from the Integrated Taxonomic Information System (ITIS) on-line database, www.itis.gov. doi: [10.5066/F7KH0KBK](https://doi.org/10.5066/F7KH0KBK)
 
 > Citations can be formatted to the style needed for your publication as long as there is sufficient information included to return the reader to the referenced information.
 
@@ -33,4 +33,3 @@ Integrated Taxonomic Information System
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

@@ -16,12 +16,11 @@ RNA subcellular localization database
 
 ## Files used
 
-  * ```All experimental RNA subcellular localization data.zip```
-  * ```Other RNA subcellular localization data.zip```
+  * `All experimental RNA subcellular localization data.zip`
+  * `Other RNA subcellular localization data.zip`
 
 ## Configuration properties
 
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

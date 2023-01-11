@@ -18,12 +18,11 @@ European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC]
 
 ## Files used
 
-  * ```Medicines_output_european_public_assessment_reports.xlsx```
-  * ```Medicines_output_herbal_medicines.xlsx```
+  * `Medicines_output_european_public_assessment_reports.xlsx`
+  * `Medicines_output_herbal_medicines.xlsx`
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
-|                |            |             |
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |

@@ -18,11 +18,10 @@
 
 ## Files used
 
-* `HPRD_FLAT_FILES_[...].tar.gz`
+  * `HPRD_FLAT_FILES_[...].tar.gz`
 
 ## Configuration properties
 
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

@@ -18,16 +18,15 @@
 
 ## Files used
 
-* `toxins.xml.zip`
-* `targets.xml.zip`
-* `toxins.csv.zip`
-* `targets.csv.zip`
-* `moas.csv.zip`
-* `structures.zip`
+  * `toxins.xml.zip`
+  * `targets.xml.zip`
+  * `toxins.csv.zip`
+  * `targets.csv.zip`
+  * `moas.csv.zip`
+  * `structures.zip`
 
 ## Configuration properties
 
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

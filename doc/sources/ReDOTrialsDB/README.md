@@ -12,15 +12,14 @@ ReDOTrialsDB is a curated database, produced by the Anticancer Fund, of active c
 
 ## Citation
 
-> Pantziarka, P., Vandeborne, L., & Bouche, G. (2021). A Database of Drug Repurposing Clinical Trials in Oncology. (June 21, 2021) doi: [10.31219/osf.io/yagft](https://dx.doi.org/10.31219/osf.io/yagft)
+> Pantziarka, P., Vandeborne, L., & Bouche, G. (2021). A Database of Drug Repurposing Clinical Trials in Oncology. (June 21, 2021) doi: [10.31219/osf.io/yagft](https://doi.org/10.31219/osf.io/yagft)
 
 ## Files used
 
-```ReDO_Trials_DB.txt```
+  * `ReDO_Trials_DB.txt`
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
-|                |            |             |
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |

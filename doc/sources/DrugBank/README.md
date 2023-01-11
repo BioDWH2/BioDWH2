@@ -16,18 +16,17 @@ DrugBank Online is a comprehensive, free-to-access, online database containing i
 
 ## Citation
 
-> Wishart DS, Knox C, Guo AC, Shrivastava S, Hassanali M, Stothard P, Chang Z, Woolsey J. Drugbank: a comprehensive resource for in silico drug discovery and exploration. Nucleic Acids Res. 2006 Jan 1;34 (Database issue):D668-72. 16381955.
+> Wishart DS, Feunang YD, Guo AC, Lo EJ, Marcu A, Grant JR, Sajed T, Johnson D, Li C, Sayeeda Z, Assempour N, Iynkkaran I, Liu Y, Maciejewski A, Gale N, Wilson A, Chin L, Cummings R, Le D, Pon A, Knox C, Wilson M. DrugBank 5.0: a major update to the DrugBank database for 2018. Nucleic Acids Res. 2017 Nov 8. doi: [10.1093/nar/gkx1037](https://doi.org/10.1093/nar/gkx1037)
 
 ## Files used
 
-  * ```drugbank_all_full_database.xml.zip```
-  * ```drugbank_all_structures.sdf.zip```
-  * ```drugbank_all_metabolite-structures.sdf.zip```
+  * `drugbank_all_full_database.xml.zip`
+  * `drugbank_all_structures.sdf.zip`
+  * `drugbank_all_metabolite-structures.sdf.zip`
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
+| Property             | Values     | Description                                                               |
+|----------------------|------------|---------------------------------------------------------------------------|
+| forceExport          | true/false | Force graph export even if nothing changed                                |
 | skipDrugInteractions | true/false | Skip exporting of drug interactions which currently take the longest time |
-|                |            |             |

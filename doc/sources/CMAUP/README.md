@@ -16,15 +16,14 @@ CMAUP is a database of molecular activities of useful plants.
 
 ## Files used
 
-  * ```CMAUPv1.0_download_Targets.txt```
-  * ```CMAUPv1.0_download_Plants.txt```
-  * ```CMAUPv1.0_download_Ingredients_onlyActive.txt```
-  * ```CMAUPv1.0_download_Plant_Ingredient_Associations_onlyActiveIngredients.txt```
-  * ```CMAUPv1.0_download_Ingredient_Target_Associations_ActivityValues_References.txt```
+  * `CMAUPv1.0_download_Targets.txt`
+  * `CMAUPv1.0_download_Plants.txt`
+  * `CMAUPv1.0_download_Ingredients_onlyActive.txt`
+  * `CMAUPv1.0_download_Plant_Ingredient_Associations_onlyActiveIngredients.txt`
+  * `CMAUPv1.0_download_Ingredient_Target_Associations_ActivityValues_References.txt`
 
 ## Configuration properties
 
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

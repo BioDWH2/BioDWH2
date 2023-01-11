@@ -24,4 +24,3 @@
 |-----------------|------------|------------------------------------------------------------------|
 | forceExport     | true/false | Force graph export even if nothing changed                       |
 | licenseAccepted | true/false | Manual check if the license of BRENDA has been read and accepted |
-|                 |            |                                                                  |

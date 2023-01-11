@@ -16,15 +16,14 @@
 
 ## Files used
 
-  * ```Download_data_RC.tar.gz```
-  * ```Download_data_RD.tar.gz```
-  * ```Download_data_RH.tar.gz```
-  * ```Download_data_RP.tar.gz```
-  * ```Download_data_RR.tar.gz```
+  * `Download_data_RC.tar.gz`
+  * `Download_data_RD.tar.gz`
+  * `Download_data_RH.tar.gz`
+  * `Download_data_RP.tar.gz`
+  * `Download_data_RR.tar.gz`
 
 ## Configuration properties
 
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

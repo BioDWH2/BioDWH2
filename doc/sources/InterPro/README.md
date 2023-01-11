@@ -23,4 +23,3 @@ InterPro provides functional analysis of proteins by classifying them into famil
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |

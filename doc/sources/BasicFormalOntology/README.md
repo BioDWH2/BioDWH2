@@ -1,14 +1,14 @@
-# SequenceOntology
+# BasicFormalOntology
 
-
+The Basic Formal Ontology (BFO)
 
 ## Website
 
-[http://www.sequenceontology.org](http://www.sequenceontology.org)
+[https://basic-formal-ontology.org](https://basic-formal-ontology.org)
 
 ## License
 
-CC BY-SA 4.0
+> CC BY 4.0
 
 ## Citation
 
@@ -16,7 +16,7 @@ CC BY-SA 4.0
 
 ## Files used
 
-  * `so.obo`
+At the moment, the ontology is downloaded in OBO format (```bfo.obo```).
 
 ## Configuration properties
 

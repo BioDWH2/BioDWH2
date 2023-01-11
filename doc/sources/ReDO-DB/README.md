@@ -12,15 +12,14 @@ ReDO_DB is a curated listing of non-cancer drugs which have shown some evidence 
 
 ## Citation
 
-> Pantziarka Pan, Verbaanderd Ciska, Sukhatme Vidula, Capistrano Rica, Crispino Sergio, Gyawali Bishal, Rooman Ilse, Van Nuffel An MT, Meheus Lydie, Sukhatme Vikas P and Bouche Gauthier (2018) ReDO_DB: the repurposing drugs in oncology database ecancer 12 886
+> Pantziarka P, Verbaanderd C, Sukhatme V, et al. ReDO_DB: the repurposing drugs in oncology database. ecancer. 2018;12. doi: [10.3332/ecancer.2018.886](https://doi.org/10.3332/ecancer.2018.886)
 
 ## Files used
 
-```ReDO_DB.txt```
+  * `ReDO_DB.txt`
 
 ## Configuration properties
 
-| Property       | Values     | Description |
-| -------------- | ---------- | ----------- |
-| forceExport    | true/false | Force graph export even if nothing changed |
-|                |            |             |
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |

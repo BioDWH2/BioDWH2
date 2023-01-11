@@ -18,7 +18,7 @@
 
 ## Files used
 
-  * ```miRDB_prediction_result.txt.gz```
+  * `miRDB_prediction_result.txt.gz`
 
 ## Configuration properties
 
@@ -26,4 +26,3 @@
 |----------------|--------------|-------------------------------------------------------|
 | forceExport    | true/false   | Force graph export even if nothing changed            |
 | scoreThreshold | [0.0, 100.0] | Filter threshold for prediction score (default: 50.0) |
-|                |              |                                                       |

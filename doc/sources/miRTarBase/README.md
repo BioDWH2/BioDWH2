@@ -16,12 +16,11 @@
 
 ## Files used
 
-  * ```miRTarBase_MTI.xlsx```
-  * ```MicroRNA_Target_Sites.xlsx```
+  * `miRTarBase_MTI.xlsx`
+  * `MicroRNA_Target_Sites.xlsx`
 
 ## Configuration properties
 
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
-|             |            |                                            |
