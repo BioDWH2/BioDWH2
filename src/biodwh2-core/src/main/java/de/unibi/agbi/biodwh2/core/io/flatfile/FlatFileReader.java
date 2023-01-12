@@ -1,48 +1,26 @@
 package de.unibi.agbi.biodwh2.core.io.flatfile;
 
-import org.apache.commons.io.FileUtils;
+import de.unibi.agbi.biodwh2.core.io.BaseReader;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-public final class FlatFileReader implements Iterable<FlatFileEntry>, AutoCloseable {
-    private final BufferedReader reader;
-    private FlatFileEntry lastEntry;
-
+public final class FlatFileReader extends BaseReader<FlatFileEntry> {
     @SuppressWarnings("unused")
     public FlatFileReader(final String filePath, final Charset charset) throws IOException {
-        this(FileUtils.openInputStream(new File(filePath)), charset);
+        super(filePath, charset);
     }
 
     public FlatFileReader(final InputStream stream, final Charset charset) {
-        final InputStream baseStream = new BufferedInputStream(stream);
-        reader = new BufferedReader(new InputStreamReader(baseStream, charset));
+        super(stream, charset);
     }
 
     @Override
-    public Iterator<FlatFileEntry> iterator() {
-        return new Iterator<FlatFileEntry>() {
-            @Override
-            public boolean hasNext() {
-                if (lastEntry == null)
-                    lastEntry = readNextEntry();
-                return lastEntry != null;
-            }
-
-            @Override
-            public FlatFileEntry next() {
-                final FlatFileEntry entry = lastEntry;
-                lastEntry = null;
-                return entry;
-            }
-        };
-    }
-
-    private FlatFileEntry readNextEntry() {
+    protected FlatFileEntry readNextEntry() {
         final FlatFileEntry entry = new FlatFileEntry();
         final List<String> currentChunk = new ArrayList<>();
         String line;
@@ -58,14 +36,6 @@ public final class FlatFileReader implements Iterable<FlatFileEntry>, AutoClosea
             } else {
                 currentChunk.add(line);
             }
-        }
-        return null;
-    }
-
-    private String readLineSafe() {
-        try {
-            return reader.readLine();
-        } catch (IOException ignored) {
         }
         return null;
     }
@@ -94,11 +64,5 @@ public final class FlatFileReader implements Iterable<FlatFileEntry>, AutoClosea
         if (!"".equals(currentTag) && tagChunk.length() > 0)
             result.add(new FlatFileEntry.KeyValuePair(currentTag, tagChunk.toString()));
         entry.properties.add(result);
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (reader != null)
-            reader.close();
     }
 }

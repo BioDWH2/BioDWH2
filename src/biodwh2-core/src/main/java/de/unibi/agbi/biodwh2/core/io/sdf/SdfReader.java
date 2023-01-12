@@ -1,45 +1,23 @@
 package de.unibi.agbi.biodwh2.core.io.sdf;
 
-import org.apache.commons.io.FileUtils;
+import de.unibi.agbi.biodwh2.core.io.BaseReader;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.Iterator;
 
-public final class SdfReader implements Iterable<SdfEntry>, AutoCloseable {
-    private final BufferedReader reader;
-    SdfEntry lastEntry;
-
+public final class SdfReader extends BaseReader<SdfEntry> {
     @SuppressWarnings("unused")
     public SdfReader(final String filePath, final Charset charset) throws IOException {
-        this(FileUtils.openInputStream(new File(filePath)), charset);
+        super(filePath, charset);
     }
 
     public SdfReader(final InputStream stream, final Charset charset) {
-        final InputStream baseStream = new BufferedInputStream(stream);
-        reader = new BufferedReader(new InputStreamReader(baseStream, charset));
+        super(stream, charset);
     }
 
     @Override
-    public Iterator<SdfEntry> iterator() {
-        return new Iterator<SdfEntry>() {
-            @Override
-            public boolean hasNext() {
-                if (lastEntry == null)
-                    lastEntry = readNextEntry();
-                return lastEntry != null;
-            }
-
-            @Override
-            public SdfEntry next() {
-                final SdfEntry entry = lastEntry;
-                lastEntry = null;
-                return entry;
-            }
-        };
-    }
-
-    SdfEntry readNextEntry() {
+    protected SdfEntry readNextEntry() {
         final SdfEntry entry = readNextEntryHeader();
         if (entry == null)
             return null;
@@ -85,21 +63,7 @@ public final class SdfReader implements Iterable<SdfEntry>, AutoCloseable {
         return entry.getTitle() == null || entry.getProgramTimestamp() == null || entry.getComment() == null;
     }
 
-    private String readLineSafe() {
-        try {
-            return reader.readLine();
-        } catch (IOException ignored) {
-            return null;
-        }
-    }
-
     private static void trimSdfPropertiesCarriageReturn(final SdfEntry entry) {
         entry.properties.replaceAll((k, v) -> entry.properties.get(k).trim());
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (reader != null)
-            reader.close();
     }
 }

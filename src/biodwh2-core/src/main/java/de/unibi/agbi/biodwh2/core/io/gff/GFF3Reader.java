@@ -1,19 +1,19 @@
 package de.unibi.agbi.biodwh2.core.io.gff;
 
-import org.apache.commons.io.FileUtils;
+import de.unibi.agbi.biodwh2.core.io.BaseReader;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 
 /**
  * GFF version 3 file format reader. https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
  */
-public final class GFF3Reader implements Iterable<GFF3Entry>, AutoCloseable {
+public final class GFF3Reader extends BaseReader<GFF3Entry> {
     private static final Map<String, String> PERCENT_ENCODED_CHARACTERS = new HashMap<>();
     /**
      * Small lookup table for some Sequence Ontology (SO) terms and respective accession numbers.
@@ -21,8 +21,6 @@ public final class GFF3Reader implements Iterable<GFF3Entry>, AutoCloseable {
     private static final Map<String, String> SEQUENCE_ONTOLOGY_MAP = new HashMap<>();
     private static final char UNDEFINED_CHARACTER = '.';
 
-    private final BufferedReader reader;
-    GFF3Entry lastEntry;
     private boolean inFastaMode;
     private String nextSequenceTag;
 
@@ -54,35 +52,17 @@ public final class GFF3Reader implements Iterable<GFF3Entry>, AutoCloseable {
         SEQUENCE_ONTOLOGY_MAP.put("SO:0000316", "cds");
     }
 
+    @SuppressWarnings("unused")
     public GFF3Reader(final String filePath, final Charset charset) throws IOException {
-        this(FileUtils.openInputStream(new File(filePath)), charset);
+        super(filePath, charset);
     }
 
     public GFF3Reader(final InputStream stream, final Charset charset) {
-        final InputStream baseStream = new BufferedInputStream(stream);
-        reader = new BufferedReader(new InputStreamReader(baseStream, charset));
+        super(stream, charset);
     }
 
     @Override
-    public Iterator<GFF3Entry> iterator() {
-        return new Iterator<GFF3Entry>() {
-            @Override
-            public boolean hasNext() {
-                if (lastEntry == null)
-                    lastEntry = readNextEntry();
-                return lastEntry != null;
-            }
-
-            @Override
-            public GFF3Entry next() {
-                final GFF3Entry entry = lastEntry;
-                lastEntry = null;
-                return entry;
-            }
-        };
-    }
-
-    GFF3Entry readNextEntry() {
+    protected GFF3Entry readNextEntry() {
         String line;
         while ((line = readLineSafe()) != null) {
             if (line.trim().length() == 0)
@@ -112,14 +92,6 @@ public final class GFF3Reader implements Iterable<GFF3Entry>, AutoCloseable {
             }
         }
         return null;
-    }
-
-    private String readLineSafe() {
-        try {
-            return reader.readLine();
-        } catch (IOException ignored) {
-            return null;
-        }
     }
 
     private String readSequence(String line) {
@@ -207,11 +179,5 @@ public final class GFF3Reader implements Iterable<GFF3Entry>, AutoCloseable {
             }
         }
         return result;
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (reader != null)
-            reader.close();
     }
 }

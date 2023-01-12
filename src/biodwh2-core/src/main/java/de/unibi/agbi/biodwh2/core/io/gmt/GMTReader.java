@@ -1,51 +1,28 @@
 package de.unibi.agbi.biodwh2.core.io.gmt;
 
-import org.apache.commons.io.FileUtils;
+import de.unibi.agbi.biodwh2.core.io.BaseReader;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 
-public final class GMTReader implements Iterable<GeneSet>, AutoCloseable {
-    private final BufferedReader reader;
-    private GeneSet lastEntry;
-
+public final class GMTReader extends BaseReader<GeneSet> {
+    @SuppressWarnings("unused")
     public GMTReader(final String filePath, final Charset charset) throws IOException {
-        this(FileUtils.openInputStream(new File(filePath)), charset);
+        super(filePath, charset);
     }
 
     public GMTReader(final InputStream stream, final Charset charset) {
-        final InputStream baseStream = new BufferedInputStream(stream);
-        reader = new BufferedReader(new InputStreamReader(baseStream, charset));
+        super(stream, charset);
     }
 
     @Override
-    public Iterator<GeneSet> iterator() {
-        return new Iterator<GeneSet>() {
-            @Override
-            public boolean hasNext() {
-                if (lastEntry == null)
-                    lastEntry = readNextEntry();
-                return lastEntry != null;
-            }
-
-            @Override
-            public GeneSet next() {
-                final GeneSet entry = lastEntry;
-                lastEntry = null;
-                return entry;
-            }
-        };
-    }
-
-    GeneSet readNextEntry() {
+    protected GeneSet readNextEntry() {
         String line;
         while ((line = readLineSafe()) != null) {
-            if (line.trim().length() <= 0)
+            if (StringUtils.isBlank(line))
                 continue;
             final String[] parts = StringUtils.split(line, '\t');
             if (parts.length < 2)
@@ -54,26 +31,5 @@ public final class GMTReader implements Iterable<GeneSet>, AutoCloseable {
             return new GeneSet(parts[0], parts[1], genes);
         }
         return null;
-    }
-
-    private String readLineSafe() {
-        try {
-            return reader.readLine();
-        } catch (IOException ignored) {
-            return null;
-        }
-    }
-
-    public GeneSet[] readAll() {
-        final List<GeneSet> entries = new ArrayList<>();
-        for (GeneSet geneSet : this)
-            entries.add(geneSet);
-        return entries.toArray(new GeneSet[0]);
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (reader != null)
-            reader.close();
     }
 }
