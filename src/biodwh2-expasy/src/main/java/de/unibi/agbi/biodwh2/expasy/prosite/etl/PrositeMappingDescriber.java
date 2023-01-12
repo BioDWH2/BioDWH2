@@ -1,4 +1,4 @@
-package de.unibi.agbi.biodwh2.prosite.etl;
+package de.unibi.agbi.biodwh2.expasy.prosite.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;

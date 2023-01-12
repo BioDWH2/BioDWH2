@@ -1,7 +1,7 @@
-package de.unibi.agbi.biodwh2.prosite.etl;
+package de.unibi.agbi.biodwh2.expasy.prosite.etl;
 
 import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPUpdater;
-import de.unibi.agbi.biodwh2.prosite.PrositeDataSource;
+import de.unibi.agbi.biodwh2.expasy.prosite.PrositeDataSource;
 
 public class PrositeUpdater extends MultiFileFTPUpdater<PrositeDataSource> {
     static final String PROSITE_FILE_NAME = "prosite.dat";
@@ -34,5 +34,4 @@ public class PrositeUpdater extends MultiFileFTPUpdater<PrositeDataSource> {
     protected String[] expectedFileNames() {
         return new String[]{PROSITE_FILE_NAME, PRORULE_FILE_NAME, DOC_FILE_NAME};
     }
-
 }

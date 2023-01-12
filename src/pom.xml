@@ -74,8 +74,7 @@
         <module>biodwh2-rnadisease</module>
         <module>biodwh2-sequenceontology</module>
         <module>biodwh2-brenda</module>
-        <module>biodwh2-enzyme</module>
-        <module>biodwh2-prosite</module>
+        <module>biodwh2-expasy</module>
         <module>biodwh2-hprd</module>
         <module>biodwh2-diseaseontology</module>
         <module>biodwh2-basicformalontology</module>
@@ -92,7 +91,6 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
-        <junit-version>5.9.1</junit-version>
         <junit-version>5.9.2</junit-version>
     </properties>
 </project>

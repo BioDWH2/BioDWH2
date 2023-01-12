@@ -1,4 +1,4 @@
-package de.unibi.agbi.biodwh2.prosite.etl;
+package de.unibi.agbi.biodwh2.expasy.prosite.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
@@ -6,16 +6,19 @@ import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.flatfile.FlatFileEntry;
-import de.unibi.agbi.biodwh2.core.io.flatfile.FlatFileReader;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
-import de.unibi.agbi.biodwh2.prosite.PrositeDataSource;
+import de.unibi.agbi.biodwh2.expasy.UniRuleDataClass;
+import de.unibi.agbi.biodwh2.expasy.UniRuleEntry;
+import de.unibi.agbi.biodwh2.expasy.UniRuleReader;
+import de.unibi.agbi.biodwh2.expasy.prosite.PrositeDataSource;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -44,17 +47,18 @@ public class PrositeGraphExporter extends GraphExporter<PrositeDataSource> {
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.addIndex(IndexDescription.forNode("Pattern", ACCESSION_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("Matrix", ACCESSION_KEY, IndexDescription.Type.UNIQUE));
-        try (final FlatFileReader reader = new FlatFileReader(
+        graph.addIndex(IndexDescription.forNode("Rule", ACCESSION_KEY, IndexDescription.Type.UNIQUE));
+        /*try (final FlatFileReader reader = new FlatFileReader(
                 FileUtils.openInput(workspace, dataSource, PrositeUpdater.PROSITE_FILE_NAME), StandardCharsets.UTF_8)) {
             for (final FlatFileEntry entry : reader)
                 exportPrositeEntry(graph, entry);
         } catch (IOException e) {
             throw new ExporterFormatException(e);
-        }
-        try (final FlatFileReader reader = new FlatFileReader(
+        }*/
+        try (final UniRuleReader reader = new UniRuleReader(
                 FileUtils.openInput(workspace, dataSource, PrositeUpdater.PRORULE_FILE_NAME), StandardCharsets.UTF_8)) {
-            for (final FlatFileEntry entry : reader)
-                exportProruleEntry(graph, entry);
+            for (final UniRuleEntry entry : reader)
+                exportProRuleEntry(graph, entry);
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
@@ -180,7 +184,14 @@ public class PrositeGraphExporter extends GraphExporter<PrositeDataSource> {
         return result.toArray(new String[0]);
     }
 
-    private void exportProruleEntry(final Graph graph, final FlatFileEntry entry) {
+    private void exportProRuleEntry(final Graph graph, final UniRuleEntry entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Rule");
+        builder.withProperty(ACCESSION_KEY, entry.accession);
+        if (entry.secondaryAccessions != null && entry.secondaryAccessions.length > 0)
+            builder.withProperty("secondary_accessions", entry.secondaryAccessions);
+        builder.withProperty("data_classes", Arrays.stream(entry.dataClasses).map(UniRuleDataClass::getValue)
+                                                   .toArray(String[]::new));
         // TODO
+        builder.build();
     }
 }

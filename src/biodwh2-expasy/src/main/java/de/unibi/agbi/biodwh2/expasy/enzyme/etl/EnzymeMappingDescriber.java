@@ -1,4 +1,4 @@
-package de.unibi.agbi.biodwh2.enzyme.etl;
+package de.unibi.agbi.biodwh2.expasy.enzyme.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;

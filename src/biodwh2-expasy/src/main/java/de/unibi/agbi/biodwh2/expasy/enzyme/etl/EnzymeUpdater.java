@@ -1,7 +1,7 @@
-package de.unibi.agbi.biodwh2.enzyme.etl;
+package de.unibi.agbi.biodwh2.expasy.enzyme.etl;
 
 import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPUpdater;
-import de.unibi.agbi.biodwh2.enzyme.EnzymeDataSource;
+import de.unibi.agbi.biodwh2.expasy.enzyme.EnzymeDataSource;
 
 public class EnzymeUpdater extends MultiFileFTPUpdater<EnzymeDataSource> {
     static final String FILE_NAME = "enzyme.dat";
