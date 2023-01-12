@@ -14,6 +14,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * https://ftp.expasy.org/databases/prosite/unirule.pdf
+ */
 public class UniRuleReader implements Iterable<UniRuleEntry>, AutoCloseable {
     private final FlatFileReader flatFileReader;
     private UniRuleEntry lastEntry;
