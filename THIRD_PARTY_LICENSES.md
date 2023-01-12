@@ -22,7 +22,7 @@ BioDWH2 is developed and distributed with the following third party dependencies
     * **[2]**
     * **[8]** ```org.apache.logging.log4j.log4j-api``` version ```2.19.0``` licensed under ```Apache License, Version 2.0```
       * **[1]**
-  * **[9]** ```org.dhatim.fastexcel-reader``` version ```0.14.1``` licensed under ```Apache License, Version 2.0```
+  * **[9]** ```org.dhatim.fastexcel-reader``` version ```0.14.3``` licensed under ```Apache License, Version 2.0```
     * **[4]**
     * **[10]** ```com.fasterxml.aalto-xml``` version ```1.3.2``` licensed under ```Apache License, Version 2.0```
       * **[11]** ```org.codehaus.woodstox.stax2-api``` version ```4.2``` licensed under ```BSD License```
