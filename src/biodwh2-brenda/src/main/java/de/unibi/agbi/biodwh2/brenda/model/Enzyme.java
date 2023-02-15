@@ -30,6 +30,19 @@ public class Enzyme {
     @JsonProperty("synonyms")
     public TextDataset[] synonyms;
     /**
+     * Actual or possible application in the fields of i.e. pharmacology, medicine, biofuel production, analysis,
+     * biotechnology etc. are described.
+     */
+    @JsonProperty("application")
+    public TextDataset[] application;
+    /**
+     * According to the type of reaction, the enzymes catalyze, enzymes are classified into 7 main classes,
+     * oxidoreductases, transferases, hydrolases, lyases, isomerases, ligases, and translocases with several
+     * subcategories, i.e. addition, elimination, carboxylation etc.
+     */
+    @JsonProperty("reaction_type")
+    public TextDataset[] reactionType;
+    /**
      * Information on the X-ray structure of an enzyme and the procedure and conditions of the crystallization are
      * described.
      */
@@ -135,7 +148,7 @@ public class Enzyme {
     @JsonProperty("ki_value")
     public NumericDataset[] kiValue;
     /**
-     * The half maximal inhibitory concentration of a compund in mM. Each value is connected to an inhibitor (`value`
+     * The half maximal inhibitory concentration of a compound in mM. Each value is connected to an inhibitor (`value`
      * property).
      */
     @JsonProperty("ic50")
@@ -191,7 +204,7 @@ public class Enzyme {
     @JsonProperty("engineering")
     public TextDataset[] engineering;
     /**
-     * Information on expresssion and cloning procedures and systems are given and in which organism or cell culture an
+     * Information on expression and cloning procedures and systems are given and in which organism or cell culture an
      * enzyme is expressed in.
      */
     @JsonProperty("cloned")
@@ -217,15 +230,15 @@ public class Enzyme {
      * Protein/gene accessions associated with the data field.
      */
     @JsonProperty("proteins")
-    public Map<String, Protein[]> proteins;
+    public Map<Integer, Protein[]> proteins;
     /**
      * The references associated with the data field.
      */
     @JsonProperty("references")
-    public Map<String, Reference> references;
+    public Map<Integer, Reference> references;
     /**
      * The organisms associated with the data field.
      */
     @JsonProperty("organisms")
-    public Map<String, Organism> organisms;
+    public Map<Integer, Organism> organisms;
 }

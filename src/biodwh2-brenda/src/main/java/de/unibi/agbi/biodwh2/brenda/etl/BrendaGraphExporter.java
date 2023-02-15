@@ -67,23 +67,23 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
     }
 
     private void exportEnzyme(final Graph graph, final Enzyme enzyme, final Map<String, Long> organismNodeIdMap) {
-        final Map<String, Long> organismRefNodeIdMap = new HashMap<>();
+        final Map<Integer, Long> organismRefNodeIdMap = new HashMap<>();
         if (enzyme.organisms != null) {
-            for (final Map.Entry<String, Organism> organism : enzyme.organisms.entrySet()) {
+            for (final Map.Entry<Integer, Organism> organism : enzyme.organisms.entrySet()) {
                 Long organismNodeId = getOrCreateOrganismNode(graph, organism.getValue().value, organismNodeIdMap);
                 organismRefNodeIdMap.put(organism.getKey(), organismNodeId);
             }
         }
-        final Map<String, Long> publicationRefNodeIdMap = new HashMap<>();
+        final Map<Integer, Long> publicationRefNodeIdMap = new HashMap<>();
         if (enzyme.references != null) {
-            for (final Map.Entry<String, Reference> reference : enzyme.references.entrySet()) {
+            for (final Map.Entry<Integer, Reference> reference : enzyme.references.entrySet()) {
                 Long publicationNodeId = getOrCreatePublicationNode(graph, reference.getValue());
                 publicationRefNodeIdMap.put(reference.getKey(), publicationNodeId);
             }
         }
-        final Map<String, Long[]> proteinRefNodeIdMap = new HashMap<>();
+        final Map<Integer, Long[]> proteinRefNodeIdMap = new HashMap<>();
         if (enzyme.proteins != null) {
-            for (final Map.Entry<String, Protein[]> protein : enzyme.proteins.entrySet()) {
+            for (final Map.Entry<Integer, Protein[]> protein : enzyme.proteins.entrySet()) {
                 if (protein.getValue().length > 1)
                     LOGGER.warn("Proteins ref with " + protein.getValue().length + " entries found");
                 final Long[] proteinNodeIds = getOrCreateProteinNodes(graph, protein.getValue()[0]);
