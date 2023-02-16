@@ -67,29 +67,9 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
     }
 
     private void exportEnzyme(final Graph graph, final Enzyme enzyme, final Map<String, Long> organismNodeIdMap) {
-        final Map<Integer, Long> organismRefNodeIdMap = new HashMap<>();
-        if (enzyme.organisms != null) {
-            for (final Map.Entry<Integer, Organism> organism : enzyme.organisms.entrySet()) {
-                Long organismNodeId = getOrCreateOrganismNode(graph, organism.getValue().value, organismNodeIdMap);
-                organismRefNodeIdMap.put(organism.getKey(), organismNodeId);
-            }
-        }
-        final Map<Integer, Long> publicationRefNodeIdMap = new HashMap<>();
-        if (enzyme.references != null) {
-            for (final Map.Entry<Integer, Reference> reference : enzyme.references.entrySet()) {
-                Long publicationNodeId = getOrCreatePublicationNode(graph, reference.getValue());
-                publicationRefNodeIdMap.put(reference.getKey(), publicationNodeId);
-            }
-        }
-        final Map<Integer, Long[]> proteinRefNodeIdMap = new HashMap<>();
-        if (enzyme.proteins != null) {
-            for (final Map.Entry<Integer, Protein[]> protein : enzyme.proteins.entrySet()) {
-                if (protein.getValue().length > 1)
-                    LOGGER.warn("Proteins ref with " + protein.getValue().length + " entries found");
-                final Long[] proteinNodeIds = getOrCreateProteinNodes(graph, protein.getValue()[0]);
-                proteinRefNodeIdMap.put(protein.getKey(), proteinNodeIds);
-            }
-        }
+        final Map<Integer, Long> organismRefNodeIdMap = exportEnzymeOrganismRefs(graph, enzyme, organismNodeIdMap);
+        final Map<Integer, Long> publicationRefNodeIdMap = exportEnzymePublicationRefs(graph, enzyme);
+        final Map<Integer, Long[]> proteinRefNodeIdMap = exportEnzymeProteinRefs(graph, enzyme);
         final NodeBuilder builder = graph.buildNode().withLabel("Enzyme");
         builder.withProperty(ID_KEY, enzyme.id);
         builder.withPropertyIfNotNull("name", enzyme.name);
@@ -174,6 +154,18 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
         */
     }
 
+    private Map<Integer, Long> exportEnzymeOrganismRefs(Graph graph, Enzyme enzyme,
+                                                        Map<String, Long> organismNodeIdMap) {
+        final Map<Integer, Long> refNodeIdMap = new HashMap<>();
+        if (enzyme.organisms != null) {
+            for (final Map.Entry<Integer, Organism> organism : enzyme.organisms.entrySet()) {
+                Long organismNodeId = getOrCreateOrganismNode(graph, organism.getValue().value, organismNodeIdMap);
+                refNodeIdMap.put(organism.getKey(), organismNodeId);
+            }
+        }
+        return refNodeIdMap;
+    }
+
     private Long getOrCreateOrganismNode(final Graph graph, final String speciesName,
                                          final Map<String, Long> organismNodeIdMap) {
         Long organismNodeId = organismNodeIdMap.get(speciesName);
@@ -188,6 +180,17 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
             organismNodeIdMap.put(speciesName, organismNodeId);
         }
         return organismNodeId;
+    }
+
+    private Map<Integer, Long> exportEnzymePublicationRefs(Graph graph, Enzyme enzyme) {
+        final Map<Integer, Long> refNodeIdMap = new HashMap<>();
+        if (enzyme.references != null) {
+            for (final Map.Entry<Integer, Reference> reference : enzyme.references.entrySet()) {
+                Long publicationNodeId = getOrCreatePublicationNode(graph, reference.getValue());
+                refNodeIdMap.put(reference.getKey(), publicationNodeId);
+            }
+        }
+        return refNodeIdMap;
     }
 
     private Long getOrCreatePublicationNode(final Graph graph, final Reference reference) {
@@ -210,6 +213,20 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
             publicationNode = publicationBuilder.build();
         }
         return publicationNode.getId();
+    }
+
+    private Map<Integer, Long[]> exportEnzymeProteinRefs(Graph graph, Enzyme enzyme) {
+        final Map<Integer, Long[]> refNodeIdMap = new HashMap<>();
+        if (enzyme.proteins != null) {
+            for (final Map.Entry<Integer, Protein[]> entry : enzyme.proteins.entrySet()) {
+                if (entry.getValue().length > 1)
+                    LOGGER.warn("Proteins ref with " + entry.getValue().length + " entries found");
+                Protein protein = entry.getValue()[0];
+                final Long[] proteinNodeIds = getOrCreateProteinNodes(graph, protein);
+                refNodeIdMap.put(entry.getKey(), proteinNodeIds);
+            }
+        }
+        return refNodeIdMap;
     }
 
     private Long[] getOrCreateProteinNodes(final Graph graph, final Protein protein) {
@@ -246,12 +263,36 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
                 final String[] organismRefs = StringUtils.split(organismsMatcher.group(1), ',');
                 result[i].organismRefs = Arrays.stream(organismRefs).map(Integer::parseInt).toArray(Integer[]::new);
             }
-            final Matcher referencesMatcher = ORGANISMS_PATTERN.matcher(sentences[i]);
+            final Matcher referencesMatcher = REFERENCES_PATTERN.matcher(sentences[i]);
             while (referencesMatcher.find()) {
                 final String[] referenceRefs = StringUtils.split(referencesMatcher.group(1), ',');
                 result[i].referenceRefs = Arrays.stream(referenceRefs).map(Integer::parseInt).toArray(Integer[]::new);
             }
         }
         return result;
+    }
+
+    private Node createValueNode(final Graph graph, final Dataset dataset) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Value");
+        builder.withPropertyIfNotNull("comment", dataset.comment);
+        return builder.build();
+        // TODO: organism, references, protein
+    }
+
+    private Node createTextValueNode(final Graph graph, final TextDataset dataset) {
+        final NodeBuilder builder = graph.buildNode().withLabel("TextValue");
+        builder.withPropertyIfNotNull("comment", dataset.comment);
+        builder.withPropertyIfNotNull("value", dataset.value);
+        return builder.build();
+        // TODO: organism, references, protein
+    }
+
+    private Node createReactionValueNode(final Graph graph, final ReactionDataset dataset) {
+        final NodeBuilder builder = graph.buildNode().withLabel("ReactionValue");
+        builder.withPropertyIfNotNull("comment", dataset.comment);
+        builder.withPropertyIfNotNull("educts", dataset.educts);
+        builder.withPropertyIfNotNull("products", dataset.products);
+        return builder.build();
+        // TODO: organism, references, protein
     }
 }
