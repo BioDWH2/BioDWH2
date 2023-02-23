@@ -232,11 +232,15 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
     private Long[] getOrCreateProteinNodes(final Graph graph, final Protein protein) {
         // TODO: comment
         final Set<Long> nodeIds = new HashSet<>();
-        for (final String accession : protein.accessions) {
-            Node node = graph.findNode("Protein", "accession", accession);
-            if (node == null)
-                node = graph.addNode("Protein", "accession", accession, "source", protein.source);
-            nodeIds.add(node.getId());
+        if (protein.accessions != null) {
+            for (final String accession : protein.accessions) {
+                Node node = graph.findNode("Protein", "accession", accession);
+                if (node == null)
+                    node = graph.addNode("Protein", "accession", accession, "source", protein.source);
+                nodeIds.add(node.getId());
+            }
+        } else {
+            nodeIds.add(graph.addNode("Protein").getId());
         }
         return nodeIds.toArray(new Long[0]);
     }
