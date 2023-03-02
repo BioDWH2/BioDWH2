@@ -27,5 +27,5 @@ public final class SnpAdverseDrugReaction {
     public String description;
     @JsonProperty("pubmed-id")
     @GraphProperty("pubmed_id")
-    public String pubmedId;
+    public Integer pubmedId;
 }

@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.mapping.PublicationNodeMappingDescription;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
@@ -25,32 +26,39 @@ public class OpenTargetsMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeReference(final Node node) {
-        NodeMappingDescription description = null;
         final String source = node.getProperty("source");
         final String id = node.getProperty("id");
         if (source != null && id != null) {
             // "Other", "FDA", "DailyMed", "ISBN", "Wikipedia", "EMA", "KEGG", "PMDA", "Health Canada", "Expert",
             // "UniProt", "Patent", "IUPHAR", "PubChem", "InterPro", "USGPO", "NTP", "MEDSAFE"
             switch (source) {
-                case "PubMed":
-                    description = new NodeMappingDescription(NodeMappingDescription.NodeType.PUBLICATION);
-                    description.addIdentifier(IdentifierType.PUBMED_ID, id);
-                    break;
-                case "DOI":
-                    description = new NodeMappingDescription(NodeMappingDescription.NodeType.PUBLICATION);
+                case "PubMed": {
+                    PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
+                    description.pubmedId = Integer.parseInt(id);
+                    description.addIdentifier(IdentifierType.PUBMED_ID, description.pubmedId);
+                    return new NodeMappingDescription[]{description};
+                }
+                case "DOI": {
+                    PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
+                    description.doi = id;
                     description.addIdentifier(IdentifierType.DOI, id);
-                    break;
-                case "PMC":
-                    description = new NodeMappingDescription(NodeMappingDescription.NodeType.PUBLICATION);
+                    return new NodeMappingDescription[]{description};
+                }
+                case "PMC": {
+                    PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
+                    description.pmcId = id;
                     description.addIdentifier(IdentifierType.PUBMED_CENTRAL_ID, id);
-                    break;
-                case "ClinicalTrials":
-                    description = new NodeMappingDescription(NodeMappingDescription.NodeType.CLINICAL_TRIAL);
+                    return new NodeMappingDescription[]{description};
+                }
+                case "ClinicalTrials": {
+                    NodeMappingDescription description = new NodeMappingDescription(
+                            NodeMappingDescription.NodeType.CLINICAL_TRIAL);
                     description.addIdentifier(IdentifierType.NCT_NUMBER, id);
-                    break;
+                    return new NodeMappingDescription[]{description};
+                }
             }
         }
-        return description != null ? new NodeMappingDescription[]{description} : null;
+        return null;
     }
 
     private NodeMappingDescription[] describeMolecule(final Node node) {

@@ -98,9 +98,21 @@ public class KeggGraphExporter extends GraphExporter<KeggDataSource> {
     }
 
     private void exportOrganismsList(Workspace workspace, Graph graph) {
-        for (final String[] row : openTSV(workspace, KeggUpdater.ORGANISMS_LIST_FILE_NAME))
-            if (row != null && row.length == 4)
-                graph.addNode(ORGANISM_LABEL, "id", row[0], "symbol", row[1], "name", row[2], "taxonomy", row[3]);
+        for (final String[] row : openTSV(workspace, KeggUpdater.ORGANISMS_LIST_FILE_NAME)) {
+            if (row != null && row.length == 4) {
+                String scientificName = row[2].trim();
+                if (scientificName.endsWith(")")) {
+                    int commonNameStart = scientificName.lastIndexOf('(');
+                    String commonName = scientificName.substring(commonNameStart + 1, scientificName.length() - 1);
+                    scientificName = scientificName.substring(0, commonNameStart - 1).trim();
+                    graph.addNode(ORGANISM_LABEL, "id", row[0], "symbol", row[1], "name", scientificName, "common_name",
+                                  commonName, "taxonomy", StringUtils.split(row[3], ';'));
+                } else {
+                    graph.addNode(ORGANISM_LABEL, "id", row[0], "symbol", row[1], "name", scientificName, "taxonomy",
+                                  StringUtils.split(row[3], ';'));
+                }
+            }
+        }
     }
 
     private void exportDrugs(final Graph graph) {

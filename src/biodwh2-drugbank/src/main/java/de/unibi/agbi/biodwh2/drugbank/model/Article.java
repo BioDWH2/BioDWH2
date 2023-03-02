@@ -11,7 +11,7 @@ public final class Article {
     public String refId;
     @JsonProperty("pubmed-id")
     @GraphProperty("pubmed_id")
-    public String pubmedId;
+    public Integer pubmedId;
     @GraphProperty("citation")
     public String citation;
 }

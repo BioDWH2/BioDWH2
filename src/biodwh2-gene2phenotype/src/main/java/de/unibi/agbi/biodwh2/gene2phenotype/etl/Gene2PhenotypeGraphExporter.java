@@ -82,9 +82,12 @@ public class Gene2PhenotypeGraphExporter extends GraphExporter<Gene2PhenotypeDat
         if (association.phenotypes != null)
             for (final String hpoId : StringUtils.split(association.phenotypes, ';'))
                 graph.addEdge(associationNode, getOrCreatePhenotypeNode(graph, hpoId), "SHOWS");
-        if (association.pmids != null)
-            for (final String pmid : StringUtils.split(association.pmids, ';'))
-                graph.addEdge(associationNode, getOrCreatePublicationNode(graph, pmid), "HAS_REFERENCE");
+        if (association.pmids != null) {
+            for (final String pmid : StringUtils.split(association.pmids, ';')) {
+                graph.addEdge(associationNode, getOrCreatePublicationNode(graph, Integer.parseInt(pmid)),
+                              "HAS_REFERENCE");
+            }
+        }
     }
 
     private Node getOrCreateGeneNode(final Graph graph, final String symbol, final Integer hgncId, final String mim,
@@ -133,7 +136,7 @@ public class Gene2PhenotypeGraphExporter extends GraphExporter<Gene2PhenotypeDat
         return node;
     }
 
-    private Node getOrCreatePublicationNode(final Graph graph, final String pmid) {
+    private Node getOrCreatePublicationNode(final Graph graph, final Integer pmid) {
         Node node = graph.findNode(PUBLICATION_LABEL, "pmid", pmid);
         if (node == null)
             node = graph.addNode(PUBLICATION_LABEL, "pmid", pmid);

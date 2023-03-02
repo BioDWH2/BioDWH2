@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.mapping.PublicationNodeMappingDescription;
 import org.apache.commons.lang3.StringUtils;
 
 public class PharmGKBMappingDescriber extends MappingDescriber {
@@ -134,8 +135,8 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
                 description.addIdentifier(IdentifierType.GENE_CARD, getIdFromPrefixIdPair(reference));
             else if (reference.startsWith("GenAtlas"))
                 description.addIdentifier(IdentifierType.GEN_ATLAS, getIdFromPrefixIdPair(reference));
-            //else if (reference.startsWith("Ensembl"))
-            //    description.addIdentifier(IdentifierType.ENSEMBL_GENE_ID, getIdFromPrefixIdPair(reference));
+                //else if (reference.startsWith("Ensembl"))
+                //    description.addIdentifier(IdentifierType.ENSEMBL_GENE_ID, getIdFromPrefixIdPair(reference));
             else if (reference.startsWith("NCBI Gene"))
                 description.addIdentifier(IdentifierType.NCBI_GENE, getIntIdFromPrefixIdPair(reference));
             /*
@@ -164,12 +165,14 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeLiterature(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(
-                NodeMappingDescription.NodeType.PUBLICATION);
+        final PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
+        description.doi = node.getProperty("doi");
+        description.pubmedId = node.getProperty("pmid");
+        description.pmcId = node.getProperty("pmcid");
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
-        description.addIdentifier(IdentifierType.PUBMED_ID, node.<Integer>getProperty("pmid"));
-        description.addIdentifier(IdentifierType.PUBMED_CENTRAL_ID, node.<String>getProperty("pmcid"));
-        description.addIdentifier(IdentifierType.DOI, node.<String>getProperty("doi"));
+        description.addIdentifier(IdentifierType.PUBMED_ID, description.pubmedId);
+        description.addIdentifier(IdentifierType.PUBMED_CENTRAL_ID, description.pmcId);
+        description.addIdentifier(IdentifierType.DOI, description.doi);
         return new NodeMappingDescription[]{description};
     }
 

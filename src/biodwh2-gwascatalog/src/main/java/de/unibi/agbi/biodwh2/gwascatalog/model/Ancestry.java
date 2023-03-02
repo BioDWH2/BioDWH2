@@ -12,7 +12,7 @@ public final class Ancestry {
     @JsonProperty("STUDY ACCESSION")
     public String studyAccession;
     @JsonProperty("PUBMEDID")
-    public String pubmedId;
+    public Integer pubmedId;
     @JsonProperty("FIRST AUTHOR")
     public String firstAuthor;
     @JsonProperty("DATE")

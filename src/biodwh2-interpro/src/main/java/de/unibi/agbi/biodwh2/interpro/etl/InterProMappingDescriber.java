@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.mapping.PublicationNodeMappingDescription;
 import org.apache.commons.lang3.StringUtils;
 
 public class InterProMappingDescriber extends MappingDescriber {
@@ -24,8 +25,8 @@ public class InterProMappingDescriber extends MappingDescriber {
         final Integer pubmedId = node.getProperty("pmid");
         if (pubmedId == null)
             return null;
-        final NodeMappingDescription description = new NodeMappingDescription(
-                NodeMappingDescription.NodeType.PUBLICATION);
+        final PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
+        description.pubmedId = pubmedId;
         description.addIdentifier(IdentifierType.PUBMED_ID, pubmedId);
         return new NodeMappingDescription[]{description};
     }

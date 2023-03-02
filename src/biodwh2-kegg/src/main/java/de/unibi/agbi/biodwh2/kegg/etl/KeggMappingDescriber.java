@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.mapping.PublicationNodeMappingDescription;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -67,10 +68,11 @@ public class KeggMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeReference(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(
-                NodeMappingDescription.NodeType.PUBLICATION);
-        description.addIdentifier(IdentifierType.DOI, node.<String>getProperty("doi"));
-        description.addIdentifier(IdentifierType.PUBMED_ID, node.<Integer>getProperty("pmid"));
+        final PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
+        description.pubmedId = node.getProperty("pmid");
+        description.doi = node.getProperty("doi");
+        description.addIdentifier(IdentifierType.DOI, description.doi);
+        description.addIdentifier(IdentifierType.PUBMED_ID, description.pubmedId);
         return new NodeMappingDescription[]{description};
     }
 

@@ -86,7 +86,7 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
                                       study.datePublished);
     }
 
-    private Node getOrCreatePublication(final Graph graph, final String pubmedId, final String firstAuthor,
+    private Node getOrCreatePublication(final Graph graph, final Integer pubmedId, final String firstAuthor,
                                         final String journal, final String studyTitle, final String datePublished) {
         Node node = graph.findNode(PUBLICATION_LABEL, "pmid", pubmedId);
         if (node == null) {

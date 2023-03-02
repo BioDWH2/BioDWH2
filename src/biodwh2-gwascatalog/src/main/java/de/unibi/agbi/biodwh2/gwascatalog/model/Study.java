@@ -12,7 +12,7 @@ public final class Study {
     @JsonProperty("DATE ADDED TO CATALOG")
     public String dateAddedToCatalog;
     @JsonProperty("PUBMEDID")
-    public String pubmedId;
+    public Integer pubmedId;
     @JsonProperty("FIRST AUTHOR")
     public String firstAuthor;
     @JsonProperty("DATE")

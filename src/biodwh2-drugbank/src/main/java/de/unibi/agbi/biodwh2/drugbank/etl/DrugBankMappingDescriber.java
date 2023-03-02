@@ -5,6 +5,7 @@ import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.mapping.IdentifierUtils;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.mapping.PublicationNodeMappingDescription;
 
 public class DrugBankMappingDescriber extends MappingDescriber {
     public DrugBankMappingDescriber(final DataSource dataSource) {
@@ -104,15 +105,19 @@ public class DrugBankMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeArticle(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(
-                NodeMappingDescription.NodeType.PUBLICATION);
-        description.addIdentifier(IdentifierType.PUBMED_ID, node.<String>getProperty("pubmed_id"));
+        final PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
+        description.pubmedId = node.getProperty("pubmed_id");
+        description.addIdentifier(IdentifierType.PUBMED_ID, description.pubmedId);
         final String citation = node.getProperty("citation");
         if (citation != null) {
             final String[] dois = IdentifierUtils.extractDois(citation);
-            if (dois != null)
+            if (dois != null) {
+                if (dois.length == 1) {
+                    description.doi = dois[0];
+                }
                 for (final String doi : dois)
                     description.addIdentifier(IdentifierType.DOI, doi);
+            }
             description.addName(citation);
         }
         return new NodeMappingDescription[]{description};
