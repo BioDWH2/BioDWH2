@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.adrecs.ADReCSDataSource;
 import de.unibi.agbi.biodwh2.adrecs.model.ADROntologyEntry;
 import de.unibi.agbi.biodwh2.adrecs.model.DrugADREntry;
+import de.unibi.agbi.biodwh2.adrecs.model.DrugADRQuantificationEntry;
 import de.unibi.agbi.biodwh2.adrecs.model.DrugInformationEntry;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.collections.Tuple2;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
@@ -19,8 +21,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
-import java.util.zip.GZIPInputStream;
 
 public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
     private static final Logger LOGGER = LogManager.getLogger(ADReCSGraphExporter.class);
@@ -55,7 +57,7 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
     private void exportDrugs(final Workspace workspace, final Graph graph) throws IOException {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting Drug information...");
-        final GZIPInputStream stream = FileUtils.openGzip(workspace, dataSource, ADReCSUpdater.DRUG_INFO_FILE_NAME);
+        final InputStream stream = FileUtils.openInput(workspace, dataSource, ADReCSUpdater.DRUG_INFO_FILE_NAME);
         final XlsxMappingIterator<DrugInformationEntry> iterator = new XlsxMappingIterator<>(DrugInformationEntry.class,
                                                                                              stream);
         while (iterator.hasNext())
@@ -67,7 +69,7 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting ADR ontology...");
         final Map<String, Map<String, Map<String, Set<String>>>> hierarchy = new HashMap<>();
-        final GZIPInputStream stream = FileUtils.openGzip(workspace, dataSource, ADReCSUpdater.ADR_ONTOLOGY_FILE_NAME);
+        final InputStream stream = FileUtils.openInput(workspace, dataSource, ADReCSUpdater.ADR_ONTOLOGY_FILE_NAME);
         final XlsxMappingIterator<ADROntologyEntry> iterator = new XlsxMappingIterator<>(ADROntologyEntry.class,
                                                                                          stream);
         while (iterator.hasNext()) {
@@ -127,34 +129,62 @@ public class ADReCSGraphExporter extends GraphExporter<ADReCSDataSource> {
     private void exportADRDrugAssociations(final Workspace workspace, final Graph graph) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting ADR drug associations...");
+        Map<String, Map<String, List<Tuple2<String, String>>>> associations = new HashMap<>();
         try (final MappingIterator<DrugADREntry> iterator = FileUtils.openGzipTsv(workspace, dataSource,
                                                                                   ADReCSUpdater.DRUG_ADR_FILE_NAME,
                                                                                   DrugADREntry.class)) {
-            while (iterator.hasNext())
-                exportADRDrugAssociation(graph, iterator.next());
+            while (iterator.hasNext()) {
+                final DrugADREntry entry = iterator.next();
+                final Map<String, List<Tuple2<String, String>>> diseases = associations.computeIfAbsent(entry.drugId,
+                                                                                                        s -> new HashMap<>());
+                final List<Tuple2<String, String>> frequencies = diseases.computeIfAbsent(entry.adrId,
+                                                                                          s -> new ArrayList<>());
+                if (frequencies.size() == 0)
+                    frequencies.add(new Tuple2<>(null, null));
+            }
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
-    }
-
-    private void exportADRDrugAssociation(final Graph graph, final DrugADREntry entry) {
-        final Iterable<Node> adrNodes = graph.findNodes(ADR_LABEL, ID_KEY, entry.adrId);
-        final Node drugNode = graph.findNode(DRUG_LABEL, ID_KEY, entry.drugId);
-        final boolean hasFrequency = !"-".equals(entry.adrFrequencyFAERS) && !"Not Available".equals(
-                entry.adrFrequencyFAERS);
-        final boolean hasSeverityGrade = !"-".equals(entry.adrSeverityGradeFAERS) && !"Not Available".equals(
-                entry.adrSeverityGradeFAERS);
-        for (final Node adrNode : adrNodes) {
-            if (hasFrequency && hasSeverityGrade) {
-                graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH", "frequency_faers", entry.adrFrequencyFAERS,
-                              "severity_grade_faers", entry.adrSeverityGradeFAERS);
-            } else if (hasFrequency) {
-                graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH", "frequency_faers", entry.adrFrequencyFAERS);
-            } else if (hasSeverityGrade) {
-                graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH", "severity_grade_faers",
-                              entry.adrSeverityGradeFAERS);
-            } else {
-                graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH");
+        try (final MappingIterator<DrugADRQuantificationEntry> iterator = FileUtils.openGzipTsv(workspace, dataSource,
+                                                                                                ADReCSUpdater.DRUG_ADR_QUANTIFICATION_FILE_NAME,
+                                                                                                DrugADRQuantificationEntry.class)) {
+            while (iterator.hasNext()) {
+                final DrugADRQuantificationEntry entry = iterator.next();
+                final Map<String, List<Tuple2<String, String>>> diseases = associations.computeIfAbsent(entry.drugId,
+                                                                                                        s -> new HashMap<>());
+                final List<Tuple2<String, String>> frequencies = diseases.computeIfAbsent(entry.adrId,
+                                                                                          s -> new ArrayList<>());
+                boolean added = false;
+                for (int i = 0; i < frequencies.size(); i++) {
+                    final Tuple2<String, String> tuple = frequencies.get(i);
+                    if (tuple.getFirst() == null && tuple.getSecond() == null) {
+                        frequencies.set(i, new Tuple2<>(entry.adrSeverityGradeFAERS, entry.adrFrequencyFAERS));
+                        added = true;
+                        break;
+                    }
+                }
+                if (!added)
+                    frequencies.add(new Tuple2<>(entry.adrSeverityGradeFAERS, entry.adrFrequencyFAERS));
+            }
+        } catch (IOException e) {
+            throw new ExporterFormatException(e);
+        }
+        for (final String drugId : associations.keySet()) {
+            final Node drugNode = graph.findNode(DRUG_LABEL, ID_KEY, drugId);
+            for (final String adrId : associations.get(drugId).keySet()) {
+                final Iterable<Node> adrNodes = graph.findNodes(ADR_LABEL, ID_KEY, adrId);
+                for (final Tuple2<String, String> association : associations.get(drugId).get(adrId)) {
+                    if (association.getFirst() != null && association.getSecond() != null) {
+                        for (final Node adrNode : adrNodes) {
+                            graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH", "frequency_faers",
+                                          association.getSecond(), "severity_grade_faers", association.getFirst());
+                        }
+                    } else {
+                        for (final Node adrNode : adrNodes) {
+                            graph.addEdge(drugNode, adrNode, "ASSOCIATED_WITH");
+                        }
+                    }
+                }
             }
         }
     }

@@ -17,8 +17,9 @@ public class ADReCSUpdater extends Updater<ADReCSDataSource> {
     private static final Pattern UPDATE_DATE_PATTERN = Pattern.compile("[0-9]{4}/[0-9]{2}/[0-9]{2}");
     private static final String DOWNLOAD_URL_PREFIX = "http://bioinf.xmu.edu.cn/ADReCS/download/";
     static final String DRUG_ADR_FILE_NAME = "Drug_ADR.txt.gz";
-    static final String ADR_ONTOLOGY_FILE_NAME = "ADR_ontology.xlsx.gz";
-    static final String DRUG_INFO_FILE_NAME = "Drug_information.xlsx.gz";
+    static final String DRUG_ADR_QUANTIFICATION_FILE_NAME = "ADReCS_Drug_ADR_relations_quantification.txt.gz";
+    static final String ADR_ONTOLOGY_FILE_NAME = "ADR_ontology.xlsx";
+    static final String DRUG_INFO_FILE_NAME = "Drug_information.xlsx";
 
     public ADReCSUpdater(final ADReCSDataSource dataSource) {
         super(dataSource);
@@ -44,6 +45,7 @@ public class ADReCSUpdater extends Updater<ADReCSDataSource> {
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         tryDownloadFile(workspace, DRUG_ADR_FILE_NAME);
+        tryDownloadFile(workspace, DRUG_ADR_QUANTIFICATION_FILE_NAME);
         tryDownloadFile(workspace, ADR_ONTOLOGY_FILE_NAME);
         tryDownloadFile(workspace, DRUG_INFO_FILE_NAME);
         return true;
@@ -60,6 +62,8 @@ public class ADReCSUpdater extends Updater<ADReCSDataSource> {
 
     @Override
     protected String[] expectedFileNames() {
-        return new String[]{DRUG_ADR_FILE_NAME, ADR_ONTOLOGY_FILE_NAME, DRUG_INFO_FILE_NAME};
+        return new String[]{
+                DRUG_ADR_FILE_NAME, DRUG_ADR_QUANTIFICATION_FILE_NAME, ADR_ONTOLOGY_FILE_NAME, DRUG_INFO_FILE_NAME
+        };
     }
 }
