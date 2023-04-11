@@ -7,7 +7,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @JsonPropertyOrder({
         "UNII", "PT", "RN", "EC", "NCIT", "RXCUI", "PUBCHEM", "ITIS", "NCBI", "PLANTS", "GRIN", "MPNS", "INN_ID",
-        "USAN_ID", "MF", "INCHIKEY", "SMILES", "INGREDIENT_TYPE", "UUID", "SUBSTANCE_TYPE", "DAILYMED"
+        "USAN_ID", "MF", "INCHIKEY", "SMILES", "INGREDIENT_TYPE", "SUBSTANCE_TYPE", "UUID", "DAILYMED"
 })
 @GraphNodeLabel("UNII")
 public class UNIIDataEntry {

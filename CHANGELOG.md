@@ -8,6 +8,7 @@ Released: upcoming
 
 * ```[PharmGKB]``` #8 Fix PharmGKB data model and exporter
 * ```[HPO]``` #24 Fix HPO data model and exporter
+* ```[UNII]``` #29 Fix UNII data model and exporter
 * ```[USDA-PLANTS]``` #35 Fix USDA-PLANTS update url
 * ```[TTD]``` #69 Fix TTD array properties and placeholder
 * ```[GenCC]``` #70 Add GenCC gene and disease mapping

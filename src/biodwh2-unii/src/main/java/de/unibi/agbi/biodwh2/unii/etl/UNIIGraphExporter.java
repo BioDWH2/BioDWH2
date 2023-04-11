@@ -9,6 +9,7 @@ import de.unibi.agbi.biodwh2.unii.UNIIDataSource;
 import de.unibi.agbi.biodwh2.unii.model.UNIIDataEntry;
 import de.unibi.agbi.biodwh2.unii.model.UNIIEntry;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.*;
 
@@ -129,7 +130,13 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
         return node;
     }
 
-    private Integer parseNCBIId(final String ncbi) {
-        return Integer.parseInt(ncbi.replace("NCBI:", "").replace("txid", ""));
+    private Integer parseNCBIId(String ncbi) {
+        ncbi = ncbi.replace("NCBI:", "").replace("txid", "");
+        if (ncbi.contains(" ")) {
+            ncbi = StringUtils.split(ncbi, " ", 2)[0];
+        }
+        if (NumberUtils.isCreatable(ncbi))
+            return Integer.parseInt(ncbi);
+        return null;
     }
 }
