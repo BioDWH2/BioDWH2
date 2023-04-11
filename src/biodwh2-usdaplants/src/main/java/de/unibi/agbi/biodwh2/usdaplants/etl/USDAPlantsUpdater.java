@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.net.URL;
 
 public class USDAPlantsUpdater extends Updater<USDAPlantsDataSource> {
-    private static final String DOWNLOAD_URL = "https://plants.sc.egov.usda.gov/assets/docs/CompletePLANTSList/plantlst.txt";
+    private static final String DOWNLOAD_URL = "https://plants.usda.gov/assets/docs/CompletePLANTSList/plantlst.txt";
     static final String PLANT_LIST_FILE_NAME = "plantlst.txt";
 
     public USDAPlantsUpdater(final USDAPlantsDataSource dataSource) {
