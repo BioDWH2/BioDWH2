@@ -57,7 +57,7 @@ public class BrendaUpdater extends Updater<BrendaDataSource> {
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
-        return false;
+        return true;
     }
 
     public static InputStream getUrlInputStream() throws IOException {
