@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.json.NDJsonObjectMapper;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
@@ -13,8 +14,7 @@ import de.unibi.agbi.biodwh2.opentargets.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -42,9 +42,9 @@ public class OpenTargetsGraphExporter extends GraphExporter<OpenTargetsDataSourc
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode(MOLECULE_LABEL, "id", IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, "id", IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(REFERENCE_LABEL, "id", IndexDescription.Type.NON_UNIQUE));
+        graph.addIndex(IndexDescription.forNode(MOLECULE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(REFERENCE_LABEL, ID_KEY, IndexDescription.Type.NON_UNIQUE));
         exportMolecules(workspace, graph);
         exportDiseases(workspace, graph);
         exportMechanismsOfAction(workspace, graph);
@@ -61,12 +61,11 @@ public class OpenTargetsGraphExporter extends GraphExporter<OpenTargetsDataSourc
     }
 
     private <T> Iterable<T> openJsonFile(final Workspace workspace, final String fileName, final Class<T> type) {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
         final NDJsonObjectMapper mapper = new NDJsonObjectMapper();
         try {
-            final Iterator<T> iterator = mapper.readValues(new FileInputStream(filePath), type);
+            final Iterator<T> iterator = mapper.readValues(FileUtils.openGzip(workspace, dataSource, fileName), type);
             return () -> iterator;
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
     }
@@ -76,9 +75,9 @@ public class OpenTargetsGraphExporter extends GraphExporter<OpenTargetsDataSourc
         for (final Disease disease : openJsonFile(workspace, OpenTargetsUpdater.DISEASES_FILE_NAME, Disease.class))
             graph.addNodeFromModel(disease);
         for (final Disease disease : openJsonFile(workspace, OpenTargetsUpdater.DISEASES_FILE_NAME, Disease.class)) {
-            final Node node = graph.findNode(DISEASE_LABEL, "id", disease.id);
+            final Node node = graph.findNode(DISEASE_LABEL, ID_KEY, disease.id);
             for (final String childId : disease.children) {
-                final Node child = graph.findNode(DISEASE_LABEL, "id", childId);
+                final Node child = graph.findNode(DISEASE_LABEL, ID_KEY, childId);
                 graph.addEdge(child, node, "CHILD_OF");
             }
         }
@@ -91,7 +90,7 @@ public class OpenTargetsGraphExporter extends GraphExporter<OpenTargetsDataSourc
             final Node node = graph.addNode(MECHANISM_OF_ACTION_LABEL, "action_type", mechanism.actionType,
                                             "mechanism_of_action", mechanism.mechanismOfAction);
             for (final String chemblId : mechanism.chemblIds) {
-                final Node moleculeNode = graph.findNode(MOLECULE_LABEL, "id", chemblId);
+                final Node moleculeNode = graph.findNode(MOLECULE_LABEL, ID_KEY, chemblId);
                 graph.addEdge(moleculeNode, node, "HAS_MECHANISM_OF_ACTION");
             }
             // TODO: targets
@@ -119,14 +118,14 @@ public class OpenTargetsGraphExporter extends GraphExporter<OpenTargetsDataSourc
     private Node getOrCreateReference(final Graph graph, final String source, final String id, final String url) {
         Node node = null;
         if (id != null)
-            node = graph.findNode(REFERENCE_LABEL, "id", id, "source", source);
+            node = graph.findNode(REFERENCE_LABEL, ID_KEY, id, "source", source);
         else if (url != null)
             node = graph.findNode(REFERENCE_LABEL, "url", url, "source", source);
         if (node == null) {
             if (id != null && url != null)
-                node = graph.addNode(REFERENCE_LABEL, "id", id, "source", source, "url", url);
+                node = graph.addNode(REFERENCE_LABEL, ID_KEY, id, "source", source, "url", url);
             else if (id != null)
-                node = graph.addNode(REFERENCE_LABEL, "id", id, "source", source);
+                node = graph.addNode(REFERENCE_LABEL, ID_KEY, id, "source", source);
             else if (url != null)
                 node = graph.addNode(REFERENCE_LABEL, "url", url, "source", source);
         }
@@ -146,10 +145,10 @@ public class OpenTargetsGraphExporter extends GraphExporter<OpenTargetsDataSourc
     private void exportIndications(final Workspace workspace, final Graph graph) {
         for (final Indication indication : openJsonFile(workspace, OpenTargetsUpdater.INDICATION_FILE_NAME,
                                                         Indication.class)) {
-            final Node moleculeNode = graph.findNode(MOLECULE_LABEL, "id", indication.id);
+            final Node moleculeNode = graph.findNode(MOLECULE_LABEL, ID_KEY, indication.id);
             final List<String> approvedIndications = Arrays.asList(indication.approvedIndications);
             for (final Indication.Entry entry : indication.indications) {
-                final Node diseaseNode = graph.findNode(DISEASE_LABEL, "id", entry.disease);
+                final Node diseaseNode = graph.findNode(DISEASE_LABEL, ID_KEY, entry.disease);
                 final Node indicationNode = graph.addNode(INDICATION_LABEL, "approved",
                                                           approvedIndications.contains(entry.disease), "efo_name",
                                                           entry.efoName, "max_phase", entry.maxPhaseForIndication);
@@ -167,9 +166,9 @@ public class OpenTargetsGraphExporter extends GraphExporter<OpenTargetsDataSourc
         for (final Reactome reactome : openJsonFile(workspace, OpenTargetsUpdater.REACTOME_FILE_NAME, Reactome.class))
             graph.addNodeFromModel(reactome);
         for (final Reactome reactome : openJsonFile(workspace, OpenTargetsUpdater.REACTOME_FILE_NAME, Reactome.class)) {
-            final Node node = graph.findNode(PATHWAY_LABEL, "id", reactome.id);
+            final Node node = graph.findNode(PATHWAY_LABEL, ID_KEY, reactome.id);
             for (final String parentId : reactome.parents)
-                graph.addEdge(node, graph.findNode(PATHWAY_LABEL, "id", parentId), "CHILD_OF");
+                graph.addEdge(node, graph.findNode(PATHWAY_LABEL, ID_KEY, parentId), "CHILD_OF");
         }
         // TODO: path?
     }

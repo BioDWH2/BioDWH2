@@ -6,7 +6,8 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class HTTPFTPClientTest {
     @Test
@@ -19,7 +20,7 @@ class HTTPFTPClientTest {
         assertEquals("77_diff_2018.02.05.17AB_bin.zip", entries[0].name);
         assertEquals("2018-02-05 13:00", entries[0].modificationDate);
         assertEquals("59K", entries[0].size);
-
+        assertEquals("https://evs.nci.nih.gov/ftp1/NDF-RT/77_diff_2018.02.05.17AB_bin.zip", entries[0].fullUrl);
     }
 
     private String getSourceFromResources(final String fileName) throws IOException {

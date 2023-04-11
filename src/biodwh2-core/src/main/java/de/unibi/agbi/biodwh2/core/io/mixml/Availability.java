@@ -4,7 +4,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 
 /**
- * A text describing the availability of data, e.g. a copyright statement.
+ * Describes data availability, e.g. through a copyright statement. If no availability is given, the data is assumed to
+ * be freely available.
  * <pre>
  * &lt;complexType name="availability">
  *   &lt;simpleContent>

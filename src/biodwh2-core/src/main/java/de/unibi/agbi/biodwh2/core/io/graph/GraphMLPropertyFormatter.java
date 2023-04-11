@@ -162,13 +162,11 @@ public final class GraphMLPropertyFormatter {
         if (componentType.equals(CharSequence.class))
             return format((CharSequence[]) array);
         // If type erasure removed CharSequence or Character as the component type, check the elements directly
-        if (array.length > 0) {
-            for (final Object o : array) {
-                if (o instanceof CharSequence)
-                    return format(convertToStringArray(array));
-                if (o instanceof Character)
-                    return format(convertToCharArray(array));
-            }
+        for (final Object o : array) {
+            if (o instanceof CharSequence)
+                return format(convertToStringArray(array));
+            if (o instanceof Character)
+                return format(convertToCharArray(array));
         }
         final StringBuilder builder = new StringBuilder(ARRAY_START);
         if (array.length > 0)

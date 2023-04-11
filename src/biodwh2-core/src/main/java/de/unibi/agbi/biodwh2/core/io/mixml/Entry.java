@@ -6,6 +6,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.List;
 
 /**
+ * Describes one or more interactions as a self-contained unit. Multiple entries from different files can be
+ * concatenated into a single entrySet.
  * <pre>
  * &lt;complexType name="entry">
  *   &lt;complexContent>

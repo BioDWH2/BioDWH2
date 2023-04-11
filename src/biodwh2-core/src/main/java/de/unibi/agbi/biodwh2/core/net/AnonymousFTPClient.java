@@ -77,4 +77,8 @@ public final class AnonymousFTPClient {
             return client.retrieveFile(url, outputStream);
         }
     }
+
+    public boolean retrieveFile(final String url, final OutputStream outputStream) throws IOException {
+        return client.retrieveFile(url, outputStream);
+    }
 }

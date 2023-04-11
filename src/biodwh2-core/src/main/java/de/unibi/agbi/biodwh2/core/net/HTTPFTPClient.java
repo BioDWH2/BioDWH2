@@ -71,7 +71,7 @@ public final class HTTPFTPClient {
                 entry.name = columns.get(1).text().trim();
                 entry.modificationDate = columns.get(2).text().trim();
                 entry.size = columns.get(3).text().trim();
-                entry.fullUrl = (url + "/" + path + "/" + entry.name).replace("//", "/");
+                entry.fullUrl = StringUtils.stripEnd(url, "/") + ("/" + path + "/" + entry.name).replace("//", "/");
                 result.add(entry);
             }
         }

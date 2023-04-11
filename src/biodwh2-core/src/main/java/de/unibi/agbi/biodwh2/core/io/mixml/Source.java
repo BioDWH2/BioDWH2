@@ -3,12 +3,10 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.List;
 
 /**
- * Desciption of the source of the entry, usually an organisation
+ * Description of the source of the entry, usually an organisation
  * <pre>
  * &lt;complexType name="source">
  *   &lt;complexContent>
