@@ -6,6 +6,7 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
+import de.unibi.agbi.biodwh2.core.text.License;
 import de.unibi.agbi.biodwh2.hgnc.etl.HGNCGraphExporter;
 import de.unibi.agbi.biodwh2.hgnc.etl.HGNCMappingDescriber;
 import de.unibi.agbi.biodwh2.hgnc.etl.HGNCParser;
@@ -24,7 +25,12 @@ public class HGNCDataSource extends DataSource {
 
     @Override
     public String getLicense() {
-        return "Free with attribution";
+        return License.CC0_1_0.getName();
+    }
+
+    @Override
+    public String getLicenseUrl() {
+        return "https://www.genenames.org/about/license/";
     }
 
     @Override

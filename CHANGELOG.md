@@ -6,6 +6,7 @@ Released: upcoming
 
 ### 📚 Data Sources
 
+* ```[PharmGKB]``` #8 Fix PharmGKB data model and exporter
 * ```[HPO]``` #24 Fix HPO data model and exporter
 * ```[TTD]``` #69 Fix TTD array properties and placeholder
 * ```[GenCC]``` #70 Add GenCC gene and disease mapping

@@ -21,7 +21,7 @@ import java.util.List;
 public class PharmGKBDataSource extends DataSource {
     public List<Gene> genes;
     public List<Chemical> chemicals;
-    public List<Phenotype> phenotyps;
+    public List<Phenotype> phenotypes;
     public List<Variant> variants;
     public List<AutomatedAnnotation> automatedAnnotations;
     public List<ClinicalAnnotation> clinicalAnnotations;
@@ -88,7 +88,7 @@ public class PharmGKBDataSource extends DataSource {
     protected void unloadData() {
         genes = null;
         chemicals = null;
-        phenotyps = null;
+        phenotypes = null;
         variants = null;
         automatedAnnotations = null;
         clinicalAnnotations = null;

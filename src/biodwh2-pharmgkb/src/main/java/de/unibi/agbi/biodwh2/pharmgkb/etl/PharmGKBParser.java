@@ -64,7 +64,7 @@ public class PharmGKBParser extends Parser<PharmGKBDataSource> {
             else if (zipEntryName.equals("genes.tsv"))
                 dataSource.genes = parseTSV(stream, Gene.class);
             else if (zipEntryName.equals("phenotypes.tsv"))
-                dataSource.phenotyps = parseTSV(stream, Phenotype.class);
+                dataSource.phenotypes = parseTSV(stream, Phenotype.class);
             else if (zipEntryName.equals("variants.tsv"))
                 dataSource.variants = parseTSV(stream, Variant.class);
             else if (zipEntryName.equals("clinical_annotations.tsv"))

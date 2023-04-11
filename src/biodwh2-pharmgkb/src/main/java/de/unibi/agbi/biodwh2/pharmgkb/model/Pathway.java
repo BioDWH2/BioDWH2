@@ -2,8 +2,8 @@ package de.unibi.agbi.biodwh2.pharmgkb.model;
 
 import com.univocity.parsers.annotations.Parsed;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @GraphNodeLabel("PathwayReaction")
 public class Pathway {
@@ -37,4 +37,7 @@ public class Pathway {
     @Parsed(field = "Diseases")
     @GraphProperty("diseases")
     public String diseases;
+    @Parsed(field = "Summary")
+    @GraphProperty("summary")
+    public String summary;
 }

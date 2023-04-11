@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     private static final Logger LOGGER = LogManager.getLogger(PharmGKBGraphExporter.class);
-    public static final String QUOTED_ARRAY_DELIMITER = "\",\"";
+    public static final String QUOTED_ARRAY_DELIMITER = "\", \"";
     private static final String ESCAPED_DOUBLE_QUOTES = "\"";
     private static final String ID_PROPERTY = "id";
     private static final String NAME_PROPERTY = "name";
@@ -48,7 +48,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 4;
     }
 
     @Override
@@ -76,7 +76,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
         addGuidelineAnnotations(graph, dataSource.guidelineAnnotations);
         addGenes(graph, dataSource.genes);
         addChemicals(graph, dataSource.chemicals);
-        addPhenotypes(graph, dataSource.phenotyps);
+        addPhenotypes(graph, dataSource.phenotypes);
         final Map<String, List<Occurrence>> pathwayOccurrences = collectPathwayOccurrences(dataSource.occurrences);
         addPathways(graph, dataSource.pathways, pathwayOccurrences);
         addVariants(graph, dataSource.variants);
@@ -597,14 +597,25 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             final Node node = graph.addNodeFromModel(annotation);
             variantAnnotationIdNodeIdMap.put(annotation.annotationId, node.getId());
             if (annotation.gene != null) {
-                for (final String gene : parseQuotedStringArray(annotation.gene)) {
+                for (final String gene : parseCommaSpaceStringArray(annotation.gene)) {
                     final Node geneNode = graph.findNode(GENE_LABEL, "symbol", gene);
                     graph.addEdge(node, geneNode, ASSOCIATED_WITH_LABEL);
                 }
             }
             if (annotation.drugs != null) {
-                for (final String drug : parseQuotedStringArray(annotation.drugs)) {
-                    final Node drugNode = graph.findNode(CHEMICAL_LABEL, NAME_PROPERTY, drug);
+                final String[] drugs = annotation.drugs.startsWith("\"") ? parseQuotedStringArray(annotation.drugs) :
+                                       parseCommaSpaceStringArray(annotation.drugs);
+                for (final String drug : drugs) {
+                    Node drugNode = graph.findNode(CHEMICAL_LABEL, NAME_PROPERTY, drug);
+                    if (drugNode == null) {
+                        drugNode = graph.findNode(CHEMICAL_LABEL, NAME_PROPERTY, annotation.drugs);
+                        if (drugNode == null) {
+                            LOGGER.warn(
+                                    "Failed to link variant annotation " + annotation.annotationId + " with drugs '" +
+                                    annotation.drugs + "'");
+                            break;
+                        }
+                    }
                     graph.addEdge(node, drugNode, ASSOCIATED_WITH_LABEL);
                 }
             }
