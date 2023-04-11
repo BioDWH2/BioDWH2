@@ -34,7 +34,7 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
 
     @Override
     public long getExportVersion() {
-        return 3;
+        return 4;
     }
 
     @Override
@@ -51,22 +51,23 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
     }
 
     private boolean exportAnnotations(final Workspace workspace, final Graph graph) throws ExporterException {
-        try {
-            for (final PhenotypeAnnotation entry : loadPhenotypeAnnotationsFile(workspace))
-                exportPhenotypeAnnotation(graph, entry);
-            for (final PhenotypeToGenesEntry entry : loadPhenotypeToGenesFile(workspace))
-                exportPhenotypeGeneAssociation(graph, entry);
+        try (final MappingIterator<PhenotypeAnnotation> entries = FileUtils.openTsvWithHeader(workspace, dataSource,
+                                                                                              HPOUpdater.ANNOTATIONS_FILE_NAME,
+                                                                                              PhenotypeAnnotation.class)) {
+            while (entries.hasNext())
+                exportPhenotypeAnnotation(graph, entries.next());
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to export HPO annotations", e);
+        }
+        try (final MappingIterator<PhenotypeToGenesEntry> entries = FileUtils.openTsvWithHeader(workspace, dataSource,
+                                                                                                HPOUpdater.PHENOTYPE_TO_GENES_FILE_NAME,
+                                                                                                PhenotypeToGenesEntry.class)) {
+            while (entries.hasNext())
+                exportPhenotypeGeneAssociation(graph, entries.next());
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export HPO annotations", e);
         }
         return true;
-    }
-
-    private Iterable<PhenotypeAnnotation> loadPhenotypeAnnotationsFile(final Workspace workspace) throws IOException {
-        final MappingIterator<PhenotypeAnnotation> entries = FileUtils.openTsv(workspace, dataSource,
-                                                                               HPOUpdater.ANNOTATIONS_FILE_NAME,
-                                                                               PhenotypeAnnotation.class);
-        return () -> entries;
     }
 
     private void exportPhenotypeAnnotation(final Graph graph, final PhenotypeAnnotation entry) {
@@ -111,30 +112,14 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
         return node;
     }
 
-    private Iterable<PhenotypeToGenesEntry> loadPhenotypeToGenesFile(final Workspace workspace) throws IOException {
-        final MappingIterator<PhenotypeToGenesEntry> entries;
-        entries = FileUtils.openTsvWithHeader(workspace, dataSource, HPOUpdater.PHENOTYPE_TO_GENES_FILE_NAME,
-                                              PhenotypeToGenesEntry.class);
-        return () -> entries;
-    }
-
     private void exportPhenotypeGeneAssociation(final Graph graph, final PhenotypeToGenesEntry entry) {
         final Node termNode = graph.findNode(TERM_LABEL, ID_KEY, entry.hpoId);
         // If referencing an obsolete term excluded via config file, just skip this annotation
         if (termNode == null)
             return;
-        final Node geneNode = getOrCreateGeneNode(graph, entry.entrezGeneId, entry.entrezGeneSymbol);
+        final Node geneNode = getOrCreateGeneNode(graph, entry.ncbiGeneId, entry.geneSymbol);
         final EdgeBuilder builder = graph.buildEdge().fromNode(geneNode).toNode(termNode).withLabel("ASSOCIATED_WITH");
-        builder.withPropertyIfNotNull("source", entry.gdSource);
-        builder.withPropertyIfNotNull("source_disease_id", entry.diseaseIdForLink);
-        if (isAdditionalInfoFromGDSourceNotEmpty(entry))
-            builder.withProperty("additional_source_info", entry.additionalInfoFromGDSource);
         builder.build();
-    }
-
-    private boolean isAdditionalInfoFromGDSourceNotEmpty(final PhenotypeToGenesEntry entry) {
-        return StringUtils.isNotEmpty(entry.additionalInfoFromGDSource) && !"-".equals(
-                entry.additionalInfoFromGDSource);
     }
 
     private Node getOrCreateGeneNode(final Graph graph, final Integer id, final String symbol) {

@@ -4,32 +4,32 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({
-        "DatabaseID", "DiseaseName", "Qualifier", "HPO_ID", "Reference", "Evidence", "Onset", "Frequency", "Sex",
-        "Modifier", "Aspect", "Biocuration"
+        "database_id", "disease_name", "qualifier", "hpo_id", "reference", "evidence", "onset", "frequency", "sex",
+        "modifier", "aspect", "biocuration"
 })
 public final class PhenotypeAnnotation {
-    @JsonProperty("DatabaseID")
+    @JsonProperty("database_id")
     public String databaseId;
-    @JsonProperty("DiseaseName")
+    @JsonProperty("disease_name")
     public String diseaseName;
-    @JsonProperty("Qualifier")
+    @JsonProperty("qualifier")
     public String qualifier;
-    @JsonProperty("HPO_ID")
+    @JsonProperty("hpo_id")
     public String hpoId;
-    @JsonProperty("Reference")
+    @JsonProperty("reference")
     public String reference;
-    @JsonProperty("Evidence")
+    @JsonProperty("evidence")
     public EvidenceCode evidence;
-    @JsonProperty("Onset")
+    @JsonProperty("onset")
     public String onset;
-    @JsonProperty("Frequency")
+    @JsonProperty("frequency")
     public String frequency;
-    @JsonProperty("Sex")
+    @JsonProperty("sex")
     public String sex;
-    @JsonProperty("Modifier")
+    @JsonProperty("modifier")
     public String modifier;
-    @JsonProperty("Aspect")
+    @JsonProperty("aspect")
     public String aspect;
-    @JsonProperty("Biocuration")
+    @JsonProperty("biocuration")
     public String biocuration;
 }

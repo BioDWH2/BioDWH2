@@ -6,6 +6,7 @@ Released: upcoming
 
 ### 📚 Data Sources
 
+* ```[HPO]``` #24 Fix HPO data model and exporter
 * ```[TTD]``` #69 Fix TTD array properties and placeholder
 * ```[GenCC]``` #70 Add GenCC gene and disease mapping
 * ```[TarBase]``` #73 Map TarBase genes to RNA where Genbank mRNA ids are available
