@@ -26,7 +26,7 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
 
     @Override
     public long getExportVersion() {
-        return 4;
+        return 4 + super.getExportVersion();
     }
 
     @Override

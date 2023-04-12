@@ -89,12 +89,19 @@ public final class Workspace {
     }
 
     private DataSource[] getUsedDataSources() {
+        final List<String> dataSourceIds = Arrays.asList(configuration.getDataSourceIds());
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Using data sources " + StringUtils.join(configuration.getDataSourceIds(), ", "));
+            LOGGER.info("Using data sources: " + StringUtils.join(dataSourceIds, ", "));
         final DataSource[] result = new DataSourceLoader().getDataSources(configuration.getDataSourceIds());
-        if (result.length != configuration.getNumberOfDataSources())
+        if (result.length < configuration.getNumberOfDataSources()) {
             throw new WorkspaceException("Failed to load all data sources. Please ensure the configured data source " +
                                          "IDs are valid and all data source modules are available in the classpath.");
+        }
+        final String[] addedDependencyIds = Arrays.stream(result).map(DataSource::getId).filter(
+                id -> !dataSourceIds.contains(id)).toArray(String[]::new);
+        if (addedDependencyIds.length > 0 && LOGGER.isInfoEnabled()) {
+            LOGGER.info("Using dependencies from data sources: " + StringUtils.join(addedDependencyIds, ", "));
+        }
         return result;
     }
 

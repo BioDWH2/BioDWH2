@@ -34,7 +34,7 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
 
     @Override
     public long getExportVersion() {
-        return 4;
+        return 4 + super.getExportVersion();
     }
 
     @Override

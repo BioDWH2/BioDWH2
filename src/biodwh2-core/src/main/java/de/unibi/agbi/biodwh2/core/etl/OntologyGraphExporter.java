@@ -32,6 +32,11 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
     }
 
     @Override
+    public long getExportVersion() {
+        return 1;
+    }
+
+    @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         final boolean ignoreObsolete = ignoreObsolete(workspace);
         try {
@@ -73,7 +78,6 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
         exportHeaderSubsetDefinitions(graph, header, node);
         exportHeaderSynonymTypeDefinitions(graph, header, node);
         exportHeaderIdspaces(graph, header, node);
-
     }
 
     private void exportHeaderSubsetDefinitions(final Graph graph, final OboHeader header, final Node headerNode) {

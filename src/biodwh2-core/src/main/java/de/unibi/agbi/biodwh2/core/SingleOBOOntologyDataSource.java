@@ -73,7 +73,7 @@ public abstract class SingleOBOOntologyDataSource extends OntologyDataSource {
 
         @Override
         public long getExportVersion() {
-            return 1;
+            return 1 + super.getExportVersion();
         }
 
         @Override

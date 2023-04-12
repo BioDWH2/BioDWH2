@@ -51,6 +51,10 @@ public abstract class DataSource {
         return null;
     }
 
+    public String[] getDependencies() {
+        return null;
+    }
+
     public abstract DevelopmentState getDevelopmentState();
 
     protected abstract Updater<? extends DataSource> getUpdater();

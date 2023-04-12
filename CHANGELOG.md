@@ -4,6 +4,10 @@
 
 Released: upcoming
 
+### 🔧 Bug fixes and other changes
+
+* ```[feature]``` Add ability to declare data source dependencies
+* ```[feature]``` Ontology data sources are now processed first
 
 ## 📦 Version [v0.4.9](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.9)
 
