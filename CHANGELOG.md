@@ -4,7 +4,7 @@
 
 Released: upcoming
 
-## 📦 Version [v0.4.10](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.10)
+## 📦 Version [v0.4.11](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.11)
 
 Released: 13.04.2023
 
