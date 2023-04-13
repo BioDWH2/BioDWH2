@@ -45,6 +45,16 @@ class ClassMappingTest {
     }
 
     @Test
+    void setNodePropertiesWithOptionalQuotedArrays() {
+        final ClassMapping mapping = new ClassMapping(TestClass.class);
+        final TestClass instance = new TestClass();
+        instance.quotedArray = "test;abc;efg";
+        final Node node = Node.newNode(mapping.label);
+        mapping.setModelProperties(node, instance);
+        assertArrayEquals(new String[]{"test", "abc", "efg"}, node.getProperty("quoted_array"));
+    }
+
+    @Test
     void setNodePropertiesIgnoreNull() {
         final ClassMapping mapping = new ClassMapping(TestClass.class);
         final TestClass instance = new TestClass();

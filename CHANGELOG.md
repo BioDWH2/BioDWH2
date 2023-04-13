@@ -4,8 +4,13 @@
 
 Released: upcoming
 
+### 📚 Data Sources
+
+* ```[PharmGKB]``` #8 Fix PharmGKB array delimiters and optional array quoting
+
 ### 🔧 Bug fixes and other changes
 
+* ```[fix]``` Class mapping quoted array elements now works with optional quoting
 * ```[feature]``` Add ability to declare data source dependencies
 * ```[feature]``` Ontology data sources are now processed first
 

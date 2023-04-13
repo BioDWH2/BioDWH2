@@ -2,8 +2,8 @@ package de.unibi.agbi.biodwh2.pharmgkb.model;
 
 import com.univocity.parsers.annotations.Parsed;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @SuppressWarnings("unused")
 @GraphNodeLabel("Variant")
@@ -15,10 +15,10 @@ public class Variant {
     @GraphProperty("name")
     public String variantName;
     @Parsed(field = "Gene IDs")
-    @GraphArrayProperty(value = "gene_ids", arrayDelimiter = ",")
+    @GraphArrayProperty(value = "gene_ids", arrayDelimiter = ", ")
     public String geneIds;
     @Parsed(field = "Gene Symbols")
-    @GraphArrayProperty(value = "gene_symbols", arrayDelimiter = ",")
+    @GraphArrayProperty(value = "gene_symbols", arrayDelimiter = ", ")
     public String geneSymbols;
     @Parsed(field = "Location")
     @GraphProperty("location")

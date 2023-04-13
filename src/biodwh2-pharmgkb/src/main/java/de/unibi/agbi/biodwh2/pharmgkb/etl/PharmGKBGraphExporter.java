@@ -48,7 +48,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 4;
+        return 5;
     }
 
     @Override

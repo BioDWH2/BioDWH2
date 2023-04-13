@@ -205,13 +205,15 @@ final class ClassMapping {
             final String valueText = value.toString();
             if (field.emptyPlaceholder.length() > 0 && valueText.equals(field.emptyPlaceholder))
                 return null;
-            final String delimiter = field.quotedArrayElements ? field.quotedArrayDelimiter : field.arrayDelimiter;
-            final String[] elements = StringUtils.splitByWholeSeparator(valueText, delimiter);
-            if (field.quotedArrayElements && elements.length > 0) {
+            if (StringUtils.isEmpty(valueText))
+                return new String[0];
+            if (field.quotedArrayElements && valueText.startsWith("\"")) {
+                final String[] elements = StringUtils.splitByWholeSeparator(valueText, field.quotedArrayDelimiter);
                 elements[0] = StringUtils.stripStart(elements[0], "\"");
                 elements[elements.length - 1] = StringUtils.stripEnd(elements[elements.length - 1], "\"");
+                return elements;
             }
-            return elements;
+            return StringUtils.splitByWholeSeparator(valueText, field.arrayDelimiter);
         }
         return null;
     }

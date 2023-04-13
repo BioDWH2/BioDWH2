@@ -26,7 +26,7 @@ public class Pathway {
     @GraphProperty("cell_type")
     public String cellType;
     @Parsed(field = "PMIDs")
-    @GraphArrayProperty(value = "pmids", arrayDelimiter = ",")
+    @GraphArrayProperty(value = "pmids", arrayDelimiter = ", ")
     public String pmids;
     @Parsed(field = "Genes")
     @GraphProperty("genes")
