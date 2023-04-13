@@ -61,6 +61,7 @@ public final class MetaGraphDynamicVisWriter {
         builder.append("          draggable: true,\n");
         builder.append("          symbol: 'rect',\n");
         builder.append("          symbolSize: [20, 10],\n");
+        builder.append("          emphasis: { focus: 'adjacency', lineStyle: { width: 6 } },");
         builder.append("          label: { show: true, fontWeight: 'bold' },\n");
         builder.append("          itemStyle: { borderColor: '#000000' },\n");
         builder.append("          edgeLabel: { show: true, fontWeight: 'bold', " +

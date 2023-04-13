@@ -13,6 +13,7 @@ Released: upcoming
 * ```[fix]``` Class mapping quoted array elements now works with optional quoting
 * ```[feature]``` Add ability to declare data source dependencies
 * ```[feature]``` Ontology data sources are now processed first
+* ```[feature]``` Add adjacency highlighting on hover to echarts meta graph visualization
 
 ## 📦 Version [v0.4.9](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.9)
 
