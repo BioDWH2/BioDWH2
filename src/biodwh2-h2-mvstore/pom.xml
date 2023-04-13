@@ -10,5 +10,5 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>biodwh2-h2-mvstore</artifactId>
-    <version>1.4.200</version>
+    <version>0.4.10</version> <!-- BioDWH2 version --> <!-- Based on 1.4.200 -->
 </project>

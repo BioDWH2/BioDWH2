@@ -15,10 +15,10 @@ public class Variant {
     @GraphProperty("name")
     public String variantName;
     @Parsed(field = "Gene IDs")
-    @GraphArrayProperty(value = "gene_ids", arrayDelimiter = ", ")
+    @GraphArrayProperty(value = "gene_ids", arrayDelimiter = ",")
     public String geneIds;
     @Parsed(field = "Gene Symbols")
-    @GraphArrayProperty(value = "gene_symbols", arrayDelimiter = ", ")
+    @GraphArrayProperty(value = "gene_symbols", arrayDelimiter = ",")
     public String geneSymbols;
     @Parsed(field = "Location")
     @GraphProperty("location")

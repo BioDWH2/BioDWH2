@@ -18,6 +18,7 @@ Released: 13.04.2023
 * ```[feature]``` Add ability to declare data source dependencies
 * ```[feature]``` Ontology data sources are now processed first
 * ```[feature]``` Add adjacency highlighting on hover to echarts meta graph visualization
+* ```[chore]``` Update dependencies
 
 ## 📦 Version [v0.4.9](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.9)
 

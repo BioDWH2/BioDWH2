@@ -1,4 +1,4 @@
-<Configuration status="warn" name="biodwh2" packages="">
+<Configuration status="warn" name="biodwh2">
     <Appenders>
         <Console name="console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%-5p] %c:%L - %m%n%throwable"/>
