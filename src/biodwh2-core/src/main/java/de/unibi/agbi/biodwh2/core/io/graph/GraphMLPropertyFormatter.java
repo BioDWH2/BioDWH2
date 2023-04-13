@@ -8,8 +8,11 @@ import java.util.Collection;
 import java.util.Locale;
 
 public final class GraphMLPropertyFormatter {
-    private static final String INVALID_XML_CHARS = new String(
-            new char[]{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x1d, 0x12, 0x14, 0x18});
+    private static final String INVALID_XML_CHARS = new String(new char[]{
+            '\u0000', '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007', '\u0008', '\u000b',
+            '\u000c', '\u000e', '\u000f', '\u0010', '\u0011', '\u0012', '\u0013', '\u0014', '\u0015', '\u0016',
+            '\u0017', '\u0018', '\u0019', '\u001a', '\u001b', '\u001c', '\u001d', '\u001e', '\u001f', '\ufffe', '\uffff'
+    });
     private static final String FORMAT = "%s";
     private static final String ARRAY_START = "[";
     private static final String ARRAY_END = "]";
