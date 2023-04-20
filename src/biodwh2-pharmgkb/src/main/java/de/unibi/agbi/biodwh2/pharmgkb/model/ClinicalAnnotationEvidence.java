@@ -1,20 +1,24 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
-import com.univocity.parsers.annotations.Parsed;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+@JsonPropertyOrder({
+        "Clinical Annotation ID", "Evidence ID", "Evidence Type", "Evidence URL", "PMID", "Summary", "Score"
+})
 public class ClinicalAnnotationEvidence {
-    @Parsed(field = "Clinical Annotation ID")
+    @JsonProperty("Clinical Annotation ID")
     public Integer clinicalAnnotationId;
-    @Parsed(field = "Evidence ID")
+    @JsonProperty("Evidence ID")
     public String evidenceId;
-    @Parsed(field = "Evidence Type")
+    @JsonProperty("Evidence Type")
     public String evidenceType;
-    @Parsed(field = "Evidence URL")
+    @JsonProperty("Evidence URL")
     public String evidenceUrl;
-    @Parsed(field = "PMID")
+    @JsonProperty("PMID")
     public String pmid;
-    @Parsed(field = "Summary")
+    @JsonProperty("Summary")
     public String summary;
-    @Parsed(field = "Score")
+    @JsonProperty("Score")
     public String score;
 }

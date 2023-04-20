@@ -1,49 +1,55 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
-import com.univocity.parsers.annotations.Parsed;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @GraphNodeLabel("AutomatedAnnotation")
+@JsonPropertyOrder({
+        "Chemical ID", "Chemical Name", "Chemical in Text", "Variation ID", "Variation Name", "Variation Type",
+        "Variation in Text", "Gene IDs", "Gene Symbols", "Gene in Text", "Literature ID", "PMID", "Literature Title",
+        "Publication Year", "Journal", "Sentence", "Source"
+})
 public class AutomatedAnnotation {
-    @Parsed(field = "Chemical ID")
+    @JsonProperty("Chemical ID")
     public String chemicalId;
-    @Parsed(field = "Chemical Name")
+    @JsonProperty("Chemical Name")
     public String chemicalName;
-    @Parsed(field = "Chemical in Text")
+    @JsonProperty("Chemical in Text")
     @GraphProperty("chemical_in_text")
     public String chemicalInText;
-    @Parsed(field = "Variation ID")
+    @JsonProperty("Variation ID")
     public String variationId;
-    @Parsed(field = "Variation Name")
+    @JsonProperty("Variation Name")
     public String variationName;
-    @Parsed(field = "Variation Type")
+    @JsonProperty("Variation Type")
     public String variationType;
-    @Parsed(field = "Variation in Text")
+    @JsonProperty("Variation in Text")
     @GraphProperty("variation_in_text")
     public String variationInText;
-    @Parsed(field = "Gene IDs")
+    @JsonProperty("Gene IDs")
     public String geneIds;
-    @Parsed(field = "Gene Symbols")
+    @JsonProperty("Gene Symbols")
     public String geneSymbols;
-    @Parsed(field = "Gene in Text")
+    @JsonProperty("Gene in Text")
     @GraphProperty("gene_in_text")
     public String geneInText;
-    @Parsed(field = "Literature ID")
+    @JsonProperty("Literature ID")
     public String literatureId;
-    @Parsed(field = "PMID")
+    @JsonProperty("PMID")
     public String pmid;
-    @Parsed(field = "Literature Title")
+    @JsonProperty("Literature Title")
     public String literatureTitle;
-    @Parsed(field = "Publication Year")
+    @JsonProperty("Publication Year")
     public Integer publicationYear;
-    @Parsed(field = "Journal")
+    @JsonProperty("Journal")
     @GraphProperty("journal")
     public String journal;
-    @Parsed(field = "Sentence")
+    @JsonProperty("Sentence")
     @GraphProperty("sentences")
     public String sentences;
-    @Parsed(field = "Source")
+    @JsonProperty("Source")
     @GraphProperty("source")
     public String source;
 }

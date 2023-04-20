@@ -1,43 +1,48 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
-import com.univocity.parsers.annotations.Parsed;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @GraphNodeLabel("PathwayReaction")
+@JsonPropertyOrder({
+        "From", "To", "Reaction Type", "Controller", "Control Type", "Cell Type", "PMIDs", "Genes", "Drugs", "Diseases",
+        "Summary"
+})
 public class Pathway {
-    @Parsed(field = "From")
+    @JsonProperty("From")
     @GraphProperty("from")
     public String from;
-    @Parsed(field = "To")
+    @JsonProperty("To")
     @GraphProperty("to")
     public String to;
-    @Parsed(field = "Reaction Type")
+    @JsonProperty("Reaction Type")
     @GraphProperty("reaction_type")
     public String reactionType;
-    @Parsed(field = "Controller")
+    @JsonProperty("Controller")
     @GraphProperty("controller")
     public String controller;
-    @Parsed(field = "Control Type")
+    @JsonProperty("Control Type")
     @GraphProperty("control_type")
     public String controlType;
-    @Parsed(field = "Cell Type")
+    @JsonProperty("Cell Type")
     @GraphProperty("cell_type")
     public String cellType;
-    @Parsed(field = "PMIDs")
+    @JsonProperty("PMIDs")
     @GraphArrayProperty(value = "pmids", arrayDelimiter = ", ")
     public String pmids;
-    @Parsed(field = "Genes")
+    @JsonProperty("Genes")
     @GraphProperty("genes")
     public String genes;
-    @Parsed(field = "Drugs")
+    @JsonProperty("Drugs")
     @GraphProperty("drugs")
     public String drugs;
-    @Parsed(field = "Diseases")
+    @JsonProperty("Diseases")
     @GraphProperty("diseases")
     public String diseases;
-    @Parsed(field = "Summary")
+    @JsonProperty("Summary")
     @GraphProperty("summary")
     public String summary;
 }

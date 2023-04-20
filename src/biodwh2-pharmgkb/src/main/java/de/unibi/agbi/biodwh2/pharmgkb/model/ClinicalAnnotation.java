@@ -1,50 +1,56 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
-import com.univocity.parsers.annotations.Parsed;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @GraphNodeLabel("ClinicalAnnotation")
+@JsonPropertyOrder({
+        "Clinical Annotation ID", "Variant/Haplotypes", "Gene", "Level of Evidence", "Level Override",
+        "Level Modifiers", "Score", "Phenotype Category", "PMID Count", "Evidence Count", "Drug(s)", "Phenotype(s)",
+        "Latest History Date (YYYY-MM-DD)", "URL", "Specialty Population"
+})
 public class ClinicalAnnotation {
-    @Parsed(field = "Clinical Annotation ID")
+    @JsonProperty("Clinical Annotation ID")
     @GraphProperty("id")
     public Integer clinicalAnnotationId;
-    @Parsed(field = "Variant/Haplotypes")
+    @JsonProperty("Variant/Haplotypes")
     public String variantHaplotypes;
-    @Parsed(field = "Gene")
+    @JsonProperty("Gene")
     public String gene;
-    @Parsed(field = "Level of Evidence")
+    @JsonProperty("Level of Evidence")
     @GraphProperty("level_of_evidence")
     public String levelOfEvidence;
-    @Parsed(field = "Level Override")
+    @JsonProperty("Level Override")
     @GraphProperty("level_override")
     public String levelOverride;
-    @Parsed(field = "Level Modifiers")
+    @JsonProperty("Level Modifiers")
     @GraphProperty("level_modifiers")
     public String levelModifiers;
-    @Parsed(field = "Score")
+    @JsonProperty("Score")
     @GraphProperty("score")
     public String score;
-    @Parsed(field = "Phenotype Category")
+    @JsonProperty("Phenotype Category")
     @GraphProperty("phenotype_category")
     public String phenotypeCategory;
-    @Parsed(field = "PMID Count")
+    @JsonProperty("PMID Count")
     @GraphProperty("pmid_count")
     public Integer pmidCount;
-    @Parsed(field = "Evidence Count")
+    @JsonProperty("Evidence Count")
     @GraphProperty("evidence_count")
     public Integer evidenceCount;
-    @Parsed(field = "Drug(s)")
+    @JsonProperty("Drug(s)")
     public String drugs;
-    @Parsed(field = "Phenotype(s)")
+    @JsonProperty("Phenotype(s)")
     public String phenotypes;
-    @Parsed(field = "Latest History Date (YYYY-MM-DD)")
+    @JsonProperty("Latest History Date (YYYY-MM-DD)")
     @GraphProperty("latest_history_date")
     public String latestHistoryDate;
-    @Parsed(field = "URL")
+    @JsonProperty("URL")
     @GraphProperty("url")
     public String url;
-    @Parsed(field = "Specialty Population")
+    @JsonProperty("Specialty Population")
     @GraphProperty("specialty_population")
     public String specialtyPopulation;
 }

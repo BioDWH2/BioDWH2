@@ -48,7 +48,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 5;
+        return 6;
     }
 
     @Override
@@ -196,15 +196,57 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     private void addChemicals(final Graph graph, final List<Chemical> chemicals) {
         LOGGER.info("Add Chemicals...");
         for (final Chemical chemical : chemicals) {
-            final Node node = graph.addNodeFromModel(chemical);
+            final String[] externalVocabulary = parseExternalVocabulary(chemical.externalVocabulary);
+            final Node node;
+            if (externalVocabulary != null)
+                node = graph.addNodeFromModel(chemical, "external_vocabulary", externalVocabulary);
+            else
+                node = graph.addNodeFromModel(chemical);
             accessionNodeIdMap.put(chemical.pharmgkbAccessionId, node.getId());
         }
+    }
+
+    private String[] parseExternalVocabulary(String text) {
+        if (text == null || StringUtils.isEmpty(text))
+            return null;
+        List<String> result = new ArrayList<>();
+        int start = 0;
+        boolean quoted = text.charAt(0) == '"';
+        boolean withinQuotes = false;
+        int withinBracesCount = 0;
+        for (int i = 0; i < text.length() - 1; i++) {
+            if (text.charAt(i) == ',' && text.charAt(i + 1) == ' ') {
+                if ((!quoted || !withinQuotes) && withinBracesCount == 0) {
+                    result.add(text.substring(start, i));
+                    start = i + 2;
+                    i++;
+                }
+            } else if (text.charAt(i) == '(') {
+                withinBracesCount++;
+            } else if (text.charAt(i) == ')') {
+                withinBracesCount--;
+            } else if (quoted && text.charAt(i) == '"' && (i == 0 || text.charAt(i - 1) != '\\')) {
+                withinQuotes = !withinQuotes;
+            }
+        }
+        if (start < text.length()) {
+            result.add(text.substring(start));
+        }
+        if (quoted) {
+            result.replaceAll(s -> StringUtils.strip(s, "\""));
+        }
+        return result.toArray(new String[0]);
     }
 
     private void addPhenotypes(final Graph graph, final List<Phenotype> phenotypes) {
         LOGGER.info("Add Phenotypes...");
         for (final Phenotype phenotype : phenotypes) {
-            final Node node = graph.addNodeFromModel(phenotype);
+            final String[] externalVocabulary = parseExternalVocabulary(phenotype.externalVocabulary);
+            final Node node;
+            if (externalVocabulary != null)
+                node = graph.addNodeFromModel(phenotype, "external_vocabulary", externalVocabulary);
+            else
+                node = graph.addNodeFromModel(phenotype);
             accessionNodeIdMap.put(phenotype.pharmgkbAccessionId, node.getId());
         }
     }

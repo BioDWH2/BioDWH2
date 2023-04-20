@@ -1,23 +1,27 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
-import com.univocity.parsers.annotations.Parsed;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @GraphNodeLabel("ClinicalVariant")
+@JsonPropertyOrder({
+        "variant", "gene", "type", "level of evidence", "chemicals", "phenotypes"
+})
 public class ClinicalVariant {
-    @Parsed(field = "variant")
+    @JsonProperty("variant")
     public String variant;
-    @Parsed(field = "gene")
+    @JsonProperty("gene")
     public String gene;
-    @Parsed(field = "type")
+    @JsonProperty("type")
     @GraphProperty("type")
     public String type;
-    @Parsed(field = "level of evidence")
+    @JsonProperty("level of evidence")
     @GraphProperty("level_of_evidence")
     public String levelOfEvidence;
-    @Parsed(field = "chemicals")
+    @JsonProperty("chemicals")
     public String chemicals;
-    @Parsed(field = "phenotypes")
+    @JsonProperty("phenotypes")
     public String phenotypes;
 }

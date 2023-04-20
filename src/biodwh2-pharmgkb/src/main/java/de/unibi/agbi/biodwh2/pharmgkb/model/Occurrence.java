@@ -1,18 +1,22 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
-import com.univocity.parsers.annotations.Parsed;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+@JsonPropertyOrder({
+        "Source Type", "Source ID", "Source Name", "Object Type", "Object ID", "Object Name"
+})
 public class Occurrence {
-    @Parsed(field = "Source Type")
+    @JsonProperty("Source Type")
     public String sourceType;
-    @Parsed(field = "Source ID")
+    @JsonProperty("Source ID")
     public String sourceId;
-    @Parsed(field = "Source Name")
+    @JsonProperty("Source Name")
     public String sourceName;
-    @Parsed(field = "Object Type")
+    @JsonProperty("Object Type")
     public String objectType;
-    @Parsed(field = "Object ID")
+    @JsonProperty("Object ID")
     public String objectId;
-    @Parsed(field = "Object Name")
+    @JsonProperty("Object Name")
     public String objectName;
 }

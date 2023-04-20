@@ -4,6 +4,19 @@
 
 Released: upcoming
 
+## 📦 Version [v0.4.12](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.12)
+
+Released: 20.04.2023
+
+### 📚 Data Sources
+
+* ```[PharmGKB]``` #8 Fix PharmGKB arrays and move most parsing to jackson
+
+### 🔧 Bug fixes and other changes
+
+* ```[chore]``` Update dependencies
+* ```[chore]``` Update docs
+
 ## 📦 Version [v0.4.11](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.11)
 
 Released: 13.04.2023

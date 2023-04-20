@@ -1,59 +1,66 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
-import com.univocity.parsers.annotations.Parsed;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @GraphNodeLabel("StudyParameters")
+@JsonPropertyOrder({
+        "Study Parameters ID", "Variant Annotation ID", "Study Type", "Study Cases", "Study Controls",
+        "Characteristics", "Characteristics Type", "Frequency In Cases", "Allele Of Frequency In Cases",
+        "Frequency In Controls", "Allele Of Frequency In Controls", "P Value", "Ratio Stat Type", "Ratio Stat",
+        "Confidence Interval Start", "Confidence Interval Stop", "Biogeographical Groups"
+})
 public class StudyParameters {
-    @Parsed(field = "Study Parameters ID")
+    @JsonProperty("Study Parameters ID")
     @GraphProperty("id")
     public Integer studyParametersId;
-    @Parsed(field = "Variant Annotation ID")
+    @JsonProperty("Variant Annotation ID")
     public Integer variantAnnotationId;
-    @Parsed(field = "Study Type")
+    @JsonProperty("Study Type")
     @GraphProperty("study_type")
     public String studyType;
-    @Parsed(field = "Study Cases")
+    @JsonProperty("Study Cases")
     @GraphProperty("study_cases")
     public Integer studyCases;
-    @Parsed(field = "Study Controls")
+    @JsonProperty("Study Controls")
     @GraphProperty("study_controls")
     public Integer studyControls;
-    @Parsed(field = "Characteristics")
+    @JsonProperty("Characteristics")
     @GraphProperty("characteristics")
     public String characteristics;
-    @Parsed(field = "Characteristics Type")
+    @JsonProperty("Characteristics Type")
     @GraphProperty("characteristics_type")
     public String characteristicsType;
-    @Parsed(field = "Frequency In Cases")
+    @JsonProperty("Frequency In Cases")
     @GraphProperty("frequency_in_cases")
     public String frequencyInCases;
-    @Parsed(field = "Allele Of Frequency In Cases")
+    @JsonProperty("Allele Of Frequency In Cases")
     @GraphProperty("allele_of_frequency_in_cases")
     public String alleleOfFrequencyInCases;
-    @Parsed(field = "Frequency In Controls")
+    @JsonProperty("Frequency In Controls")
     @GraphProperty("frequency_in_controls")
     public String frequencyInControls;
-    @Parsed(field = "Allele Of Frequency In Controls")
+    @JsonProperty("Allele Of Frequency In Controls")
     @GraphProperty("allele_of_frequency_in_controls")
     public String alleleOfFrequencyInControls;
-    @Parsed(field = "P Value")
+    @JsonProperty("P Value")
     @GraphProperty("p_value")
     public String pValue;
-    @Parsed(field = "Ratio Stat Type")
+    @JsonProperty("Ratio Stat Type")
     @GraphProperty("ratio_stat_type")
     public String ratioStatType;
-    @Parsed(field = "Ratio Stat")
+    @JsonProperty("Ratio Stat")
     @GraphProperty("ratio_stat")
     public String ratioStat;
-    @Parsed(field = "Confidence Interval Start")
+    @JsonProperty("Confidence Interval Start")
     @GraphProperty("confidence_interval_start")
     public String confidenceIntervalStart;
-    @Parsed(field = "Confidence Interval Stop")
+    @JsonProperty("Confidence Interval Stop")
     @GraphProperty("confidence_interval_stop")
     public String confidenceIntervalStop;
-    @Parsed(field = "Biogeographical Groups")
+    @JsonProperty("Biogeographical Groups")
     @GraphProperty("biogeographical_groups")
     public String biogeographicalGroups;
 }

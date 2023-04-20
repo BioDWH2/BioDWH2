@@ -1,14 +1,18 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
-import com.univocity.parsers.annotations.Parsed;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+@JsonPropertyOrder({
+        "Clinical Annotation ID", "Date (YYYY-MM-DD)", "Type", "Comment"
+})
 public class ClinicalAnnotationHistory {
-    @Parsed(field = "Clinical Annotation ID")
+    @JsonProperty("Clinical Annotation ID")
     public Integer clinicalAnnotationId;
-    @Parsed(field = "Date (YYYY-MM-DD)")
+    @JsonProperty("Date (YYYY-MM-DD)")
     public String date;
-    @Parsed(field = "Type")
+    @JsonProperty("Type")
     public String type;
-    @Parsed(field = "Comment")
+    @JsonProperty("Comment")
     public String comment;
 }

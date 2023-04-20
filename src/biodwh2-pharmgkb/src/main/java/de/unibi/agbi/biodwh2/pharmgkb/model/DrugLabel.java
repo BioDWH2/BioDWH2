@@ -1,48 +1,54 @@
 package de.unibi.agbi.biodwh2.pharmgkb.model;
 
-import com.univocity.parsers.annotations.Parsed;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphBooleanProperty;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @GraphNodeLabel("DrugLabel")
+@JsonPropertyOrder({
+        "PharmGKB ID", "Name", "Source", "Biomarker Flag", "Testing Level", "Has Prescribing Info", "Has Dosing Info",
+        "Has Alternate Drug", "Cancer Genome", "Prescribing", "Chemicals", "Genes", "Variants/Haplotypes",
+        "Latest History Date (YYYY-MM-DD)"
+})
 public class DrugLabel {
-    @Parsed(field = "PharmGKB ID")
+    @JsonProperty("PharmGKB ID")
     @GraphProperty("id")
     public String pharmgkbAccessionId;
-    @Parsed(field = "Name")
+    @JsonProperty("Name")
     @GraphProperty("name")
     public String name;
-    @Parsed(field = "Source")
+    @JsonProperty("Source")
     @GraphProperty("source")
     public String source;
-    @Parsed(field = "Biomarker Flag")
+    @JsonProperty("Biomarker Flag")
     @GraphProperty("biomarker_flag")
     public String biomarkerFlag;
-    @Parsed(field = "Testing Level")
+    @JsonProperty("Testing Level")
     @GraphProperty("testing_level")
     public String testingLevel;
-    @Parsed(field = "Has Prescribing Info")
+    @JsonProperty("Has Prescribing Info")
     @GraphBooleanProperty(value = "has_prescribing_info", truthValue = "Prescribing Info")
     public String hasPrescribingInfo;
-    @Parsed(field = "Has Dosing Info")
+    @JsonProperty("Has Dosing Info")
     @GraphBooleanProperty(value = "has_dosing_info", truthValue = "Dosing Info")
     public String hasDosingInfo;
-    @Parsed(field = "Has Alternate Drug")
+    @JsonProperty("Has Alternate Drug")
     @GraphBooleanProperty(value = "has_alternate_drug", truthValue = "Alternate Drug")
     public String hasAlternateDrug;
-    @Parsed(field = "Cancer Genome")
+    @JsonProperty("Cancer Genome")
     @GraphBooleanProperty(value = "cancer_genome", truthValue = "Cancer Genome")
     public String cancerGenome;
-    @Parsed(field = "Prescribing")
+    @JsonProperty("Prescribing")
     @GraphBooleanProperty(value = "prescribing", truthValue = "Prescribing")
     public String prescribing;
-    @Parsed(field = "Chemicals")
+    @JsonProperty("Chemicals")
     public String chemicals;
-    @Parsed(field = "Genes")
+    @JsonProperty("Genes")
     public String genes;
-    @Parsed(field = "Variants/Haplotypes")
+    @JsonProperty("Variants/Haplotypes")
     public String variantsHaplotypes;
-    @Parsed(field = "Latest History Date (YYYY-MM-DD)")
+    @JsonProperty("Latest History Date (YYYY-MM-DD)")
     public String latestHistoryDate;
 }
