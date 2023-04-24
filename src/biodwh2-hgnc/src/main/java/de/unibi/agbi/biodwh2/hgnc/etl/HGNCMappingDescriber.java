@@ -38,7 +38,7 @@ public class HGNCMappingDescriber extends MappingDescriber {
     }
 
     private Integer getHGNCIdFromNode(final Node node) {
-        final String id = node.getProperty(HGNCGraphExporter.HGNC_ID_KEY);
+        final String id = node.getProperty(HGNCGraphExporter.ID_KEY);
         return Integer.parseInt(id.replace("HGNC:", ""));
     }
 

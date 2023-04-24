@@ -29,7 +29,6 @@ public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
     static final String SNO_RNA_LABEL = "snoRNA";
     static final String CODES_FOR_LABEL = "CODES_FOR";
     static final String UNIPROT_ID_KEY = "uniprot_id";
-    static final String HGNC_ID_KEY = "hgnc_id";
 
     public HGNCGraphExporter(final HGNCDataSource dataSource) {
         super(dataSource);
@@ -42,7 +41,7 @@ public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
-        graph.addIndex(IndexDescription.forNode(GENE_LABEL, HGNC_ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(GENE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(GENE_LABEL, "symbol", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(MI_RNA_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, UNIPROT_ID_KEY, IndexDescription.Type.UNIQUE));

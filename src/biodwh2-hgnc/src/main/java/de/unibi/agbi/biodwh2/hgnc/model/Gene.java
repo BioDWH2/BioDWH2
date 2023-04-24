@@ -20,7 +20,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 @GraphNodeLabel("Gene")
 public final class Gene {
     @JsonProperty("hgnc_id")
-    @GraphProperty("hgnc_id")
+    @GraphProperty("id")
     public String hgncId;
     @JsonProperty("symbol")
     @GraphProperty("symbol")
