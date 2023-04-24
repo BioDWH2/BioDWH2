@@ -91,7 +91,6 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private static final String PHARMACODYNAMICS_KEY = "pharmacodynamics";
     private static final String POSITION_KEY = "position";
     private static final String PROTEIN_BINDING_KEY = "protein_binding";
-    private static final String RESOURCE_KEY = "resource";
     private static final String ROUTE_KEY = "route";
     private static final String FORM_KEY = "form";
     private static final String ROUTE_OF_ELIMINATION_KEY = "route_of_elimination";
@@ -105,6 +104,8 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private static final String SUBSTITUENTS_KEY = "substituents";
     private static final String SUPERCLASS_KEY = "superclass";
     private static final String SYNONYMS_KEY = "synonyms";
+    private static final String EXTERNAL_IDENTIFIERS_KEY = "external_identifiers";
+    private static final String EXTERNAL_LINKS_KEY = "external_links";
     private static final String SYNTHESIS_REFERENCE_KEY = "synthesis_reference";
     private static final String THEORETICAL_PI_KEY = "theoretical_pi";
     private static final String TOXICITY_KEY = "toxicity";
@@ -127,8 +128,6 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private static final String HAS_BRAND_LABEL = "HAS_BRAND";
     private static final String HAS_CATEGORY_LABEL = "HAS_CATEGORY";
     private static final String HAS_DOSAGE_LABEL = "HAS_DOSAGE";
-    private static final String HAS_EXTERNAL_IDENTIFIER_LABEL = "HAS_EXTERNAL_IDENTIFIER";
-    private static final String HAS_EXTERNAL_LINK_LABEL = "HAS_EXTERNAL_LINK";
     private static final String HAS_FOOD_INTERACTION_LABEL = "HAS_FOOD_INTERACTION";
     private static final String HAS_GO_CLASSIFIER_LABEL = "HAS_GO_CLASSIFIER";
     private static final String HAS_LINK_LABEL = "HAS_LINK";
@@ -162,8 +161,6 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private static final String CLASSIFICATION_LABEL = "Classification";
     private static final String DRUG_LABEL = "Drug";
     private static final String EXPERIMENTAL_PROPERTY_LABEL = "ExperimentalProperty";
-    private static final String EXTERNAL_IDENTIFIER_LABEL = "ExternalIdentifier";
-    private static final String EXTERNAL_LINK_LABEL = "ExternalLink";
     private static final String FOOD_INTERACTION_LABEL = "FoodInteraction";
     private static final String GO_CLASSIFIER_LABEL = "GOClassifier";
     private static final String MANUFACTURER_LABEL = "Manufacturer";
@@ -179,14 +176,14 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private static final String TARGET_METADATA_LABEL = "TargetMetadata";
     private static final String TRANSPORTER_LABEL = "Transporter";
 
+    private Map<String, Long> goClassifierLookup;
     private Map<String, Long> drugLookUp;
     private Map<String, Long> referenceLookUp;
     private Map<String, Long> foodInteractionLookUp;
     private Map<String, Long> calculatedPropertyLookUp;
     private Map<String, Long> experimentalPropertyLookUp;
-    private Map<String, Long> externalIdentifierLookUp;
     private Map<Integer, Long> mixtureLookUp;
-    private Map<String, Map<String, Long>> dosageLookUp;
+    private Map<String, Long> dosageLookUp;
     private Map<String, List<DrugInteractionTriple>> drugInteractionCache;
     private Map<Long, Set<String>> pathwayEnzymeCache;
     private Map<Long, Set<String>> pathwayDrugCache;
@@ -198,17 +195,17 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 4;
+        return 5;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) {
+        goClassifierLookup = new HashMap<>();
         drugLookUp = new HashMap<>();
         referenceLookUp = new HashMap<>();
         foodInteractionLookUp = new HashMap<>();
         calculatedPropertyLookUp = new HashMap<>();
         experimentalPropertyLookUp = new HashMap<>();
-        externalIdentifierLookUp = new HashMap<>();
         mixtureLookUp = new HashMap<>();
         dosageLookUp = new HashMap<>();
         drugInteractionCache = new HashMap<>();
@@ -358,8 +355,6 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private void exportDrug(final Graph graph, final Drug drug, final boolean skipDrugInteractions) {
         final Node drugNode = createDrugNode(graph, drug, drugLookUp);
         addDrugSalts(graph, drug, drugNode);
-        addDrugExternalIdentifiers(graph, drug, drugNode);
-        addDrugExternalLinks(graph, drug, drugNode);
         createReferenceListNode(graph, drugNode, drug.generalReferences);
         addDrugSynonyms(graph, drug, drugNode);
         addDrugBrands(graph, drug, drugNode);
@@ -408,6 +403,22 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         if (drug.state != null)
             drugBuilder.withPropertyIfNotNull(STATE_KEY, drug.state.value);
         drugBuilder.withPropertyIfNotNull(SYNTHESIS_REFERENCE_KEY, drug.synthesisReference);
+        if (drug.externalIdentifiers != null && drug.externalIdentifiers.size() > 0) {
+            String[] xrefs = new String[drug.externalIdentifiers.size()];
+            for (int i = 0; i < xrefs.length; i++) {
+                final ExternalIdentifier identifier = drug.externalIdentifiers.get(i);
+                xrefs[i] = identifier.resource.value + ':' + identifier.identifier;
+            }
+            drugBuilder.withPropertyIfNotNull(EXTERNAL_IDENTIFIERS_KEY, xrefs);
+        }
+        if (drug.externalLinks != null && drug.externalLinks.size() > 0) {
+            String[] links = new String[drug.externalLinks.size()];
+            for (int i = 0; i < links.length; i++) {
+                final ExternalLink identifier = drug.externalLinks.get(i);
+                links[i] = identifier.resource.value + ':' + identifier.url;
+            }
+            drugBuilder.withPropertyIfNotNull(EXTERNAL_LINKS_KEY, links);
+        }
         final Node drugNode = drugBuilder.build();
         for (final DrugbankDrugSaltId id : drug.drugbankIds)
             drugLookUp.put(id.value, drugNode.getId());
@@ -438,34 +449,6 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         builder.withPropertyIfNotNull(MONOISOTOPIC_MASS_KEY, salt.monoisotopicMass);
         final Node saltNode = builder.build();
         graph.addEdge(drugNode, saltNode, HAS_SALT_LABEL);
-    }
-
-    private void addDrugExternalIdentifiers(final Graph graph, final Drug drug, final Node drugNode) {
-        if (drug.externalIdentifiers != null)
-            for (final ExternalIdentifier identifier : drug.externalIdentifiers) {
-                final Long nodeId = getOrCreateExternalIdentifierNode(graph, identifier.resource.value,
-                                                                      identifier.identifier);
-                graph.addEdge(drugNode, nodeId, HAS_EXTERNAL_IDENTIFIER_LABEL);
-            }
-    }
-
-    private Long getOrCreateExternalIdentifierNode(final Graph graph, final String resource, final String identifier) {
-        final String key = resource + ":" + identifier;
-        Long nodeId = externalIdentifierLookUp.get(key);
-        if (nodeId == null) {
-            nodeId = graph.addNode(EXTERNAL_IDENTIFIER_LABEL, RESOURCE_KEY, resource, ID_KEY, identifier).getId();
-            externalIdentifierLookUp.put(key, nodeId);
-        }
-        return nodeId;
-    }
-
-    private void addDrugExternalLinks(final Graph graph, final Drug drug, final Node drugNode) {
-        if (drug.externalLinks != null)
-            for (final ExternalLink link : drug.externalLinks) {
-                final Node node = graph.addNode(EXTERNAL_LINK_LABEL, URL_KEY, link.url, RESOURCE_KEY,
-                                                link.resource.value);
-                graph.addEdge(drugNode, node, HAS_EXTERNAL_LINK_LABEL);
-            }
     }
 
     private void addDrugSynonyms(final Graph graph, final Drug drug, final Node drugNode) {
@@ -677,14 +660,15 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         builder.withPropertyIfNotNull(GENE_SEQUENCE_KEY, polypeptide.geneSequence.value);
         builder.withPropertyIfNotNull(GENE_SEQUENCE_FORMAT_KEY, polypeptide.geneSequence.format);
         builder.withPropertyIfNotNull(SYNONYMS_KEY, polypeptide.synonyms);
-        final Node polypeptideNode = builder.build();
-        if (polypeptide.externalIdentifiers != null) {
-            for (final PolypeptideExternalIdentifier identifier : polypeptide.externalIdentifiers) {
-                final Long nodeId = getOrCreateExternalIdentifierNode(graph, identifier.resource.value,
-                                                                      identifier.identifier);
-                graph.addEdge(polypeptideNode, nodeId, HAS_EXTERNAL_IDENTIFIER_LABEL);
+        if (polypeptide.externalIdentifiers != null && polypeptide.externalIdentifiers.size() > 0) {
+            String[] xrefs = new String[polypeptide.externalIdentifiers.size()];
+            for (int i = 0; i < xrefs.length; i++) {
+                final PolypeptideExternalIdentifier identifier = polypeptide.externalIdentifiers.get(i);
+                xrefs[i] = identifier.resource.value + ':' + identifier.identifier;
             }
+            builder.withPropertyIfNotNull(EXTERNAL_IDENTIFIERS_KEY, xrefs);
         }
+        final Node polypeptideNode = builder.build();
         if (polypeptide.pfams != null) {
             for (final Pfam pfam : polypeptide.pfams) {
                 Node pfamNode = graph.findNode(PFAM_LABEL, ID_KEY, pfam.identifier);
@@ -695,9 +679,15 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         }
         if (polypeptide.goClassifiers != null) {
             for (final GoClassifier classifier : polypeptide.goClassifiers) {
-                final Node node = graph.addNode(GO_CLASSIFIER_LABEL, CATEGORY_KEY, classifier.category, DESCRIPTION_KEY,
-                                                classifier.description);
-                graph.addEdge(polypeptideNode, node, HAS_GO_CLASSIFIER_LABEL);
+                String key = classifier.category + "|" + classifier.description;
+                Long nodeId = goClassifierLookup.get(key);
+                if (nodeId == null) {
+                    final Node node = graph.addNode(GO_CLASSIFIER_LABEL, CATEGORY_KEY, classifier.category,
+                                                    DESCRIPTION_KEY, classifier.description);
+                    nodeId = node.getId();
+                    goClassifierLookup.put(key, nodeId);
+                }
+                graph.addEdge(polypeptideNode, nodeId, HAS_GO_CLASSIFIER_LABEL);
             }
         }
         if (polypeptide.organism != null) {
@@ -871,14 +861,25 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
 
     private Long getOrCreateDosageNode(final Graph graph, final String form, final String route,
                                        final String strength) {
-        final String formRouteKey = (form != null ? form : "") + "|" + (route != null ? route : "");
-        final Map<String, Long> strengthNodeIdMap = dosageLookUp.computeIfAbsent(formRouteKey, k -> new HashMap<>());
-        final String strengthKey = strength != null ? strength : "";
-        final Long nodeId = strengthNodeIdMap.get(strengthKey);
+        final String key = (form != null ? form : "") + '|' + (route != null ? route : "") + '|' +
+                           (strength != null ? strength : "");
+        Long nodeId = dosageLookUp.get(key);
         if (nodeId != null)
             return nodeId;
-        return graph.buildNode().withLabel(DOSAGE_LABEL).withPropertyIfNotNull(FORM_KEY, form).withPropertyIfNotNull(
-                ROUTE_KEY, route).withPropertyIfNotNull(STRENGTH_KEY, strength).build().getId();
+        if (form != null && route != null && strength != null)
+            nodeId = graph.addNode(DOSAGE_LABEL, FORM_KEY, form, ROUTE_KEY, route, STRENGTH_KEY, strength).getId();
+        else if (form != null && route != null)
+            nodeId = graph.addNode(DOSAGE_LABEL, FORM_KEY, form, ROUTE_KEY, route).getId();
+        else if (form != null && strength != null)
+            nodeId = graph.addNode(DOSAGE_LABEL, FORM_KEY, form, STRENGTH_KEY, strength).getId();
+        else if (route != null && strength != null)
+            nodeId = graph.addNode(DOSAGE_LABEL, ROUTE_KEY, route, STRENGTH_KEY, strength).getId();
+        else
+            nodeId = graph.buildNode().withLabel(DOSAGE_LABEL).withPropertyIfNotNull(FORM_KEY, form)
+                          .withPropertyIfNotNull(ROUTE_KEY, route).withPropertyIfNotNull(STRENGTH_KEY, strength).build()
+                          .getId();
+        dosageLookUp.put(key, nodeId);
+        return nodeId;
     }
 
     private void addOrCacheDrugInteractions(final Graph graph, final Drug drug, final Node drugNode) {
