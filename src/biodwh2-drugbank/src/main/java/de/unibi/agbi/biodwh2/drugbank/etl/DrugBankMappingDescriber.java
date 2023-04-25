@@ -110,7 +110,7 @@ public class DrugBankMappingDescriber extends MappingDescriber {
         description.addIdentifier(IdentifierType.PUBMED_ID, description.pubmedId);
         final String citation = node.getProperty("citation");
         if (citation != null) {
-            final String[] dois = IdentifierUtils.extractDois(citation);
+            final String[] dois = IdentifierUtils.extractDOIs(citation);
             if (dois != null) {
                 if (dois.length == 1) {
                     description.doi = dois[0];
