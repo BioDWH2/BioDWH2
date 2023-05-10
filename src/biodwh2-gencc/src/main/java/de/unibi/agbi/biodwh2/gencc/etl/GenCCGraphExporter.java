@@ -6,13 +6,17 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
+import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.gencc.GenCCDataSource;
 import de.unibi.agbi.biodwh2.gencc.model.Entry;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Objects;
 
 public class GenCCGraphExporter extends GraphExporter<GenCCDataSource> {
     static final String GENE_LABEL = "Gene";
@@ -48,7 +52,34 @@ public class GenCCGraphExporter extends GraphExporter<GenCCDataSource> {
     private void exportEntry(final Graph graph, final Entry entry) {
         final Node gene = getOrCreateGeneNode(graph, entry);
         final Node disease = getOrCreateDiseaseNode(graph, entry);
-        graph.buildEdge().fromNode(gene).toNode(disease).withLabel("ASSOCIATED_WITH").withModel(entry).build();
+        final EdgeBuilder builder = graph.buildEdge().fromNode(gene).toNode(disease).withLabel("ASSOCIATED_WITH");
+        builder.withModel(entry);
+        if (StringUtils.isNotBlank(entry.submittedAsPmids)) {
+            // Cleanup this field if malformed by the submitter
+            String pmidsText = StringUtils.replace(entry.submittedAsPmids.trim(), "\u00A0", " ");
+            pmidsText = StringUtils.replaceChars(pmidsText, "{[]}\"", "");
+            pmidsText = StringUtils.replace(pmidsText, "PMID", "");
+            pmidsText = StringUtils.replace(pmidsText, "PMLID", "");
+            pmidsText = StringUtils.replace(pmidsText, "_", ", ");
+            pmidsText = StringUtils.replace(pmidsText, ";", ", ");
+            if (!pmidsText.equals("0") && !pmidsText.equals("--") && !pmidsText.equalsIgnoreCase("NULL") &&
+                !pmidsText.equalsIgnoreCase("neant")) {
+                final Integer[] pmids = Arrays.stream(StringUtils.split(pmidsText, ", ")).map(this::parsePMIDInteger)
+                                              .filter(Objects::isNull).toArray(Integer[]::new);
+                builder.withProperty("submitted_as_pmids", pmids);
+            }
+        }
+        builder.build();
+    }
+
+    private Integer parsePMIDInteger(final String value) {
+        if (StringUtils.isNotBlank(value)) {
+            try {
+                return Integer.parseInt(value.trim());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return null;
     }
 
     private Node getOrCreateGeneNode(final Graph graph, final Entry entry) {

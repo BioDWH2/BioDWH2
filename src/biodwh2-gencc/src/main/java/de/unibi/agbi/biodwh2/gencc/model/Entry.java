@@ -89,7 +89,6 @@ public class Entry {
     @GraphProperty("submitted_as_notes")
     public String submittedAsNotes;
     @JsonProperty("submitted_as_pmids")
-    @GraphProperty("submitted_as_pmids")
     public String submittedAsPmids;
     @JsonProperty("submitted_as_assertion_criteria_url")
     @GraphProperty("submitted_as_assertion_criteria_url")
