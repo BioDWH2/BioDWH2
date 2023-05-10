@@ -65,7 +65,7 @@ public class GenCCGraphExporter extends GraphExporter<GenCCDataSource> {
             if (!pmidsText.equals("0") && !pmidsText.equals("--") && !pmidsText.equalsIgnoreCase("NULL") &&
                 !pmidsText.equalsIgnoreCase("neant")) {
                 final Integer[] pmids = Arrays.stream(StringUtils.split(pmidsText, ", ")).map(this::parsePMIDInteger)
-                                              .filter(Objects::isNull).toArray(Integer[]::new);
+                                              .filter(Objects::nonNull).toArray(Integer[]::new);
                 builder.withProperty("submitted_as_pmids", pmids);
             }
         }
