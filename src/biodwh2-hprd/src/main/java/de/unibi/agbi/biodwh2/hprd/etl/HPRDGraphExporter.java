@@ -26,6 +26,8 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
     static final String PROTEIN_LABEL = "Protein";
     static final String M_RNA_LABEL = "mRNA";
     static final String GENE_LABEL = "Gene";
+    static final String TRANSCRIBES_TO_LABEL = "TRANSCRIBES_TO";
+    static final String TRANSLATES_TO_LABEL = "TRANSLATES_TO";
     static final String REFSEQ_ID_KEY = "refseq_id";
 
     public HPRDGraphExporter(final HPRDDataSource dataSource) {
@@ -184,9 +186,9 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
                 proteinBuilder.withPropertyIfNotNull("molecular_weight", transcript.proteinMolecularWeight);
                 transcript.proteinNodeId = proteinBuilder.build().getId();
                 // Connect nodes
-                graph.addEdge(gene.nodeId, transcript.transcriptNodeId, "TRANSCRIBES_TO", "orf_start",
+                graph.addEdge(gene.nodeId, transcript.transcriptNodeId, TRANSCRIBES_TO_LABEL, "orf_start",
                               transcript.orfStart, "orf_end", transcript.orfEnd);
-                graph.addEdge(transcript.transcriptNodeId, transcript.proteinNodeId, "TRANSLATES_TO");
+                graph.addEdge(transcript.transcriptNodeId, transcript.proteinNodeId, TRANSLATES_TO_LABEL);
             }
         }
     }

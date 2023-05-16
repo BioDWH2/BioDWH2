@@ -53,11 +53,6 @@ public class HPRDMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
-        return null;
-    }
-
-    @Override
     protected String[] getNodeMappingLabels() {
         return new String[]{
                 HPRDGraphExporter.GENE_LABEL, HPRDGraphExporter.M_RNA_LABEL, HPRDGraphExporter.PROTEIN_LABEL
@@ -65,7 +60,25 @@ public class HPRDMappingDescriber extends MappingDescriber {
     }
 
     @Override
+    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
+        if (edges.length == 1) {
+            if (edges[0].getLabel().endsWith(HPRDGraphExporter.TRANSCRIBES_TO_LABEL))
+                return new PathMappingDescription(PathMappingDescription.EdgeType.TRANSCRIBES_TO);
+            if (edges[0].getLabel().endsWith(HPRDGraphExporter.TRANSLATES_TO_LABEL))
+                return new PathMappingDescription(PathMappingDescription.EdgeType.TRANSLATES_TO);
+        }
+        return null;
+    }
+
+    @Override
     protected PathMapping[] getEdgePathMappings() {
-        return new PathMapping[0];
+        final PathMapping geneRnaPath = new PathMapping().add(HPRDGraphExporter.GENE_LABEL,
+                                                              HPRDGraphExporter.TRANSCRIBES_TO_LABEL,
+                                                              HPRDGraphExporter.M_RNA_LABEL, EdgeDirection.FORWARD);
+        final PathMapping rnaProteinPath = new PathMapping().add(HPRDGraphExporter.M_RNA_LABEL,
+                                                                 HPRDGraphExporter.TRANSLATES_TO_LABEL,
+                                                                 HPRDGraphExporter.PROTEIN_LABEL,
+                                                                 EdgeDirection.FORWARD);
+        return new PathMapping[]{geneRnaPath, rnaProteinPath};
     }
 }
