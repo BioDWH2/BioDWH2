@@ -27,7 +27,8 @@ public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
     static final String R_RNA_LABEL = "rRNA";
     static final String SN_RNA_LABEL = "snRNA";
     static final String SNO_RNA_LABEL = "snoRNA";
-    static final String CODES_FOR_LABEL = "CODES_FOR";
+    static final String TRANSCRIBES_TO_LABEL = "TRANSCRIBES_TO";
+    static final String TRANSLATES_TO_LABEL = "TRANSLATES_TO";
     static final String UNIPROT_ID_KEY = "uniprot_id";
 
     public HGNCGraphExporter(final HGNCDataSource dataSource) {
@@ -60,7 +61,7 @@ public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
             final String[] uniprotIds = StringUtils.split(gene.uniprotIds, '|');
             for (final String uniProtId : uniprotIds) {
                 final Node proteinNode = getOrCreateProteinNode(graph, uniProtId);
-                graph.addEdge(geneNode, proteinNode, CODES_FOR_LABEL);
+                graph.addEdge(geneNode, proteinNode, TRANSLATES_TO_LABEL);
             }
         }
     }
@@ -89,6 +90,6 @@ public class HGNCGraphExporter extends GraphExporter<HGNCDataSource> {
             rnaNode = graph.addNode(SNO_RNA_LABEL);
          */
         if (rnaNode != null)
-            graph.addEdge(geneNode, rnaNode, "TRANSCRIBES_TO");
+            graph.addEdge(geneNode, rnaNode, TRANSCRIBES_TO_LABEL);
     }
 }

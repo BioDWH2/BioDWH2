@@ -65,16 +65,24 @@ public class HGNCMappingDescriber extends MappingDescriber {
 
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
-        if (edges.length == 1 && edges[0].getLabel().endsWith(HGNCGraphExporter.CODES_FOR_LABEL))
-            return new PathMappingDescription(PathMappingDescription.EdgeType.CODES_FOR);
+        if (edges.length == 1) {
+            if (edges[0].getLabel().endsWith(HGNCGraphExporter.TRANSCRIBES_TO_LABEL))
+                return new PathMappingDescription(PathMappingDescription.EdgeType.TRANSCRIBES_TO);
+            if (edges[0].getLabel().endsWith(HGNCGraphExporter.TRANSLATES_TO_LABEL))
+                return new PathMappingDescription(PathMappingDescription.EdgeType.TRANSLATES_TO);
+        }
         return null;
     }
 
     @Override
     protected PathMapping[] getEdgePathMappings() {
-        return new PathMapping[]{
-                new PathMapping().add(HGNCGraphExporter.GENE_LABEL, HGNCGraphExporter.CODES_FOR_LABEL,
-                                      HGNCGraphExporter.PROTEIN_LABEL, EdgeDirection.FORWARD)
-        };
+        final PathMapping geneRnaPath = new PathMapping().add(HGNCGraphExporter.GENE_LABEL,
+                                                              HGNCGraphExporter.TRANSCRIBES_TO_LABEL,
+                                                              HGNCGraphExporter.MI_RNA_LABEL, EdgeDirection.FORWARD);
+        final PathMapping rnaProteinPath = new PathMapping().add(HGNCGraphExporter.GENE_LABEL,
+                                                                 HGNCGraphExporter.TRANSLATES_TO_LABEL,
+                                                                 HGNCGraphExporter.PROTEIN_LABEL,
+                                                                 EdgeDirection.FORWARD);
+        return new PathMapping[]{geneRnaPath, rnaProteinPath};
     }
 }
