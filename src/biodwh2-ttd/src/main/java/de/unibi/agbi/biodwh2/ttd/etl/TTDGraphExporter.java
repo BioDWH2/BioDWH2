@@ -35,6 +35,8 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
     static final String COMPOUND_LABEL = "Compound";
     static final String DISEASE_LABEL = "Disease";
     static final String BIOMARKER_LABEL = "Biomarker";
+    static final String TARGETS_LABEL = "TARGETS";
+    static final String INDICATES_LABEL = "INDICATES";
 
     public TTDGraphExporter(final TTDDataSource dataSource) {
         super(dataSource);
@@ -478,7 +480,7 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                         disease = graph.addNode(DISEASE_LABEL, ID_KEY, diseaseId, "name", splitDiseaseInfo[0], "ICD11",
                                                 StringUtils.splitByWholeSeparator(diseaseId, ", "));
                     }
-                    graph.addEdge(drug, disease, "INDICATES", "clinical_status", clinicalStatus, "disease_name",
+                    graph.addEdge(drug, disease, INDICATES_LABEL, "clinical_status", clinicalStatus, "disease_name",
                                   splitDiseaseInfo[0]);
                 }
             }
@@ -636,7 +638,7 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
             final Map<String, TargetDrugEdge> drugToEdgeModel = entry.getValue();
             for (final String drugId : drugToEdgeModel.keySet()) {
                 final Node drug = graph.findNode(fromLabel, ID_KEY, drugId);
-                graph.buildEdge().withLabel("TARGETS").fromNode(drug).toNode(target).withModel(
+                graph.buildEdge().withLabel(TARGETS_LABEL).fromNode(drug).toNode(target).withModel(
                         drugToEdgeModel.get(drugId)).build();
             }
         }

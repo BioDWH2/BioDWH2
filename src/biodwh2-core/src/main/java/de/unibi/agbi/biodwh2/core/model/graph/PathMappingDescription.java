@@ -10,7 +10,8 @@ public final class PathMappingDescription {
         CONTRAINDICATES,
         INDUCES,
         INTERACTS,
-        CODES_FOR,
+        TRANSCRIBES_TO,
+        TRANSLATES_TO,
         INVESTIGATES
     }
 

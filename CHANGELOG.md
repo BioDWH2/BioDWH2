@@ -4,6 +4,25 @@
 
 Released: upcoming
 
+## 📦 Version [v0.4.13](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.13)
+
+Released: 16.05.2023
+
+### 📚 Data Sources
+
+* ```[DrugBank]``` #9 BREAKING: Change external identifier and links from nodes to properties
+* ```[DrugBank]``` #9 Deduplicate DrugBank dosages
+* ```[HGNC]``` #13 BREAKING: Change HGNC property hgnc_id to id
+* ```[HGNC]``` #13 BREAKING: Change HGNC CODES_FOR edge to TRANSLATES_TO
+* ```[HGNC]``` #13 Add TRANSCRIBES_TO path mapping
+* ```[TTD]``` #69 Add TTD mapping descriptions
+* ```[GenCC]``` #70 Fix GenCC submitted PMIDs formatting issues
+* ```[HPRD]``` #89 Add HPRD path mapping descriptions
+
+### 🔧 Bug fixes and other changes
+
+* ```[fix]``` Improve DOI extraction using regex
+
 ## 📦 Version [v0.4.12](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.12)
 
 Released: 20.04.2023
