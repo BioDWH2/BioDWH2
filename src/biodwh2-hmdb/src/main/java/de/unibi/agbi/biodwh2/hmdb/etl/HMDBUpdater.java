@@ -15,10 +15,11 @@ import java.util.regex.Pattern;
 
 public class HMDBUpdater extends Updater<HMDBDataSource> {
     private static final Pattern VERSION_PATTERN = Pattern.compile("<td>([0-9]{4})-([0-9]{2})-([0-9]{2})</td>");
+    static final String METABOLITES_XML_FILE_NAME = "hmdb_metabolites.zip";
     private static final String[] DOWNLOAD_FILE_PATHS = new String[]{
             "/system/downloads/current/sequences/protein.fasta.zip",
             "/system/downloads/current/sequences/gene.fasta.zip", "/system/downloads/current/structures.zip",
-            "/system/downloads/current/hmdb_metabolites.zip", "/system/downloads/current/hmdb_proteins.zip"
+            "/system/downloads/current/" + METABOLITES_XML_FILE_NAME, "/system/downloads/current/hmdb_proteins.zip"
     };
 
     public HMDBUpdater(final HMDBDataSource dataSource) {
