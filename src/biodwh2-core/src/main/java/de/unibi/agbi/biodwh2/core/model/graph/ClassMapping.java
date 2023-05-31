@@ -13,13 +13,15 @@ final class ClassMapping {
         final String propertyName;
         final boolean ignoreEmpty;
         final String emptyPlaceholder;
+        final ValueTransformation transformation;
 
         ClassMappingField(final Field field, final String propertyName, final boolean ignoreEmpty,
-                          final String emptyPlaceholder) {
+                          final String emptyPlaceholder, final ValueTransformation transformation) {
             this.field = field;
             this.propertyName = propertyName;
             this.ignoreEmpty = ignoreEmpty;
             this.emptyPlaceholder = emptyPlaceholder != null ? emptyPlaceholder : "";
+            this.transformation = transformation;
         }
     }
 
@@ -31,7 +33,7 @@ final class ClassMapping {
 
         ClassMappingArrayField(final Field field, final String propertyName, final String arrayDelimiter,
                                final boolean quotedArrayElements, final String emptyPlaceholder) {
-            super(field, propertyName, false, "");
+            super(field, propertyName, false, "", ValueTransformation.NONE);
             this.arrayDelimiter = arrayDelimiter;
             quotedArrayDelimiter = "\"" + arrayDelimiter + "\"";
             this.quotedArrayElements = quotedArrayElements;
@@ -43,7 +45,7 @@ final class ClassMapping {
         final String truthValue;
 
         ClassMappingBooleanField(final Field field, final String propertyName, final String truthValue) {
-            super(field, propertyName, false, "");
+            super(field, propertyName, false, "", ValueTransformation.NONE);
             this.truthValue = truthValue;
         }
     }
@@ -53,7 +55,7 @@ final class ClassMapping {
 
         ClassMappingNumberField(final Field field, final String propertyName, final boolean ignoreEmpty,
                                 final String emptyPlaceholder, final GraphNumberProperty.Type type) {
-            super(field, propertyName, ignoreEmpty, emptyPlaceholder);
+            super(field, propertyName, ignoreEmpty, emptyPlaceholder, ValueTransformation.NONE);
             this.type = type;
         }
     }
@@ -98,8 +100,8 @@ final class ClassMapping {
     private ClassMappingField loadClassMappingField(final Field field) {
         field.setAccessible(true);
         final GraphProperty annotation = field.getAnnotation(GraphProperty.class);
-        return new ClassMappingField(field, annotation.value(), annotation.ignoreEmpty(),
-                                     annotation.emptyPlaceholder());
+        return new ClassMappingField(field, annotation.value(), annotation.ignoreEmpty(), annotation.emptyPlaceholder(),
+                                     annotation.transformation());
     }
 
     private ClassMappingArrayField[] loadClassMappingArrayFields(final Class<?> type) {
@@ -170,6 +172,7 @@ final class ClassMapping {
             model.setProperty(field.propertyName, value);
     }
 
+    @SuppressWarnings({"SuspiciousToArrayCall"})
     private Object getFieldValue(final Object obj, final ClassMappingField field) throws IllegalAccessException {
         final Object value = field.field.get(obj);
         if (value != null) {
@@ -179,6 +182,32 @@ final class ClassMapping {
                     return null;
                 if (!field.ignoreEmpty || stringValue.length() > 0)
                     return value;
+            } else if (value instanceof Collection) {
+                if (field.transformation == ValueTransformation.COLLECTION_TO_ARRAY) {
+                    final Collection<?> collection = (Collection<?>) value;
+                    for (final Object element : collection) {
+                        if (element instanceof String)
+                            return collection.toArray(new String[0]);
+                        if (element instanceof CharSequence)
+                            return collection.toArray(new CharSequence[0]);
+                        if (element instanceof Character)
+                            return collection.toArray(new Character[0]);
+                        if (element instanceof Byte)
+                            return collection.toArray(new Byte[0]);
+                        if (element instanceof Short)
+                            return collection.toArray(new Short[0]);
+                        if (element instanceof Integer)
+                            return collection.toArray(new Integer[0]);
+                        if (element instanceof Long)
+                            return collection.toArray(new Long[0]);
+                        if (element instanceof Double)
+                            return collection.toArray(new Double[0]);
+                        if (element instanceof Boolean)
+                            return collection.toArray(new Boolean[0]);
+                    }
+                    return collection.toArray(new Object[0]);
+                }
+                return value;
             } else
                 return value;
         }

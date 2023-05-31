@@ -2,6 +2,9 @@ package de.unibi.agbi.biodwh2.core.model.graph;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ClassMappingTest {
@@ -89,6 +92,21 @@ class ClassMappingTest {
         assertTrue(node.hasProperty("null_on_empty_placeholder"));
     }
 
+    @Test
+    void transformListToArray() {
+        final ClassMapping mapping = new ClassMapping(TestClass.class);
+        final TestClass instance = new TestClass();
+        instance.listTransformedToArray = new ArrayList<>();
+        instance.listTransformedToArray.add("1234");
+        instance.listTransformedToArray.add("abcd");
+        instance.listTransformedToArray.add("hello");
+        final Node node = Node.newNode(mapping.label);
+        mapping.setModelProperties(node, instance);
+        assertTrue(node.hasProperty("list_transformed_to_array"));
+        assertEquals(String[].class, node.getProperty("list_transformed_to_array").getClass());
+        assertArrayEquals(new String[]{"1234", "abcd", "hello"}, node.getProperty("list_transformed_to_array"));
+    }
+
     @GraphNodeLabel("A")
     private static class TestClass {
         @GraphProperty("id")
@@ -105,5 +123,7 @@ class ClassMappingTest {
         public String arrayWithCustomDelimiter;
         @GraphArrayProperty(value = "quoted_array", quotedArrayElements = true)
         public String quotedArray;
+        @GraphProperty(value = "list_transformed_to_array", transformation = ValueTransformation.COLLECTION_TO_ARRAY)
+        public List<String> listTransformedToArray;
     }
 }

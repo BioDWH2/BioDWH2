@@ -13,4 +13,6 @@ public @interface GraphProperty {
     boolean ignoreEmpty() default false;
 
     String emptyPlaceholder() default "";
+
+    ValueTransformation transformation() default ValueTransformation.NONE;
 }
