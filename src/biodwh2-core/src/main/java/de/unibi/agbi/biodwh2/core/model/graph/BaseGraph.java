@@ -74,6 +74,8 @@ public abstract class BaseGraph {
 
     public abstract Iterable<Node> findNodes(final Map<String, Comparable<?>> properties);
 
+    public abstract boolean containsEdge(final String label, final Long fromId, final Long toId);
+
     public abstract Iterable<Edge> findEdges(final String label);
 
     public abstract Iterable<Edge> findEdges(final String label, final String propertyKey, final Comparable<?> value);

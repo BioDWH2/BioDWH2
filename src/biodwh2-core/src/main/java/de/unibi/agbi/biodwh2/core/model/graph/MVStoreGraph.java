@@ -304,25 +304,30 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         return result;
     }
 
+    @Override
     public Iterable<Node> findNodes(final String label) {
         return () -> getOrCreateNodeRepository(label).iterator();
     }
 
+    @Override
     public Iterable<Node> findNodes(final String label, final String propertyKey, final Comparable<?> value) {
         return getOrCreateNodeRepository(label).find(propertyKey, value);
     }
 
+    @Override
     public Iterable<Node> findNodes(final String label, final String propertyKey1, final Comparable<?> value1,
                                     final String propertyKey2, final Comparable<?> value2) {
         return getOrCreateNodeRepository(label).find(propertyKey1, value1, propertyKey2, value2);
     }
 
+    @Override
     public Iterable<Node> findNodes(final String label, final String propertyKey1, final Comparable<?> value1,
                                     final String propertyKey2, final Comparable<?> value2, final String propertyKey3,
                                     final Comparable<?> value3) {
         return getOrCreateNodeRepository(label).find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3);
     }
 
+    @Override
     public Iterable<Node> findNodes(final String label, final Map<String, Comparable<?>> properties) {
         if (properties == null || properties.size() == 0)
             return findNodes(label);
@@ -336,6 +341,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         return getOrCreateNodeRepository(label).find(keys, values);
     }
 
+    @Override
     public Iterable<Node> findNodes(final String propertyKey, final Comparable<?> value) {
         return () -> new RepositoriesIterator<Node>(nodeRepositories.values()) {
             @Override
@@ -345,6 +351,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         };
     }
 
+    @Override
     public Iterable<Node> findNodes(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2) {
         return () -> new RepositoriesIterator<Node>(nodeRepositories.values()) {
@@ -355,6 +362,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         };
     }
 
+    @Override
     public Iterable<Node> findNodes(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3) {
         return () -> new RepositoriesIterator<Node>(nodeRepositories.values()) {
@@ -365,6 +373,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         };
     }
 
+    @Override
     public Iterable<Node> findNodes(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3,
                                     final String propertyKey4, final Comparable<?> value4) {
@@ -377,6 +386,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         };
     }
 
+    @Override
     public Iterable<Node> findNodes(final Map<String, Comparable<?>> properties) {
         if (properties == null || properties.size() == 0)
             return getNodes();
@@ -395,25 +405,38 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         };
     }
 
+    @Override
+    public boolean containsEdge(final String label, final Long fromId, final Long toId) {
+        final MVStoreCollection<Edge> edges = edgeRepositories.get(label);
+        if (edges == null)
+            return false;
+        return edges.getIndex(Edge.FROM_ID_FIELD).contains(fromId) && edges.getIndex(Edge.TO_ID_FIELD).contains(toId);
+    }
+
+    @Override
     public Iterable<Edge> findEdges(final String label) {
         return () -> getOrCreateEdgeRepository(label).iterator();
     }
 
+    @Override
     public Iterable<Edge> findEdges(final String label, final String propertyKey, final Comparable<?> value) {
         return getOrCreateEdgeRepository(label).find(propertyKey, value);
     }
 
+    @Override
     public Iterable<Edge> findEdges(final String label, final String propertyKey1, final Comparable<?> value1,
                                     final String propertyKey2, final Comparable<?> value2) {
         return getOrCreateEdgeRepository(label).find(propertyKey1, value1, propertyKey2, value2);
     }
 
+    @Override
     public Iterable<Edge> findEdges(final String label, final String propertyKey1, final Comparable<?> value1,
                                     final String propertyKey2, final Comparable<?> value2, final String propertyKey3,
                                     final Comparable<?> value3) {
         return getOrCreateEdgeRepository(label).find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3);
     }
 
+    @Override
     public Iterable<Edge> findEdges(final String label, final Map<String, Comparable<?>> properties) {
         if (properties.size() == 0)
             return getEdges();
@@ -427,6 +450,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         return getOrCreateEdgeRepository(label).find(keys, values);
     }
 
+    @Override
     public Iterable<Edge> findEdges(final String propertyKey, final Comparable<?> value) {
         return () -> new RepositoriesIterator<Edge>(edgeRepositories.values()) {
             @Override
@@ -436,6 +460,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         };
     }
 
+    @Override
     public Iterable<Edge> findEdges(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2) {
         return () -> new RepositoriesIterator<Edge>(edgeRepositories.values()) {
@@ -446,6 +471,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         };
     }
 
+    @Override
     public Iterable<Edge> findEdges(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3) {
         return () -> new RepositoriesIterator<Edge>(edgeRepositories.values()) {
@@ -456,6 +482,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         };
     }
 
+    @Override
     public Iterable<Edge> findEdges(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3,
                                     final String propertyKey4, final Comparable<?> value4) {
@@ -468,6 +495,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         };
     }
 
+    @Override
     public Iterable<Edge> findEdges(final Map<String, Comparable<?>> properties) {
         if (properties == null || properties.size() == 0)
             return getEdges();

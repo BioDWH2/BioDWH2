@@ -169,6 +169,11 @@ public class GraphView extends BaseGraph {
     }
 
     @Override
+    public boolean containsEdge(String label, Long fromId, Long toId) {
+        return edgeLabels.contains(label) && graph.containsEdge(label, fromId, toId);
+    }
+
+    @Override
     public Iterable<Edge> findEdges(final String label) {
         if (!nodeLabels.contains(label))
             return Collections.emptyList();
