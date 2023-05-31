@@ -7,7 +7,6 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.hmdb.HMDBDataSource;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.regex.Matcher;
@@ -16,10 +15,10 @@ import java.util.regex.Pattern;
 public class HMDBUpdater extends Updater<HMDBDataSource> {
     private static final Pattern VERSION_PATTERN = Pattern.compile("<td>([0-9]{4})-([0-9]{2})-([0-9]{2})</td>");
     static final String METABOLITES_XML_FILE_NAME = "hmdb_metabolites.zip";
-    private static final String[] DOWNLOAD_FILE_PATHS = new String[]{
-            "/system/downloads/current/sequences/protein.fasta.zip",
-            "/system/downloads/current/sequences/gene.fasta.zip", "/system/downloads/current/structures.zip",
-            "/system/downloads/current/" + METABOLITES_XML_FILE_NAME, "/system/downloads/current/hmdb_proteins.zip"
+    static final String PROTEINS_XML_FILE_NAME = "hmdb_proteins.zip";
+    static final String STRUCTURES_SDF_FILE_NAME = "structures.zip";
+    private static final String[] DOWNLOAD_FILE_NAMES = new String[]{
+            STRUCTURES_SDF_FILE_NAME, METABOLITES_XML_FILE_NAME, PROTEINS_XML_FILE_NAME
     };
 
     public HMDBUpdater(final HMDBDataSource dataSource) {
@@ -49,15 +48,18 @@ public class HMDBUpdater extends Updater<HMDBDataSource> {
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         try {
-            for (final String downloadFilePath : DOWNLOAD_FILE_PATHS) {
-                final String[] fileNameParts = StringUtils.split(downloadFilePath, '/');
-                final String fileName = fileNameParts[fileNameParts.length - 1];
-                HTTPClient.downloadFileAsBrowser("https://hmdb.ca" + downloadFilePath,
-                                                 dataSource.resolveSourceFilePath(workspace, fileName));
+            for (final String downloadFileName : DOWNLOAD_FILE_NAMES) {
+                HTTPClient.downloadFileAsBrowser("https://hmdb.ca/system/downloads/current/" + downloadFileName,
+                                                 dataSource.resolveSourceFilePath(workspace, downloadFileName));
             }
             return true;
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return DOWNLOAD_FILE_NAMES;
     }
 }
