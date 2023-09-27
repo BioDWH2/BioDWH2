@@ -4,11 +4,13 @@ import de.unibi.agbi.biodwh2.core.OntologyDataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.obo.*;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,6 +18,8 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public abstract class OntologyGraphExporter<D extends OntologyDataSource> extends GraphExporter<D> {
     private static class EdgeCacheEntry {
@@ -39,9 +43,27 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         final boolean ignoreObsolete = ignoreObsolete(workspace);
+        final String filePath = dataSource.resolveSourceFilePath(workspace, getOntologyFileName());
+        final String extension = FilenameUtils.getExtension(filePath);
         try {
-            final OboReader reader = new OboReader(dataSource.resolveSourceFilePath(workspace, getOntologyFileName()),
-                                                   StandardCharsets.UTF_8);
+            OboReader reader = null;
+            if ("zip".equalsIgnoreCase(extension)) {
+                final ZipInputStream stream = FileUtils.openZip(workspace, dataSource, getOntologyFileName());
+                ZipEntry entry;
+                while ((entry = stream.getNextEntry()) != null) {
+                    if (entry.getName().toLowerCase(Locale.ROOT).endsWith(".obo")) {
+                        reader = new OboReader(stream, StandardCharsets.UTF_8);
+                        break;
+                    }
+                }
+            } else if ("gz".equalsIgnoreCase(extension)) {
+                reader = new OboReader(FileUtils.openGzip(workspace, dataSource, getOntologyFileName()),
+                                       StandardCharsets.UTF_8);
+            } else
+                reader = new OboReader(filePath, StandardCharsets.UTF_8);
+            if (reader == null)
+                throw new ExporterFormatException(
+                        "Failed to export '" + getOntologyFileName() + "'. Not an obo, obo.zip, or obo.gz file.");
             exportHeader(graph, reader.getHeader());
             exportEntries(ignoreObsolete, graph, reader);
         } catch (IOException e) {
