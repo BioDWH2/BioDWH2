@@ -250,10 +250,10 @@ public final class GraphMapper {
             ForkJoinPool pool = null;
             try {
                 pool = new ForkJoinPool(numThreads);
-                final Spliterator<Node> nodes = graph.getNodes(describer.prefixLabel(segment.fromNodeLabel))
-                                                     .spliterator();
-                pool.submit(() -> StreamSupport.stream(nodes, true).parallel().forEach(
-                        node -> startBuildPathRecursively(graph, describer, path, node, mappedEdgeTypes)));
+                final Spliterator<Long> nodeIds = graph.getNodeIds(describer.prefixLabel(segment.fromNodeLabel))
+                                                       .spliterator();
+                pool.submit(() -> StreamSupport.stream(nodeIds, true).parallel().forEach(
+                        nodeId -> startBuildPathRecursively(graph, describer, path, nodeId, mappedEdgeTypes)));
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
@@ -261,14 +261,14 @@ public final class GraphMapper {
                     pool.shutdown();
             }
         } else
-            for (final Node node : graph.getNodes(describer.prefixLabel(segment.fromNodeLabel)))
-                startBuildPathRecursively(graph, describer, path, node, mappedEdgeTypes);
+            for (final Long nodeId : graph.getNodeIds(describer.prefixLabel(segment.fromNodeLabel)))
+                startBuildPathRecursively(graph, describer, path, nodeId, mappedEdgeTypes);
     }
 
     private void startBuildPathRecursively(final Graph graph, final MappingDescriber describer, final PathMapping path,
-                                           final Node node, final AbstractMap<String, Boolean> mappedEdgeTypes) {
+                                           final long nodeId, final AbstractMap<String, Boolean> mappedEdgeTypes) {
         final long[] currentPathIds = new long[path.getSegmentCount() * 2 + 1];
-        currentPathIds[0] = node.getId();
+        currentPathIds[0] = nodeId;
         buildPathRecursively(graph, describer, path, 0, currentPathIds, mappedEdgeTypes);
     }
 
