@@ -14,15 +14,15 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class ClinicalTrialsGovUpdater extends Updater<ClinicalTrialsGovDataSource> {
-    private static final String DOWNLOAD_URL = "https://clinicaltrials.gov/AllPublicXML.zip";
     static final String FILE_NAME = "AllPublicXML.zip";
+    private static final String DOWNLOAD_URL = "https://clinicaltrials.gov/" + FILE_NAME;
 
     public ClinicalTrialsGovUpdater(final ClinicalTrialsGovDataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
+    protected Version getNewestVersion(final Workspace workspace) {
         Integer updateIntervalDays = dataSource.getIntegerProperty(workspace, "updateIntervalDays");
         updateIntervalDays = Math.max(1, updateIntervalDays != null ? updateIntervalDays : 7);
         final LocalDate start = LocalDate.parse("01.01.2022", DateTimeFormatter.ofPattern("dd.MM.yyyy"));

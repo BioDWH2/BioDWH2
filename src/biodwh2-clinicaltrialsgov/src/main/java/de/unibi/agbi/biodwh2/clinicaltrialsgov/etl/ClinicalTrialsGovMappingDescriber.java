@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.clinicaltrialsgov.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
@@ -13,9 +14,9 @@ public class ClinicalTrialsGovMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if ("Trial".equals(localMappingLabel))
+        if (ClinicalTrialsGovGraphExporter.TRIAL_LABEL.equals(localMappingLabel))
             return describeTrial(node);
-        if ("Reference".equals(localMappingLabel))
+        if (ClinicalTrialsGovGraphExporter.REFERENCE_LABEL.equals(localMappingLabel))
             return describeReference(node);
         return null;
     }
@@ -23,7 +24,7 @@ public class ClinicalTrialsGovMappingDescriber extends MappingDescriber {
     private static NodeMappingDescription[] describeTrial(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(
                 NodeMappingDescription.NodeType.CLINICAL_TRIAL);
-        description.addIdentifier(IdentifierType.NCT_NUMBER, node.<String>getProperty("id"));
+        description.addIdentifier(IdentifierType.NCT_NUMBER, node.<String>getProperty(GraphExporter.ID_KEY));
         return new NodeMappingDescription[]{description};
     }
 
@@ -41,7 +42,7 @@ public class ClinicalTrialsGovMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{"Trial", "Reference"};
+        return new String[]{ClinicalTrialsGovGraphExporter.TRIAL_LABEL, ClinicalTrialsGovGraphExporter.REFERENCE_LABEL};
     }
 
     @Override

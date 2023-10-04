@@ -52,7 +52,7 @@ public final class BioDWH2Updater {
             LOGGER.info("New version " + latestVersion + " of " + toolRepositoryName + " is available at:");
             LOGGER.info(latestDownloadUrl);
             if (latestRelease != null && StringUtils.isNotEmpty(latestRelease.body))
-                LOGGER.info("Description: " + latestRelease.body);
+                LOGGER.info("Description: " + StringUtils.replace(latestRelease.body, "```", ""));
             LOGGER.info("=======================================");
         }
     }

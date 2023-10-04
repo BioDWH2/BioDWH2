@@ -50,11 +50,12 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
     }
 
     private void exportStudies(final Workspace workspace, final Graph graph) throws IOException {
-        final MappingIterator<Study> studies = FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource,
-                                                                                         GWASCatalogUpdater.STUDIES_FILE_NAME,
-                                                                                         Study.class);
-        while (studies.hasNext())
-            exportStudy(graph, studies.next());
+        try (MappingIterator<Study> studies = FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource,
+                                                                                        GWASCatalogUpdater.STUDIES_FILE_NAME,
+                                                                                        Study.class)) {
+            while (studies.hasNext())
+                exportStudy(graph, studies.next());
+        }
     }
 
     private void exportStudy(final Graph graph, final Study study) {
@@ -109,11 +110,12 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
     }
 
     private void exportAncestries(final Workspace workspace, final Graph graph) throws IOException {
-        final MappingIterator<Ancestry> ancestries = FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource,
-                                                                                               GWASCatalogUpdater.ANCESTRY_FILE_NAME,
-                                                                                               Ancestry.class);
-        while (ancestries.hasNext())
-            exportAncestry(graph, ancestries.next());
+        try (MappingIterator<Ancestry> ancestries = FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource,
+                                                                                              GWASCatalogUpdater.ANCESTRY_FILE_NAME,
+                                                                                              Ancestry.class)) {
+            while (ancestries.hasNext())
+                exportAncestry(graph, ancestries.next());
+        }
     }
 
     private void exportAncestry(final Graph graph, final Ancestry ancestry) {
@@ -136,12 +138,13 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
     }
 
     private void exportAssociations(final Workspace workspace, final Graph graph) throws IOException {
-        final MappingIterator<Association> associations = FileUtils.openTsvWithHeaderWithoutQuoting(workspace,
-                                                                                                    dataSource,
-                                                                                                    GWASCatalogUpdater.ASSOCIATIONS_FILE_NAME,
-                                                                                                    Association.class);
-        while (associations.hasNext())
-            exportAssociation(graph, associations.next());
+        try (MappingIterator<Association> associations = FileUtils.openTsvWithHeaderWithoutQuoting(workspace,
+                                                                                                   dataSource,
+                                                                                                   GWASCatalogUpdater.ASSOCIATIONS_FILE_NAME,
+                                                                                                   Association.class)) {
+            while (associations.hasNext())
+                exportAssociation(graph, associations.next());
+        }
     }
 
     private void exportAssociation(final Graph graph, final Association association) {

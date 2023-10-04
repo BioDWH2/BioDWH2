@@ -16,7 +16,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 @SuppressWarnings("unused")
@@ -276,5 +279,15 @@ public final class FileUtils {
     public static BufferedWriter createBufferedWriterFromStream(final OutputStream stream, final Charset charset) {
         final OutputStreamWriter writer = new OutputStreamWriter(stream, charset);
         return new BufferedWriter(writer);
+    }
+
+    public static String[] readZipFilePaths(final String filePath) throws IOException {
+        List<String> result = new ArrayList<>();
+        try (ZipInputStream zipStream = new ZipInputStream(openInput(filePath))) {
+            ZipEntry entry;
+            while ((entry = zipStream.getNextEntry()) != null)
+                result.add(entry.getName());
+        }
+        return result.toArray(new String[0]);
     }
 }

@@ -13,23 +13,36 @@ import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrialsGovDataSource> {
+    private static final Logger LOGGER = LogManager.getLogger(ClinicalTrialsGovGraphExporter.class);
+    private static final String OUTCOME_LABEL = "Outcome";
+    private static final String DOCUMENT_LABEL = "Document";
+    private static final String ARM_GROUP_LABEL = "ArmGroup";
+    private static final String PERSON_LABEL = "Person";
+    private static final String SPONSOR_LABEL = "Sponsor";
+    private static final String LOCATION_LABEL = "Location";
+    static final String REFERENCE_LABEL = "Reference";
+    static final String TRIAL_LABEL = "Trial";
+    private static final String CONDITION_LABEL = "Condition";
+    private static final String INTERVENTION_LABEL = "Intervention";
+
     private final Map<String, Long> nonPmidCitationNodeIdMap = new HashMap<>();
     private final Map<String, Long> sponsorNameNodeIdMap = new HashMap<>();
-    private final XmlMapper xmlMapper;
 
     public ClinicalTrialsGovGraphExporter(final ClinicalTrialsGovDataSource dataSource) {
         super(dataSource);
-        xmlMapper = new XmlMapper();
-        xmlMapper.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
     }
 
     @Override
@@ -39,34 +52,51 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode("Trial", ID_KEY, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Condition", "mesh_id", IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Intervention", "mesh_id", IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Reference", "pmid", IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Document", ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TRIAL_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(CONDITION_LABEL, "mesh_id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(INTERVENTION_LABEL, "mesh_id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(REFERENCE_LABEL, "pmid", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DOCUMENT_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         exportClinicalTrials(workspace, graph);
         return true;
     }
 
     private void exportClinicalTrials(final Workspace workspace, final Graph graph) {
+        int numberOfRecords = 0;
+        try {
+            final String[] fileNames = FileUtils.readZipFilePaths(
+                    dataSource.resolveSourceFilePath(workspace, ClinicalTrialsGovUpdater.FILE_NAME));
+            for (final String fileName : fileNames)
+                if (fileName.endsWith(".xml"))
+                    numberOfRecords++;
+        } catch (IOException e) {
+            throw new ExporterFormatException(e);
+        }
+        int counter = 0;
+        final XmlMapper xmlMapper = new XmlMapper();
+        xmlMapper.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
         try (ZipInputStream zipStream = FileUtils.openZip(workspace, dataSource, ClinicalTrialsGovUpdater.FILE_NAME)) {
             ZipEntry entry;
-            while ((entry = zipStream.getNextEntry()) != null)
-                if (entry.getName().endsWith(".xml"))
-                    exportClinicalTrial(graph, zipStream);
+            while ((entry = zipStream.getNextEntry()) != null) {
+                if (entry.getName().endsWith(".xml")) {
+                    exportClinicalTrial(graph, zipStream, xmlMapper);
+                    counter++;
+                    if (counter % 10000 == 0 && LOGGER.isInfoEnabled())
+                        LOGGER.info("Exporting trial progress " + counter + "/" + numberOfRecords);
+                }
+            }
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
     }
 
-    private void exportClinicalTrial(final Graph graph, final InputStream stream) throws IOException {
+    private void exportClinicalTrial(final Graph graph, final InputStream stream,
+                                     final XmlMapper xmlMapper) throws IOException {
         final ClinicalStudy study = xmlMapper.readValue(stream, ClinicalStudy.class);
-        final NodeBuilder builder = graph.buildNode().withLabel("Trial").withProperty(ID_KEY, study.idInfo.nctId);
+        final NodeBuilder builder = graph.buildNode().withLabel(TRIAL_LABEL).withProperty(ID_KEY, study.idInfo.nctId);
         builder.withPropertyIfNotNull("org_study_id", study.idInfo.orgStudyId);
-        if (study.idInfo.secondaryId != null && study.idInfo.secondaryId.size() > 0)
-            builder.withPropertyIfNotNull("secondary_ids", study.idInfo.secondaryId.toArray(new String[0]));
-        if (study.idInfo.nctAlias != null && study.idInfo.nctAlias.size() > 0)
-            builder.withPropertyIfNotNull("nct_aliases", study.idInfo.nctAlias.toArray(new String[0]));
+        withArrayIfNotNull(builder, study.idInfo.secondaryId, "secondary_ids");
+        withArrayIfNotNull(builder, study.idInfo.nctAlias, "nct_aliases");
         if (study.requiredHeader != null) {
             builder.withPropertyIfNotNull("download_date", study.requiredHeader.downloadDate);
             builder.withPropertyIfNotNull("link_text", study.requiredHeader.linkText);
@@ -79,121 +109,61 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
         builder.withPropertyIfNotNull("official_title", study.officialTitle);
         builder.withPropertyIfNotNull("why_stopped", study.whyStopped);
         builder.withPropertyIfNotNull("source", study.source);
-        if (study.keyword != null && study.keyword.size() > 0)
-            builder.withProperty("keywords", study.keyword.toArray(new String[0]));
-        builder.withPropertyIfNotNull("brief_summary",
-                                      study.briefSummary != null ? study.briefSummary.textblock : null);
-        builder.withPropertyIfNotNull("detailed_description",
-                                      study.detailedDescription != null ? study.detailedDescription.textblock : null);
+        withArrayIfNotNull(builder, study.keyword, "keywords");
+        withTextBlockIfNotNull(builder, study.briefSummary, "brief_summary");
+        withTextBlockIfNotNull(builder, study.detailedDescription, "detailed_description");
         builder.withPropertyIfNotNull("overall_status", study.overallStatus);
         builder.withPropertyIfNotNull("last_known_status", study.lastKnownStatus);
         builder.withPropertyIfNotNull("target_duration", study.targetDuration);
-        if (study.startDate != null) {
-            builder.withPropertyIfNotNull("start_date", study.startDate.value);
-            builder.withPropertyIfNotNull("start_date_type",
-                                          study.startDate.type != null ? study.startDate.type.value : null);
-        }
-        if (study.completionDate != null) {
-            builder.withPropertyIfNotNull("completion_date", study.completionDate.value);
-            builder.withPropertyIfNotNull("completion_date_type",
-                                          study.completionDate.type != null ? study.completionDate.type.value : null);
-        }
-        if (study.primaryCompletionDate != null) {
-            builder.withPropertyIfNotNull("primary_completion_date", study.primaryCompletionDate.value);
-            builder.withPropertyIfNotNull("primary_completion_date_type", study.primaryCompletionDate.type != null ?
-                                                                          study.primaryCompletionDate.type.value :
-                                                                          null);
-        }
-        if (study.hasExpandedAccess != null)
-            builder.withPropertyIfNotNull("has_expanded_access", study.hasExpandedAccess == YesNoEnum.YES);
+        withVariableDateIfNotNull(builder, study.startDate, "start_date");
+        withVariableDateIfNotNull(builder, study.completionDate, "completion_date");
+        withVariableDateIfNotNull(builder, study.primaryCompletionDate, "primary_completion_date");
+        withYesNoEnumIfNotNull(builder, study.hasExpandedAccess, "has_expanded_access");
         builder.withPropertyIfNotNull("verification_date", study.verificationDate);
         builder.withPropertyIfNotNull("study_first_submitted", study.studyFirstSubmitted);
         builder.withPropertyIfNotNull("study_first_submitted_qc", study.studyFirstSubmittedQc);
-        if (study.studyFirstPosted != null) {
-            builder.withPropertyIfNotNull("study_first_posted", study.studyFirstPosted.value);
-            builder.withPropertyIfNotNull("study_first_posted_type",
-                                          study.studyFirstPosted.type != null ? study.studyFirstPosted.type.value :
-                                          null);
-        }
+        withVariableDateIfNotNull(builder, study.studyFirstPosted, "study_first_posted");
         builder.withPropertyIfNotNull("results_first_submitted", study.resultsFirstSubmitted);
         builder.withPropertyIfNotNull("results_first_submitted_qc", study.resultsFirstSubmittedQc);
-        if (study.resultsFirstPosted != null) {
-            builder.withPropertyIfNotNull("results_first_posted", study.resultsFirstPosted.value);
-            builder.withPropertyIfNotNull("results_first_posted_type",
-                                          study.resultsFirstPosted.type != null ? study.resultsFirstPosted.type.value :
-                                          null);
-        }
+        withVariableDateIfNotNull(builder, study.resultsFirstPosted, "results_first_posted");
+        withVariableDateIfNotNull(builder, study.dispositionFirstPosted, "disposition_first_posted");
         builder.withPropertyIfNotNull("disposition_first_submitted", study.dispositionFirstSubmitted);
         builder.withPropertyIfNotNull("disposition_first_submitted_qc", study.dispositionFirstSubmittedQc);
-        if (study.dispositionFirstPosted != null) {
-            builder.withPropertyIfNotNull("disposition_first_posted", study.dispositionFirstPosted.value);
-            builder.withPropertyIfNotNull("disposition_first_posted_type", study.dispositionFirstPosted.type != null ?
-                                                                           study.dispositionFirstPosted.type.value :
-                                                                           null);
-        }
         builder.withPropertyIfNotNull("last_update_submitted", study.lastUpdateSubmitted);
         builder.withPropertyIfNotNull("last_update_submitted_qc", study.lastUpdateSubmittedQc);
-        if (study.lastUpdatePosted != null) {
-            builder.withPropertyIfNotNull("last_update_posted", study.lastUpdatePosted.value);
-            builder.withPropertyIfNotNull("last_update_posted_type",
-                                          study.lastUpdatePosted.type != null ? study.lastUpdatePosted.type.value :
-                                          null);
-        }
-        if (study.numberOfArms != null)
-            builder.withProperty("number_of_arms", study.numberOfArms);
-        if (study.numberOfGroups != null)
-            builder.withProperty("number_of_groups", study.numberOfGroups);
+        withVariableDateIfNotNull(builder, study.lastUpdatePosted, "last_update_posted");
+        builder.withPropertyIfNotNull("number_of_arms", study.numberOfArms);
+        builder.withPropertyIfNotNull("number_of_groups", study.numberOfGroups);
         if (study.enrollment != null) {
             builder.withPropertyIfNotNull("enrollment", study.enrollment.value);
             builder.withPropertyIfNotNull("enrollment_type",
                                           study.enrollment.type != null ? study.enrollment.type.value : null);
         }
-        if (study.locationCountries != null && study.locationCountries.country != null &&
-            study.locationCountries.country.size() > 0) {
-            builder.withProperty("location_countries", study.locationCountries.country.toArray(new String[0]));
-        }
+        if (study.locationCountries != null)
+            withArrayIfNotNull(builder, study.locationCountries.country, "location_countries");
         if (study.patientData != null) {
             builder.withPropertyIfNotNull("sharing_ipd", study.patientData.sharingIpd);
             builder.withPropertyIfNotNull("ipd_description", study.patientData.ipdDescription);
-            if (study.patientData.ipdInfoType != null && study.patientData.ipdInfoType.size() > 0)
-                builder.withPropertyIfNotNull("ipd_info_type", study.patientData.ipdInfoType.toArray(new String[0]));
+            withArrayIfNotNull(builder, study.patientData.ipdInfoType, "ipd_info_type");
             builder.withPropertyIfNotNull("ipd_time_frame", study.patientData.ipdTimeFrame);
             builder.withPropertyIfNotNull("ipd_access_criteria", study.patientData.ipdAccessCriteria);
             builder.withPropertyIfNotNull("ipd_url", study.patientData.ipdUrl);
         }
         if (study.oversightInfo != null) {
-            if (study.oversightInfo.hasDmc != null)
-                builder.withPropertyIfNotNull("has_dmc", study.oversightInfo.hasDmc == YesNoEnum.YES);
-            if (study.oversightInfo.isFdaRegulatedDrug != null) {
-                builder.withPropertyIfNotNull("is_fda_regulated_drug",
-                                              study.oversightInfo.isFdaRegulatedDrug == YesNoEnum.YES);
-            }
-            if (study.oversightInfo.isFdaRegulatedDevice != null) {
-                builder.withPropertyIfNotNull("is_fda_regulated_device",
-                                              study.oversightInfo.isFdaRegulatedDevice == YesNoEnum.YES);
-            }
-            if (study.oversightInfo.isUnapprovedDevice != null) {
-                builder.withPropertyIfNotNull("is_unapproved_device",
-                                              study.oversightInfo.isUnapprovedDevice == YesNoEnum.YES);
-            }
-            if (study.oversightInfo.isPpsd != null)
-                builder.withPropertyIfNotNull("is_ppsd", study.oversightInfo.isPpsd == YesNoEnum.YES);
-            if (study.oversightInfo.isUsExport != null)
-                builder.withPropertyIfNotNull("is_us_export", study.oversightInfo.isUsExport == YesNoEnum.YES);
+            withYesNoEnumIfNotNull(builder, study.oversightInfo.hasDmc, "has_dmc");
+            withYesNoEnumIfNotNull(builder, study.oversightInfo.isFdaRegulatedDrug, "is_fda_regulated_drug");
+            withYesNoEnumIfNotNull(builder, study.oversightInfo.isFdaRegulatedDevice, "is_fda_regulated_device");
+            withYesNoEnumIfNotNull(builder, study.oversightInfo.isUnapprovedDevice, "is_unapproved_device");
+            withYesNoEnumIfNotNull(builder, study.oversightInfo.isPpsd, "is_ppsd");
+            withYesNoEnumIfNotNull(builder, study.oversightInfo.isUsExport, "is_us_export");
         }
         if (study.expandedAccessInfo != null) {
-            if (study.expandedAccessInfo.expandedAccessTypeIndividual != null) {
-                builder.withPropertyIfNotNull("expanded_access_type_individual",
-                                              study.expandedAccessInfo.expandedAccessTypeIndividual == YesNoEnum.YES);
-            }
-            if (study.expandedAccessInfo.expandedAccessTypeIntermediate != null) {
-                builder.withPropertyIfNotNull("expanded_access_type_intermediate",
-                                              study.expandedAccessInfo.expandedAccessTypeIntermediate == YesNoEnum.YES);
-            }
-            if (study.expandedAccessInfo.expandedAccessTypeTreatment != null) {
-                builder.withPropertyIfNotNull("expanded_access_type_treatment",
-                                              study.expandedAccessInfo.expandedAccessTypeTreatment == YesNoEnum.YES);
-            }
+            withYesNoEnumIfNotNull(builder, study.expandedAccessInfo.expandedAccessTypeIndividual,
+                                   "expanded_access_type_individual");
+            withYesNoEnumIfNotNull(builder, study.expandedAccessInfo.expandedAccessTypeIntermediate,
+                                   "expanded_access_type_intermediate");
+            withYesNoEnumIfNotNull(builder, study.expandedAccessInfo.expandedAccessTypeTreatment,
+                                   "expanded_access_type_treatment");
         }
         if (study.studyDesignInfo != null) {
             builder.withPropertyIfNotNull("allocation", study.studyDesignInfo.allocation);
@@ -211,55 +181,75 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
             builder.withPropertyIfNotNull("eligibility_minimum_age", study.eligibility.minimumAge);
             builder.withPropertyIfNotNull("eligibility_maximum_age", study.eligibility.maximumAge);
             builder.withPropertyIfNotNull("eligibility_healthy_volunteers", study.eligibility.healthyVolunteers);
-            if (study.eligibility.genderBased != null) {
-                builder.withPropertyIfNotNull("eligibility_gender_based",
-                                              study.eligibility.genderBased == YesNoEnum.YES);
-            }
-            if (study.eligibility.studyPop != null && study.eligibility.studyPop.textblock != null)
-                builder.withPropertyIfNotNull("eligibility_study_population", study.eligibility.studyPop.textblock);
-            if (study.eligibility.criteria != null && study.eligibility.criteria.textblock != null)
-                builder.withPropertyIfNotNull("eligibility_criteria", study.eligibility.criteria.textblock);
+            withYesNoEnumIfNotNull(builder, study.eligibility.genderBased, "eligibility_gender_based");
+            withTextBlockIfNotNull(builder, study.eligibility.studyPop, "eligibility_study_population");
+            withTextBlockIfNotNull(builder, study.eligibility.criteria, "eligibility_criteria");
             if (study.eligibility.gender != null)
                 builder.withPropertyIfNotNull("eligibility_gender", study.eligibility.gender.value);
             if (study.eligibility.samplingMethod != null)
                 builder.withPropertyIfNotNull("eligibility_sampling_method", study.eligibility.samplingMethod.value);
         }
         if (study.pendingResults != null) {
-            if (study.pendingResults.returned != null) {
-                builder.withPropertyIfNotNull("pending_results_returned", study.pendingResults.returned.value);
-                builder.withPropertyIfNotNull("pending_results_returned_type",
-                                              study.pendingResults.returned.type != null ?
-                                              study.pendingResults.returned.type.value : null);
-            }
-            if (study.pendingResults.submitted != null) {
-                builder.withPropertyIfNotNull("pending_results_submitted", study.pendingResults.submitted.value);
-                builder.withPropertyIfNotNull("pending_results_submitted_type",
-                                              study.pendingResults.submitted.type != null ?
-                                              study.pendingResults.submitted.type.value : null);
-            }
-            if (study.pendingResults.submissionCanceled != null) {
-                builder.withPropertyIfNotNull("pending_results_submission_canceled",
-                                              study.pendingResults.submissionCanceled.value);
-                builder.withPropertyIfNotNull("pending_results_submission_canceled_type",
-                                              study.pendingResults.submissionCanceled.type != null ?
-                                              study.pendingResults.submissionCanceled.type.value : null);
-            }
+            withVariableDateIfNotNull(builder, study.pendingResults.returned, "pending_results_returned");
+            withVariableDateIfNotNull(builder, study.pendingResults.submitted, "pending_results_submitted");
+            withVariableDateIfNotNull(builder, study.pendingResults.submissionCanceled,
+                                      "pending_results_submission_canceled");
         }
-        if (study.biospecDescr != null)
-            builder.withPropertyIfNotNull("biospecimen_description", study.biospecDescr.textblock);
+        withTextBlockIfNotNull(builder, study.biospecDescr, "biospecimen_description");
         if (study.biospecRetention != null)
             builder.withPropertyIfNotNull("biospecimen_retention", study.biospecRetention.value);
+        withStudyLinks(builder, study);
+        withArrayIfNotNull(builder, study.condition, "conditions");
+        if (study.conditionBrowse != null)
+            withArrayIfNotNull(builder, study.conditionBrowse.meshTerm, "conditions_mesh");
+        if (study.interventionBrowse != null)
+            withArrayIfNotNull(builder, study.interventionBrowse.meshTerm, "interventions_mesh");
         // TODO: ResponsiblePartyStruct responsibleParty, ClinicalResultsStruct clinicalResults
         final Node node = builder.build();
         exportStudyReferences(graph, study, node);
         exportStudySponsors(graph, study, node);
         exportStudyPeople(graph, study, node);
         exportStudyDocuments(graph, study, node);
-        exportStudyOutcomes(graph, study, node);
+        exportStudyOutcomes(graph, node, study.primaryOutcome, "primary");
+        exportStudyOutcomes(graph, node, study.secondaryOutcome, "secondary");
+        exportStudyOutcomes(graph, node, study.otherOutcome, "other");
         exportStudyArmGroups(graph, study, node);
-        exportStudyConditions(graph, study, node);
         exportStudyInterventions(graph, study, node);
-        exportStudyLinks(graph, study, node);
+        exportStudyClinicalResults(graph, study, node);
+    }
+
+    private void withArrayIfNotNull(final NodeBuilder builder, final List<String> value, final String key) {
+        if (value != null && !value.isEmpty())
+            builder.withPropertyIfNotNull(key, value.toArray(new String[0]));
+    }
+
+    private void withVariableDateIfNotNull(final NodeBuilder builder, final VariableDateStruct value,
+                                           final String key) {
+        if (value != null) {
+            builder.withPropertyIfNotNull(key, value.value);
+            builder.withPropertyIfNotNull(key + "_type", value.type != null ? value.type.value : null);
+        }
+    }
+
+    private void withYesNoEnumIfNotNull(final NodeBuilder builder, final YesNoEnum value, final String key) {
+        if (value != null)
+            builder.withPropertyIfNotNull(key, value == YesNoEnum.YES);
+    }
+
+    private void withTextBlockIfNotNull(final NodeBuilder builder, final TextblockStruct value, final String key) {
+        if (value != null && value.textblock != null)
+            builder.withPropertyIfNotNull(key, value.textblock);
+    }
+
+    private void withStudyLinks(final NodeBuilder builder, final ClinicalStudy study) {
+        if (study.link != null && !study.link.isEmpty()) {
+            final String[] links = new String[study.link.size()];
+            for (int i = 0; i < study.link.size(); i++) {
+                LinkStruct link = study.link.get(i);
+                links[i] = link.url + "|" + (link.description != null ? link.description : "");
+            }
+            builder.withProperty("links", links);
+        }
     }
 
     private void exportStudyReferences(final Graph graph, final ClinicalStudy study, final Node studyNode) {
@@ -282,16 +272,16 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
     private Node getOrCreateReference(final Graph graph, final ReferenceStruct reference) {
         if (reference.citation.contains("has not been published in"))
             return null;
-        Node node = graph.findNode("Reference", "pmid", reference.pmid);
+        Node node = graph.findNode(REFERENCE_LABEL, "pmid", reference.pmid);
         if (node == null) {
             if (reference.pmid != null)
-                node = graph.addNode("Reference", "pmid", reference.pmid, "citation", reference.citation);
+                node = graph.addNode(REFERENCE_LABEL, "pmid", reference.pmid, "citation", reference.citation);
             else {
                 final Long nonPmidNodeId = nonPmidCitationNodeIdMap.get(reference.citation);
                 if (nonPmidNodeId != null) {
                     node = graph.getNode(nonPmidNodeId);
                 } else {
-                    node = graph.addNode("Reference", "citation", reference.citation);
+                    node = graph.addNode(REFERENCE_LABEL, "citation", reference.citation);
                     nonPmidCitationNodeIdMap.put(reference.citation, node.getId());
                 }
             }
@@ -324,9 +314,9 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
             node = graph.getNode(nodeId);
         } else {
             if (sponsor.agencyClass != null)
-                node = graph.addNode("Sponsor", "name", sponsor.agency, "agency_type", sponsor.agencyClass.value);
+                node = graph.addNode(SPONSOR_LABEL, "name", sponsor.agency, "agency_type", sponsor.agencyClass.value);
             else
-                node = graph.addNode("Sponsor", "name", sponsor.agency);
+                node = graph.addNode(SPONSOR_LABEL, "name", sponsor.agency);
             sponsorNameNodeIdMap.put(sponsor.agency, node.getId());
         }
         return node;
@@ -364,7 +354,7 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
         }
         if (study.location != null) {
             for (final LocationStruct location : study.location) {
-                final NodeBuilder builder = graph.buildNode().withLabel("Location");
+                final NodeBuilder builder = graph.buildNode().withLabel(LOCATION_LABEL);
                 builder.withPropertyIfNotNull("status", location.status);
                 if (location.facility != null) {
                     builder.withPropertyIfNotNull("facility_name", location.facility.name);
@@ -419,7 +409,7 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
     }
 
     private Node createPerson(final Graph graph, final PersonStruct person) {
-        final NodeBuilder builder = graph.buildNode().withLabel("Person");
+        final NodeBuilder builder = graph.buildNode().withLabel(PERSON_LABEL);
         builder.withPropertyIfNotNull("first_name", person.firstName);
         builder.withPropertyIfNotNull("middle_name", person.middleName);
         builder.withPropertyIfNotNull("last_name", person.lastName);
@@ -453,9 +443,10 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
     }
 
     private Node getOrCreateDocument(final Graph graph, final StudyDocStruct document) {
-        Node node = graph.findNode("Document", ID_KEY, document.docId);
+        Node node = graph.findNode(DOCUMENT_LABEL, ID_KEY, document.docId);
         if (node == null) {
-            final NodeBuilder builder = graph.buildNode().withLabel("Document").withProperty(ID_KEY, document.docId);
+            final NodeBuilder builder = graph.buildNode().withLabel(DOCUMENT_LABEL).withProperty(ID_KEY,
+                                                                                                 document.docId);
             builder.withPropertyIfNotNull("url", document.docUrl);
             builder.withPropertyIfNotNull("type", document.docType);
             builder.withPropertyIfNotNull("comment", document.docComment);
@@ -464,71 +455,131 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
         return node;
     }
 
-    private void exportStudyOutcomes(final Graph graph, final ClinicalStudy study, final Node studyNode) {
-        if (study.primaryOutcome != null) {
-            for (final ProtocolOutcomeStruct outcome : study.primaryOutcome) {
-                final Node outcomeNode = graph.addNode("Outcome", "measure", outcome.measure, "time_frame",
-                                                       outcome.timeFrame, "description", outcome.description);
-                graph.addEdge(studyNode, outcomeNode, "HAS_OUTCOME", "type", "primary");
-            }
-        }
-        if (study.secondaryOutcome != null) {
-            for (final ProtocolOutcomeStruct outcome : study.secondaryOutcome) {
-                final Node outcomeNode = graph.addNode("Outcome", "measure", outcome.measure, "time_frame",
-                                                       outcome.timeFrame, "description", outcome.description);
-                graph.addEdge(studyNode, outcomeNode, "HAS_OUTCOME", "type", "secondary");
-            }
-        }
-        if (study.otherOutcome != null) {
-            for (final ProtocolOutcomeStruct outcome : study.otherOutcome) {
-                final Node outcomeNode = graph.addNode("Outcome", "measure", outcome.measure, "time_frame",
-                                                       outcome.timeFrame, "description", outcome.description);
-                graph.addEdge(studyNode, outcomeNode, "HAS_OUTCOME", "type", "other");
-            }
-        }
+    private void exportStudyOutcomes(final Graph graph, final Node studyNode,
+                                     final List<ProtocolOutcomeStruct> outcomes, final String type) {
+        if (outcomes != null)
+            for (final ProtocolOutcomeStruct outcome : outcomes)
+                graph.addEdge(studyNode, createOutcomeNode(graph, outcome), "HAS_OUTCOME", "type", type);
+    }
+
+    private Node createOutcomeNode(final Graph graph, final ProtocolOutcomeStruct outcome) {
+        return graph.addNode(OUTCOME_LABEL, "measure", outcome.measure, "time_frame", outcome.timeFrame, "description",
+                             outcome.description);
     }
 
     private void exportStudyArmGroups(final Graph graph, final ClinicalStudy study, final Node studyNode) {
         if (study.armGroup != null) {
             for (final ArmGroupStruct group : study.armGroup) {
-                final Node node = graph.addNode("ArmGroup", "label", group.armGroupLabel, "type", group.armGroupType,
-                                                "description", group.description);
+                final Node node = graph.addNode(ARM_GROUP_LABEL, "label", group.armGroupLabel, "type",
+                                                group.armGroupType, "description", group.description);
                 graph.addEdge(studyNode, node, "HAS_ARM_GROUP");
             }
         }
     }
 
-    private void exportStudyConditions(final Graph graph, final ClinicalStudy study, final Node studyNode) {
-        if (study.condition != null) {
-            for (final String condition : study.condition) {
-                // TODO
-            }
-        }
-        if (study.conditionBrowse != null && study.conditionBrowse.meshTerm != null) {
-            for (final String meshTerm : study.conditionBrowse.meshTerm) {
-                // TODO
-            }
-        }
-    }
-
     private void exportStudyInterventions(final Graph graph, final ClinicalStudy study, final Node studyNode) {
-        if (study.intervention != null) {
-            for (final InterventionStruct intervention : study.intervention) {
-                // TODO
-            }
-        }
-        if (study.interventionBrowse != null && study.interventionBrowse.meshTerm != null) {
-            for (final String meshTerm : study.interventionBrowse.meshTerm) {
-                // TODO
-            }
-        }
+        if (study.intervention != null)
+            for (final InterventionStruct intervention : study.intervention)
+                exportStudyIntervention(graph, studyNode, intervention);
     }
 
-    private void exportStudyLinks(final Graph graph, final ClinicalStudy study, final Node studyNode) {
-        if (study.link != null) {
-            for (final LinkStruct link : study.link) {
-                // TODO
+    private void exportStudyIntervention(final Graph graph, final Node studyNode,
+                                         final InterventionStruct intervention) {
+        final NodeBuilder builder = graph.buildNode().withLabel(INTERVENTION_LABEL);
+        builder.withPropertyIfNotNull("type", intervention.interventionType.value);
+        builder.withPropertyIfNotNull("name", intervention.interventionName);
+        builder.withPropertyIfNotNull("description", intervention.description);
+        withArrayIfNotNull(builder, intervention.armGroupLabel, "arm_group_label");
+        withArrayIfNotNull(builder, intervention.otherName, "other_name");
+        final Node interventionNode = builder.build();
+        graph.addEdge(studyNode, interventionNode, "HAS_INTERVENTION");
+    }
+
+    private void exportStudyClinicalResults(final Graph graph, final ClinicalStudy study, final Node studyNode) {
+        if (study.clinicalResults == null)
+            return;
+        final ClinicalResultsStruct clinicalResults = study.clinicalResults;
+        final NodeBuilder clinicalResultsBuilder = graph.buildNode().withLabel("ClinicalResults");
+        clinicalResultsBuilder.withPropertyIfNotNull("limitations_and_caveats", clinicalResults.limitationsAndCaveats);
+        if (clinicalResults.pointOfContact != null) {
+            clinicalResultsBuilder.withPropertyIfNotNull("point_of_contact_name_or_title",
+                                                         clinicalResults.pointOfContact.nameOrTitle);
+            clinicalResultsBuilder.withPropertyIfNotNull("point_of_contact_organization",
+                                                         clinicalResults.pointOfContact.organization);
+            // Omitted phone and email for privacy reasons
+        }
+        if (clinicalResults.certainAgreements != null) {
+            if (clinicalResults.certainAgreements.piEmployee != null)
+                clinicalResultsBuilder.withPropertyIfNotNull("certain_agreements_pi_employee",
+                                                             clinicalResults.certainAgreements.piEmployee.value);
+            clinicalResultsBuilder.withPropertyIfNotNull("certain_agreements_restrictive_agreement",
+                                                         clinicalResults.certainAgreements.restrictiveAgreement);
+        }
+        final Node clinicalResultsNode = clinicalResultsBuilder.build();
+        graph.addEdge(studyNode, clinicalResultsNode, "HAS_CLINICAL_RESULTS");
+        final BaselineStruct baseline = clinicalResults.baseline;
+        final ParticipantFlowStruct participantFlow = clinicalResults.participantFlow;
+        final Map<String, Long> groupIdNodeIdMap = new HashMap<>();
+        final List<GroupStruct> groups = new ArrayList<>();
+        if (baseline != null && baseline.groupList != null && baseline.groupList.group != null)
+            groups.addAll(baseline.groupList.group);
+        if (participantFlow != null && participantFlow.groupList != null && participantFlow.groupList.group != null) {
+            groups.addAll(participantFlow.groupList.group);
+        }
+        if (clinicalResults.reportedEvents != null && clinicalResults.reportedEvents.groupList != null &&
+            clinicalResults.reportedEvents.groupList.group != null) {
+            groups.addAll(clinicalResults.reportedEvents.groupList.group);
+        }
+        if (clinicalResults.outcomeList != null && clinicalResults.outcomeList.outcome != null) {
+            for (final ResultsOutcomeStruct outcome : clinicalResults.outcomeList.outcome) {
+                if (outcome.groupList != null && outcome.groupList.group != null)
+                    groups.addAll(outcome.groupList.group);
             }
         }
+        for (final GroupStruct group : groups) {
+            final Node groupNode = graph.addNode("Group", ID_KEY, group.groupId, "title", group.title, "description",
+                                                 group.description);
+            groupIdNodeIdMap.put(group.groupId, groupNode.getId());
+        }
+        if (participantFlow != null) {
+            final Node participantFlowNode = graph.addNode("ParticipantFlow", "recruitment_details",
+                                                           participantFlow.recruitmentDetails, "pre_assignment_details",
+                                                           participantFlow.preAssignmentDetails);
+            graph.addEdge(clinicalResultsNode, participantFlowNode, "HAS_PARTICIPANT_FLOW");
+            if (participantFlow.periodList != null && participantFlow.periodList.period != null) {
+                for (final PeriodStruct period : participantFlow.periodList.period) {
+                    final Node periodNode = graph.addNode("Period", "title", period.title);
+                    graph.addEdge(participantFlowNode, periodNode, "HAS_PERIOD");
+                    if (period.milestoneList != null && period.milestoneList.milestone != null) {
+                        for (final MilestoneStruct milestone : period.milestoneList.milestone) {
+                            final Node milestoneNode = graph.addNode("Milestone", "title", milestone.title);
+                            graph.addEdge(periodNode, milestoneNode, "HAS_MILESTONE");
+                            if (milestone.participantsList != null && milestone.participantsList.participants != null) {
+                                for (final ParticipantsStruct participants : milestone.participantsList.participants) {
+                                    graph.addEdge(milestoneNode, groupIdNodeIdMap.get(participants.groupId),
+                                                  "HAS_PARTICIPANTS", "value", participants.value, "count",
+                                                  participants.count);
+                                }
+                            }
+                        }
+                    }
+                    if (period.dropWithdrawReasonList != null &&
+                        period.dropWithdrawReasonList.dropWithdrawReason != null) {
+                        for (final MilestoneStruct milestone : period.dropWithdrawReasonList.dropWithdrawReason) {
+                            final Node milestoneNode = graph.addNode("Milestone", "title", milestone.title);
+                            graph.addEdge(periodNode, milestoneNode, "HAS_DROP_WITHDRAW_REASON");
+                            if (milestone.participantsList != null && milestone.participantsList.participants != null) {
+                                for (final ParticipantsStruct participants : milestone.participantsList.participants) {
+                                    graph.addEdge(milestoneNode, groupIdNodeIdMap.get(participants.groupId),
+                                                  "HAS_PARTICIPANTS", "value", participants.value, "count",
+                                                  participants.count);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // TODO: baseline, outcomeList, reportedEvents
     }
 }
