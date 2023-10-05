@@ -37,8 +37,8 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.addIndex(IndexDescription.forNode(PUBLICATION_LABEL, "pmid", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(STUDY_LABEL, "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(TRAIT_LABEL, "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(STUDY_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TRAIT_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
         try {
             exportStudies(workspace, graph);
             exportAncestries(workspace, graph);
@@ -60,7 +60,7 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
 
     private void exportStudy(final Graph graph, final Study study) {
         final NodeBuilder builder = graph.buildNode().withLabel(STUDY_LABEL);
-        builder.withProperty("id", study.studyAccession);
+        builder.withProperty(ID_KEY, study.studyAccession);
         builder.withProperty("date_added", study.dateAddedToCatalog);
         builder.withProperty("initial_sample_size", study.initialSampleSize);
         builder.withProperty("replication_sample_size", study.replicationSampleSize);
@@ -72,14 +72,39 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         final Node node = builder.build();
         final Node publicationNode = getOrCreatePublication(graph, study);
         graph.addEdge(node, publicationNode, "HAS_REFERENCE");
-        // TODO: add names to traits when list separator is fixed
-        if (study.mappedTraitUri != null) {
-            final String[] traitUris = StringUtils.split(study.mappedTraitUri, ',');
-            for (int i = 0; i < traitUris.length; i++) {
-                final Node traitNode = getOrCreateTrait(graph, traitUris[i].trim());
-                graph.addEdge(node, traitNode, "STUDIES");
+        final long[] traitNodeIds = exportTraits(graph, study.mappedTrait, study.mappedTraitUri);
+        for (long traitNodeId : traitNodeIds)
+            graph.addEdge(node, traitNodeId, "STUDIES");
+    }
+
+    private long[] exportTraits(final Graph graph, final String mappedTrait, final String mappedTraitUri) {
+        if (mappedTraitUri == null)
+            return new long[0];
+        final String[] traitUris = StringUtils.split(mappedTraitUri, ',');
+        String[] traits = null;
+        if (mappedTrait != null) {
+            traits = StringUtils.splitByWholeSeparator(mappedTrait, ", ");
+            if (traits.length != traitUris.length) {
+                if (traitUris.length == 1)
+                    traits = new String[]{mappedTrait};
+                else {
+                    // TODO: trait names that could not be split properly due to the file format
+                    traits = null;
+                }
             }
         }
+        final long[] result = new long[traitUris.length];
+        for (int i = 0; i < traitUris.length; i++) {
+            Node traitNode = graph.findNode(TRAIT_LABEL, ID_KEY, traitUris[i].trim());
+            if (traitNode == null) {
+                if (traits != null)
+                    traitNode = graph.addNode(TRAIT_LABEL, ID_KEY, traitUris[i].trim(), "name", traits[i].trim());
+                else
+                    traitNode = graph.addNode(TRAIT_LABEL, ID_KEY, traitUris[i].trim());
+            }
+            result[i] = traitNode.getId();
+        }
+        return result;
     }
 
     private Node getOrCreatePublication(final Graph graph, final Study study) {
@@ -102,13 +127,6 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         return node;
     }
 
-    private Node getOrCreateTrait(final Graph graph, final String id) {
-        Node node = graph.findNode(TRAIT_LABEL, "id", id);
-        if (node == null)
-            node = graph.addNode(TRAIT_LABEL, "id", id);
-        return node;
-    }
-
     private void exportAncestries(final Workspace workspace, final Graph graph) throws IOException {
         try (MappingIterator<Ancestry> ancestries = FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource,
                                                                                               GWASCatalogUpdater.ANCESTRY_FILE_NAME,
@@ -128,7 +146,7 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         builder.withPropertyIfNotNull("recruitment_country", ancestry.countryOfRecruitment);
         builder.withPropertyIfNotNull("additional_description", ancestry.additionalAncestryDescription);
         final Node node = builder.build();
-        final Node studyNode = graph.findNode(STUDY_LABEL, "id", ancestry.studyAccession);
+        final Node studyNode = graph.findNode(STUDY_LABEL, ID_KEY, ancestry.studyAccession);
         graph.addEdge(studyNode, node, "WITH_ANCESTRY");
         getOrCreatePublication(graph, ancestry);
     }
@@ -175,15 +193,10 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         builder.withPropertyIfNotNull("upstream_gene_distance", association.upstreamGeneDistance);
         builder.withPropertyIfNotNull("upstream_gene_id", association.upstreamGeneId);
         final Node node = builder.build();
-        // TODO: add names to traits when list separator is fixed
-        if (association.mappedTraitUri != null) {
-            final String[] traitUris = StringUtils.split(association.mappedTraitUri, ',');
-            for (int i = 0; i < traitUris.length; i++) {
-                final Node traitNode = getOrCreateTrait(graph, traitUris[i].trim());
-                graph.addEdge(node, traitNode, "STUDIES");
-            }
-        }
-        final Node studyNode = graph.findNode(STUDY_LABEL, "id", association.studyAccession);
+        final long[] traitNodeIds = exportTraits(graph, association.mappedTrait, association.mappedTraitUri);
+        for (long traitNodeId : traitNodeIds)
+            graph.addEdge(node, traitNodeId, "STUDIES");
+        final Node studyNode = graph.findNode(STUDY_LABEL, ID_KEY, association.studyAccession);
         graph.addEdge(studyNode, node, "WITH_ASSOCIATION");
         getOrCreatePublication(graph, association);
     }
