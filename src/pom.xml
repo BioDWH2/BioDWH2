@@ -79,6 +79,7 @@
         <module>biodwh2-diseaseontology</module>
         <module>biodwh2-basicformalontology</module>
         <module>biodwh2-hmdb</module>
+        <module>biodwh2-cpdb</module>
     </modules>
 
     <packaging>pom</packaging>
