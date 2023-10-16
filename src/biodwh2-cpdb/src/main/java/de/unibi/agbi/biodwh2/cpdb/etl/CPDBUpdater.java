@@ -15,10 +15,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CPDBUpdater extends Updater<CPDBDataSource> {
-    private static final String VERSION_URL = "http://cpdb.molgen.mpg.de/CPDB";
+    private static final String VERSION_URL = "http://cpdb.molgen.mpg.de/CPDB/rlFrame";
     // Release <b>35</b> (<span>05.06.2021</span>)
     private static final Pattern VERSION_PATTERN = Pattern.compile(
-            "Release <b>\\d+</b> \\(<span>(\\d{2}\\.\\d{2}\\.\\d{4})</span>\\)");
+            "Release <b>\\d+</b>\\s+\\(<span>(\\d{2})\\.(\\d{2})\\.(\\d{4})</span>\\)");
     public static final String PPI_TAB_FILE_NAME = "ConsensusPathDB_human_PPI.gz";
     public static final String PPI_PSI_MI_FILE_NAME = "ConsensusPathDB_human_PPI.psi25.gz";
     public static final String METABOLITES_FILE_NAME = "CPDB_pathways_metabolites.tab";
@@ -49,7 +49,7 @@ public class CPDBUpdater extends Updater<CPDBDataSource> {
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
-            final String source = HTTPClient.getWebsiteSource(VERSION_URL);
+            final String source = HTTPClient.getWebsiteSource(VERSION_URL, 3);
             final Matcher matcher = VERSION_PATTERN.matcher(source);
             if (matcher.find()) {
                 final int day = Integer.parseInt(matcher.group(1));

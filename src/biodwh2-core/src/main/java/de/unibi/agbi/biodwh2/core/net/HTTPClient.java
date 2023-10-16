@@ -48,21 +48,40 @@ public final class HTTPClient {
     }
 
     public static String getWebsiteSource(final String url) throws IOException {
-        return getWebsiteSource(url, null, null);
+        return getWebsiteSource(url, null, null, 0);
+    }
+
+    public static String getWebsiteSource(final String url, int retries) throws IOException {
+        return getWebsiteSource(url, null, null, retries);
     }
 
     public static String getWebsiteSource(final String url, final String username,
                                           final String password) throws IOException {
-        final StringBuilder result = new StringBuilder();
-        try (BufferedReader reader = FileUtils.createBufferedReaderFromStream(
-                getUrlInputStream(url, username, password))) {
-            String inputLine = reader.readLine();
-            while (inputLine != null) {
-                result.append(inputLine).append('\n');
-                inputLine = reader.readLine();
+        return getWebsiteSource(url, username, password, 0);
+    }
+
+    public static String getWebsiteSource(final String url, final String username, final String password,
+                                          int retries) throws IOException {
+        int counter = 0;
+        while (counter <= retries) {
+            StringBuilder result = new StringBuilder();
+            try (BufferedReader reader = FileUtils.createBufferedReaderFromStream(
+                    getUrlInputStream(url, username, password))) {
+                String inputLine = reader.readLine();
+                while (inputLine != null) {
+                    result.append(inputLine).append('\n');
+                    inputLine = reader.readLine();
+                }
+            } catch (IOException ex) {
+                if (counter < retries) {
+                    counter++;
+                    continue;
+                }
+                throw ex;
             }
+            return result.toString();
         }
-        return result.toString();
+        return null;
     }
 
     public static InputStream getUrlInputStream(final String url) throws IOException {

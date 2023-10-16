@@ -90,6 +90,16 @@ public abstract class MIGraphExporter<D extends DataSource> extends GraphExporte
             }
             if (entry.experimentList != null) {
                 for (final ExperimentDescription experiment : entry.experimentList) {
+                    final NodeBuilder builder = graph.buildNode().withLabel("Experiment");
+                    builder.withProperty(ID_KEY, experiment.id);
+                    if (experiment.names != null) {
+                        if (StringUtils.isNotEmpty(experiment.names.fullName))
+                            builder.withProperty("full_name", experiment.names.fullName);
+                        if (StringUtils.isNotEmpty(experiment.names.shortLabel))
+                            builder.withProperty("short_label", experiment.names.shortLabel);
+                        // TODO: alias
+                    }
+                    final Node experimentNode = builder.build();
                     // TODO
                     if (experiment.hostOrganismList != null) {
                         for (final HostOrganism organism : experiment.hostOrganismList) {
