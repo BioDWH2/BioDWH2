@@ -1,20 +1,16 @@
 package de.unibi.agbi.biodwh2.core.etl;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
-import de.unibi.agbi.biodwh2.core.io.mixml.BioSource;
-import de.unibi.agbi.biodwh2.core.io.mixml.Entry;
-import de.unibi.agbi.biodwh2.core.io.mixml.EntrySet;
-import de.unibi.agbi.biodwh2.core.io.mixml.Interactor;
+import de.unibi.agbi.biodwh2.core.io.mixml.*;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -36,6 +32,8 @@ public abstract class MIGraphExporter<D extends DataSource> extends GraphExporte
     }
 
     private static final Logger LOGGER = LogManager.getLogger(MIGraphExporter.class);
+    private static final String ORGANISM_LABEL = "Organism";
+    private static final String NCBI_TAX_ID_KEY = "ncbi_tax_id";
 
     private final MIFormat format;
 
@@ -52,7 +50,7 @@ public abstract class MIGraphExporter<D extends DataSource> extends GraphExporte
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         if (format == MIFormat.Xml) {
-            graph.addIndex(IndexDescription.forNode("BioSource", "ncbi_tax_id", false, IndexDescription.Type.UNIQUE));
+            graph.addIndex(IndexDescription.forNode(ORGANISM_LABEL, NCBI_TAX_ID_KEY, IndexDescription.Type.UNIQUE));
             try {
                 final XmlMapper xmlMapper = XmlMapper.builder().disable(JsonParser.Feature.AUTO_CLOSE_SOURCE).build();
                 exportFiles(workspace, (s -> exportEntrySet(graph, xmlMapper.readValue(s, EntrySet.class))));
@@ -70,34 +68,63 @@ public abstract class MIGraphExporter<D extends DataSource> extends GraphExporte
                                         final ExportCallback<InputStream> callback) throws IOException;
 
     private void exportEntrySet(final Graph graph, final EntrySet entrySet) {
-        final ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         for (final Entry entry : entrySet.entries) {
-            try {
-                graph.buildNode().withLabel("Entry").withProperty("source",
-                                                                  objectMapper.writeValueAsString(entry.source))
-                     .withProperty("attributeList", objectMapper.writeValueAsString(entry.attributeList)).withProperty(
-                             "availabilityList", objectMapper.writeValueAsString(entry.availabilityList)).withProperty(
-                             "interactorList", objectMapper.writeValueAsString(entry.interactorList)).withProperty(
-                             "interactionList", objectMapper.writeValueAsString(entry.interactionList)).withProperty(
-                             "experimentList", objectMapper.writeValueAsString(entry.experimentList)).build();
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+            if (entry.interactorList != null) {
+                for (final Interactor interactor : entry.interactorList) {
+                    // TODO
+                    getOrCreateBioSource(graph, interactor.organism);
+                }
             }
-            for (final Interactor interactor : entry.interactorList) {
-                getOrCreateBioSource(graph, interactor.organism);
+            if (entry.interactionList != null) {
+                if (entry.interactionList.interaction != null) {
+                    for (final Interaction interaction : entry.interactionList.interaction) {
+                        // TODO
+                    }
+                }
+                if (entry.interactionList.abstractInteraction != null) {
+                    for (final AbstractInteraction interaction : entry.interactionList.abstractInteraction) {
+                        // TODO
+                        getOrCreateBioSource(graph, interaction.organism);
+                    }
+                }
+            }
+            if (entry.experimentList != null) {
+                for (final ExperimentDescription experiment : entry.experimentList) {
+                    // TODO
+                    if (experiment.hostOrganismList != null) {
+                        for (final HostOrganism organism : experiment.hostOrganismList) {
+                            // TODO: experimentRefList
+                            getOrCreateBioSource(graph, organism);
+                        }
+                    }
+                }
             }
         }
     }
 
-    private Node getOrCreateBioSource(final Graph graph, final BioSource bioSource) {
-        if (bioSource.cellType != null)
-            System.out.println(bioSource.cellType);
-        Node node = graph.findNode("BioSource", "ncbi_tax_id", bioSource.ncbiTaxId);
-        if (node == null) {
-            // TODO: more properties
-            node = graph.addNode("BioSource", "ncbi_tax_id", bioSource.ncbiTaxId);
+    private void getOrCreateBioSource(final Graph graph, final BioSource bioSource) {
+        // TODO: names, cellType, compartment, tissue
+        if (bioSource.ncbiTaxId >= 0) {
+            final Long organismNodeId = getOrCreateOrganismNode(graph, bioSource.ncbiTaxId, bioSource.names);
+        } else {
+            // TODO
         }
-        return node;
+    }
+
+    private Long getOrCreateOrganismNode(final Graph graph, final Integer ncbiTaxId, final Names names) {
+        Node node = graph.findNode(ORGANISM_LABEL, NCBI_TAX_ID_KEY, ncbiTaxId);
+        if (node == null) {
+            final NodeBuilder builder = graph.buildNode().withLabel(ORGANISM_LABEL);
+            builder.withProperty(NCBI_TAX_ID_KEY, ncbiTaxId);
+            if (names != null) {
+                if (StringUtils.isNotEmpty(names.fullName))
+                    builder.withProperty("full_name", names.fullName);
+                if (StringUtils.isNotEmpty(names.shortLabel))
+                    builder.withProperty("short_label", names.shortLabel);
+                // TODO: alias
+            }
+            node = builder.build();
+        }
+        return node.getId();
     }
 }

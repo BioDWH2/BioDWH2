@@ -35,7 +35,6 @@ public class IntActGraphExporter extends MIGraphExporter<IntActDataSource> {
                 if (LOGGER.isInfoEnabled())
                     LOGGER.info("Exporting '" + zipEntry.getName() + "'...");
                 callback.accept(stream);
-                break;
             }
         }
     }
