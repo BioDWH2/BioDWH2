@@ -80,6 +80,7 @@
         <module>biodwh2-basicformalontology</module>
         <module>biodwh2-hmdb</module>
         <module>biodwh2-cpdb</module>
+        <module>biodwh2-psimiontology</module>
     </modules>
 
     <packaging>pom</packaging>
