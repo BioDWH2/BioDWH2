@@ -36,7 +36,7 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode(DB_OBJECT_LABEL, ID_PROPERTY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DB_OBJECT_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting GO ontology...");
         return super.exportGraph(workspace, graph) && exportAnnotations(workspace, graph);
@@ -71,7 +71,7 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
     }
 
     private void exportAnnotation(final Graph graph, final GAFEntry entry) {
-        final Node termNode = graph.findNode("Term", ID_PROPERTY, entry.goId);
+        final Node termNode = graph.findNode("Term", ID_KEY, entry.goId);
         // If referencing an obsolete term excluded via config file, just skip this annotation
         if (termNode == null)
             return;
@@ -99,10 +99,10 @@ public class GeneOntologyGraphExporter extends OntologyGraphExporter<GeneOntolog
 
     private Node getOrCreateDatabaseObject(final Graph graph, final GAFEntry entry) {
         final String id = entry.geneProductFormId != null ? entry.geneProductFormId : entry.db + ':' + entry.dbObjectId;
-        Node node = graph.findNode(DB_OBJECT_LABEL, ID_PROPERTY, id);
+        Node node = graph.findNode(DB_OBJECT_LABEL, ID_KEY, id);
         if (node == null) {
             final NodeBuilder builder = graph.buildNode().withLabel(DB_OBJECT_LABEL);
-            builder.withProperty(ID_PROPERTY, id);
+            builder.withProperty(ID_KEY, id);
             builder.withProperty("db", entry.db);
             builder.withProperty("db_object_id", entry.dbObjectId);
             builder.withProperty("symbol", entry.dbObjectSymbol);
