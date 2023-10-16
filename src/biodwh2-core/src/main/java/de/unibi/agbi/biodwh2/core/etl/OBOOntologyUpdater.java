@@ -11,8 +11,12 @@ import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public abstract class OBOOntologyUpdater<D extends DataSource> extends Updater<D> {
+    private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{2}):(\\d{2}):(\\d{4})");
+
     public OBOOntologyUpdater(final D dataSource) {
         super(dataSource);
     }
@@ -27,19 +31,39 @@ public abstract class OBOOntologyUpdater<D extends DataSource> extends Updater<D
     }
 
     private Version getVersionFromDownloadFile() throws IOException {
+        String dateLine = null;
+        String dataVersionLine = null;
         String line;
         try (InputStream stream = HTTPClient.getUrlInputStream(getDownloadUrl());
              BufferedReader bufferedReader = FileUtils.createBufferedReaderFromStream(stream)) {
-            line = bufferedReader.readLine();
-            while (line != null && !line.trim().startsWith("data-version:"))
-                line = bufferedReader.readLine();
+            while ((line = bufferedReader.readLine()) != null) {
+                final String trimmedLine = line.trim();
+                if (trimmedLine.startsWith("data-version:"))
+                    dataVersionLine = line;
+                else if (trimmedLine.startsWith("date:"))
+                    dateLine = line;
+                else if (trimmedLine.startsWith("[Term]"))
+                    break;
+            }
         }
-        return line == null ? null : getVersionFromDataVersionLine(line);
+        if (dataVersionLine != null)
+            return getVersionFromDataVersionLine(dataVersionLine);
+        if (dateLine != null)
+            return getVersionFromDate(dateLine);
+        return null;
     }
 
     protected abstract String getDownloadUrl();
 
     protected abstract Version getVersionFromDataVersionLine(final String dataVersion);
+
+    private Version getVersionFromDate(final String date) {
+        final Matcher matcher = DATE_PATTERN.matcher(date);
+        if (matcher.find())
+            return new Version(Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(2)),
+                               Integer.parseInt(matcher.group(1)));
+        return null;
+    }
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
