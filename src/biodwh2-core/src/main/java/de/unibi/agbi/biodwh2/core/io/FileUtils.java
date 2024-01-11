@@ -143,6 +143,11 @@ public final class FileUtils {
         return openSeparatedValuesFile(stream, typeClass, '\t', true);
     }
 
+    public static <T> MappingIterator<T> openTsvWithHeader(final InputStream stream,
+                                                           final Class<T> typeClass) throws IOException {
+        return openSeparatedValuesFile(stream, typeClass, '\t', true);
+    }
+
     public static <T> MappingIterator<T> openTsvWithHeaderWithoutQuoting(final Workspace workspace,
                                                                          final DataSource dataSource,
                                                                          final String fileName,
