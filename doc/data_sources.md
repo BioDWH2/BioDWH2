@@ -47,13 +47,15 @@ This page lists all data source modules officially supported by BioDWH2. Details
 |----------------------|------------------------------------------------------------------------------------|---------------------------------|----------------------------------------------------------------------------------------------------------|------|
 | BRENDA               | BRENDA                                                                             | CC BY 4.0                       | [Link](https://www.brenda-enzymes.org)                                                                   | #88  |
 | CanadianNutrientFile | CanadianNutrientFile                                                               |                                 | [Link](https://www.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/nutrient-data.html) |      |
-| ClinicalTrials d)    | ClinicalTrials.gov Clinical Trials Database                                        |                                 | [Link](https://ClinicalTrials.gov)                                                                       | #50  |
+| ClinicalTrials       | ClinicalTrials.gov Clinical Trials Database                                        |                                 | [Link](https://ClinicalTrials.gov)                                                                       | #50  |
+| CPDB                 |                                                                                    |                                 | [Link](http://cpdb.molgen.mpg.de)                                                                        |      |
 | DGIdb                | The Drug Gene Interaction Database                                                 |                                 | [Link](http://dgidb.org)                                                                                 | #12  |
 | DISEASES             | Gene-Disease association database                                                  | CC BY 4.0                       | [Link](https://diseases.jensenlab.org)                                                                   | #81  |
 | GenCC                | GenCC                                                                              | CC0 1.0                         | [Link](https://thegencc.org)                                                                             | #70  |
 | GuideToPharmacology  | IUPHAR - GuideToPharmacology                                                       | CC BY-SA 4.0                    | [Link](https://www.guidetopharmacology.org)                                                              | #66  |
 | GWASCatalog          | GWAS Catalog                                                                       |                                 | [Link](https://www.ebi.ac.uk/gwas/home)                                                                  | #44  |
 | HERB                 | Experiment- and reference-guided database of traditional Chinese medicine          |                                 | [Link](http://herb.ac.cn)                                                                                | #62  |
+| HMDB                 | Human Metabolome Database                                                          |                                 | [Link](https://hmdb.ca)                                                                                  |      |
 | IntAct               | IntAct                                                                             | CC BY 4.0                       | [Link](https://www.ebi.ac.uk/intact/)                                                                    | #61  |
 | ITIS                 | Integrated Taxonomic Information System                                            | CC0 with attribution            | [Link](https://www.itis.gov)                                                                             | #32  |
 | KEGG                 | Kyoto Encyclopedia of Genes and Genomes                                            |                                 | [Link](https://www.kegg.jp)                                                                              | #23  |
@@ -197,6 +199,21 @@ CMAUP is a database of molecular activities of useful plants.
   - `CMAUPv1.0_download_Ingredients_onlyActive.txt`
   - `CMAUPv1.0_download_Plant_Ingredient_Associations_onlyActiveIngredients.txt`
   - `CMAUPv1.0_download_Ingredient_Target_Associations_ActivityValues_References.txt`
+
+**Configuration properties**:
+
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |
+
+----
+
+### CPDB
+
+- **Website**: [http://cpdb.molgen.mpg.de](http://cpdb.molgen.mpg.de)
+- **License**:
+- **Citation**:
+- **Files used**:
 
 **Configuration properties**:
 
@@ -499,6 +516,21 @@ The HGNC is responsible for approving unique symbols and names for human loci, i
 - **Citation**: ```Tweedie S, Braschi B, Gray KA, Jones TEM, Seal RL, Yates B, Bruford EA. Genenames.org: the HGNC and VGNC resources in 2021. Nucleic Acids Res. PMID: 33152070 PMCID: PMC7779007 doi:``` [10.1093/nar/gkaa980](https://doi.org/10.1093/nar/gkaa980)
 - **Files used**:
   -`hgnc_complete_set.txt`
+
+**Configuration properties**:
+
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |
+
+----
+
+### HMDB
+
+- **Website**: [https://hmdb.ca](https://hmdb.ca)
+- **License**: ```HMDB is offered to the public as a freely available resource. Use and re-distribution of the data, in whole or in part, for commercial purposes requires explicit permission of the authors and explicit acknowledgment of the source material (HMDB) and the original publication (see below). We ask that users who download significant portions of the database cite the HMDB paper in any resulting publications.```
+- **Citation**: ```Wishart DS, Guo AC, Oler E, et al., HMDB 5.0: the Human Metabolome Database for 2022. Nucleic Acids Res. 2022. Jan 7;50(D1):D622–31. PMID: 34986597.```
+- **Files used**:
 
 **Configuration properties**:
 
