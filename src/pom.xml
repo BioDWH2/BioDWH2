@@ -75,7 +75,6 @@
         <module>biodwh2-expasy</module>
         <module>biodwh2-hprd</module>
         <module>biodwh2-diseaseontology</module>
-        <module>biodwh2-basicformalontology</module>
         <module>biodwh2-hmdb</module>
         <module>biodwh2-cpdb</module>
         <module>biodwh2-psimiontology</module>
