@@ -34,7 +34,6 @@
         <module>biodwh2-ncbi</module>
         <module>biodwh2-itis</module>
         <module>biodwh2-usdaplants</module>
-        <module>biodwh2-abdamed2</module>
         <module>biodwh2-cancerdrugsdb</module>
         <module>biodwh2-gene2phenotype</module>
         <module>biodwh2-canadiannutrientfile</module>
@@ -82,6 +81,7 @@
         <module>biodwh2-cpdb</module>
         <module>biodwh2-psimiontology</module>
         <module>biodwh2-tatonetti2012</module>
+        <module>biodwh2-biom2metdisease</module>
     </modules>
 
     <packaging>pom</packaging>
