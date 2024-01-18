@@ -1,15 +1,16 @@
-package de.unibi.agbi.biodwh2.psimiontology;
+package de.unibi.agbi.biodwh2.ontologies;
 
 import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.text.License;
 
-public class PsiMiOntologyDataSource extends SingleOBOOntologyDataSource {
-    private static final String FILE_NAME = "mi.obo";
+@SuppressWarnings("unused")
+public class MolecularInteractionsOntologyDataSource extends SingleOBOOntologyDataSource {
+    static final String FILE_NAME = "psi-mi.obo";
 
     @Override
     public String getId() {
-        return "PsiMiOntology";
+        return "MolecularInteractionsOntology";
     }
 
     @Override
@@ -19,7 +20,7 @@ public class PsiMiOntologyDataSource extends SingleOBOOntologyDataSource {
 
     @Override
     protected String getDownloadUrl() {
-        return "https://purl.obolibrary.org/obo/" + FILE_NAME;
+        return "https://raw.githubusercontent.com/HUPO-PSI/psi-mi-CV/master/psi-mi.obo";
     }
 
     @Override

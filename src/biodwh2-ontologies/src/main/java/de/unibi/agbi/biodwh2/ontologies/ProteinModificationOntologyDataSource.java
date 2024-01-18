@@ -6,12 +6,12 @@ import de.unibi.agbi.biodwh2.core.text.License;
 import org.apache.commons.lang3.StringUtils;
 
 @SuppressWarnings("unused")
-public class MassSpectrometryOntologyDataSource extends SingleOBOOntologyDataSource {
-    static final String FILE_NAME = "psi-ms.obo";
+public class ProteinModificationOntologyDataSource extends SingleOBOOntologyDataSource {
+    static final String FILE_NAME = "psi-mod.obo";
 
     @Override
     public String getId() {
-        return "MassSpectrometryOntology";
+        return "ProteinModificationOntology";
     }
 
     @Override
@@ -21,7 +21,7 @@ public class MassSpectrometryOntologyDataSource extends SingleOBOOntologyDataSou
 
     @Override
     protected String getDownloadUrl() {
-        return "https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo";
+        return "https://raw.githubusercontent.com/HUPO-PSI/psi-mod-CV/master/PSI-MOD.obo";
     }
 
     @Override
