@@ -10,6 +10,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 |---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|-----------------------------------------------------------------------|------|
 | ADReCS              | Adverse Drug Reaction Classification System                                                                                                             | CC BY-NC-SA 4.0       | [Link](https://bioinf.xmu.edu.cn/ADReCS/)                             | #60  |
 | BasicFormalOntology | Basic Formal Ontology                                                                                                                                   | CC BY 4.0             | [Link](https://basic-formal-ontology.org)                             | #91  |
+| BioM2MetDisease     | BioM2MetDisease                                                                                                                                         |                       | [Link](http://bio-bigdata.hrbmu.edu.cn/BioM2MetDisease/)              |      |
 | CancerDrugsDB       | A curated listing of licensed cancer drugs by the Anticancer Fund                                                                                       |                       | [Link](https://www.anticancerfund.org/en/cancerdrugs-db)              | #40  |
 | CMAUP               | Collective Molecular Activities of Useful Plants                                                                                                        |                       | [Link](http://bidd.group/CMAUP/)                                      | #64  |
 | DiseaseOntology     | Human Disease Ontology                                                                                                                                  | CC0 1.0               | [Link](https://disease-ontology.org)                                  | #90  |
@@ -25,6 +26,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | HPRD                | Human Protein Reference Database                                                                                                                        |                       | [Link](http://www.hprd.org)                                           | #89  |
 | InterPro            | InterPro                                                                                                                                                |                       | [Link](https://www.ebi.ac.uk/interpro/)                               | #68  |
 | MED                 | Medication Reference Terminology (MED-RT™)                                                                                                              | UMLS license          | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/)                          | #10  |
+| miR2Disease         | miR2Disease                                                                                                                                             |                       | [Link](http://www.mir2disease.org)                                    |      |
 | miRBase             | miRBase                                                                                                                                                 | CC0 with attribution  | [Link](https://www.mirbase.org)                                       | #74  |
 | miRDB               | miRDB                                                                                                                                                   |                       | [Link](https://www.mirdb.org)                                         | #78  |
 | miRTarBase          | miRTarBase                                                                                                                                              |                       | [Link](https://mirtarbase.cuhk.edu.cn)                                | #75  |
@@ -111,6 +113,16 @@ The Basic Formal Ontology (BFO)
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
+
+----
+
+### BioM2MetDisease
+
+- **Website**: [http://bio-bigdata.hrbmu.edu.cn/BioM2MetDisease/](http://bio-bigdata.hrbmu.edu.cn/BioM2MetDisease/)
+- **License**:
+- **Citation**:
+- **Files used**:
+  - ```BioM2MetDiseaseData.txt```
 
 ----
 
@@ -667,6 +679,18 @@ Integrated Taxonomic Information System
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
+
+----
+
+### miR2Disease
+
+- **Website**: [http://www.mir2disease.org](http://www.mir2disease.org)
+- **License**:
+- **Citation**:
+- **Files used**:
+  - ```miRtar.txt```
+  - ```diseaseList.txt```
+  - ```AllEntries.txt```
 
 ----
 
