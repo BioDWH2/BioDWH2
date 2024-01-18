@@ -25,16 +25,17 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | HPO                 | Human Phenotype Ontology                                                                                                                                | HPO license           | [Link](https://hpo.jax.org)                                           | #24  |
 | HPRD                | Human Protein Reference Database                                                                                                                        |                       | [Link](http://www.hprd.org)                                           | #89  |
 | InterPro            | InterPro                                                                                                                                                |                       | [Link](https://www.ebi.ac.uk/interpro/)                               | #68  |
-| MED                 | Medication Reference Terminology (MED-RT™)                                                                                                              | UMLS license          | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/)                          | #10  |
+| MED-RT              | Medication Reference Terminology (MED-RT™)                                                                                                              | UMLS license          | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/)                          | #10  |
 | miR2Disease         | miR2Disease                                                                                                                                             |                       | [Link](http://www.mir2disease.org)                                    |      |
 | miRBase             | miRBase                                                                                                                                                 | CC0 with attribution  | [Link](https://www.mirbase.org)                                       | #74  |
 | miRDB               | miRDB                                                                                                                                                   |                       | [Link](https://www.mirdb.org)                                         | #78  |
 | miRTarBase          | miRTarBase                                                                                                                                              |                       | [Link](https://mirtarbase.cuhk.edu.cn)                                | #75  |
+| Mondo               | Mondo Disease Ontology                                                                                                                                  | CC BY 4.0             | [Link](https://mondo.monarchinitiative.org)                           | #26  |
+| NDF-RT              | National Drug File – Reference Terminology (NDF-RT™)                                                                                                    | UMLS license          | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/)                          | #11  |
 | Negatome            | Negatome                                                                                                                                                |                       | [Link](http://mips.helmholtz-muenchen.de/proj/ppi/negatome/)          | #67  |
-| NDF                 | National Drug File – Reference Terminology (NDF-RT™)                                                                                                    | UMLS license          | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/)                          | #11  |
 | OMIM                | Online Mendelian Inheritance in Man®                                                                                                                    | OMIM license          | [Link](https://www.omim.org)                                          | #57  |
 | PharmGKB            | PharmGKB                                                                                                                                                | CC BY-SA 4.0          | [Link](https://www.pharmgkb.org)                                      | #8   |
-| ReDO                | A curated listing of non-cancer drugs which have shown some evidence of anticancer activity by the Anticancer Fund                                      |                       | [Link](https://www.anticancerfund.org/en/redo-db)                     | #41  |
+| ReDO-DB             | A curated listing of non-cancer drugs which have shown some evidence of anticancer activity by the Anticancer Fund                                      |                       | [Link](https://www.anticancerfund.org/en/redo-db)                     | #41  |
 | ReDOTrialsDB        | A curated database, produced by the Anticancer Fund, of active clinical trials investigating the use of non-cancer drugs as potential cancer treatments |                       | [Link](https://www.anticancerfund.org/en/redo-trials-db)              | #42  |
 | RNALocate           | RNA subcellular localization database                                                                                                                   |                       | [Link](http://www.rna-society.org/rnalocate/)                         | #83  |
 | SequenceOntology    | Sequence Ontology                                                                                                                                       | CC BY-SA 4.0          | [Link](http://www.sequenceontology.org)                               | #85  |
@@ -56,16 +57,17 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | GenCC                | GenCC                                                                              | CC0 1.0                         | [Link](https://thegencc.org)                                                                             | #70  |
 | GuideToPharmacology  | IUPHAR - GuideToPharmacology                                                       | CC BY-SA 4.0                    | [Link](https://www.guidetopharmacology.org)                                                              | #66  |
 | GWASCatalog          | GWAS Catalog                                                                       |                                 | [Link](https://www.ebi.ac.uk/gwas/home)                                                                  | #44  |
+| HAMAP                | Expasy HAMAP                                                                       |                                 | [Link](https://hamap.expasy.org)                                                                         |      |
 | HERB                 | Experiment- and reference-guided database of traditional Chinese medicine          |                                 | [Link](http://herb.ac.cn)                                                                                | #62  |
 | HMDB                 | Human Metabolome Database                                                          |                                 | [Link](https://hmdb.ca)                                                                                  |      |
 | IntAct               | IntAct                                                                             | CC BY 4.0                       | [Link](https://www.ebi.ac.uk/intact/)                                                                    | #61  |
 | ITIS                 | Integrated Taxonomic Information System                                            | CC0 with attribution            | [Link](https://www.itis.gov)                                                                             | #32  |
 | KEGG                 | Kyoto Encyclopedia of Genes and Genomes                                            |                                 | [Link](https://www.kegg.jp)                                                                              | #23  |
-| Mondo                | Mondo Disease Ontology                                                             | CC BY 4.0                       | [Link](https://mondo.monarchinitiative.org)                                                              | #26  |
 | PathwayCommons       | Data warehouse of different pathway databases                                      |                                 | [Link](http://www.pathwaycommons.org)                                                                    | #45  |
 | PROSITE              | Expasy PROSITE & ProRule                                                           | CC BY-NC-ND 4.0                 | [Link](https://prosite.expasy.org)                                                                       | #87  |
-| RNAInter             | RNAInter                                                                           | non-commercial with attribution | [Link](http://www.rnainter.org)                                                                          | #77  |
+| RefSeq               | RefSeq                                                                             |                                 | [Link](https://www.ncbi.nlm.nih.gov/refseq/)                                                             |      |
 | RNADisease           | RNADisease                                                                         | non-commercial with attribution | [Link](http://www.rnadisease.org)                                                                        | #84  |
+| RNAInter             | RNAInter                                                                           | non-commercial with attribution | [Link](http://www.rnainter.org)                                                                          | #77  |
 | STITCH               | STITCH Chemical-Protein Interaction Networks                                       |                                 | [Link](http://stitch.embl.de)                                                                            | #59  |
 | STRING               | STRING Protein-Protein Interaction Networks                                        |                                 | [Link](https://string-db.org)                                                                            | #55  |
 | T3DB                 | T3DB                                                                               |                                 | [Link](http://www.t3db.ca)                                                                               | #72  |
@@ -491,6 +493,18 @@ Nucleic Acids Research, 2019, Vol. 47 (Database issue): D1005-D1012.```
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
+
+----
+
+### HAMAP
+
+Expasy HAMAP
+
+- **Website**: [https://hamap.expasy.org](https://hamap.expasy.org)
+- **License**:
+- **Citation**:
+- **Files used**:
+  - `hamap_rules.dat`
 
 ----
 
@@ -952,6 +966,16 @@ ReDOTrialsDB is a curated database, produced by the Anticancer Fund, of active c
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
+
+----
+
+### RefSeq
+
+- **Website**: [https://www.ncbi.nlm.nih.gov/refseq/](https://www.ncbi.nlm.nih.gov/refseq/)
+- **License**: Public domain except for third-party information (https://www.ncbi.nlm.nih.gov/home/about/policies/)
+- **Citation**: ```O'Leary NA, Wright MW, Brister JR, Ciufo S, Haddad D, McVeigh R, Rajput B, Robbertse B, Smith-White B, Ako-Adjei D, Astashyn A, Badretdin A, Bao Y, Blinkova O, Brover V, Chetvernin V, Choi J, Cox E, Ermolaeva O, Farrell CM, Goldfarb T, Gupta T, Haft D, Hatcher E, Hlavina W, Joardar VS, Kodali VK, Li W, Maglott D, Masterson P, McGarvey KM, Murphy MR, O'Neill K, Pujar S, Rangwala SH, Rausch D, Riddick LD, Schoch C, Shkeda A, Storz SS, Sun H, Thibaud-Nissen F, Tolstoy I, Tully RE, Vatsan AR, Wallin C, Webb D, Wu W, Landrum MJ, Kimchi A, Tatusova T, DiCuccio M, Kitts P, Murphy TD, Pruitt KD. Reference sequence (RefSeq) database at NCBI: current status, taxonomic expansion, and functional annotation. Nucleic Acids Res. 2016 Jan 4;44(D1):D733-45. doi:``` [10.1093/nar/gkv1189](http://doi.org/10.1093/nar/gkv1189)
+- **Files used**:
+  - `[...]_genomic.gff.gz` depending on configured assembly
 
 ----
 
