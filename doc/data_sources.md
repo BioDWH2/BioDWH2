@@ -6,43 +6,44 @@ This page lists all data source modules officially supported by BioDWH2. Details
 
 ## Usable
 
-| ID                  | Name                                                                                                                                                    | License               | Website                                                               | Task |
-|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|-----------------------------------------------------------------------|------|
-| ADReCS              | Adverse Drug Reaction Classification System                                                                                                             | CC BY-NC-SA 4.0       | [Link](https://bioinf.xmu.edu.cn/ADReCS/)                             | #60  |
-| BasicFormalOntology | Basic Formal Ontology                                                                                                                                   | CC BY 4.0             | [Link](https://basic-formal-ontology.org)                             | #91  |
-| BioM2MetDisease     | BioM2MetDisease                                                                                                                                         |                       | [Link](http://bio-bigdata.hrbmu.edu.cn/BioM2MetDisease/)              |      |
-| CancerDrugsDB       | A curated listing of licensed cancer drugs by the Anticancer Fund                                                                                       |                       | [Link](https://www.anticancerfund.org/en/cancerdrugs-db)              | #40  |
-| CMAUP               | Collective Molecular Activities of Useful Plants                                                                                                        |                       | [Link](http://bidd.group/CMAUP/)                                      | #64  |
-| DiseaseOntology     | Human Disease Ontology                                                                                                                                  | CC0 1.0               | [Link](https://disease-ontology.org)                                  | #90  |
-| DrugBank            | DrugBank                                                                                                                                                | CC BY-NC 4.0          | [Link](http://drugbank.ca)                                            | #9   |
-| DrugCentral         | DrugCentral                                                                                                                                             | CC BY-SA 4.0          | [Link](http://drugcentral.org)                                        | #18  |
-| EFO                 | Experimental Factor Ontology                                                                                                                            | Apache-2.0            | [Link](https://www.ebi.ac.uk/efo/)                                    | #58  |
-| EMA                 | European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC]                                                                                 |                       | [Link](https://www.ema.europa.eu/en/medicines/download-medicine-data) | #43  |
-| ENZYME              | Expasy ENZYME                                                                                                                                           | CC BY 4.0             | [Link](https://enzyme.expasy.org)                                     | #86  |
-| Gene2Phenotype      | Datasets for use in diagnostic variant filtering                                                                                                        |                       | [Link](https://www.ebi.ac.uk/gene2phenotype)                          | #51  |
-| GeneOntology        | Gene Ontology                                                                                                                                           | CC BY 4.0             | [Link](http://geneontology.org)                                       | #28  |
-| HGNC                | HUGO Gene Nomenclature Committee                                                                                                                        | CC0 1.0               | [Link](https://www.genenames.org)                                     | #13  |
-| HPO                 | Human Phenotype Ontology                                                                                                                                | HPO license           | [Link](https://hpo.jax.org)                                           | #24  |
-| HPRD                | Human Protein Reference Database                                                                                                                        |                       | [Link](http://www.hprd.org)                                           | #89  |
-| InterPro            | InterPro                                                                                                                                                |                       | [Link](https://www.ebi.ac.uk/interpro/)                               | #68  |
-| MED-RT              | Medication Reference Terminology (MED-RT™)                                                                                                              | UMLS license          | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/)                          | #10  |
-| miR2Disease         | miR2Disease                                                                                                                                             |                       | [Link](http://www.mir2disease.org)                                    |      |
-| miRBase             | miRBase                                                                                                                                                 | CC0 with attribution  | [Link](https://www.mirbase.org)                                       | #74  |
-| miRDB               | miRDB                                                                                                                                                   |                       | [Link](https://www.mirdb.org)                                         | #78  |
-| miRTarBase          | miRTarBase                                                                                                                                              |                       | [Link](https://mirtarbase.cuhk.edu.cn)                                | #75  |
-| Mondo               | Mondo Disease Ontology                                                                                                                                  | CC BY 4.0             | [Link](https://mondo.monarchinitiative.org)                           | #26  |
-| NDF-RT              | National Drug File – Reference Terminology (NDF-RT™)                                                                                                    | UMLS license          | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/)                          | #11  |
-| Negatome            | Negatome                                                                                                                                                |                       | [Link](http://mips.helmholtz-muenchen.de/proj/ppi/negatome/)          | #67  |
-| OMIM                | Online Mendelian Inheritance in Man®                                                                                                                    | OMIM license          | [Link](https://www.omim.org)                                          | #57  |
-| PharmGKB            | PharmGKB                                                                                                                                                | CC BY-SA 4.0          | [Link](https://www.pharmgkb.org)                                      | #8   |
-| ReDO-DB             | A curated listing of non-cancer drugs which have shown some evidence of anticancer activity by the Anticancer Fund                                      |                       | [Link](https://www.anticancerfund.org/en/redo-db)                     | #41  |
-| ReDOTrialsDB        | A curated database, produced by the Anticancer Fund, of active clinical trials investigating the use of non-cancer drugs as potential cancer treatments |                       | [Link](https://www.anticancerfund.org/en/redo-trials-db)              | #42  |
-| RNALocate           | RNA subcellular localization database                                                                                                                   |                       | [Link](http://www.rna-society.org/rnalocate/)                         | #83  |
-| SequenceOntology    | Sequence Ontology                                                                                                                                       | CC BY-SA 4.0          | [Link](http://www.sequenceontology.org)                               | #85  |
-| SIDER               | SIDER: Side Effect Resource                                                                                                                             | CC BY-NC-SA 4.0       | [Link](http://sideeffects.embl.de)                                    | #25  |
-| TRRUST              | TRRUST                                                                                                                                                  | CC BY-SA 4.0          | [Link](https://www.grnpedia.org/trrust/)                              | #79  |
-| UNII                | FDA Substance Registration System - Unique Ingredient Identifier                                                                                        |                       | [Link](https://fdasis.nlm.nih.gov/srs/)                               | #29  |
-| USDA-PLANTS         | USDA PLANTS Database                                                                                                                                    | Free with attribution | [Link](https://plants.sc.egov.usda.gov)                               | #35  |
+| ID                       | Name                                                                                                                                                    | License               | Website                                                               | Task |
+|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|-----------------------------------------------------------------------|------|
+| ADReCS                   | Adverse Drug Reaction Classification System                                                                                                             | CC BY-NC-SA 4.0       | [Link](https://bioinf.xmu.edu.cn/ADReCS/)                             | #60  |
+| BasicFormalOntology      | Basic Formal Ontology                                                                                                                                   | CC BY 4.0             | [Link](https://basic-formal-ontology.org)                             | #91  |
+| BioM2MetDisease          | BioM2MetDisease                                                                                                                                         |                       | [Link](http://bio-bigdata.hrbmu.edu.cn/BioM2MetDisease/)              |      |
+| CancerDrugsDB            | A curated listing of licensed cancer drugs by the Anticancer Fund                                                                                       |                       | [Link](https://www.anticancerfund.org/en/cancerdrugs-db)              | #40  |
+| CMAUP                    | Collective Molecular Activities of Useful Plants                                                                                                        |                       | [Link](http://bidd.group/CMAUP/)                                      | #64  |
+| DiseaseOntology          | Human Disease Ontology                                                                                                                                  | CC0 1.0               | [Link](https://disease-ontology.org)                                  | #90  |
+| DrugBank                 | DrugBank                                                                                                                                                | CC BY-NC 4.0          | [Link](http://drugbank.ca)                                            | #9   |
+| DrugCentral              | DrugCentral                                                                                                                                             | CC BY-SA 4.0          | [Link](http://drugcentral.org)                                        | #18  |
+| EFO                      | Experimental Factor Ontology                                                                                                                            | Apache-2.0            | [Link](https://www.ebi.ac.uk/efo/)                                    | #58  |
+| EMA                      | European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC]                                                                                 |                       | [Link](https://www.ema.europa.eu/en/medicines/download-medicine-data) | #43  |
+| ENZYME                   | Expasy ENZYME                                                                                                                                           | CC BY 4.0             | [Link](https://enzyme.expasy.org)                                     | #86  |
+| Gene2Phenotype           | Datasets for use in diagnostic variant filtering                                                                                                        |                       | [Link](https://www.ebi.ac.uk/gene2phenotype)                          | #51  |
+| GeneOntology             | Gene Ontology                                                                                                                                           | CC BY 4.0             | [Link](http://geneontology.org)                                       | #28  |
+| HGNC                     | HUGO Gene Nomenclature Committee                                                                                                                        | CC0 1.0               | [Link](https://www.genenames.org)                                     | #13  |
+| HPO                      | Human Phenotype Ontology                                                                                                                                | HPO license           | [Link](https://hpo.jax.org)                                           | #24  |
+| HPRD                     | Human Protein Reference Database                                                                                                                        |                       | [Link](http://www.hprd.org)                                           | #89  |
+| InterPro                 | InterPro                                                                                                                                                |                       | [Link](https://www.ebi.ac.uk/interpro/)                               | #68  |
+| MassSpectrometryOntology | Mass Spectrometry Ontology                                                                                                                              | CC BY 4.0             | [Link](https://github.com/HUPO-PSI/psi-ms-CV)                         |      |
+| MED-RT                   | Medication Reference Terminology (MED-RT™)                                                                                                              | UMLS license          | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/)                          | #10  |
+| miR2Disease              | miR2Disease                                                                                                                                             |                       | [Link](http://www.mir2disease.org)                                    |      |
+| miRBase                  | miRBase                                                                                                                                                 | CC0 with attribution  | [Link](https://www.mirbase.org)                                       | #74  |
+| miRDB                    | miRDB                                                                                                                                                   |                       | [Link](https://www.mirdb.org)                                         | #78  |
+| miRTarBase               | miRTarBase                                                                                                                                              |                       | [Link](https://mirtarbase.cuhk.edu.cn)                                | #75  |
+| Mondo                    | Mondo Disease Ontology                                                                                                                                  | CC BY 4.0             | [Link](https://mondo.monarchinitiative.org)                           | #26  |
+| NDF-RT                   | National Drug File – Reference Terminology (NDF-RT™)                                                                                                    | UMLS license          | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/)                          | #11  |
+| Negatome                 | Negatome                                                                                                                                                |                       | [Link](http://mips.helmholtz-muenchen.de/proj/ppi/negatome/)          | #67  |
+| OMIM                     | Online Mendelian Inheritance in Man®                                                                                                                    | OMIM license          | [Link](https://www.omim.org)                                          | #57  |
+| PharmGKB                 | PharmGKB                                                                                                                                                | CC BY-SA 4.0          | [Link](https://www.pharmgkb.org)                                      | #8   |
+| ReDO-DB                  | A curated listing of non-cancer drugs which have shown some evidence of anticancer activity by the Anticancer Fund                                      |                       | [Link](https://www.anticancerfund.org/en/redo-db)                     | #41  |
+| ReDOTrialsDB             | A curated database, produced by the Anticancer Fund, of active clinical trials investigating the use of non-cancer drugs as potential cancer treatments |                       | [Link](https://www.anticancerfund.org/en/redo-trials-db)              | #42  |
+| RNALocate                | RNA subcellular localization database                                                                                                                   |                       | [Link](http://www.rna-society.org/rnalocate/)                         | #83  |
+| SequenceOntology         | Sequence Ontology                                                                                                                                       | CC BY-SA 4.0          | [Link](http://www.sequenceontology.org)                               | #85  |
+| SIDER                    | SIDER: Side Effect Resource                                                                                                                             | CC BY-NC-SA 4.0       | [Link](http://sideeffects.embl.de)                                    | #25  |
+| TRRUST                   | TRRUST                                                                                                                                                  | CC BY-SA 4.0          | [Link](https://www.grnpedia.org/trrust/)                              | #79  |
+| UNII                     | FDA Substance Registration System - Unique Ingredient Identifier                                                                                        |                       | [Link](https://fdasis.nlm.nih.gov/srs/)                               | #29  |
+| USDA-PLANTS              | USDA PLANTS Database                                                                                                                                    | Free with attribution | [Link](https://plants.sc.egov.usda.gov)                               | #35  |
 
 ## Work in Progress
 
@@ -506,6 +507,12 @@ Expasy HAMAP
 - **Files used**:
   - `hamap_rules.dat`
 
+**Configuration properties**:
+
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |
+
 ----
 
 ### HERB
@@ -677,6 +684,21 @@ Integrated Taxonomic Information System
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
 
+----
+
+### MassSpectrometryOntology
+
+- **Website**: [https://github.com/HUPO-PSI/psi-ms-CV](https://github.com/HUPO-PSI/psi-ms-CV)
+- **License**: CC BY 4.0
+- **Citation**: ```Mayer G, Montecchi-Palazzi L, Ovelleiro D, Jones AR, Binz PA, Deutsch EW, Chambers M, Kallhardt M, Levander F, Shofstahl J, Orchard S, Vizcaíno JA, Hermjakob H, Stephan C, Meyer HE, Eisenacher M; HUPO-PSI Group. The HUPO proteomics standards initiative- mass spectrometry controlled vocabulary. Database (Oxford). 2013 Mar 12;2013:bat009. doi:``` [10.1093/database/bat009](https://doi.org/10.1093/database/bat009)
+- **Files used**:
+  - `psi-ms.obo`
+
+**Configuration properties**:
+
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |
 ----
 
 ### MED-RT
@@ -976,6 +998,13 @@ ReDOTrialsDB is a curated database, produced by the Anticancer Fund, of active c
 - **Citation**: ```O'Leary NA, Wright MW, Brister JR, Ciufo S, Haddad D, McVeigh R, Rajput B, Robbertse B, Smith-White B, Ako-Adjei D, Astashyn A, Badretdin A, Bao Y, Blinkova O, Brover V, Chetvernin V, Choi J, Cox E, Ermolaeva O, Farrell CM, Goldfarb T, Gupta T, Haft D, Hatcher E, Hlavina W, Joardar VS, Kodali VK, Li W, Maglott D, Masterson P, McGarvey KM, Murphy MR, O'Neill K, Pujar S, Rangwala SH, Rausch D, Riddick LD, Schoch C, Shkeda A, Storz SS, Sun H, Thibaud-Nissen F, Tolstoy I, Tully RE, Vatsan AR, Wallin C, Webb D, Wu W, Landrum MJ, Kimchi A, Tatusova T, DiCuccio M, Kitts P, Murphy TD, Pruitt KD. Reference sequence (RefSeq) database at NCBI: current status, taxonomic expansion, and functional annotation. Nucleic Acids Res. 2016 Jan 4;44(D1):D733-45. doi:``` [10.1093/nar/gkv1189](http://doi.org/10.1093/nar/gkv1189)
 - **Files used**:
   - `[...]_genomic.gff.gz` depending on configured assembly
+
+**Configuration properties**:
+
+| Property    | Values     | Description                                     |
+|-------------|------------|-------------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed      |
+| assembly    |            | Assembly name to be used. Example: `GRCh38.p14` |
 
 ----
 

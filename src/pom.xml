@@ -71,7 +71,6 @@
         <module>biodwh2-rnalocate</module>
         <module>biodwh2-h2-mvstore</module>
         <module>biodwh2-rnadisease</module>
-        <module>biodwh2-sequenceontology</module>
         <module>biodwh2-brenda</module>
         <module>biodwh2-expasy</module>
         <module>biodwh2-hprd</module>
@@ -83,6 +82,7 @@
         <module>biodwh2-tatonetti2012</module>
         <module>biodwh2-mir2disease</module>
         <module>biodwh2-biom2metdisease</module>
+        <module>biodwh2-ontologies</module>
     </modules>
 
     <packaging>pom</packaging>

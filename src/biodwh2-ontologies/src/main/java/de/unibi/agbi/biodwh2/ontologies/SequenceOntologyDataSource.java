@@ -1,4 +1,4 @@
-package de.unibi.agbi.biodwh2.sequenceontology;
+package de.unibi.agbi.biodwh2.ontologies;
 
 import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
 import de.unibi.agbi.biodwh2.core.model.Version;

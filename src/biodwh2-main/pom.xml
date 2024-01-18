@@ -279,11 +279,6 @@
         </dependency>
         <dependency>
             <groupId>de.unibi.agbi.biodwh2</groupId>
-            <artifactId>biodwh2-sequenceontology</artifactId>
-            <version>0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>de.unibi.agbi.biodwh2</groupId>
             <artifactId>biodwh2-gencc</artifactId>
             <version>0.1</version>
         </dependency>
@@ -395,6 +390,11 @@
         <dependency>
             <groupId>de.unibi.agbi.biodwh2</groupId>
             <artifactId>biodwh2-biom2metdisease</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-ontologies</artifactId>
             <version>0.1</version>
         </dependency>
         <dependency>
