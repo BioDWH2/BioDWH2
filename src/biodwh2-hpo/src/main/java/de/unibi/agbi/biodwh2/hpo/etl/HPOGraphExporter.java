@@ -17,14 +17,13 @@ import de.unibi.agbi.biodwh2.hpo.model.PhenotypeToGenesEntry;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource> {
     static final String GENE_LABEL = "Gene";
     static final String DISEASE_LABEL = "Disease";
     private static final String TERM_LABEL = "Term";
+    private static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
 
     private boolean omimLicensed = false;
 
@@ -34,7 +33,7 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
 
     @Override
     public long getExportVersion() {
-        return 4 + super.getExportVersion();
+        return 5 + super.getExportVersion();
     }
 
     @Override
@@ -59,14 +58,17 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export HPO annotations", e);
         }
+        final Map<Long, Map<Long, Long>> associationNodeMap = new HashMap<>();
+        graph.beginEdgeIndicesDelay(ASSOCIATED_WITH_LABEL);
         try (final MappingIterator<PhenotypeToGenesEntry> entries = FileUtils.openTsvWithHeader(workspace, dataSource,
                                                                                                 HPOUpdater.PHENOTYPE_TO_GENES_FILE_NAME,
                                                                                                 PhenotypeToGenesEntry.class)) {
             while (entries.hasNext())
-                exportPhenotypeGeneAssociation(graph, entries.next());
+                exportPhenotypeGeneAssociation(graph, entries.next(), associationNodeMap);
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export HPO annotations", e);
         }
+        graph.endEdgeIndicesDelay(ASSOCIATED_WITH_LABEL);
         return true;
     }
 
@@ -77,7 +79,7 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
             return;
         final Node diseaseNode = getOrCreateDiseaseNode(graph, entry.databaseId, entry.diseaseName);
         final EdgeBuilder builder = graph.buildEdge().fromNode(termNode).toNode(diseaseNode);
-        builder.withLabel("NOT".equalsIgnoreCase(entry.qualifier) ? "NOT_ASSOCIATED_WITH" : "ASSOCIATED_WITH");
+        builder.withLabel("NOT".equalsIgnoreCase(entry.qualifier) ? "NOT_ASSOCIATED_WITH" : ASSOCIATED_WITH_LABEL);
         builder.withPropertyIfNotNull("reference", entry.reference);
         builder.withPropertyIfNotNull("evidence", entry.evidence.name());
         builder.withPropertyIfNotNull("onset", entry.onset);
@@ -98,7 +100,7 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
         if (node == null)
             node = graph.addNode(DISEASE_LABEL, ID_KEY, diseaseId, "names",
                                  new HashSet<>(Collections.singletonList(diseaseName)));
-        else {
+        else if (diseaseName != null) {
             // Add name if not already added to the disease node
             Set<String> names = node.getProperty("names");
             if (names == null)
@@ -112,14 +114,26 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
         return node;
     }
 
-    private void exportPhenotypeGeneAssociation(final Graph graph, final PhenotypeToGenesEntry entry) {
+    private void exportPhenotypeGeneAssociation(final Graph graph, final PhenotypeToGenesEntry entry,
+                                                final Map<Long, Map<Long, Long>> associationNodeMap) {
         final Node termNode = graph.findNode(TERM_LABEL, ID_KEY, entry.hpoId);
         // If referencing an obsolete term excluded via config file, just skip this annotation
         if (termNode == null)
             return;
+        final Map<Long, Long> geneAssociationNodeMap = associationNodeMap.computeIfAbsent(termNode.getId(),
+                                                                                          (hpoId) -> new HashMap<>());
         final Node geneNode = getOrCreateGeneNode(graph, entry.ncbiGeneId, entry.geneSymbol);
-        final EdgeBuilder builder = graph.buildEdge().fromNode(geneNode).toNode(termNode).withLabel("ASSOCIATED_WITH");
-        builder.build();
+        Long associationNodeId = geneAssociationNodeMap.get(geneNode.getId());
+        if (associationNodeId == null) {
+            associationNodeId = graph.addNode("Association").getId();
+            geneAssociationNodeMap.put(geneNode.getId(), associationNodeId);
+            graph.addEdge(termNode, associationNodeId, ASSOCIATED_WITH_LABEL);
+            graph.addEdge(geneNode, associationNodeId, ASSOCIATED_WITH_LABEL);
+        }
+        if (StringUtils.isNotEmpty(entry.diseaseId)) {
+            final Node diseaseNode = getOrCreateDiseaseNode(graph, entry.diseaseId, null);
+            graph.addEdge(diseaseNode, associationNodeId, ASSOCIATED_WITH_LABEL);
+        }
     }
 
     private Node getOrCreateGeneNode(final Graph graph, final Integer id, final String symbol) {
