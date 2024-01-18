@@ -379,7 +379,7 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                 Node biomarker = graph.findNode(BIOMARKER_LABEL, ID_KEY, entry.biomarkerId);
                 if (biomarker == null)
                     biomarker = graph.addNode(BIOMARKER_LABEL, ID_KEY, entry.biomarkerId, "name", entry.biomarkerName);
-                final String diseaseId = entry.icd11.replace("ICD-11: ", "");
+                final String diseaseId = entry.icd11.replace("ICD-11:", "").trim();
                 Node disease = graph.findNode(DISEASE_LABEL, ID_KEY, diseaseId);
                 if (disease == null) {
                     final NodeBuilder builder = graph.buildNode().withLabel(DISEASE_LABEL);
@@ -387,13 +387,13 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                     builder.withProperty("ICD11", diseaseId);
                     builder.withProperty("name", entry.diseaseName);
                     if (!".".equals(entry.icd9)) {
-                        final String[] icd9s = StringUtils.splitByWholeSeparator(entry.icd9.replace("ICD-9: ", ""),
-                                                                                 ", ");
+                        final String[] icd9s = StringUtils.splitByWholeSeparator(
+                                entry.icd9.replace("ICD-9:", "").trim(), ", ");
                         builder.withProperty("ICD9", icd9s);
                     }
                     if (!".".equals(entry.icd10)) {
-                        final String[] icd10s = StringUtils.splitByWholeSeparator(entry.icd10.replace("ICD-10: ", ""),
-                                                                                  ", ");
+                        final String[] icd10s = StringUtils.splitByWholeSeparator(
+                                entry.icd10.replace("ICD-10:", "").trim(), ", ");
                         builder.withProperty("ICD10", icd10s);
                     }
                     disease = builder.build();
@@ -427,21 +427,15 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                 for (String diseaseInfo : entry.properties.get("INDICATI")) {
                     final String[] splitDiseaseInfo = StringUtils.split(diseaseInfo, '\t');
                     // some ICD11 has no [ ] around the id
-                    final String diseaseId;
                     if (splitDiseaseInfo[2].startsWith("["))
-                        diseaseId = splitDiseaseInfo[2].substring(1, splitDiseaseInfo[2].length() - 1).replace(
-                                "ICD-11: ", "");
-                    else
-                        diseaseId = splitDiseaseInfo[2].replace("ICD-11: ", "");
-
-                    final String clincalStatus = splitDiseaseInfo[0];
+                        splitDiseaseInfo[2] = splitDiseaseInfo[2].substring(1, splitDiseaseInfo[2].length() - 1);
+                    final String diseaseId = splitDiseaseInfo[2].replace("ICD-11:", "").trim();
                     Node disease = graph.findNode(DISEASE_LABEL, ID_KEY, diseaseId);
                     if (disease == null) {
                         disease = graph.addNode(DISEASE_LABEL, ID_KEY, diseaseId, "name", splitDiseaseInfo[1], "ICD11",
                                                 diseaseId);
                     }
-                    graph.addEdge(targetNode, disease, "ASSOCIATED_WITH", "clinical_status", clincalStatus,
-                                  "disease_name", splitDiseaseInfo[1]);
+                    graph.addEdge(targetNode, disease, "ASSOCIATED_WITH", "clinical_status", splitDiseaseInfo[0]);
                 }
             }
         } catch (IOException e) {
@@ -475,17 +469,13 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                 final Node drug = graph.findNode(DRUG_LABEL, ID_KEY, drugId);
                 for (final String diseaseInfo : entry.properties.get("INDICATI")) {
                     final String[] splitDiseaseInfo = StringUtils.split(diseaseInfo, '\t');
-
-
-                    final String diseaseId = splitDiseaseInfo[1].replace("ICD-11: ", "");
-                    final String clinicalStatus = splitDiseaseInfo[2];
+                    final String diseaseId = splitDiseaseInfo[1].replace("ICD-11:", "").trim();
                     Node disease = graph.findNode(DISEASE_LABEL, ID_KEY, diseaseId);
                     if (disease == null) {
                         disease = graph.addNode(DISEASE_LABEL, ID_KEY, diseaseId, "name", splitDiseaseInfo[0], "ICD11",
                                                 diseaseId);
                     }
-                    graph.addEdge(drug, disease, INDICATES_LABEL, "clinical_status", clinicalStatus, "disease_name",
-                                  splitDiseaseInfo[0]);
+                    graph.addEdge(drug, disease, INDICATES_LABEL, "clinical_status", splitDiseaseInfo[2]);
                 }
             }
         } catch (IOException e) {
