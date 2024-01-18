@@ -24,7 +24,7 @@ public class OMIMUpdater extends Updater<OMIMDataSource> {
     static final String GENEMAP2_FILENAME = "genemap2.txt";
     private static final String MORBIDMAP_FILENAME = "morbidmap.txt";
     private static final Pattern DOWNLOAD_URL_PATTERN = Pattern.compile(
-            "<h5>\\n.*Updated\\s+([A-Za-z]+) ([0-9]+), ([0-9]{4})\\n.*</h5>");
+            "<h5>[\\s\\n]*Updated\\s+([A-Za-z]+)\\s+([0-9]+)(?:th|st|rd|nd)?,\\s+([0-9]{4})[\\s\\n]*</h5>");
 
     private final Map<String, Integer> monthNameNumberMap = new HashMap<>();
 
