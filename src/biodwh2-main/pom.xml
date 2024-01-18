@@ -159,11 +159,6 @@
         </dependency>
         <dependency>
             <groupId>de.unibi.agbi.biodwh2</groupId>
-            <artifactId>biodwh2-abdamed2</artifactId>
-            <version>0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>de.unibi.agbi.biodwh2</groupId>
             <artifactId>biodwh2-cancerdrugsdb</artifactId>
             <version>0.1</version>
         </dependency>
@@ -385,6 +380,11 @@
         <dependency>
             <groupId>de.unibi.agbi.biodwh2</groupId>
             <artifactId>biodwh2-psimiontology</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-tatonetti2012</artifactId>
             <version>0.1</version>
         </dependency>
         <dependency>

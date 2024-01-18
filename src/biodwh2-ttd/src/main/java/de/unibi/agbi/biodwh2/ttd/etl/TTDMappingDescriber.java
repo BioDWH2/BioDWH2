@@ -103,10 +103,9 @@ public class TTDMappingDescriber extends MappingDescriber {
         if (icd10Ids != null)
             for (final String icd10 : icd10Ids)
                 description.addIdentifier(IdentifierType.ICD10, icd10);
-        final String[] icd11Ids = node.getProperty("ICD11");
-        if (icd11Ids != null)
-            for (final String icd11 : icd11Ids)
-                description.addIdentifier(IdentifierType.ICD11, icd11);
+        final String icd11Id = node.getProperty("ICD11");
+        if (icd11Id != null && !icd11Id.contains("-"))
+            description.addIdentifier(IdentifierType.ICD11, icd11Id);
         return new NodeMappingDescription[]{description};
     }
 

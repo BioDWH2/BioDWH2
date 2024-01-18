@@ -384,7 +384,7 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                 if (disease == null) {
                     final NodeBuilder builder = graph.buildNode().withLabel(DISEASE_LABEL);
                     builder.withProperty(ID_KEY, diseaseId);
-                    builder.withProperty("ICD11", StringUtils.splitByWholeSeparator(diseaseId, ", "));
+                    builder.withProperty("ICD11", diseaseId);
                     builder.withProperty("name", entry.diseaseName);
                     if (!".".equals(entry.icd9)) {
                         final String[] icd9s = StringUtils.splitByWholeSeparator(entry.icd9.replace("ICD-9: ", ""),
@@ -426,15 +426,19 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                 final Node targetNode = getOrCreateTargetNode(graph, targetId, entry.getFirst("TARGNAME"));
                 for (String diseaseInfo : entry.properties.get("INDICATI")) {
                     final String[] splitDiseaseInfo = StringUtils.split(diseaseInfo, '\t');
-                    final String diseaseNameId = splitDiseaseInfo[1];
-                    final String[] splitDiseaseNameID = StringUtils.splitByWholeSeparator(diseaseNameId, " [");
-                    final String diseaseId = splitDiseaseNameID[1].substring(0, splitDiseaseNameID[1].length() - 1)
-                                                                  .replace("ICD-11: ", "");
+                    // some ICD11 has no [ ] around the id
+                    final String diseaseId;
+                    if (splitDiseaseInfo[2].startsWith("["))
+                        diseaseId = splitDiseaseInfo[2].substring(1, splitDiseaseInfo[2].length() - 1).replace(
+                                "ICD-11: ", "");
+                    else
+                        diseaseId = splitDiseaseInfo[2].replace("ICD-11: ", "");
+
                     final String clincalStatus = splitDiseaseInfo[0];
                     Node disease = graph.findNode(DISEASE_LABEL, ID_KEY, diseaseId);
                     if (disease == null) {
                         disease = graph.addNode(DISEASE_LABEL, ID_KEY, diseaseId, "name", splitDiseaseInfo[1], "ICD11",
-                                                StringUtils.splitByWholeSeparator(diseaseId, ", "));
+                                                diseaseId);
                     }
                     graph.addEdge(targetNode, disease, "ASSOCIATED_WITH", "clinical_status", clincalStatus,
                                   "disease_name", splitDiseaseInfo[1]);
@@ -470,15 +474,15 @@ public class TTDGraphExporter extends GraphExporter<TTDDataSource> {
                     continue;
                 final Node drug = graph.findNode(DRUG_LABEL, ID_KEY, drugId);
                 for (final String diseaseInfo : entry.properties.get("INDICATI")) {
-                    final String[] splitDiseaseInfo = StringUtils.splitByWholeSeparator(diseaseInfo, " [");
-                    final String[] splitDiseaseIdAndClinicalStatus = StringUtils.splitByWholeSeparator(
-                            splitDiseaseInfo[1], "] ");
-                    final String diseaseId = splitDiseaseIdAndClinicalStatus[0].replace("ICD-11: ", "");
-                    final String clinicalStatus = splitDiseaseIdAndClinicalStatus[1];
+                    final String[] splitDiseaseInfo = StringUtils.split(diseaseInfo, '\t');
+
+
+                    final String diseaseId = splitDiseaseInfo[1].replace("ICD-11: ", "");
+                    final String clinicalStatus = splitDiseaseInfo[2];
                     Node disease = graph.findNode(DISEASE_LABEL, ID_KEY, diseaseId);
                     if (disease == null) {
                         disease = graph.addNode(DISEASE_LABEL, ID_KEY, diseaseId, "name", splitDiseaseInfo[0], "ICD11",
-                                                StringUtils.splitByWholeSeparator(diseaseId, ", "));
+                                                diseaseId);
                     }
                     graph.addEdge(drug, disease, INDICATES_LABEL, "clinical_status", clinicalStatus, "disease_name",
                                   splitDiseaseInfo[0]);
