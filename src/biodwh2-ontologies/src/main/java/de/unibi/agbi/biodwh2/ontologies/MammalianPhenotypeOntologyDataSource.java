@@ -1,30 +1,38 @@
 package de.unibi.agbi.biodwh2.ontologies;
 
 import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
+import de.unibi.agbi.biodwh2.core.io.GithubUtils;
 import de.unibi.agbi.biodwh2.core.model.Version;
+import de.unibi.agbi.biodwh2.core.model.github.GithubAsset;
+import de.unibi.agbi.biodwh2.core.model.github.GithubRelease;
 import de.unibi.agbi.biodwh2.core.text.License;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
-public class BiologicalSpatialOntologyDataSource extends SingleOBOOntologyDataSource {
+public class MammalianPhenotypeOntologyDataSource extends SingleOBOOntologyDataSource {
     private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})");
-    static final String FILE_NAME = "bspo-full.obo";
+    static final String FILE_NAME = "mp-full.obo";
 
     @Override
     public String getId() {
-        return "BiologicalSpatialOntology";
+        return "MammalianPhenotypeOntology";
     }
 
     @Override
     public String getLicense() {
-        return License.CC_BY_3_0.getName();
+        return License.CC_BY_4_0.getName();
     }
 
     @Override
     protected String getDownloadUrl() {
-        return "https://raw.githubusercontent.com/obophenotype/biological-spatial-ontology/master/bspo-full.obo";
+        final GithubRelease release = GithubUtils.getLatestRelease("mgijax", "mammalian-phenotype-ontology");
+        if (release != null)
+            for (final GithubAsset asset : release.assets)
+                if (FILE_NAME.equals(asset.name))
+                    return asset.browserDownloadUrl;
+        return null;
     }
 
     @Override

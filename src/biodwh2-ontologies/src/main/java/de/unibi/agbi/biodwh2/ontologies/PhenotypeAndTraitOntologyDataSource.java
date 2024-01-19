@@ -8,13 +8,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
-public class BiologicalSpatialOntologyDataSource extends SingleOBOOntologyDataSource {
+public class PhenotypeAndTraitOntologyDataSource extends SingleOBOOntologyDataSource {
     private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})");
-    static final String FILE_NAME = "bspo-full.obo";
+    static final String FILE_NAME = "pato-full.obo";
 
     @Override
     public String getId() {
-        return "BiologicalSpatialOntology";
+        return "PhenotypeAndTraitOntology";
     }
 
     @Override
@@ -24,7 +24,7 @@ public class BiologicalSpatialOntologyDataSource extends SingleOBOOntologyDataSo
 
     @Override
     protected String getDownloadUrl() {
-        return "https://raw.githubusercontent.com/obophenotype/biological-spatial-ontology/master/bspo-full.obo";
+        return "https://raw.githubusercontent.com/pato-ontology/pato/master/pato-full.obo";
     }
 
     @Override

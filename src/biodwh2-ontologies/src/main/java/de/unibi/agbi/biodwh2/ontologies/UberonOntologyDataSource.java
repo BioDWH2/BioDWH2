@@ -1,20 +1,23 @@
 package de.unibi.agbi.biodwh2.ontologies;
 
 import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
+import de.unibi.agbi.biodwh2.core.io.GithubUtils;
 import de.unibi.agbi.biodwh2.core.model.Version;
+import de.unibi.agbi.biodwh2.core.model.github.GithubAsset;
+import de.unibi.agbi.biodwh2.core.model.github.GithubRelease;
 import de.unibi.agbi.biodwh2.core.text.License;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
-public class BiologicalSpatialOntologyDataSource extends SingleOBOOntologyDataSource {
+public class UberonOntologyDataSource extends SingleOBOOntologyDataSource {
     private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})");
-    static final String FILE_NAME = "bspo-full.obo";
+    static final String FILE_NAME = "uberon-full.obo";
 
     @Override
     public String getId() {
-        return "BiologicalSpatialOntology";
+        return "UberonOntology";
     }
 
     @Override
@@ -24,7 +27,12 @@ public class BiologicalSpatialOntologyDataSource extends SingleOBOOntologyDataSo
 
     @Override
     protected String getDownloadUrl() {
-        return "https://raw.githubusercontent.com/obophenotype/biological-spatial-ontology/master/bspo-full.obo";
+        final GithubRelease release = GithubUtils.getLatestRelease("obophenotype", "uberon");
+        if (release != null)
+            for (final GithubAsset asset : release.assets)
+                if (FILE_NAME.equals(asset.name))
+                    return asset.browserDownloadUrl;
+        return null;
     }
 
     @Override

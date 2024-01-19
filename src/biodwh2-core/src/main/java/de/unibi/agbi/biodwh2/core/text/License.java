@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core.text;
 
 public enum License {
     CC0_1_0("CC0 1.0"),
+    CC_BY_3_0("CC BY 3.0"),
     CC_BY_4_0("CC BY 4.0"),
     CC_BY_SA_4_0("CC BY-SA 4.0"),
     CC_BY_NC_4_0("CC BY-NC 4.0"),

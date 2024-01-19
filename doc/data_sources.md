@@ -10,7 +10,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 |-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|-----------------------------------------------------------------------|------|
 | ADReCS                        | Adverse Drug Reaction Classification System                                                                                                             | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) | [Link](https://bioinf.xmu.edu.cn/ADReCS/)                             | #60  |
 | BasicFormalOntology           | Basic Formal Ontology                                                                                                                                   | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://basic-formal-ontology.org)                             | #91  |
-| BiologicalSpatialOntology     | Biological Spatial Ontology                                                                                                                             |                                                                       | [Link](https://github.com/obophenotype/biological-spatial-ontology)   |      |
+| BiologicalSpatialOntology     | Biological Spatial Ontology                                                                                                                             | CC BY 3.0                                                             | [Link](https://github.com/obophenotype/biological-spatial-ontology)   |      |
 | BioM2MetDisease               | BioM2MetDisease                                                                                                                                         |                                                                       | [Link](http://bio-bigdata.hrbmu.edu.cn/BioM2MetDisease/)              |      |
 | BRENDATissueOntology          | BRENDA Tissue Ontology                                                                                                                                  | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://www.brenda-enzymes.org/ontology.php?ontology_id=3)     |      |
 | CancerDrugsDB                 | A curated listing of licensed cancer drugs by the Anticancer Fund                                                                                       |                                                                       | [Link](https://www.anticancerfund.org/en/cancerdrugs-db)              | #40  |
@@ -28,6 +28,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | HPO                           | Human Phenotype Ontology                                                                                                                                | HPO license                                                           | [Link](https://hpo.jax.org)                                           | #24  |
 | HPRD                          | Human Protein Reference Database                                                                                                                        |                                                                       | [Link](http://www.hprd.org)                                           | #89  |
 | InterPro                      | InterPro                                                                                                                                                |                                                                       | [Link](https://www.ebi.ac.uk/interpro/)                               | #68  |
+| MammalianPhenotypeOntology    | Mammalian Phenotype Ontology                                                                                                                            | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/mgijax/mammalian-phenotype-ontology)        |      |
 | MassSpectrometryOntology      | Mass Spectrometry Ontology                                                                                                                              | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/HUPO-PSI/psi-ms-CV)                         |      |
 | MED-RT                        | Medication Reference Terminology (MED-RT™)                                                                                                              | UMLS license                                                          | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/)                          | #10  |
 | miR2Disease                   | miR2Disease                                                                                                                                             |                                                                       | [Link](http://www.mir2disease.org)                                    |      |
@@ -41,12 +42,14 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | NeuroBehaviourOntology        | Neuro Behaviour Ontology                                                                                                                                |                                                                       | [Link](https://github.com/obo-behavior/behavior-ontology)             |      |
 | OMIM                          | Online Mendelian Inheritance in Man®                                                                                                                    | OMIM license                                                          | [Link](https://www.omim.org)                                          | #57  |
 | PharmGKB                      | PharmGKB                                                                                                                                                | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)       | [Link](https://www.pharmgkb.org)                                      | #8   |
+| PhenotypeAndTraitOntology     | Phenotype And Trait Ontology                                                                                                                            | CC BY 3.0                                                             | [Link](https://github.com/pato-ontology/pato)                         |      |
 | ReDO-DB                       | A curated listing of non-cancer drugs which have shown some evidence of anticancer activity by the Anticancer Fund                                      |                                                                       | [Link](https://www.anticancerfund.org/en/redo-db)                     | #41  |
 | ReDOTrialsDB                  | A curated database, produced by the Anticancer Fund, of active clinical trials investigating the use of non-cancer drugs as potential cancer treatments |                                                                       | [Link](https://www.anticancerfund.org/en/redo-trials-db)              | #42  |
 | RNALocate                     | RNA subcellular localization database                                                                                                                   |                                                                       | [Link](http://www.rna-society.org/rnalocate/)                         | #83  |
 | SequenceOntology              | Sequence Ontology                                                                                                                                       | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)       | [Link](http://www.sequenceontology.org)                               | #85  |
 | SIDER                         | SIDER: Side Effect Resource                                                                                                                             | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) | [Link](http://sideeffects.embl.de)                                    | #25  |
 | TRRUST                        | TRRUST                                                                                                                                                  | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)       | [Link](https://www.grnpedia.org/trrust/)                              | #79  |
+| UberonOntology                | Uberon Ontology                                                                                                                                         | CC BY 3.0                                                             | [Link](https://github.com/obophenotype/uberon)                        |      |
 | UNII                          | FDA Substance Registration System - Unique Ingredient Identifier                                                                                        |                                                                       | [Link](https://fdasis.nlm.nih.gov/srs/)                               | #29  |
 | UnitOntology                  | Unit Ontology                                                                                                                                           | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/bio-ontology-research-group/unit-ontology)  |      |
 | USDA-PLANTS                   | USDA PLANTS Database                                                                                                                                    | Free with attribution                                                 | [Link](https://plants.sc.egov.usda.gov)                               | #35  |
@@ -746,6 +749,23 @@ Integrated Taxonomic Information System
 
 ----
 
+### MammalianPhenotypeOntology
+
+- **Website**: [https://github.com/mgijax/mammalian-phenotype-ontology](https://github.com/mgijax/mammalian-phenotype-ontology)
+- **License**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Citation**:
+- **Files used**:
+  - `mp-full.obo`
+
+**Configuration properties**:
+
+| Property       | Values     | Description                                              |
+|----------------|------------|----------------------------------------------------------|
+| forceExport    | true/false | Force graph export even if nothing changed               |
+| ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
+
+----
+
 ### MassSpectrometryOntology
 
 - **Website**: [https://github.com/HUPO-PSI/psi-ms-CV](https://github.com/HUPO-PSI/psi-ms-CV)
@@ -1026,6 +1046,23 @@ Pathway Commons is an integrated resource of publicly available information abou
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
+
+----
+
+### PhenotypeAndTraitOntology
+
+- **Website**: [https://github.com/pato-ontology/pato](https://github.com/pato-ontology/pato)
+- **License**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Citation**:
+- **Files used**:
+  - `patofull.obo`
+
+**Configuration properties**:
+
+| Property       | Values     | Description                                              |
+|----------------|------------|----------------------------------------------------------|
+| forceExport    | true/false | Force graph export even if nothing changed               |
+| ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
 
@@ -1355,6 +1392,23 @@ Transcriptional Regulatory Relationships Unraveled by Sentence-based Text mining
 | Property    | Values     | Description                                |
 |-------------|------------|--------------------------------------------|
 | forceExport | true/false | Force graph export even if nothing changed |
+
+----
+
+### UberonOntology
+
+- **Website**: [https://github.com/obophenotype/uberon](https://github.com/obophenotype/uberon)
+- **License**: CC BY 3.0
+- **Citation**:
+- **Files used**:
+  - At the moment, the ontology is downloaded in OBO format (```uberon-full.obo```).
+
+**Configuration properties**:
+
+| Property       | Values     | Description                                              |
+|----------------|------------|----------------------------------------------------------|
+| forceExport    | true/false | Force graph export even if nothing changed               |
+| ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
 
