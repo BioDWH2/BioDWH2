@@ -4,6 +4,39 @@
 
 Released: upcoming
 
+## 📦 Version [v0.4.14](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.14)
+
+Released: 19.01.2024
+
+### 📚 Data Sources
+
+* ```[HPO]``` #24 Fix HPO data model
+* ```[OMIM]``` #57 Fix OMIM updater
+* ```[TTD]``` #69 Fix TTD data model
+* ```[HMDB]``` #92 Add HMDB data source module
+* ```[CPDB]``` Add CPDB data source module
+* ```[Tatonetti2012]``` Add OFFSIDES/TWOSIDES data source module
+* ```[BioM2MetDisease]``` Add BioM2MetDisease data source module
+* ```[miR2Disease]``` Add miR2Disease data source module
+* ```[MassSpectrometryOntology]``` Add MassSpectrometryOntology data source module
+* ```[BiologicalSpatialOntology]``` Add BiologicalSpatialOntology data source module
+* ```[NeuroBehaviourOntology]``` Add NeuroBehaviourOntology data source module
+* ```[ProteinModificationOntology]``` Add ProteinModificationOntology data source module
+* ```[BRENDATissueOntology]``` Add BRENDATissueOntology data source module
+* ```[CellOntology]``` Add CellOntology data source module
+* ```[UnitOntology]``` Add UnitOntology data source module
+* ```[MammalianPhenotypeOntology]``` Add MammalianPhenotypeOntology data source module
+* ```[PhenotypeAndTraitOntology]``` Add PhenotypeAndTraitOntology data source module
+* ```[UberonOntology]``` Add UberonOntology data source module
+
+### 🔧 Bug fixes and other changes
+
+* ```[feature]``` Add retries to HTTPClient getWebsiteSource
+* ```[feature]``` Generic OBO ontology updater uses data as fallback if data-version is missing
+* ```[feature]``` Graph mapper now uses node ids instead of nodes improving performance
+* ```[chore]``` Update dependencies
+* ```[chore]``` Update docs
+
 ## 📦 Version [v0.4.13](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.13)
 
 Released: 16.05.2023
