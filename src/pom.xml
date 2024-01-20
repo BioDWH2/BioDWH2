@@ -81,6 +81,7 @@
         <module>biodwh2-mir2disease</module>
         <module>biodwh2-biom2metdisease</module>
         <module>biodwh2-ontologies</module>
+        <module>biodwh2-iid</module>
     </modules>
 
     <packaging>pom</packaging>
