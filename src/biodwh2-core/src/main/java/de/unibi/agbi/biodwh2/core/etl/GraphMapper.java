@@ -224,9 +224,10 @@ public final class GraphMapper {
     private void mapPaths(final Graph graph, final Map<String, MappingDescriber> dataSourceDescriberMap,
                           final boolean runsInParallel, final int numThreads) {
         for (final Map.Entry<String, MappingDescriber> entry : dataSourceDescriberMap.entrySet()) {
-            if (LOGGER.isInfoEnabled())
+            final List<PathMapping> pathMappings = getNonEmptyPathMappingsForDescriber(entry.getValue());
+            if (!pathMappings.isEmpty() && LOGGER.isInfoEnabled())
                 LOGGER.info("Mapping edge paths for data source '" + entry.getKey() + "'");
-            for (final PathMapping path : getNonEmptyPathMappingsForDescriber(entry.getValue())) {
+            for (final PathMapping path : pathMappings) {
                 final ConcurrentHashMap<String, Boolean> mappedEdgeTypes = new ConcurrentHashMap<>();
                 mapPath(graph, entry.getValue(), path, runsInParallel, numThreads, mappedEdgeTypes);
                 for (final String label : mappedEdgeTypes.keySet())

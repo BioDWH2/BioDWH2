@@ -28,6 +28,12 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
         public String propertyValue;
     }
 
+    private static class SynonymTypeDef {
+        public String id;
+        public String description;
+        public SynonymScope scope;
+    }
+
     private static final Logger LOGGER = LogManager.getLogger(OntologyGraphExporter.class);
 
     public OntologyGraphExporter(final D dataSource) {
@@ -105,15 +111,25 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
         final String[] subsetDefs = header.getSubsetDefs();
         if (subsetDefs != null && subsetDefs.length > 0) {
             graph.addIndex(IndexDescription.forNode("Subset", ID_KEY, IndexDescription.Type.UNIQUE));
-            for (final String subsetDef : subsetDefs)
-                exportHeaderSubsetDefinition(graph, headerNode, subsetDef);
+            final Map<String, String> definitions = new HashMap<>();
+            for (final String subsetDef : subsetDefs) {
+                final String[] parts = StringUtils.split(subsetDef, " ", 2);
+                final String description = StringUtils.strip(parts[1].trim(), "\"");
+                if (definitions.containsKey(parts[0])) {
+                    if (StringUtils.isNotEmpty(description) && StringUtils.isEmpty(definitions.get(parts[0])))
+                        definitions.put(parts[0], description);
+                } else {
+                    definitions.put(parts[0], description);
+                }
+            }
+            for (final Map.Entry<String, String> entry : definitions.entrySet())
+                exportHeaderSubsetDefinition(graph, headerNode, entry.getKey(), entry.getValue());
         }
     }
 
-    private void exportHeaderSubsetDefinition(final Graph graph, final Node headerNode, final String subsetDef) {
-        final String[] parts = StringUtils.split(subsetDef, " ", 2);
-        final String name = StringUtils.strip(parts[1].trim(), "\"");
-        final Node subsetDefNode = graph.addNode("Subset", ID_KEY, parts[0], "name", name);
+    private void exportHeaderSubsetDefinition(final Graph graph, final Node headerNode, final String id,
+                                              final String description) {
+        final Node subsetDefNode = graph.addNode("Subset", ID_KEY, id, "description", description);
         graph.addEdge(headerNode, subsetDefNode, "HAS_SUBSET");
     }
 
@@ -121,29 +137,45 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
         final String[] synonymTypeDefs = header.getSynonymTypeDefs();
         if (synonymTypeDefs != null && synonymTypeDefs.length > 0) {
             graph.addIndex(IndexDescription.forNode("SynonymType", ID_KEY, IndexDescription.Type.UNIQUE));
-            for (final String synonymTypeDef : synonymTypeDefs)
+            final Map<String, SynonymTypeDef> definitions = new HashMap<>();
+            for (final String synonymTypeDef : synonymTypeDefs) {
+                final int idSplitIndex = synonymTypeDef.indexOf(' ');
+                final SynonymTypeDef result = new SynonymTypeDef();
+                result.id = synonymTypeDef.substring(0, idSplitIndex);
+                final boolean endsWithOptionalSynonymScope = Arrays.stream(SynonymScope.values()).anyMatch(
+                        scope -> synonymTypeDef.endsWith(scope.name()));
+                if (endsWithOptionalSynonymScope) {
+                    final int scopeSplitIndex = synonymTypeDef.lastIndexOf(' ');
+                    result.description = StringUtils.strip(
+                            synonymTypeDef.substring(idSplitIndex, scopeSplitIndex).trim(), "\"");
+                    result.scope = SynonymScope.valueOf(synonymTypeDef.substring(scopeSplitIndex + 1));
+                } else {
+                    result.description = StringUtils.strip(synonymTypeDef.substring(idSplitIndex).trim(), "\"");
+                }
+                if (definitions.containsKey(result.id)) {
+                    final SynonymTypeDef existingValue = definitions.get(result.id);
+                    if (StringUtils.isNotEmpty(result.description) && StringUtils.isEmpty(existingValue.description))
+                        existingValue.description = result.description;
+                    if (result.scope != null && existingValue.scope == null)
+                        existingValue.scope = result.scope;
+                } else {
+                    definitions.put(result.id, result);
+                }
+            }
+            for (final SynonymTypeDef synonymTypeDef : definitions.values())
                 exportHeaderSynonymTypeDefinition(graph, headerNode, synonymTypeDef);
         }
     }
 
     private void exportHeaderSynonymTypeDefinition(final Graph graph, final Node headerNode,
-                                                   final String synonymTypeDef) {
-        final int idSplitIndex = synonymTypeDef.indexOf(' ');
-        final String id = synonymTypeDef.substring(0, idSplitIndex);
-        final boolean endsWithOptionalSynonymScope = Arrays.stream(SynonymScope.values()).anyMatch(
-                scope -> synonymTypeDef.endsWith(scope.name()));
-        final String name;
-        final SynonymScope scope;
+                                                   final SynonymTypeDef synonymTypeDef) {
         final Node subsetDefNode;
-        if (endsWithOptionalSynonymScope) {
-            final int scopeSplitIndex = synonymTypeDef.lastIndexOf(' ');
-            name = StringUtils.strip(synonymTypeDef.substring(idSplitIndex, scopeSplitIndex).trim(), "\"");
-            scope = SynonymScope.valueOf(synonymTypeDef.substring(scopeSplitIndex + 1));
-            subsetDefNode = graph.addNode("SynonymType", ID_KEY, id, "name", name, "scope", scope.name());
-        } else {
-            name = StringUtils.strip(synonymTypeDef.substring(idSplitIndex).trim(), "\"");
-            subsetDefNode = graph.addNode("SynonymType", ID_KEY, id, "name", name);
-        }
+        if (synonymTypeDef.scope != null)
+            subsetDefNode = graph.addNode("SynonymType", ID_KEY, synonymTypeDef.id, "description",
+                                          synonymTypeDef.description, "scope", synonymTypeDef.scope);
+        else
+            subsetDefNode = graph.addNode("SynonymType", ID_KEY, synonymTypeDef.id, "description",
+                                          synonymTypeDef.description);
         graph.addEdge(headerNode, subsetDefNode, "HAS_SYNONYM_TYPE");
     }
 
@@ -195,7 +227,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
                 exportInstance(graph, (OboInstance) entry, relationCache);
             }
         }
-        if (relationCache.size() > 0 && LOGGER.isWarnEnabled())
+        if (!relationCache.isEmpty() && LOGGER.isWarnEnabled())
             LOGGER.warn("Not all relationships could be added between ontology entries (" + relationCache.size() + ")");
     }
 
