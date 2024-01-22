@@ -11,18 +11,20 @@ import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
-import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
+import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.tarbase.TarBaseDataSource;
 import de.unibi.agbi.biodwh2.tarbase.model.Entry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class TarBaseGraphExporter extends GraphExporter<TarBaseDataSource> {
     static final String GENE_LABEL = "Gene";
-    static final String MIRNA_LABEL = "miRNA";
+    static final String TRANSCRIPT_LABEL = "Transcript";
+    static final String MI_RNA_LABEL = "miRNA";
+    static final String TRANSCRIBES_TO_LABEL = "TRANSCRIBES_TO";
+    static final String TARGETS_LABEL = "TARGETS";
 
     public TarBaseGraphExporter(final TarBaseDataSource dataSource) {
         super(dataSource);
@@ -30,115 +32,140 @@ public class TarBaseGraphExporter extends GraphExporter<TarBaseDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode(GENE_LABEL, ID_KEY, false, IndexDescription.Type.NON_UNIQUE));
-        graph.addIndex(IndexDescription.forNode(MIRNA_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(GENE_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TRANSCRIPT_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(MI_RNA_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
         final Configuration.GlobalProperties.SpeciesFilter speciesFilter = workspace.getConfiguration()
                                                                                     .getGlobalProperties()
                                                                                     .getSpeciesFilter();
-        try (TarArchiveInputStream stream = FileUtils.openTarGzip(workspace, dataSource, TarBaseUpdater.FILE_NAME)) {
+        for (final String fileName : TarBaseUpdater.FILE_NAMES)
+            exportFile(workspace, graph, fileName, speciesFilter);
+        return true;
+    }
+
+    private void exportFile(final Workspace workspace, final Graph graph, final String fileName,
+                            final Configuration.GlobalProperties.SpeciesFilter speciesFilter) {
+        try (TarArchiveInputStream stream = FileUtils.openTarGzip(workspace, dataSource, fileName)) {
             while (stream.getNextTarEntry() != null)
                 exportEntries(graph, FileUtils.openSeparatedValuesFile(stream, Entry.class, '\t', true, false),
                               speciesFilter);
         } catch (IOException e) {
-            throw new ExporterFormatException("Failed to export '" + TarBaseUpdater.FILE_NAME + "'", e);
+            throw new ExporterFormatException("Failed to export '" + fileName + "'", e);
         }
-        return true;
     }
 
     private void exportEntries(final Graph graph, final MappingIterator<Entry> entries,
                                final Configuration.GlobalProperties.SpeciesFilter speciesFilter) {
-        final Map<String, Long> geneKeyNodeIdMap = new HashMap<>();
-        final Map<String, Long> rnaNodeIdMap = new HashMap<>();
-        graph.beginEdgeIndicesDelay("TARGETS");
+        graph.beginEdgeIndicesDelay(TARGETS_LABEL);
+        graph.beginEdgeIndicesDelay(TRANSCRIBES_TO_LABEL);
         while (entries.hasNext()) {
             final Entry entry = entries.next();
-            Long geneNodeId = getOrCreateGeneNode(graph, speciesFilter, geneKeyNodeIdMap, entry);
-            Long rnaNodeId = getOrCreateRNANode(graph, speciesFilter, rnaNodeIdMap, entry);
-            if (geneNodeId == null || rnaNodeId == null)
+            final Integer speciesTaxonomyId = getSpeciesTaxonomyId(entry.species);
+            if (!speciesFilter.isSpeciesAllowed(speciesTaxonomyId))
                 continue;
-            final EdgeBuilder builder = graph.buildEdge().withLabel("TARGETS").fromNode(rnaNodeId).toNode(geneNodeId);
+            Long geneNodeId = getOrCreateGeneNode(graph, entry.geneId, entry.geneName, speciesTaxonomyId);
+            Long transcriptNodeId = getOrCreateTranscriptNode(graph, geneNodeId, entry.transcriptId,
+                                                              entry.transcriptName, speciesTaxonomyId);
+            Long mirnaNodeId = getOrCreateMiRNANode(graph, entry.mirnaId, entry.mirnaName, speciesTaxonomyId);
+            final EdgeBuilder builder = graph.buildEdge().withLabel(TARGETS_LABEL).fromNode(mirnaNodeId).toNode(
+                    transcriptNodeId);
             setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "cell_line", entry.cellLine);
+            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "cell_type", entry.cellType);
             setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "tissue", entry.tissue);
-            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "category", entry.category);
-            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "method", entry.method);
-            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "positive_negative", entry.positiveNegative);
-            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "direct_indirect", entry.directIndirect);
-            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "up_down", entry.upDown);
-            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "condition", entry.condition);
+            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "strand", entry.strand);
+            setEdgeBuilderIntegerPropertyIfNotNullAndNotNA(builder, "start", entry.start);
+            setEdgeBuilderIntegerPropertyIfNotNullAndNotNA(builder, "end", entry.end);
+            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "gene_location", entry.geneLocation);
+            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "chromosome", entry.chromosome);
+            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "experimental_method", entry.experimentalMethod);
+            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "regulation", entry.regulation);
+            setEdgeBuilderIntegerPropertyIfNotNullAndNotNA(builder, "confidence", entry.confidence);
+            setEdgeBuilderIntegerPropertyIfNotNullAndNotNA(builder, "article_pubmed_id", entry.articlePubmedId);
+            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "interaction_group", entry.interactionGroup);
+            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "microt_score", entry.microtScore);
+            setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "comment", entry.comment);
             builder.build();
         }
-        graph.endEdgeIndicesDelay("TARGETS");
-    }
-
-    private Long getOrCreateGeneNode(final Graph graph,
-                                     final Configuration.GlobalProperties.SpeciesFilter speciesFilter,
-                                     final Map<String, Long> geneKeyNodeIdMap, final Entry entry) {
-        final String species = fixSpecies(entry.species);
-        final String geneKey = entry.geneId + "|" + species;
-        Long geneNodeId = geneKeyNodeIdMap.get(geneKey);
-        if (geneNodeId == null) {
-            final Integer speciesNCBITaxId = getSpeciesTaxonomyId(species);
-            if (!speciesFilter.isSpeciesAllowed(speciesNCBITaxId))
-                return null;
-            final NodeBuilder builder = graph.buildNode().withLabel(GENE_LABEL);
-            builder.withPropertyIfNotNull(ID_KEY, stripSpecies(entry.geneId));
-            builder.withPropertyIfNotNull("name", stripSpecies(entry.geneName));
-            builder.withPropertyIfNotNull("species", species);
-            builder.withPropertyIfNotNull("species_ncbi_taxid", speciesNCBITaxId);
-            geneNodeId = builder.build().getId();
-            geneKeyNodeIdMap.put(geneKey, geneNodeId);
-        }
-        return geneNodeId;
-    }
-
-    private String fixSpecies(final String species) {
-        if (species.equals("Pan_troglodytes"))
-            return "Pan troglodytes";
-        return species;
+        graph.endEdgeIndicesDelay(TRANSCRIBES_TO_LABEL);
+        graph.endEdgeIndicesDelay(TARGETS_LABEL);
     }
 
     private Integer getSpeciesTaxonomyId(final String species) {
+        // Murine Gammaherpesvirus 68
+        if (species.equals("MHV68") || species.equals("HIV-1"))
+            return null;
         if (species.equals("KSHV"))
-            return SpeciesLookup.getByScientificName("Kaposi sarcoma-associated herpesvirus").ncbiTaxId;
+            return SpeciesLookup.KAPOSI_SARCOMA_ASSOCIATED_HERPESVIRUS.ncbiTaxId;
+        if (species.equals("EBV"))
+            return SpeciesLookup.EPSTEIN_BARR_VIRUS.ncbiTaxId;
         final SpeciesLookup.Entry entry = SpeciesLookup.getByScientificName(species);
         return entry != null ? entry.ncbiTaxId : null;
     }
 
-    private String stripSpecies(final String value) {
-        final int abbreviationIndex = value.indexOf('(');
-        if (abbreviationIndex == -1)
-            return value;
-        final String bracedValue = value.substring(abbreviationIndex);
-        if (bracedValue.contains(" of "))
-            return value;
-        return value.substring(0, abbreviationIndex).trim();
+    private Long getOrCreateGeneNode(final Graph graph, final String id, final String name,
+                                     final Integer speciesTaxonomyId) {
+        Node node = graph.findNode(GENE_LABEL, ID_KEY, id);
+        if (node == null) {
+            if (name != null && speciesTaxonomyId != null)
+                node = graph.addNode(GENE_LABEL, ID_KEY, id, "name", name, "species_ncbi_taxid", speciesTaxonomyId);
+            else if (name != null)
+                node = graph.addNode(GENE_LABEL, ID_KEY, id, "name", name);
+            else if (speciesTaxonomyId != null)
+                node = graph.addNode(GENE_LABEL, ID_KEY, id, "species_ncbi_taxid", speciesTaxonomyId);
+            else
+                node = graph.addNode(GENE_LABEL, ID_KEY, id);
+        }
+        return node.getId();
     }
 
-    private Long getOrCreateRNANode(final Graph graph, final Configuration.GlobalProperties.SpeciesFilter speciesFilter,
-                                    final Map<String, Long> rnaNodeIdMap, final Entry entry) {
-        Long rnaNodeId = rnaNodeIdMap.get(entry.mirna);
-        if (rnaNodeId == null) {
-            final String species = fixSpecies(entry.species);
-            final Integer speciesNCBITaxId = getSpeciesTaxonomyId(species);
-            if (!speciesFilter.isSpeciesAllowed(speciesNCBITaxId))
-                return null;
-            final NodeBuilder builder = graph.buildNode().withLabel(MIRNA_LABEL);
-            builder.withPropertyIfNotNull(ID_KEY, entry.mirna);
-            builder.withPropertyIfNotNull("species", species);
-            builder.withPropertyIfNotNull("species_ncbi_taxid", speciesNCBITaxId);
-            rnaNodeId = builder.build().getId();
-            rnaNodeIdMap.put(entry.mirna, rnaNodeId);
+    private Long getOrCreateTranscriptNode(final Graph graph, final Long geneNodeId, final String id, final String name,
+                                           final Integer speciesTaxonomyId) {
+        Node node = graph.findNode(TRANSCRIPT_LABEL, ID_KEY, id);
+        if (node == null) {
+            if (name != null && speciesTaxonomyId != null)
+                node = graph.addNode(TRANSCRIPT_LABEL, ID_KEY, id, "name", name, "species_ncbi_taxid",
+                                     speciesTaxonomyId);
+            else if (name != null)
+                node = graph.addNode(TRANSCRIPT_LABEL, ID_KEY, id, "name", name);
+            else if (speciesTaxonomyId != null)
+                node = graph.addNode(TRANSCRIPT_LABEL, ID_KEY, id, "species_ncbi_taxid", speciesTaxonomyId);
+            else
+                node = graph.addNode(TRANSCRIPT_LABEL, ID_KEY, id);
+            graph.addEdge(geneNodeId, node, TRANSCRIBES_TO_LABEL);
         }
-        return rnaNodeId;
+        return node.getId();
+    }
+
+    private Long getOrCreateMiRNANode(final Graph graph, final String id, final String name,
+                                      final Integer speciesTaxonomyId) {
+        Node node = graph.findNode(MI_RNA_LABEL, ID_KEY, id);
+        if (node == null) {
+            if (name != null && speciesTaxonomyId != null)
+                node = graph.addNode(MI_RNA_LABEL, ID_KEY, id, "name", name, "species_ncbi_taxid", speciesTaxonomyId);
+            else if (name != null)
+                node = graph.addNode(MI_RNA_LABEL, ID_KEY, id, "name", name);
+            else if (speciesTaxonomyId != null)
+                node = graph.addNode(MI_RNA_LABEL, ID_KEY, id, "species_ncbi_taxid", speciesTaxonomyId);
+            else
+                node = graph.addNode(MI_RNA_LABEL, ID_KEY, id);
+        }
+        return node.getId();
     }
 
     private void setEdgeBuilderPropertyIfNotNullAndNotNA(final EdgeBuilder builder, final String key,
                                                          final String value) {
         builder.withPropertyIfNotNull(key, !"NA".equals(value) ? value : null);
+    }
+
+    private void setEdgeBuilderIntegerPropertyIfNotNullAndNotNA(final EdgeBuilder builder, final String key,
+                                                                final String value) {
+        builder.withPropertyIfNotNull(key,
+                                      !"NA".equals(value) && StringUtils.isNotEmpty(value) ? Integer.parseInt(value) :
+                                      null);
     }
 }

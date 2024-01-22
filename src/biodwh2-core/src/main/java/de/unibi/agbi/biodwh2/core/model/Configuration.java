@@ -127,7 +127,7 @@ public final class Configuration {
             }
 
             public boolean isSpeciesAllowed(final Integer taxonId) {
-                return taxonIds == null || taxonIds.size() == 0 || taxonIds.contains(taxonId);
+                return taxonIds == null || taxonIds.isEmpty() || taxonIds.contains(taxonId);
             }
         }
     }

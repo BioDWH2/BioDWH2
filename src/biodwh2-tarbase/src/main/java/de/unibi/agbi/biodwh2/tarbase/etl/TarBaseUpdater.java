@@ -4,7 +4,6 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterOnlyManuallyException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.tarbase.TarBaseDataSource;
@@ -12,7 +11,11 @@ import de.unibi.agbi.biodwh2.tarbase.TarBaseDataSource;
 import java.io.IOException;
 
 public class TarBaseUpdater extends Updater<TarBaseDataSource> {
-    static final String FILE_NAME = "tarbase_data.tar.gz";
+    private static final String DOWNLOAD_URL_PREFIX = "https://dianalab.e-ce.uth.gr/tarbasev9/data/";
+    static final String[] FILE_NAMES = new String[]{
+            "Homo_sapiens_TarBase_v9.tsv.gz", "Mus_musculus_TarBase_v9.tsv.gz", "Viral_species_TarBase-v9.tsv.gz",
+            "Other_species_TarBase_v9.tsv.gz"
+    };
 
     public TarBaseUpdater(final TarBaseDataSource dataSource) {
         super(dataSource);
@@ -20,25 +23,24 @@ public class TarBaseUpdater extends Updater<TarBaseDataSource> {
 
     @Override
     protected Version getNewestVersion(final Workspace workspace) {
-        return new Version(8, 0);
+        return new Version(9, 0);
     }
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        final String downloadUrl = dataSource.getProperties(workspace).get("downloadUrl");
-        if (downloadUrl == null) {
-            throw new UpdaterOnlyManuallyException("Please provide a valid downloadUrl data source property");
-        }
-        try {
-            HTTPClient.downloadFileAsBrowser(downloadUrl, dataSource.resolveSourceFilePath(workspace, FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + FILE_NAME + "'", e);
+        for (final String fileName : FILE_NAMES) {
+            try {
+                HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + fileName,
+                                                 dataSource.resolveSourceFilePath(workspace, fileName));
+            } catch (IOException e) {
+                throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
+            }
         }
         return true;
     }
 
     @Override
     protected String[] expectedFileNames() {
-        return new String[]{FILE_NAME};
+        return FILE_NAMES;
     }
 }

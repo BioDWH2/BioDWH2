@@ -16,6 +16,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 public final class HTTPClient {
     @SuppressWarnings("SpellCheckingInspection")
@@ -26,25 +27,29 @@ public final class HTTPClient {
 
     @SuppressWarnings("unused")
     public static void downloadFile(final String uri, final String filePath) throws IOException {
-        try (ReadableByteChannel urlByteChannel = Channels.newChannel(new URL(uri).openStream());
+        downloadStream(new URL(uri).openStream(), filePath);
+    }
+
+    public static void downloadStream(final InputStream stream, final String filePath) throws IOException {
+        try (ReadableByteChannel urlByteChannel = Channels.newChannel(stream);
              FileOutputStream outputStream = new FileOutputStream(filePath)) {
             outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
         }
     }
 
     public static void downloadFileAsBrowser(final String uri, final String filePath) throws IOException {
-        try (ReadableByteChannel urlByteChannel = Channels.newChannel(getUrlInputStream(uri));
-             FileOutputStream outputStream = new FileOutputStream(filePath)) {
-            outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
-        }
+        downloadStream(getUrlInputStream(uri), filePath);
     }
 
     public static void downloadFileAsBrowser(final String uri, final String filePath, final String username,
                                              final String password) throws IOException {
-        try (ReadableByteChannel urlByteChannel = Channels.newChannel(getUrlInputStream(uri, username, password));
-             FileOutputStream outputStream = new FileOutputStream(filePath)) {
-            outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
-        }
+        downloadStream(getUrlInputStream(uri, username, password), filePath);
+    }
+
+    public static void downloadFileAsBrowser(final String uri, final String filePath, final String username,
+                                             final String password,
+                                             final Map<String, String> additionalHeaders) throws IOException {
+        downloadStream(getUrlInputStream(uri, username, password, additionalHeaders), filePath);
     }
 
     public static String getWebsiteSource(final String url) throws IOException {
@@ -85,15 +90,23 @@ public final class HTTPClient {
     }
 
     public static InputStream getUrlInputStream(final String url) throws IOException {
-        return getUrlInputStream(url, null, null);
+        return getUrlInputStream(url, null, null, null);
     }
 
     public static InputStream getUrlInputStream(final String url, final String username,
                                                 final String password) throws IOException {
+        return getUrlInputStream(url, username, password, null);
+    }
+
+    public static InputStream getUrlInputStream(final String url, final String username, final String password,
+                                                final Map<String, String> additionalHeaders) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) new URL(url).openConnection();
         if (username != null && password != null)
             urlConnection.setRequestProperty("Authorization", getBasicAuthForCredentials(username, password));
         urlConnection.setRequestProperty("User-Agent", USER_AGENT);
+        if (additionalHeaders != null)
+            for (final Map.Entry<String, String> entry : additionalHeaders.entrySet())
+                urlConnection.setRequestProperty(entry.getKey(), entry.getValue());
         urlConnection.setInstanceFollowRedirects(false);
         urlConnection.connect();
         urlConnection = redirectURLConnectionIfNecessary(urlConnection);
@@ -107,7 +120,13 @@ public final class HTTPClient {
 
     private static HttpURLConnection redirectURLConnectionIfNecessary(HttpURLConnection connection) throws IOException {
         final String target = connection.getHeaderField("location");
-        return target == null ? connection : (HttpURLConnection) new URL(target).openConnection();
+        if (target == null)
+            return connection;
+        connection = (HttpURLConnection) new URL(target).openConnection();
+        connection.setRequestProperty("User-Agent", USER_AGENT);
+        connection.connect();
+        connection = redirectURLConnectionIfNecessary(connection);
+        return connection;
     }
 
     public static String resolveUrlLocation(final String url) throws IOException {
