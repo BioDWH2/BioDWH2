@@ -5,10 +5,10 @@
     <parent>
         <artifactId>biodwh2</artifactId>
         <groupId>de.unibi.agbi.biodwh2</groupId>
-        <version>0.4.14</version> <!-- BioDWH2 version -->
+        <version>0.4.15</version> <!-- BioDWH2 version -->
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>biodwh2-h2-mvstore</artifactId>
-    <version>0.4.14</version> <!-- BioDWH2 version --> <!-- Based on 1.4.200 -->
+    <version>0.4.15</version> <!-- BioDWH2 version --> <!-- Based on 1.4.200 -->
 </project>

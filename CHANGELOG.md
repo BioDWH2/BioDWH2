@@ -4,6 +4,25 @@
 
 Released: upcoming
 
+## 📦 Version [v0.4.15](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.15)
+
+Released: 23.01.2024
+
+### 📚 Data Sources
+
+* ```[PharmGKB]``` Update PharmGKB data source model
+* ```[CMAUP]``` Update CMAUP data source model
+* ```[UNII]``` Update UNII data source model
+* ```[EMA]``` Update EMA updater URLs
+* ```[BRENDA]``` Add BRENDA mappings and mark module as usable
+* ```[PathogenTransmissionOntology]``` Update PathogenTransmissionOntology data source module
+* ```[SymptomOntology]``` Add SymptomOntology data source module
+* ```[TarBase]``` Update TarBase to version 9
+
+### 🔧 Bug fixes and other changes
+
+* ```[feature]``` Handle duplicate SubsetDef and SynonymTypeDef in ontology graph exporter
+
 ## 📦 Version [v0.4.14](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.14)
 
 Released: 19.01.2024
