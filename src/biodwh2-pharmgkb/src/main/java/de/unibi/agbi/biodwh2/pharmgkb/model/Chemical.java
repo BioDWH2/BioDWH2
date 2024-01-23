@@ -14,7 +14,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
         "Variant Annotation Count", "Pathway Count", "VIP Count", "Dosing Guideline Sources",
         "Top Clinical Annotation Level", "Top FDA Label Testing Level", "Top Any Drug Label Testing Level",
         "Label Has Dosing Info", "Has Rx Annotation", "RxNorm Identifiers", "ATC Identifiers",
-        "PubChem Compound Identifiers"
+        "PubChem Compound Identifiers", "Top CPIC Pairs Level", "FDA Label has Prescribing Info",
+        "In FDA PGx Association Sections"
 })
 public class Chemical {
     @JsonProperty("PharmGKB Accession Id")
@@ -88,4 +89,13 @@ public class Chemical {
     @JsonProperty("PubChem Compound Identifiers")
     @GraphArrayProperty(value = "pubchem_compound_identifiers", arrayDelimiter = ", ", quotedArrayElements = true)
     public String pubChemCompoundIdentifiers;
+    @JsonProperty("Top CPIC Pairs Level")
+    @GraphProperty("top_cpic_pairs_level")
+    public String topCpicPairsLevel;
+    @JsonProperty("FDA Label has Prescribing Info")
+    @GraphBooleanProperty(value = "fda_label_has_prescribing_info", truthValue = "Yes")
+    public String fdaLabelHasPrescribingInfo;
+    @JsonProperty("In FDA PGx Association Sections")
+    @GraphProperty("in_fda_pgx_association_sections")
+    public String inFdaPgxAssociationSections;
 }

@@ -47,7 +47,7 @@ public class PharmGKBParser extends Parser<PharmGKBDataSource> {
                 parseZipFileEntry(dataSource, filePath, zipEntry, zipEntryName, stream);
             }
         } catch (IOException e) {
-            throw new ParserFormatException("Failed to parse the file '" + filePath + "'");
+            throw new ParserFormatException("Failed to parse the file '" + filePath + "'", e);
         }
     }
 

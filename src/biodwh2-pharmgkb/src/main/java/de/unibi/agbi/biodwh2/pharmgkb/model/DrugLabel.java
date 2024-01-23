@@ -9,8 +9,8 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 @GraphNodeLabel("DrugLabel")
 @JsonPropertyOrder({
         "PharmGKB ID", "Name", "Source", "Biomarker Flag", "Testing Level", "Has Prescribing Info", "Has Dosing Info",
-        "Has Alternate Drug", "Cancer Genome", "Prescribing", "Chemicals", "Genes", "Variants/Haplotypes",
-        "Latest History Date (YYYY-MM-DD)"
+        "Has Alternate Drug", "Has Other Prescribing Guidance", "Cancer Genome", "Prescribing", "Chemicals", "Genes",
+        "Variants/Haplotypes", "Latest History Date (YYYY-MM-DD)"
 })
 public class DrugLabel {
     @JsonProperty("PharmGKB ID")
@@ -37,6 +37,9 @@ public class DrugLabel {
     @JsonProperty("Has Alternate Drug")
     @GraphBooleanProperty(value = "has_alternate_drug", truthValue = "Alternate Drug")
     public String hasAlternateDrug;
+    @JsonProperty("Has Other Prescribing Guidance")
+    @GraphProperty("has_other_prescribing_guidance") // TODO: boolean if truth value is known
+    public String hasOtherPrescribingGuidance;
     @JsonProperty("Cancer Genome")
     @GraphBooleanProperty(value = "cancer_genome", truthValue = "Cancer Genome")
     public String cancerGenome;
