@@ -14,5 +14,5 @@ public @interface GraphArrayProperty {
 
     boolean quotedArrayElements() default false;
 
-    String emptyPlaceholder() default "";
+    String[] emptyPlaceholder() default {};
 }

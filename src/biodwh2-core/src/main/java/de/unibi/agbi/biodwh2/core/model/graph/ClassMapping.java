@@ -12,15 +12,15 @@ final class ClassMapping {
         final Field field;
         final String propertyName;
         final boolean ignoreEmpty;
-        final String emptyPlaceholder;
+        final String[] emptyPlaceholder;
         final ValueTransformation transformation;
 
         ClassMappingField(final Field field, final String propertyName, final boolean ignoreEmpty,
-                          final String emptyPlaceholder, final ValueTransformation transformation) {
+                          final String[] emptyPlaceholder, final ValueTransformation transformation) {
             this.field = field;
             this.propertyName = propertyName;
             this.ignoreEmpty = ignoreEmpty;
-            this.emptyPlaceholder = emptyPlaceholder != null ? emptyPlaceholder : "";
+            this.emptyPlaceholder = emptyPlaceholder != null ? emptyPlaceholder : new String[0];
             this.transformation = transformation;
         }
     }
@@ -29,15 +29,15 @@ final class ClassMapping {
         final String arrayDelimiter;
         final String quotedArrayDelimiter;
         final boolean quotedArrayElements;
-        final String emptyPlaceholder;
+        final String[] emptyPlaceholder;
 
         ClassMappingArrayField(final Field field, final String propertyName, final String arrayDelimiter,
-                               final boolean quotedArrayElements, final String emptyPlaceholder) {
-            super(field, propertyName, false, "", ValueTransformation.NONE);
+                               final boolean quotedArrayElements, final String[] emptyPlaceholder) {
+            super(field, propertyName, false, new String[0], ValueTransformation.NONE);
             this.arrayDelimiter = arrayDelimiter;
             quotedArrayDelimiter = "\"" + arrayDelimiter + "\"";
             this.quotedArrayElements = quotedArrayElements;
-            this.emptyPlaceholder = emptyPlaceholder != null ? emptyPlaceholder : "";
+            this.emptyPlaceholder = emptyPlaceholder != null ? emptyPlaceholder : new String[0];
         }
     }
 
@@ -45,7 +45,7 @@ final class ClassMapping {
         final String truthValue;
 
         ClassMappingBooleanField(final Field field, final String propertyName, final String truthValue) {
-            super(field, propertyName, false, "", ValueTransformation.NONE);
+            super(field, propertyName, false, new String[0], ValueTransformation.NONE);
             this.truthValue = truthValue;
         }
     }
@@ -54,7 +54,7 @@ final class ClassMapping {
         final GraphNumberProperty.Type type;
 
         ClassMappingNumberField(final Field field, final String propertyName, final boolean ignoreEmpty,
-                                final String emptyPlaceholder, final GraphNumberProperty.Type type) {
+                                final String[] emptyPlaceholder, final GraphNumberProperty.Type type) {
             super(field, propertyName, ignoreEmpty, emptyPlaceholder, ValueTransformation.NONE);
             this.type = type;
         }
@@ -178,9 +178,10 @@ final class ClassMapping {
         if (value != null) {
             if (value instanceof String) {
                 final String stringValue = (String) value;
-                if (field.emptyPlaceholder.length() > 0 && stringValue.equals(field.emptyPlaceholder))
-                    return null;
-                if (!field.ignoreEmpty || stringValue.length() > 0)
+                for (final String emptyPlaceholder : field.emptyPlaceholder)
+                    if (!emptyPlaceholder.isEmpty() && stringValue.equals(emptyPlaceholder))
+                        return null;
+                if (!field.ignoreEmpty || !stringValue.isEmpty())
                     return value;
             } else if (value instanceof Collection) {
                 if (field.transformation == ValueTransformation.COLLECTION_TO_ARRAY) {
@@ -232,8 +233,9 @@ final class ClassMapping {
         final Object value = field.field.get(obj);
         if (value != null) {
             final String valueText = value.toString();
-            if (field.emptyPlaceholder.length() > 0 && valueText.equals(field.emptyPlaceholder))
-                return null;
+            for (final String emptyPlaceholder : field.emptyPlaceholder)
+                if (!emptyPlaceholder.isEmpty() && valueText.equals(emptyPlaceholder))
+                    return null;
             if (StringUtils.isEmpty(valueText))
                 return new String[0];
             if (field.quotedArrayElements && valueText.startsWith("\"")) {

@@ -12,7 +12,7 @@ public @interface GraphNumberProperty {
 
     boolean ignoreEmpty() default false;
 
-    String emptyPlaceholder() default "";
+    String[] emptyPlaceholder() default {};
 
     Type type() default Type.Int;
 

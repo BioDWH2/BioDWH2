@@ -11,7 +11,7 @@ class ClassMappingTest {
     @Test
     void loadClassMapping() {
         final ClassMapping mapping = new ClassMapping(TestClass.class);
-        assertEquals(3, mapping.fields.length);
+        assertEquals(4, mapping.fields.length);
         assertEquals(1, mapping.booleanFields.length);
         assertEquals(3, mapping.arrayFields.length);
         assertEquals("A", mapping.label);
