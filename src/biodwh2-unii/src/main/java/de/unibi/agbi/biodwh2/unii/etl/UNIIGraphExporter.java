@@ -29,7 +29,7 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 5;
+        return 6;
     }
 
     @Override
@@ -55,7 +55,6 @@ public class UNIIGraphExporter extends GraphExporter<UNIIDataSource> {
             uniiNode = graph.addNode(UNII_LABEL, ID_KEY, entries.get(0).unii);
         else
             uniiNode = graph.addNodeFromModel(dataEntry);
-        uniiNode.setProperty("name", entries.get(0).displayName);
         uniiNode.setProperty("official_names", getNameArrayOfTypeFromEntries(entries, "of"));
         uniiNode.setProperty("systematic_names", getNameArrayOfTypeFromEntries(entries, "sys"));
         uniiNode.setProperty("common_names", getNameArrayOfTypeFromEntries(entries, "cn"));

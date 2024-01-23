@@ -6,17 +6,18 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @JsonPropertyOrder({
-        "UNII", "PT", "RN", "EC", "NCIT", "RXCUI", "PUBCHEM", "ITIS", "NCBI", "PLANTS", "GRIN", "MPNS", "INN_ID",
-        "USAN_ID", "MF", "INCHIKEY", "SMILES", "INGREDIENT_TYPE", "SUBSTANCE_TYPE", "UUID", "DAILYMED"
+        "UNII", "Display Name", "RN", "EC", "NCIT", "RXCUI", "PUBCHEM", "EPA_CompTox", "CATALOGUE_OF_LIFE", "ITIS",
+        "NCBI", "PLANTS", "GRIN", "MPNS", "INN_ID", "USAN_ID", "MF", "INCHIKEY", "SMILES", "INGREDIENT_TYPE",
+        "SUBSTANCE_TYPE", "UUID", "DAILYMED"
 })
 @GraphNodeLabel("UNII")
 public class UNIIDataEntry {
     @JsonProperty("UNII")
     @GraphProperty("id")
     public String unii;
-    @JsonProperty("PT")
-    @GraphProperty("preferred_term")
-    public String pt;
+    @JsonProperty("Display Name")
+    @GraphProperty("name")
+    public String displayName;
     @JsonProperty("RN")
     @GraphProperty("cas")
     public String rn;
@@ -44,6 +45,12 @@ public class UNIIDataEntry {
     @JsonProperty("PUBCHEM")
     @GraphProperty("pubchem_cid")
     public String pubchem;
+    @JsonProperty("EPA_CompTox")
+    @GraphProperty("epa_comptox")
+    public String epaCompTox;
+    @JsonProperty("CATALOGUE_OF_LIFE")
+    @GraphProperty("catalogue_of_life")
+    public String catalogueOfLife;
     /*
      * Integrated Taxonomic Information System Taxonomic Serial Number (ITIS TSN)
      * https://www.itis.gov/
