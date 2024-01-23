@@ -16,8 +16,6 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.*;
@@ -25,9 +23,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
-    private static final Logger LOGGER = LogManager.getLogger(BrendaGraphExporter.class);
     private static final Pattern ORGANISMS_PATTERN = Pattern.compile("#(\\d+(,\\d+)*)#");
     private static final Pattern REFERENCES_PATTERN = Pattern.compile("<(\\d+(,\\d+)*)>");
+    static final String ENZYME_LABEL = "Enzyme";
+    static final String PROTEIN_LABEL = "Protein";
+    static final String PUBLICATION_LABEL = "Publication";
+    static final String ORGANISM_LABEL = "Organism";
 
     public BrendaGraphExporter(final BrendaDataSource dataSource) {
         super(dataSource);
@@ -35,14 +36,15 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode("Enzyme", ID_KEY, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Protein", "accession", IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Publication", "pmid", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(ENZYME_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, "accession", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PUBLICATION_LABEL, "pmid", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(ORGANISM_LABEL, "ncbi_taxid", IndexDescription.Type.UNIQUE));
         try (final TarArchiveInputStream inputStream = FileUtils.openTarGzip(workspace, dataSource,
                                                                              BrendaUpdater.FILE_NAME)) {
             TarArchiveEntry entry;
@@ -57,20 +59,23 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
-        return false;
+        return true;
     }
 
     private void exportBrenda(final Graph graph, final Brenda brenda) {
         final Map<String, Long> organismNodeIdMap = new HashMap<>();
+        final Map<String, Long> publicationKeyNodeIdMap = new HashMap<>();
         for (final Enzyme enzyme : brenda.data.values())
-            exportEnzyme(graph, enzyme, organismNodeIdMap);
+            exportEnzyme(graph, enzyme, organismNodeIdMap, publicationKeyNodeIdMap);
     }
 
-    private void exportEnzyme(final Graph graph, final Enzyme enzyme, final Map<String, Long> organismNodeIdMap) {
+    private void exportEnzyme(final Graph graph, final Enzyme enzyme, final Map<String, Long> organismNodeIdMap,
+                              final Map<String, Long> publicationKeyNodeIdMap) {
         final Map<Integer, Long> organismRefNodeIdMap = exportEnzymeOrganismRefs(graph, enzyme, organismNodeIdMap);
         final Map<Integer, Long[]> proteinRefNodeIdMap = exportEnzymeProteinRefs(graph, enzyme);
-        final Map<Integer, Long> publicationRefNodeIdMap = exportEnzymePublicationRefs(graph, enzyme);
-        final NodeBuilder builder = graph.buildNode().withLabel("Enzyme");
+        final Map<Integer, Long> publicationRefNodeIdMap = exportEnzymePublicationRefs(graph, enzyme,
+                                                                                       publicationKeyNodeIdMap);
+        final NodeBuilder builder = graph.buildNode().withLabel(ENZYME_LABEL);
         builder.withProperty(ID_KEY, enzyme.id);
         builder.withPropertyIfNotNull("name", enzyme.name);
         builder.withPropertyIfNotNull("systematic_name", enzyme.systematicName);
@@ -270,47 +275,52 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
         if (organismNodeId == null) {
             final SpeciesLookup.Entry species = SpeciesLookup.getByScientificName(speciesName);
             if (species != null && species.ncbiTaxId != null) {
-                organismNodeId = graph.addNode("Organism", "ncbi_taxid", species.ncbiTaxId, "name", speciesName)
+                organismNodeId = graph.addNode(ORGANISM_LABEL, "ncbi_taxid", species.ncbiTaxId, "name", speciesName)
                                       .getId();
             } else {
-                organismNodeId = graph.addNode("Organism", "name", speciesName).getId();
+                organismNodeId = graph.addNode(ORGANISM_LABEL, "name", speciesName).getId();
             }
             organismNodeIdMap.put(speciesName, organismNodeId);
         }
         return organismNodeId;
     }
 
-    private Map<Integer, Long> exportEnzymePublicationRefs(Graph graph, Enzyme enzyme) {
+    private Map<Integer, Long> exportEnzymePublicationRefs(Graph graph, Enzyme enzyme,
+                                                           final Map<String, Long> publicationKeyNodeIdMap) {
         final Map<Integer, Long> refNodeIdMap = new HashMap<>();
         if (enzyme.references != null) {
             for (final Map.Entry<Integer, Reference> reference : enzyme.references.entrySet()) {
-                Long publicationNodeId = getOrCreatePublicationNode(graph, reference.getValue());
+                Long publicationNodeId = getOrCreatePublicationNode(graph, reference.getValue(),
+                                                                    publicationKeyNodeIdMap);
                 refNodeIdMap.put(reference.getKey(), publicationNodeId);
             }
         }
         return refNodeIdMap;
     }
 
-    private Long getOrCreatePublicationNode(final Graph graph, final Reference reference) {
-        // TODO: key lookup if pmid is null
+    private Long getOrCreatePublicationNode(final Graph graph, final Reference reference,
+                                            final Map<String, Long> publicationKeyNodeIdMap) {
         Long pmid = reference.pmid;
         if (pmid != null && pmid == 3020186354L)
             pmid = 30201863L;
         final Integer pmidInt = pmid != null ? pmid.intValue() : null;
-        Node publicationNode = null;
-        if (pmidInt != null)
-            publicationNode = graph.findNode("Publication", "pmid", pmidInt);
-        if (publicationNode == null) {
-            final NodeBuilder publicationBuilder = graph.buildNode().withLabel("Publication");
+        final String key = String.join("|", reference.authors) + '$' + reference.journal + '$' + reference.volume +
+                           '$' + reference.year + '$' + reference.pages;
+        Long publicationNodeId = pmidInt != null ? graph.findNode(PUBLICATION_LABEL, "pmid", pmidInt).getId() :
+                                 publicationKeyNodeIdMap.get(key);
+        if (publicationNodeId == null) {
+            final NodeBuilder publicationBuilder = graph.buildNode().withLabel(PUBLICATION_LABEL);
             publicationBuilder.withPropertyIfNotNull("pmid", pmidInt);
             publicationBuilder.withPropertyIfNotNull("authors", reference.authors);
             publicationBuilder.withPropertyIfNotNull("journal", reference.journal);
             publicationBuilder.withPropertyIfNotNull("volume", reference.volume);
             publicationBuilder.withPropertyIfNotNull("year", reference.year);
             publicationBuilder.withPropertyIfNotNull("pages", reference.pages);
-            publicationNode = publicationBuilder.build();
+            publicationNodeId = publicationBuilder.build().getId();
+            if (pmidInt == null)
+                publicationKeyNodeIdMap.put(key, publicationNodeId);
         }
-        return publicationNode.getId();
+        return publicationNodeId;
     }
 
     private Map<Integer, Long[]> exportEnzymeProteinRefs(Graph graph, Enzyme enzyme) {
@@ -332,13 +342,13 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
         final Set<Long> nodeIds = new HashSet<>();
         if (protein.accessions != null) {
             for (final String accession : protein.accessions) {
-                Node node = graph.findNode("Protein", "accession", accession);
+                Node node = graph.findNode(PROTEIN_LABEL, "accession", accession);
                 if (node == null)
-                    node = graph.addNode("Protein", "accession", accession, "source", protein.source);
+                    node = graph.addNode(PROTEIN_LABEL, "accession", accession, "source", protein.source);
                 nodeIds.add(node.getId());
             }
         } else {
-            nodeIds.add(graph.addNode("Protein").getId());
+            nodeIds.add(graph.addNode(PROTEIN_LABEL).getId());
         }
         return nodeIds.toArray(new Long[0]);
     }
