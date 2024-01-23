@@ -4,7 +4,6 @@ import de.unibi.agbi.biodwh2.core.BinaryUtils;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.net.util.Base64;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
@@ -16,6 +15,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Map;
 
 public final class HTTPClient {
@@ -115,7 +115,7 @@ public final class HTTPClient {
 
     private static String getBasicAuthForCredentials(final String username, final String password) {
         final String credentials = username + ":" + password;
-        return "Basic " + Base64.encodeBase64String(credentials.getBytes(StandardCharsets.UTF_8)).trim();
+        return "Basic " + Base64.getMimeEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8)).trim();
     }
 
     private static HttpURLConnection redirectURLConnectionIfNecessary(HttpURLConnection connection) throws IOException {
