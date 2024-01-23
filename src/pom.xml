@@ -74,7 +74,6 @@
         <module>biodwh2-brenda</module>
         <module>biodwh2-expasy</module>
         <module>biodwh2-hprd</module>
-        <module>biodwh2-diseaseontology</module>
         <module>biodwh2-hmdb</module>
         <module>biodwh2-cpdb</module>
         <module>biodwh2-tatonetti2012</module>
