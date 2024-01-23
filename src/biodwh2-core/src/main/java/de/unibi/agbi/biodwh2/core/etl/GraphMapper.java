@@ -225,7 +225,9 @@ public final class GraphMapper {
                           final boolean runsInParallel, final int numThreads) {
         for (final Map.Entry<String, MappingDescriber> entry : dataSourceDescriberMap.entrySet()) {
             final List<PathMapping> pathMappings = getNonEmptyPathMappingsForDescriber(entry.getValue());
-            if (!pathMappings.isEmpty() && LOGGER.isInfoEnabled())
+            if (pathMappings == null || pathMappings.isEmpty())
+                continue;
+            if (LOGGER.isInfoEnabled())
                 LOGGER.info("Mapping edge paths for data source '" + entry.getKey() + "'");
             for (final PathMapping path : pathMappings) {
                 final ConcurrentHashMap<String, Boolean> mappedEdgeTypes = new ConcurrentHashMap<>();
@@ -237,8 +239,9 @@ public final class GraphMapper {
     }
 
     private List<PathMapping> getNonEmptyPathMappingsForDescriber(final MappingDescriber describer) {
-        return Arrays.stream(describer.getEdgePathMappings()).filter(m -> m != null && m.getSegmentCount() > 0).collect(
-                Collectors.toList());
+        final PathMapping[] pathMappings = describer.getEdgePathMappings();
+        return pathMappings == null ? Collections.emptyList() : Arrays.stream(pathMappings).filter(
+                m -> m != null && m.getSegmentCount() > 0).collect(Collectors.toList());
     }
 
     private void mapPath(final Graph graph, final MappingDescriber describer, final PathMapping path,

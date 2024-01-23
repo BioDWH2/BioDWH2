@@ -35,7 +35,15 @@ public enum IdentifierType {
      */
     EMA_CTR("EMA_CTR", null, null, null),
     ENSEMBL("ENSEMBL", CharSequence.class, null, null),
+    /**
+     * Commission of the European Communities EC number for commercially available chemical substances within the
+     * European Union. The European EC Number should not be confused with the Enzyme Commission EC number for enzymes.
+     */
     EUROPEAN_CHEMICALS_AGENCY_EC("ECA_EC", null, null, null),
+    /**
+     * Enzyme Commission number (EC number)
+     */
+    EC_NUMBER("EC", null, null, null),
     FDA_SPL("FDA_SPL", null, null, null),
     GENE_CARD("GeneCard", null, null, null),
     GEN_ATLAS("GenAtlas", null, null, null),
