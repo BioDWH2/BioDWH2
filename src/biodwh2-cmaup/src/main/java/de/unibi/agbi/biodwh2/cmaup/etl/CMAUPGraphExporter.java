@@ -27,14 +27,14 @@ public class CMAUPGraphExporter extends GraphExporter<CMAUPDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode("Plant", "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Ingredient", "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Target", "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Plant", ID_KEY, false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Ingredient", ID_KEY, false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode("Target", ID_KEY, false, IndexDescription.Type.UNIQUE));
         final String[] fileNames = dataSource.listSourceFiles(workspace);
         for (final Plant plant : openTsvFile(workspace, fileNames, "_Plants.txt", Plant.class, true)) {
             graph.addNodeFromModel(plant);
@@ -50,15 +50,15 @@ public class CMAUPGraphExporter extends GraphExporter<CMAUPDataSource> {
         for (final PlantIngredientAssociation association : openTsvFile(workspace, fileNames,
                                                                         "_Plant_Ingredient_Associations_onlyActiveIngredients.txt",
                                                                         PlantIngredientAssociation.class, false)) {
-            final Node plantNode = graph.findNode("Plant", "id", association.plantId);
-            final Node ingredientNode = graph.findNode("Ingredient", "id", association.ingredientId);
+            final Node plantNode = graph.findNode("Plant", ID_KEY, association.plantId);
+            final Node ingredientNode = graph.findNode("Ingredient", ID_KEY, association.ingredientId);
             graph.addEdge(plantNode, ingredientNode, "CONTAINS");
         }
         for (final IngredientTargetAssociation association : openTsvFile(workspace, fileNames,
                                                                          "_Ingredient_Target_Associations_ActivityValues_References.txt",
                                                                          IngredientTargetAssociation.class, true)) {
-            final Node ingredientNode = graph.findNode("Ingredient", "id", association.ingredientId);
-            final Node targetNode = graph.findNode("Target", "id", association.targetId);
+            final Node ingredientNode = graph.findNode("Ingredient", ID_KEY, association.ingredientId);
+            final Node targetNode = graph.findNode("Target", ID_KEY, association.targetId);
             // Skipping ingredient-target associations where the ingredient is not active
             if (ingredientNode == null)
                 continue;

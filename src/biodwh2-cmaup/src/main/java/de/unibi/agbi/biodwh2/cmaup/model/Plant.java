@@ -3,6 +3,7 @@ package de.unibi.agbi.biodwh2.cmaup.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNumberProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @JsonPropertyOrder({
@@ -18,7 +19,7 @@ public class Plant {
     @GraphProperty("name")
     public String name;
     @JsonProperty("Species_Tax_ID")
-    @GraphProperty(value = "species_tax_id", emptyPlaceholder = "NA")
+    @GraphNumberProperty(value = "species_tax_id", emptyPlaceholder = {"NA", "n.a."})
     public String speciesTaxId;
     @JsonProperty("Species_Name")
     @GraphProperty("species_name")

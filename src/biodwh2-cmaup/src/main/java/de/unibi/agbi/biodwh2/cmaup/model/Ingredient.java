@@ -25,7 +25,7 @@ public class Ingredient {
     @GraphProperty("chembl_id")
     public String chemblId;
     @JsonProperty("pubchem_cid")
-    @GraphProperty(value = "pubchem_cid", emptyPlaceholder = "NA")
+    @GraphProperty(value = "pubchem_cid", emptyPlaceholder = {"NA", "n.a."})
     public String pubchemCid;
     @JsonProperty("zinc_id")
     @GraphProperty("zinc_id")

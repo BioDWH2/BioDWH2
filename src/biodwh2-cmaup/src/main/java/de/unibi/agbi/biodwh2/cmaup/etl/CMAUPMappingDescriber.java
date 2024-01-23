@@ -26,9 +26,9 @@ public class CMAUPMappingDescriber extends MappingDescriber {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.TAXON);
         description.addName(node.getProperty("name"));
         description.addName(node.getProperty("species_name"));
-        final String speciesTaxId = node.getProperty("species_tax_id");
-        if (speciesTaxId != null && speciesTaxId.length() > 0)
-            description.addIdentifier(IdentifierType.NCBI_TAXON, Integer.parseInt(speciesTaxId));
+        final Integer speciesTaxId = node.getProperty("species_tax_id");
+        if (speciesTaxId != null)
+            description.addIdentifier(IdentifierType.NCBI_TAXON, speciesTaxId);
         return new NodeMappingDescription[]{description};
     }
 
@@ -38,7 +38,7 @@ public class CMAUPMappingDescriber extends MappingDescriber {
         description.addName(node.getProperty("iupac_name"));
         description.addIdentifier(IdentifierType.CHEMBL, node.<String>getProperty("chembl_id"));
         final String pubchemCid = node.getProperty("pubchem_cid");
-        if (pubchemCid != null && pubchemCid.length() > 0) {
+        if (pubchemCid != null && !pubchemCid.isEmpty()) {
             final String[] parts = StringUtils.split(pubchemCid, ';');
             for (final String part : parts)
                 description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, Integer.parseInt(part));
