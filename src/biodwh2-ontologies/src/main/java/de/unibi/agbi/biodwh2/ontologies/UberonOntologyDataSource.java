@@ -21,6 +21,11 @@ public class UberonOntologyDataSource extends SingleOBOOntologyDataSource {
     }
 
     @Override
+    public String getFullName() {
+        return "Uberon Ontology (Uberon)";
+    }
+
+    @Override
     public String getLicense() {
         return License.CC_BY_3_0.getName();
     }

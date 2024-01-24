@@ -22,7 +22,7 @@ public class MondoDiseaseOntologyDataSource extends SingleOBOOntologyDataSource 
 
     @Override
     public String getFullName() {
-        return "Mondo Disease Ontology";
+        return "Mondo Disease Ontology (Mondo)";
     }
 
     @Override

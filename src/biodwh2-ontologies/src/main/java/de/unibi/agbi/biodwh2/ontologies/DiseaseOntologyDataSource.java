@@ -18,6 +18,11 @@ public class DiseaseOntologyDataSource extends SingleOBOOntologyDataSource {
     }
 
     @Override
+    public String getFullName() {
+        return "Disease Ontology (DO)";
+    }
+
+    @Override
     public String getLicense() {
         return License.CC0_1_0.getName();
     }

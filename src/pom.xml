@@ -44,7 +44,6 @@
         <module>biodwh2-gwascatalog</module>
         <module>biodwh2-opentargets</module>
         <module>biodwh2-omim</module>
-        <module>biodwh2-efo</module>
         <module>biodwh2-string</module>
         <module>biodwh2-stitch</module>
         <module>biodwh2-adrecs</module>

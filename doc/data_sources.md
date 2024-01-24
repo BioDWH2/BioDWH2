@@ -20,7 +20,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | DiseaseOntology               | Human Disease Ontology                                                                                                                                  | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)         | [Link](https://disease-ontology.org)                                    |
 | DrugBank                      | DrugBank                                                                                                                                                | [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)       | [Link](http://drugbank.ca)                                              |
 | DrugCentral                   | DrugCentral                                                                                                                                             | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)       | [Link](http://drugcentral.org)                                          |
-| EFO                           | Experimental Factor Ontology                                                                                                                            | Apache-2.0                                                            | [Link](https://www.ebi.ac.uk/efo/)                                      |
+| ExperimentalFactorOntology    | Experimental Factor Ontology                                                                                                                            | Apache-2.0                                                            | [Link](https://www.ebi.ac.uk/efo/)                                      |
 | EMA                           | European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC]                                                                                 |                                                                       | [Link](https://www.ema.europa.eu/en/medicines/download-medicine-data)   |
 | ENZYME                        | Expasy ENZYME                                                                                                                                           | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://enzyme.expasy.org)                                       |
 | Gene2Phenotype                | Datasets for use in diagnostic variant filtering                                                                                                        |                                                                       | [Link](https://www.ebi.ac.uk/gene2phenotype)                            |
@@ -401,7 +401,7 @@ DrugCentral is an online drug information resource created and maintained by the
 
 ----
 
-### EFO
+### ExperimentalFactorOntology
 
 The Experimental Factor Ontology (EFO) provides a systematic description of many experimental variables including diseases.
 

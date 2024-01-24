@@ -18,6 +18,11 @@ public class BasicFormalOntologyDataSource extends SingleOBOOntologyDataSource {
     }
 
     @Override
+    public String getFullName() {
+        return "Basic Formal Ontology (BFO)";
+    }
+
+    @Override
     public String getLicense() {
         return License.CC_BY_4_0.getName();
     }
