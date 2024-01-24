@@ -99,7 +99,7 @@ public class InterProGraphExporter extends GraphExporter<InterProDataSource> {
         builder.withPropertyIfNotNull("protein_count", entry.proteinCount);
         builder.withPropertyIfNotNull("name", entry.name);
         // builder.withPropertyIfNotNull("abstract", entry._abstract);
-        if (entry.structureDbLinks != null && entry.structureDbLinks.size() > 0) {
+        if (entry.structureDbLinks != null && !entry.structureDbLinks.isEmpty()) {
             final String[] structureDbLinks = new String[entry.structureDbLinks.size()];
             for (int i = 0; i < entry.structureDbLinks.size(); i++) {
                 final DBXref xref = entry.structureDbLinks.get(i);
@@ -107,7 +107,7 @@ public class InterProGraphExporter extends GraphExporter<InterProDataSource> {
             }
             builder.withProperty("structure_db_links", structureDbLinks);
         }
-        if (entry.externalDocList != null && entry.externalDocList.size() > 0) {
+        if (entry.externalDocList != null && !entry.externalDocList.isEmpty()) {
             final String[] externalDocList = new String[entry.externalDocList.size()];
             for (int i = 0; i < entry.externalDocList.size(); i++) {
                 final DBXref xref = entry.externalDocList.get(i);
@@ -115,22 +115,22 @@ public class InterProGraphExporter extends GraphExporter<InterProDataSource> {
             }
             builder.withProperty("external_docs", externalDocList);
         }
-        if (entry.keySpecies != null && entry.keySpecies.size() > 0) {
+        if (entry.keySpecies != null && !entry.keySpecies.isEmpty()) {
             final String[] keySpeciesNames = new String[entry.keySpecies.size()];
-            final Integer[] keySpeciesNCBITaxIds = new Integer[entry.keySpecies.size()];
-            final Integer[] keySpeciesProteinCounts = new Integer[entry.keySpecies.size()];
+            final int[] keySpeciesNCBITaxIds = new int[entry.keySpecies.size()];
+            final int[] keySpeciesProteinCounts = new int[entry.keySpecies.size()];
             for (int i = 0; i < entry.keySpecies.size(); i++) {
                 final TaxonData taxon = entry.keySpecies.get(i);
                 final SpeciesLookup.Entry taxonEntry = SpeciesLookup.getByScientificName(taxon.name);
                 keySpeciesNames[i] = taxon.name;
-                keySpeciesNCBITaxIds[i] = taxonEntry != null ? taxonEntry.ncbiTaxId : null;
+                keySpeciesNCBITaxIds[i] = taxonEntry != null ? taxonEntry.ncbiTaxId : -1;
                 keySpeciesProteinCounts[i] = taxon.proteinsCount;
             }
             builder.withProperty("key_species", keySpeciesNames);
             builder.withProperty("key_species_ncbi_taxids", keySpeciesNCBITaxIds);
             builder.withProperty("key_species_protein_counts", keySpeciesProteinCounts);
         }
-        if (entry.memberList != null && entry.memberList.size() > 0) {
+        if (entry.memberList != null && !entry.memberList.isEmpty()) {
             final String[] membersDbLinks = new String[entry.memberList.size()];
             final String[] membersNames = new String[entry.memberList.size()];
             final int[] membersProteinCounts = new int[entry.memberList.size()];

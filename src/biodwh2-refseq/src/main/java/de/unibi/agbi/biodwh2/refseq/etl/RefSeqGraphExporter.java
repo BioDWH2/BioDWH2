@@ -350,6 +350,7 @@ public class RefSeqGraphExporter extends GraphExporter<RefSeqDataSource> {
                         result.add(xref);
                     break;
                 case "Genbank":
+                case "GenBank":
                     switch (suffix.charAt(1)) {
                         case 'M':
                             if (isMRNA)
@@ -405,6 +406,6 @@ public class RefSeqGraphExporter extends GraphExporter<RefSeqDataSource> {
                     break;
             }
         }
-        return result.size() > 0 ? result.toArray(new String[0]) : null;
+        return !result.isEmpty() ? result.toArray(new String[0]) : null;
     }
 }
