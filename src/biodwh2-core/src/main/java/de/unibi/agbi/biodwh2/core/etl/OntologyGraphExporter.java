@@ -172,7 +172,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
         final Node subsetDefNode;
         if (synonymTypeDef.scope != null)
             subsetDefNode = graph.addNode("SynonymType", ID_KEY, synonymTypeDef.id, "description",
-                                          synonymTypeDef.description, "scope", synonymTypeDef.scope);
+                                          synonymTypeDef.description, "scope", synonymTypeDef.scope.toString());
         else
             subsetDefNode = graph.addNode("SynonymType", ID_KEY, synonymTypeDef.id, "description",
                                           synonymTypeDef.description);
