@@ -37,7 +37,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | miRDB                         | miRDB                                                                                                                                                   |                                                                       | [Link](https://www.mirdb.org)                                           |
 | miRTarBase                    | miRTarBase                                                                                                                                              |                                                                       | [Link](https://mirtarbase.cuhk.edu.cn)                                  |
 | MolecularInteractionsOntology | Molecular Interactions Controlled Vocabulary                                                                                                            | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/HUPO-PSI/psi-mi-CV)                           |
-| Mondo                         | Mondo Disease Ontology                                                                                                                                  | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://mondo.monarchinitiative.org)                             |
+| MondoDiseaseOntology          | Mondo Disease Ontology                                                                                                                                  | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://mondo.monarchinitiative.org)                             |
 | NDF-RT                        | National Drug File – Reference Terminology (NDF-RT™)                                                                                                    | UMLS license                                                          | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/)                            |
 | Negatome                      | Negatome                                                                                                                                                |                                                                       | [Link](http://mips.helmholtz-muenchen.de/proj/ppi/negatome/)            |
 | NeuroBehaviourOntology        | Neuro Behaviour Ontology                                                                                                                                |                                                                       | [Link](https://github.com/obo-behavior/behavior-ontology)               |
@@ -901,7 +901,7 @@ Integrated Taxonomic Information System
 
 ----
 
-### Mondo
+### MondoDiseaseOntology
 
 - **Website**: [https://mondo.monarchinitiative.org](https://mondo.monarchinitiative.org)
 - **License**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)

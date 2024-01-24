@@ -11,18 +11,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
-public class CellOntologyDataSource extends SingleOBOOntologyDataSource {
+public class MondoDiseaseOntologyDataSource extends SingleOBOOntologyDataSource {
     private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})");
-    static final String FILE_NAME = "cl-full.obo";
+    private static final String FILE_NAME = "mondo.obo";
 
     @Override
     public String getId() {
-        return "CellOntology";
+        return "MondoDiseaseOntology";
     }
 
     @Override
     public String getFullName() {
-        return "Cell Ontology";
+        return "Mondo Disease Ontology";
     }
 
     @Override
@@ -32,12 +32,12 @@ public class CellOntologyDataSource extends SingleOBOOntologyDataSource {
 
     @Override
     protected String getDownloadUrl() {
-        final GithubRelease release = GithubUtils.getLatestRelease("obophenotype", "cell-ontology");
+        final GithubRelease release = GithubUtils.getLatestRelease("monarch-initiative", "mondo");
         if (release != null)
             for (final GithubAsset asset : release.assets)
                 if (FILE_NAME.equals(asset.name))
                     return asset.browserDownloadUrl;
-        return "https://github.com/obophenotype/cell-ontology/releases/latest/download/" + FILE_NAME;
+        return "https://github.com/monarch-initiative/mondo/releases/latest/download/" + FILE_NAME;
     }
 
     @Override
