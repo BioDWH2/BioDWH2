@@ -306,8 +306,14 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
         final Integer pmidInt = pmid != null ? pmid.intValue() : null;
         final String key = String.join("|", reference.authors) + '$' + reference.journal + '$' + reference.volume +
                            '$' + reference.year + '$' + reference.pages;
-        Long publicationNodeId = pmidInt != null ? graph.findNode(PUBLICATION_LABEL, "pmid", pmidInt).getId() :
-                                 publicationKeyNodeIdMap.get(key);
+        Long publicationNodeId = null;
+        if (pmidInt != null) {
+            Node publicationNode = graph.findNode(PUBLICATION_LABEL, "pmid", pmidInt);
+            if (publicationNode != null)
+                publicationNodeId = publicationNode.getId();
+        } else {
+            publicationNodeId = publicationKeyNodeIdMap.get(key);
+        }
         if (publicationNodeId == null) {
             final NodeBuilder publicationBuilder = graph.buildNode().withLabel(PUBLICATION_LABEL);
             publicationBuilder.withPropertyIfNotNull("pmid", pmidInt);
