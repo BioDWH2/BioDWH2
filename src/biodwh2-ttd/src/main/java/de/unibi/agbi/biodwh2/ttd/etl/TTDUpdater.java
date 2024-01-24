@@ -57,7 +57,7 @@ public class TTDUpdater extends Updater<TTDDataSource> {
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
-            final String source = HTTPClient.getWebsiteSource(VERSION_URL);
+            final String source = HTTPClient.getWebsiteSource(VERSION_URL, 5);
             final Matcher matcher = versionPattern.matcher(source);
             if (matcher.find()) {
                 return new Version(Integer.parseInt(matcher.group(4)), monthNameNumberMap.get(matcher.group(1)),
