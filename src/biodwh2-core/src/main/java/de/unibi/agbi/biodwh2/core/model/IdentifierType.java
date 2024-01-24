@@ -91,7 +91,7 @@ public enum IdentifierType {
      * NCBI Entrez Gene ID
      */
     NCBI_GENE("NCBIGene", Integer.class, "ncbigene", "^\\d+$"),
-    GENBANK("Genbank", CharSequence.class, null, null),
+    GENBANK("Genbank", CharSequence.class, "genbank", "^[A-Z]+\\d+$"),
     /**
      * NIH NCI (National Cancer Institute) https://www.cancer.gov/about-cancer/treatment/clinical-trials
      */

@@ -79,7 +79,10 @@ public class RNALocateMappingDescriber extends MappingDescriber {
                     description.addIdentifier(IdentifierType.MIRBASE, idParts[1]);
                     break;
                 case "NCBI":
-                    description.addIdentifier(IdentifierType.NCBI_GENE, Integer.parseInt(idParts[1]));
+                    if (StringUtils.isNumeric(idParts[1]))
+                        description.addIdentifier(IdentifierType.NCBI_GENE, Integer.parseInt(idParts[1]));
+                    else
+                        description.addIdentifier(IdentifierType.GENBANK, idParts[1]);
                     break;
                 // TODO
                 case "exoRBase":
