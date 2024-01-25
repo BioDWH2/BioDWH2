@@ -22,6 +22,12 @@ public abstract class ModelBuilder<S extends ModelBuilder<S>> extends HashMap<St
         return (S) this;
     }
 
+    public S withPropertyIfNotNull(final String key, final String value) {
+        if (value != null && !value.isEmpty())
+            put(key, value);
+        return (S) this;
+    }
+
     public <T> S withPropertyIfNotNull(final String key, final T value) {
         if (value != null)
             put(key, value);

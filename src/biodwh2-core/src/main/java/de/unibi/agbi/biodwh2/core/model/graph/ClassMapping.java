@@ -184,6 +184,10 @@ final class ClassMapping {
                 if (!field.ignoreEmpty || !stringValue.isEmpty())
                     return value;
             } else if (value instanceof Collection) {
+                if (field.transformation == ValueTransformation.COLLECTION_TO_STRING_ARRAY) {
+                    final Collection<?> collection = (Collection<?>) value;
+                    return collection.toArray(new String[0]);
+                }
                 if (field.transformation == ValueTransformation.COLLECTION_TO_ARRAY) {
                     final Collection<?> collection = (Collection<?>) value;
                     for (final Object element : collection) {
