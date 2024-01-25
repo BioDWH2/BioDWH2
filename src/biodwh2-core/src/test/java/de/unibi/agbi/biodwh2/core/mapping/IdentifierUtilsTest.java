@@ -25,5 +25,7 @@ class IdentifierUtilsTest {
                 "Friedrichs M. Automation in graph-based data integration and mapping. In: Chen M, Hofestädt R, eds. Integrative Bioinformatics. Springer Singapore; 2022:97-110. DOI: 10.1007/978-981-16-6795-4_5"));
         assertArrayEquals(new String[]{"10.1517/13543784.17.3.413"}, IdentifierUtils.extractDOIs(
                 "Evering TH, Markowitz M: Raltegravir: an integrase inhibitor for HIV-1. Expert Opin Investig Drugs. 2008 Mar;17(3):413-22. doi: 10.1517/13543784.17.3.413 ."));
+        assertArrayEquals(new String[]{"10.1016/j.molcel.2015.07.028"}, IdentifierUtils.extractDOIs(
+                "Zeqiraj E, Tian L, Piggott CA, Pillon MC, Duffy NM, Ceccarelli DF, Keszei AF, Lorenzen K, Kurinov I, Orlicky S, Gish GD, Heck AJ, Guarne A, Greenberg RA, Sicheri F: Higher-Order Assembly of BRCC36-KIAA0157 Is Required for DUB Activity and Biological Function. Mol Cell. 2015 Sep 17;59(6):970-83. doi: 10.1016/j.molcel.2015.07.028. Epub 2015  Sep 3."));
     }
 }

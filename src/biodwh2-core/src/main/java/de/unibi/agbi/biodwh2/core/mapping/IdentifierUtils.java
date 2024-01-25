@@ -17,7 +17,7 @@ public final class IdentifierUtils {
     /**
      * https://www.crossref.org/blog/dois-and-matching-regular-expressions/
      */
-    public static final Pattern DOI_PATTERN = Pattern.compile("10.\\d{4,9}/[-._;()/:A-Z0-9]+",
+    public static final Pattern DOI_PATTERN = Pattern.compile("10.\\d{4,9}/(?:\\.?[-_;()/:A-Z0-9])+",
                                                               Pattern.CASE_INSENSITIVE);
 
     private IdentifierUtils() {
@@ -45,6 +45,6 @@ public final class IdentifierUtils {
         final List<String> dois = new ArrayList<>();
         while (matcher.find())
             dois.add(matcher.group(0));
-        return dois.size() > 0 ? dois.toArray(new String[0]) : null;
+        return !dois.isEmpty() ? dois.toArray(new String[0]) : null;
     }
 }
