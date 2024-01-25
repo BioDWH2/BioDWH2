@@ -16,11 +16,13 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.hmdb.HMDBDataSource;
 import de.unibi.agbi.biodwh2.hmdb.model.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,10 +37,14 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
     static final String DISEASE_LABEL = "Disease";
     static final String REFERENCE_LABEL = "Reference";
     public static final String PROTEIN_LABEL = "Protein";
+    public static final String GENE_LABEL = "Gene";
     static final String METABOLITE_LABEL = "Metabolite";
+    static final String TRANSLATES_TO_LABEL = "TRANSLATES_TO";
     private final Map<String, Long> referenceTextNodeIdMap = new HashMap<>();
     private final Map<String, Long> diseaseNameNodeIdMap = new HashMap<>();
     private final Map<String, Long> pathwayNameNodeIdMap = new HashMap<>();
+    private final Map<String, Long> proteinMetaboliteLinkNodeIdMap = new HashMap<>();
+    private final Map<String, List<Long>> proteinMetaboliteLinkCache = new HashMap<>();
     private final Map<String, MetaboliteStructure> metaboliteStructureMap = new HashMap<>();
 
     public HMDBGraphExporter(final HMDBDataSource dataSource) {
@@ -55,12 +61,14 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
         referenceTextNodeIdMap.clear();
         diseaseNameNodeIdMap.clear();
         pathwayNameNodeIdMap.clear();
+        proteinMetaboliteLinkNodeIdMap.clear();
         metaboliteStructureMap.clear();
         graph.addIndex(IndexDescription.forNode(REFERENCE_LABEL, "pubmed_id", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, "accession", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(METABOLITE_LABEL, "accession", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(PATHWAY_LABEL, "smpdb_id", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(PATHWAY_LABEL, "kegg_map_id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(GENE_LABEL, "hgnc_id", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(GO_CLASS_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(PFAM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(ONTOLOGY_TERM_LABEL, "term", IndexDescription.Type.UNIQUE));
@@ -73,7 +81,7 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting metabolites...");
         exportMetabolites(workspace, graph);
-        return false;
+        return true;
     }
 
     private void exportProteins(final Workspace workspace, final Graph graph) {
@@ -104,10 +112,7 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
     }
 
     private void exportProtein(final Graph graph, final Protein protein) {
-        // TODO: Split Protein and Gene
         final NodeBuilder builder = graph.buildNode().withLabel(PROTEIN_LABEL).withModel(protein);
-        if (protein.geneProperties != null)
-            builder.withModel(protein.geneProperties);
         if (protein.proteinProperties != null)
             builder.withModel(protein.proteinProperties);
         final Node proteinNode = builder.build();
@@ -124,12 +129,46 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
                 graph.addEdge(proteinNode, getOrCreatePfamNode(graph, pfam), "HAS_PFAM");
         if (protein.metaboliteReferences != null) {
             for (final MetaboliteReference reference : protein.metaboliteReferences) {
-                // TODO: metabolite and edges
-                if (reference.reference != null)
-                    getOrCreateReferenceNode(graph, reference.reference);
+                if (reference.reference != null) {
+                    final String key = protein.accession + "|" + reference.metabolite.accession;
+                    Long associationNodeId = proteinMetaboliteLinkNodeIdMap.get(key);
+                    if (associationNodeId == null) {
+                        associationNodeId = graph.addNode("ProteinMetaboliteLink").getId();
+                        proteinMetaboliteLinkNodeIdMap.put(key, associationNodeId);
+                    }
+                    if (!proteinMetaboliteLinkCache.containsKey(reference.metabolite.accession))
+                        proteinMetaboliteLinkCache.put(reference.metabolite.accession, new ArrayList<>());
+                    proteinMetaboliteLinkCache.get(reference.metabolite.accession).add(associationNodeId);
+                    final Long referenceNodeId = getOrCreateReferenceNode(graph, reference.reference);
+                    graph.addEdge(proteinNode, associationNodeId, "ASSOCIATED_WITH");
+                    graph.addEdge(associationNodeId, referenceNodeId, "HAS_REFERENCE");
+                }
             }
         }
+        final Node geneNode = getOrCreateGeneNode(graph, protein);
+        graph.addEdge(geneNode, proteinNode, TRANSLATES_TO_LABEL);
         // ignored because bidirectional: metaboliteAssociations
+    }
+
+    private Node getOrCreateGeneNode(final Graph graph, final Protein protein) {
+        Node node = null;
+        if (StringUtils.isNotEmpty(protein.hgncId)) {
+            if (protein.hgncId.startsWith("GNC:"))
+                protein.hgncId = 'H' + protein.hgncId;
+            node = graph.findNode(GENE_LABEL, "hgnc_id", protein.hgncId);
+        }
+        if (node == null) {
+            final NodeBuilder builder = graph.buildNode().withLabel(GENE_LABEL);
+            builder.withPropertyIfNotNull("hgnc_id", protein.hgncId);
+            builder.withPropertyIfNotNull("name", protein.geneName);
+            builder.withPropertyIfNotNull("genbank_gene_id", protein.genbankGeneId);
+            builder.withPropertyIfNotNull("genecard_id", protein.genecardId);
+            builder.withPropertyIfNotNull("geneatlas_id", protein.geneatlasId);
+            if (protein.geneProperties != null)
+                builder.withModel(protein.geneProperties);
+            node = builder.build();
+        }
+        return node;
     }
 
     private Node getOrCreateGOClassNode(final Graph graph, final GOClass goClass) {
@@ -272,6 +311,10 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
         if (metabolite.taxonomy != null) {
             // TODO
         }
+        final List<Long> proteinMetaboliteLinkNodeIds = proteinMetaboliteLinkCache.get(metabolite.accession);
+        if (proteinMetaboliteLinkNodeIds != null)
+            for (final Long associationNodeId : proteinMetaboliteLinkNodeIds)
+                graph.addEdge(metaboliteNode.getId(), associationNodeId, "ASSOCIATED_WITH");
     }
 
     private Long getOrCreateReferenceNode(final Graph graph, final Reference reference) {

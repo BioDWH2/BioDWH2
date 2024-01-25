@@ -2,9 +2,11 @@ package de.unibi.agbi.biodwh2.hmdb.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.mapping.IdentifierUtils;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.core.model.graph.mapping.PublicationNodeMappingDescription;
+import org.apache.commons.lang3.StringUtils;
 
 public class HMDBMappingDescriber extends MappingDescriber {
     public HMDBMappingDescriber(final DataSource dataSource) {
@@ -21,6 +23,8 @@ public class HMDBMappingDescriber extends MappingDescriber {
             return describePathwayNode(node);
         if (HMDBGraphExporter.PROTEIN_LABEL.equals(localMappingLabel))
             return describeProteinNode(node);
+        if (HMDBGraphExporter.GENE_LABEL.equals(localMappingLabel))
+            return describeGeneNode(node);
         if (HMDBGraphExporter.METABOLITE_LABEL.equals(localMappingLabel))
             return describeMetaboliteNode(node);
         return null;
@@ -33,7 +37,18 @@ public class HMDBMappingDescriber extends MappingDescriber {
         final PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
         description.pubmedId = pubmedId;
         description.addIdentifier(IdentifierType.PUBMED_ID, pubmedId);
-        description.addName(node.getProperty("text"));
+        final String citation = node.getProperty("text");
+        if (citation != null) {
+            final String[] dois = IdentifierUtils.extractDOIs(citation);
+            if (dois != null) {
+                if (dois.length == 1) {
+                    description.doi = dois[0];
+                }
+                for (final String doi : dois)
+                    description.addIdentifier(IdentifierType.DOI, doi);
+            }
+            description.addName(citation);
+        }
         return new NodeMappingDescription[]{description};
     }
 
@@ -53,10 +68,8 @@ public class HMDBMappingDescriber extends MappingDescriber {
         if (keggMapId == null && smpdbId == null)
             return null;
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PATHWAY);
-        if (keggMapId != null)
-            description.addIdentifier(IdentifierType.KEGG, keggMapId);
-        if (smpdbId != null)
-            description.addIdentifier(IdentifierType.SMPDB, smpdbId);
+        description.addIdentifier(IdentifierType.KEGG, keggMapId);
+        description.addIdentifier(IdentifierType.SMPDB, smpdbId);
         description.addName(node.getProperty("name"));
         return new NodeMappingDescription[]{description};
     }
@@ -64,13 +77,13 @@ public class HMDBMappingDescriber extends MappingDescriber {
     private NodeMappingDescription[] describeProteinNode(final Node node) {
         final String accession = node.getProperty("accession");
         final String uniprotId = node.getProperty("uniprot_id");
-        if (accession == null && uniprotId == null)
+        final String genbankProteinId = node.getProperty("genbank_protein_id");
+        if (accession == null && uniprotId == null && genbankProteinId == null)
             return null;
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PROTEIN);
-        // if (accession != null)
-        //     description.addIdentifier("HMDB", accession);
-        if (uniprotId != null)
-            description.addIdentifier(IdentifierType.UNIPROT_KB, uniprotId);
+        // description.addIdentifier("HMDB", accession);
+        description.addIdentifier(IdentifierType.UNIPROT_KB, uniprotId);
+        // description.addIdentifier(IdentifierType.GENBANK, genbankProteinId);
         description.addName(node.getProperty("name"));
         description.addName(node.getProperty("uniprot_name"));
         return new NodeMappingDescription[]{description};
@@ -79,15 +92,38 @@ public class HMDBMappingDescriber extends MappingDescriber {
     private NodeMappingDescription[] describeMetaboliteNode(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(
                 NodeMappingDescription.NodeType.METABOLITE);
-        // if (accession != null)
-        //     description.addIdentifier("HMDB", accession);
+        // description.addIdentifier("HMDB", accession);
+        description.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
+        description.addIdentifier(IdentifierType.KEGG, node.<String>getProperty("kegg_id"));
+        description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, node.<Integer>getProperty("pubchem_compound_id"));
+        description.addIdentifier(IdentifierType.CHEMSPIDER, node.<Integer>getProperty("chemspider_id"));
+        // foodb_id, pdb_id, chebi_id, phenol_explorer_compound_id, knapsack_id, biocyc_id, bigg_id,
+        // wikipedia_id, metlin_id, vmh_id, fbonto_id, cas_registry_number
         description.addName(node.getProperty("name"));
-        return null;
-        // TODO: return new NodeMappingDescription[]{description};
+        description.addName(node.getProperty("iupac_name"));
+        description.addNames(node.<String[]>getProperty("synonyms"));
+        return new NodeMappingDescription[]{description};
+    }
+
+    private NodeMappingDescription[] describeGeneNode(final Node node) {
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        final String hgncId = node.getProperty("hgnc_id");
+        if (StringUtils.isNotEmpty(hgncId)) {
+            description.addIdentifier(IdentifierType.HGNC_ID,
+                                      Integer.parseInt(StringUtils.strip(hgncId.trim(), "HGNC:")));
+        }
+        description.addIdentifier(IdentifierType.GENBANK, node.<String>getProperty("genbank_gene_id"));
+        description.addIdentifier(IdentifierType.GENE_CARD, node.<String>getProperty("genecard_id"));
+        description.addName(node.getProperty("name"));
+        return new NodeMappingDescription[]{description};
     }
 
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
+        if (edges.length == 1) {
+            if (edges[0].getLabel().endsWith(HMDBGraphExporter.TRANSLATES_TO_LABEL))
+                return new PathMappingDescription(PathMappingDescription.EdgeType.TRANSLATES_TO);
+        }
         return null;
     }
 
@@ -95,12 +131,15 @@ public class HMDBMappingDescriber extends MappingDescriber {
     protected String[] getNodeMappingLabels() {
         return new String[]{
                 HMDBGraphExporter.REFERENCE_LABEL, HMDBGraphExporter.DISEASE_LABEL, HMDBGraphExporter.PATHWAY_LABEL,
-                HMDBGraphExporter.PROTEIN_LABEL, HMDBGraphExporter.METABOLITE_LABEL
+                HMDBGraphExporter.PROTEIN_LABEL, HMDBGraphExporter.GENE_LABEL, HMDBGraphExporter.METABOLITE_LABEL
         };
     }
 
     @Override
     protected PathMapping[] getEdgePathMappings() {
-        return new PathMapping[0];
+        return new PathMapping[]{
+                new PathMapping().add(HMDBGraphExporter.GENE_LABEL, HMDBGraphExporter.TRANSLATES_TO_LABEL,
+                                      HMDBGraphExporter.PROTEIN_LABEL, EdgeDirection.FORWARD)
+        };
     }
 }

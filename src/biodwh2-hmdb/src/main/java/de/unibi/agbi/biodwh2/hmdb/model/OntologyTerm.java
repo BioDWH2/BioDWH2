@@ -23,7 +23,7 @@ public class OntologyTerm {
     @GraphProperty("type")
     public String type;
     @JacksonXmlElementWrapper(localName = "synonyms")
-    @GraphProperty(value = "synonyms", transformation = ValueTransformation.COLLECTION_TO_ARRAY)
+    @GraphProperty(value = "synonyms", transformation = ValueTransformation.COLLECTION_TO_STRING_ARRAY)
     public List<String> synonyms;
     @JacksonXmlElementWrapper(localName = "descendants")
     public List<OntologyTerm> descendants;

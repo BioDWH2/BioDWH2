@@ -22,7 +22,7 @@ public class Metabolite {
     @GraphProperty("status")
     public String status;
     @JacksonXmlElementWrapper(localName = "secondary_accessions")
-    @GraphProperty(value = "secondary_accessions", transformation = ValueTransformation.COLLECTION_TO_ARRAY)
+    @GraphProperty(value = "secondary_accessions", transformation = ValueTransformation.COLLECTION_TO_STRING_ARRAY)
     public List<String> secondaryAccessions;
     @GraphProperty("name")
     public String name;
@@ -30,7 +30,7 @@ public class Metabolite {
     public String description;
     @JacksonXmlElementWrapper(localName = "synonyms")
     @JacksonXmlProperty(localName = "synonym")
-    @GraphProperty(value = "synonyms", transformation = ValueTransformation.COLLECTION_TO_ARRAY)
+    @GraphProperty(value = "synonyms", transformation = ValueTransformation.COLLECTION_TO_STRING_ARRAY)
     public List<String> synonyms;
     @JsonProperty("chemical_formula")
     @GraphProperty("chemical_formula")

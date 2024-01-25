@@ -32,7 +32,6 @@ public class Protein {
     @GraphProperty("synonyms")
     public List<String> synonyms;
     @JsonProperty("gene_name")
-    @GraphProperty("gene_name")
     public String geneName;
     @JsonProperty("general_function")
     @GraphProperty("general_function")
@@ -67,16 +66,12 @@ public class Protein {
     @GraphProperty("pdb_ids")
     public List<String> pdbIds;
     @JsonProperty("genbank_gene_id")
-    @GraphProperty("genbank_gene_id")
     public String genbankGeneId;
     @JsonProperty("genecard_id")
-    @GraphProperty("genecard_id")
     public String genecardId;
     @JsonProperty("geneatlas_id")
-    @GraphProperty("geneatlas_id")
     public String geneatlasId;
     @JsonProperty("hgnc_id")
-    @GraphProperty("hgnc_id")
     public String hgncId;
     @JacksonXmlElementWrapper(localName = "general_references")
     public List<Reference> generalReferences;

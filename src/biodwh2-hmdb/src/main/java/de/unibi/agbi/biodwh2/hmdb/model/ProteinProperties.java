@@ -23,13 +23,13 @@ public class ProteinProperties {
      * Never used, so type is unknown
      */
     @JacksonXmlElementWrapper(localName = "transmembrane_regions")
-    @GraphProperty(value = "transmembrane_regions", transformation = ValueTransformation.COLLECTION_TO_ARRAY)
+    @GraphProperty(value = "transmembrane_regions", transformation = ValueTransformation.COLLECTION_TO_STRING_ARRAY)
     public List<String> transmembraneRegions;
     /**
      * Never used, so type is unknown
      */
     @JacksonXmlElementWrapper(localName = "signal_regions")
-    @GraphProperty(value = "signal_regions", transformation = ValueTransformation.COLLECTION_TO_ARRAY)
+    @GraphProperty(value = "signal_regions", transformation = ValueTransformation.COLLECTION_TO_STRING_ARRAY)
     public List<String> signalRegions;
     @JsonProperty("polypeptide_sequence")
     @GraphProperty("polypeptide_sequence")
