@@ -7,6 +7,7 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.sdf.SdfEntry;
 import de.unibi.agbi.biodwh2.core.io.sdf.SdfReader;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
@@ -18,17 +19,12 @@ import de.unibi.agbi.biodwh2.hmdb.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import java.io.*;
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
     private static final Logger LOGGER = LogManager.getLogger(HMDBGraphExporter.class);
@@ -86,46 +82,29 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
         if (!zipFile.exists())
             throw new ExporterException("Failed to find file '" + HMDBUpdater.PROTEINS_XML_FILE_NAME + "'");
         try {
-            final ZipInputStream zipInputStream = openZipInputStream(zipFile);
-            int counter = 1;
-            ZipEntry zipEntry;
-            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                if (zipEntry.getName().endsWith(".xml")) {
-                    final XmlMapper xmlMapper = new XmlMapper();
-                    final FromXmlParser parser = createXmlParser(zipInputStream, xmlMapper);
-                    // Skip the first structure token which is the root HMDB node
-                    //noinspection UnusedAssignment
-                    JsonToken token = parser.nextToken();
-                    while ((token = parser.nextToken()) != null)
-                        if (token.isStructStart()) {
-                            if (counter % 1_000 == 0 && LOGGER.isInfoEnabled())
-                                LOGGER.info("Exporting proteins progress " + counter);
-                            counter++;
-                            exportProtein(graph, xmlMapper.readValue(parser, Protein.class));
-                        }
-                }
-            }
-        } catch (IOException | XMLStreamException e) {
+            final int[] counter = new int[]{1};
+            FileUtils.forEachZipEntry(zipFile, ".xml", (stream, entry) -> {
+                final XmlMapper xmlMapper = new XmlMapper();
+                final FromXmlParser parser = FileUtils.createXmlParser(stream, xmlMapper);
+                // Skip the first structure token which is the root HMDB node
+                //noinspection UnusedAssignment
+                JsonToken token = parser.nextToken();
+                while ((token = parser.nextToken()) != null)
+                    if (token.isStructStart()) {
+                        if (counter[0] % 1_000 == 0 && LOGGER.isInfoEnabled())
+                            LOGGER.info("Exporting proteins progress " + counter[0]);
+                        counter[0]++;
+                        exportProtein(graph, xmlMapper.readValue(parser, Protein.class));
+                    }
+            });
+        } catch (Exception e) {
             throw new ExporterFormatException("Failed to parse the file '" + HMDBUpdater.PROTEINS_XML_FILE_NAME + "'",
                                               e);
         }
     }
 
-    private static ZipInputStream openZipInputStream(final File file) throws FileNotFoundException {
-        final FileInputStream inputStream = new FileInputStream(file);
-        final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-        return new ZipInputStream(bufferedInputStream);
-    }
-
-    private FromXmlParser createXmlParser(final InputStream stream,
-                                          final XmlMapper xmlMapper) throws IOException, XMLStreamException {
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        final XMLStreamReader streamReader = xmlInputFactory.createXMLStreamReader(stream,
-                                                                                   StandardCharsets.UTF_8.name());
-        return xmlMapper.getFactory().createParser(streamReader);
-    }
-
     private void exportProtein(final Graph graph, final Protein protein) {
+        // TODO: Split Protein and Gene
         final NodeBuilder builder = graph.buildNode().withLabel(PROTEIN_LABEL).withModel(protein);
         if (protein.geneProperties != null)
             builder.withModel(protein.geneProperties);
@@ -134,7 +113,7 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
         final Node proteinNode = builder.build();
         for (final Reference reference : protein.generalReferences)
             graph.addEdge(proteinNode, getOrCreateReferenceNode(graph, reference), "HAS_REFERENCE");
-        if (protein.pathways != null && protein.pathways.size() > 0)
+        if (protein.pathways != null && !protein.pathways.isEmpty())
             for (final Pathway pathway : protein.pathways)
                 graph.addEdge(proteinNode, getOrCreatePathwayNode(graph, pathway), "ASSOCIATED_WITH");
         if (protein.goClassifications != null)
@@ -169,47 +148,43 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
         if (!zipFile.exists())
             throw new ExporterException("Failed to find file '" + HMDBUpdater.STRUCTURES_SDF_FILE_NAME + "'");
         try {
-            final ZipInputStream zipInputStream = openZipInputStream(zipFile);
-            int counter = 1;
-            ZipEntry zipEntry;
-            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                if (zipEntry.getName().endsWith(".sdf")) {
-                    final SdfReader reader = new SdfReader(zipInputStream, StandardCharsets.UTF_8);
-                    for (final SdfEntry entry : reader) {
-                        if (counter % 10_000 == 0 && LOGGER.isInfoEnabled())
-                            LOGGER.info("Processing structures progress " + counter);
-                        counter++;
-                        final MetaboliteStructure structure = new MetaboliteStructure();
-                        structure.structure = entry.getConnectionTable();
-                        structure.jchemAcceptorCount = getSdfIntegerPropertyOrNull(entry, "JCHEM_ACCEPTOR_COUNT");
-                        structure.jchemAtomCount = getSdfIntegerPropertyOrNull(entry, "JCHEM_ATOM_COUNT");
-                        structure.jchemAveragePolarizability = entry.properties.get("JCHEM_AVERAGE_POLARIZABILITY");
-                        structure.jchemBioavailability = entry.properties.get("JCHEM_BIOAVAILABILITY");
-                        structure.jchemDonorCount = getSdfIntegerPropertyOrNull(entry, "JCHEM_DONOR_COUNT");
-                        structure.jchemFormalCharge = entry.properties.get("JCHEM_FORMAL_CHARGE");
-                        structure.jchemGhoseFilter = entry.properties.get("JCHEM_GHOSE_FILTER");
-                        structure.jchemIupac = entry.properties.get("JCHEM_IUPAC");
-                        structure.alogpsLogp = entry.properties.get("ALOGPS_LOGP");
-                        structure.jchemLogp = entry.properties.get("JCHEM_LOGP");
-                        structure.alogpsLogs = entry.properties.get("ALOGPS_LOGS");
-                        structure.jchemMddrLikeRule = entry.properties.get("JCHEM_MDDR_LIKE_RULE");
-                        structure.jchemNumberOfRings = entry.properties.get("JCHEM_NUMBER_OF_RINGS");
-                        structure.jchemPhysiologicalCharge = entry.properties.get("JCHEM_PHYSIOLOGICAL_CHARGE");
-                        structure.jchemPkaStrongestAcidic = entry.properties.get("JCHEM_PKA_STRONGEST_ACIDIC");
-                        structure.jchemPkaStrongestBasic = entry.properties.get("JCHEM_PKA_STRONGEST_BASIC");
-                        structure.jchemPolarSurfaceArea = entry.properties.get("JCHEM_POLAR_SURFACE_AREA");
-                        structure.jchemRefractivity = entry.properties.get("JCHEM_REFRACTIVITY");
-                        structure.jchemRotatableBondCount = getSdfIntegerPropertyOrNull(entry,
-                                                                                        "JCHEM_ROTATABLE_BOND_COUNT");
-                        structure.jchemRuleOfFive = entry.properties.get("JCHEM_RULE_OF_FIVE");
-                        structure.alogpsSolubility = entry.properties.get("ALOGPS_SOLUBILITY");
-                        structure.jchemTraditionalIupac = entry.properties.get("JCHEM_TRADITIONAL_IUPAC");
-                        structure.jchemVeberRule = entry.properties.get("JCHEM_VEBER_RULE");
-                        metaboliteStructureMap.put(entry.properties.get("HMDB_ID"), structure);
-                    }
+            final int[] counter = new int[]{1};
+            FileUtils.forEachZipEntry(zipFile, ".xml", (stream, zipEntry) -> {
+                final SdfReader reader = new SdfReader(stream, StandardCharsets.UTF_8);
+                for (final SdfEntry entry : reader) {
+                    if (counter[0] % 10_000 == 0 && LOGGER.isInfoEnabled())
+                        LOGGER.info("Processing structures progress " + counter[0]);
+                    counter[0]++;
+                    final MetaboliteStructure structure = new MetaboliteStructure();
+                    structure.structure = entry.getConnectionTable();
+                    structure.jchemAcceptorCount = getSdfIntegerPropertyOrNull(entry, "JCHEM_ACCEPTOR_COUNT");
+                    structure.jchemAtomCount = getSdfIntegerPropertyOrNull(entry, "JCHEM_ATOM_COUNT");
+                    structure.jchemAveragePolarizability = entry.properties.get("JCHEM_AVERAGE_POLARIZABILITY");
+                    structure.jchemBioavailability = entry.properties.get("JCHEM_BIOAVAILABILITY");
+                    structure.jchemDonorCount = getSdfIntegerPropertyOrNull(entry, "JCHEM_DONOR_COUNT");
+                    structure.jchemFormalCharge = entry.properties.get("JCHEM_FORMAL_CHARGE");
+                    structure.jchemGhoseFilter = entry.properties.get("JCHEM_GHOSE_FILTER");
+                    structure.jchemIupac = entry.properties.get("JCHEM_IUPAC");
+                    structure.alogpsLogp = entry.properties.get("ALOGPS_LOGP");
+                    structure.jchemLogp = entry.properties.get("JCHEM_LOGP");
+                    structure.alogpsLogs = entry.properties.get("ALOGPS_LOGS");
+                    structure.jchemMddrLikeRule = entry.properties.get("JCHEM_MDDR_LIKE_RULE");
+                    structure.jchemNumberOfRings = entry.properties.get("JCHEM_NUMBER_OF_RINGS");
+                    structure.jchemPhysiologicalCharge = entry.properties.get("JCHEM_PHYSIOLOGICAL_CHARGE");
+                    structure.jchemPkaStrongestAcidic = entry.properties.get("JCHEM_PKA_STRONGEST_ACIDIC");
+                    structure.jchemPkaStrongestBasic = entry.properties.get("JCHEM_PKA_STRONGEST_BASIC");
+                    structure.jchemPolarSurfaceArea = entry.properties.get("JCHEM_POLAR_SURFACE_AREA");
+                    structure.jchemRefractivity = entry.properties.get("JCHEM_REFRACTIVITY");
+                    structure.jchemRotatableBondCount = getSdfIntegerPropertyOrNull(entry,
+                                                                                    "JCHEM_ROTATABLE_BOND_COUNT");
+                    structure.jchemRuleOfFive = entry.properties.get("JCHEM_RULE_OF_FIVE");
+                    structure.alogpsSolubility = entry.properties.get("ALOGPS_SOLUBILITY");
+                    structure.jchemTraditionalIupac = entry.properties.get("JCHEM_TRADITIONAL_IUPAC");
+                    structure.jchemVeberRule = entry.properties.get("JCHEM_VEBER_RULE");
+                    metaboliteStructureMap.put(entry.properties.get("HMDB_ID"), structure);
                 }
-            }
-        } catch (IOException e) {
+            });
+        } catch (Exception e) {
             throw new ExporterFormatException("Failed to parse the file '" + HMDBUpdater.STRUCTURES_SDF_FILE_NAME + "'",
                                               e);
         }
@@ -226,26 +201,22 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
         if (!zipFile.exists())
             throw new ExporterException("Failed to find file '" + HMDBUpdater.METABOLITES_XML_FILE_NAME + "'");
         try {
-            final ZipInputStream zipInputStream = openZipInputStream(zipFile);
-            int counter = 1;
-            ZipEntry zipEntry;
-            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                if (zipEntry.getName().endsWith(".xml")) {
-                    final XmlMapper xmlMapper = new XmlMapper();
-                    final FromXmlParser parser = createXmlParser(zipInputStream, xmlMapper);
-                    // Skip the first structure token which is the root HMDB node
-                    //noinspection UnusedAssignment
-                    JsonToken token = parser.nextToken();
-                    while ((token = parser.nextToken()) != null)
-                        if (token.isStructStart()) {
-                            if (counter % 10_000 == 0 && LOGGER.isInfoEnabled())
-                                LOGGER.info("Exporting metabolites progress " + counter);
-                            counter++;
-                            exportMetabolite(graph, xmlMapper.readValue(parser, Metabolite.class));
-                        }
-                }
-            }
-        } catch (IOException | XMLStreamException e) {
+            final int[] counter = new int[]{1};
+            FileUtils.forEachZipEntry(zipFile, ".xml", (stream, entry) -> {
+                final XmlMapper xmlMapper = new XmlMapper();
+                final FromXmlParser parser = FileUtils.createXmlParser(stream, xmlMapper);
+                // Skip the first structure token which is the root HMDB node
+                //noinspection UnusedAssignment
+                JsonToken token = parser.nextToken();
+                while ((token = parser.nextToken()) != null)
+                    if (token.isStructStart()) {
+                        if (counter[0] % 10_000 == 0 && LOGGER.isInfoEnabled())
+                            LOGGER.info("Exporting metabolites progress " + counter[0]);
+                        counter[0]++;
+                        exportMetabolite(graph, xmlMapper.readValue(parser, Metabolite.class));
+                    }
+            });
+        } catch (Exception e) {
             throw new ExporterFormatException(
                     "Failed to parse the file '" + HMDBUpdater.METABOLITES_XML_FILE_NAME + "'", e);
         }
@@ -258,27 +229,27 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
             builder.withModel(structure);
             metaboliteStructureMap.remove(metabolite.accession);
         }
-        if (metabolite.spectra != null && metabolite.spectra.size() > 0)
+        if (metabolite.spectra != null && !metabolite.spectra.isEmpty())
             builder.withProperty("spectra", metabolite.spectra.stream().map(s -> s.type + ':' + s.spectrumId)
                                                               .collect(Collectors.joining(";")));
         if (metabolite.biologicalProperties != null) {
             if (metabolite.biologicalProperties.cellularLocations != null &&
-                metabolite.biologicalProperties.cellularLocations.size() > 0)
+                !metabolite.biologicalProperties.cellularLocations.isEmpty())
                 builder.withProperty("cellular_locations",
                                      metabolite.biologicalProperties.cellularLocations.toArray(new String[0]));
             if (metabolite.biologicalProperties.biospecimenLocations != null &&
-                metabolite.biologicalProperties.biospecimenLocations.size() > 0)
+                !metabolite.biologicalProperties.biospecimenLocations.isEmpty())
                 builder.withProperty("biospecimen_locations",
                                      metabolite.biologicalProperties.biospecimenLocations.toArray(new String[0]));
             if (metabolite.biologicalProperties.tissueLocations != null &&
-                metabolite.biologicalProperties.tissueLocations.size() > 0)
+                !metabolite.biologicalProperties.tissueLocations.isEmpty())
                 builder.withProperty("tissue_locations",
                                      metabolite.biologicalProperties.tissueLocations.toArray(new String[0]));
         }
-        if (metabolite.experimentalProperties != null && metabolite.experimentalProperties.size() > 0)
+        if (metabolite.experimentalProperties != null && !metabolite.experimentalProperties.isEmpty())
             builder.withProperty("experimental_properties",
                                  getPropertiesListAsString(metabolite.experimentalProperties));
-        if (metabolite.predictedProperties != null && metabolite.predictedProperties.size() > 0)
+        if (metabolite.predictedProperties != null && !metabolite.predictedProperties.isEmpty())
             builder.withProperty("predicted_properties", getPropertiesListAsString(metabolite.predictedProperties));
         final Node metaboliteNode = builder.build();
         for (final Reference reference : metabolite.generalReferences)
@@ -288,7 +259,7 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
             for (final ProteinAssociation protein : metabolite.proteinAssociations)
                 graph.addEdge(metaboliteNode, getOrCreateProteinNode(graph, protein), "ASSOCIATED_WITH");
         if (metabolite.biologicalProperties != null && metabolite.biologicalProperties.pathways != null &&
-            metabolite.biologicalProperties.pathways.size() > 0) {
+            !metabolite.biologicalProperties.pathways.isEmpty()) {
             for (final Pathway pathway : metabolite.biologicalProperties.pathways)
                 graph.addEdge(metaboliteNode, getOrCreatePathwayNode(graph, pathway), "ASSOCIATED_WITH");
         }

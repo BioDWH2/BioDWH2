@@ -6,10 +6,15 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -294,5 +299,32 @@ public final class FileUtils {
                 result.add(entry.getName());
         }
         return result.toArray(new String[0]);
+    }
+
+    public static void forEachZipEntry(final File file, final String suffix,
+                                       final ZipEntryConsumer<ZipInputStream, ZipEntry> consumer) throws Exception {
+        try (final FileInputStream inputStream = new FileInputStream(file);
+             final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+             final ZipInputStream zipInputStream = new ZipInputStream(bufferedInputStream)) {
+            ZipEntry zipEntry;
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                if (suffix == null || zipEntry.getName().endsWith(suffix)) {
+                    consumer.accept(zipInputStream, zipEntry);
+                }
+            }
+        }
+    }
+
+    @FunctionalInterface
+    public interface ZipEntryConsumer<T, U> {
+        void accept(T t, U u) throws Exception;
+    }
+
+    public static FromXmlParser createXmlParser(final InputStream stream,
+                                                final XmlMapper xmlMapper) throws IOException, XMLStreamException {
+        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        final XMLStreamReader streamReader = xmlInputFactory.createXMLStreamReader(stream,
+                                                                                   StandardCharsets.UTF_8.name());
+        return xmlMapper.getFactory().createParser(streamReader);
     }
 }

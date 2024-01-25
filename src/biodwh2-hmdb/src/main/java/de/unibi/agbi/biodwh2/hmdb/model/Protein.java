@@ -42,6 +42,7 @@ public class Protein {
     public String specificFunction;
     @JacksonXmlElementWrapper(localName = "pathways")
     public List<Pathway> pathways;
+    @SuppressWarnings("unused")
     @JacksonXmlElementWrapper(localName = "metabolite_associations")
     public List<MetaboliteAssociation> metaboliteAssociations;
     @JacksonXmlElementWrapper(localName = "go_classifications")

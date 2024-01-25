@@ -7,6 +7,7 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -16,11 +17,11 @@ import de.unibi.agbi.biodwh2.uniprot.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
@@ -48,10 +49,9 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
         final File zipFile = new File(filePath);
         if (!zipFile.exists())
             throw new ExporterException("Failed to parse the file '" + UniProtUpdater.HUMAN_SPROT_FILE_NAME + "'");
-        try {
-            final GZIPInputStream zipStream = openZipInputStream(zipFile);
+        try (final GZIPInputStream zipStream = openZipInputStream(zipFile)) {
             final XmlMapper xmlMapper = new XmlMapper();
-            final FromXmlParser parser = createXmlParser(zipStream, xmlMapper);
+            final FromXmlParser parser = FileUtils.createXmlParser(zipStream, xmlMapper);
             // Skip the first structure token which is the root UniProt node
             //noinspection UnusedAssignment
             JsonToken token = parser.nextToken();
@@ -68,14 +68,6 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
         final FileInputStream inputStream = new FileInputStream(file);
         final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
         return new GZIPInputStream(bufferedInputStream);
-    }
-
-    private FromXmlParser createXmlParser(final InputStream stream,
-                                          final XmlMapper xmlMapper) throws IOException, XMLStreamException {
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        final XMLStreamReader streamReader = xmlInputFactory.createXMLStreamReader(stream,
-                                                                                   StandardCharsets.UTF_8.name());
-        return xmlMapper.getFactory().createParser(streamReader);
     }
 
     private void exportEntry(final Graph graph, final Entry entry) throws ExporterException {

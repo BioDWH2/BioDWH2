@@ -7,17 +7,15 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.drugbank.DrugBankDataSource;
 import de.unibi.agbi.biodwh2.drugbank.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -308,14 +306,13 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         final File zipFile = new File(filePath);
         if (!zipFile.exists())
             throw new ExporterException("Failed to find file '" + DrugBankUpdater.FULL_DATABASE_FILE_NAME + "'");
-        try {
-            final ZipInputStream zipInputStream = openZipInputStream(zipFile);
+        try (final ZipInputStream zipInputStream = openZipInputStream(zipFile)) {
             int counter = 1;
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (isZipEntryCoreXml(zipEntry.getName())) {
                     final XmlMapper xmlMapper = new XmlMapper();
-                    final FromXmlParser parser = createXmlParser(zipInputStream, xmlMapper);
+                    final FromXmlParser parser = FileUtils.createXmlParser(zipInputStream, xmlMapper);
                     // Skip the first structure token which is the root DrugBank node
                     //noinspection UnusedAssignment
                     JsonToken token = parser.nextToken();
@@ -342,14 +339,6 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
 
     private static boolean isZipEntryCoreXml(final String name) {
         return name.startsWith("full") && name.endsWith(".xml");
-    }
-
-    private FromXmlParser createXmlParser(final InputStream stream,
-                                          final XmlMapper xmlMapper) throws IOException, XMLStreamException {
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        final XMLStreamReader streamReader = xmlInputFactory.createXMLStreamReader(stream,
-                                                                                   StandardCharsets.UTF_8.name());
-        return xmlMapper.getFactory().createParser(streamReader);
     }
 
     private void exportDrug(final Graph graph, final Drug drug, final boolean skipDrugInteractions) {
