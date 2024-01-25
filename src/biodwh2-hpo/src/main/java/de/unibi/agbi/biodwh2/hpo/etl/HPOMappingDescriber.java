@@ -50,9 +50,7 @@ public final class HPOMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{
-                HPOGraphExporter.GENE_LABEL, HPOGraphExporter.DISEASE_LABEL
-        };
+        return new String[]{HPOGraphExporter.GENE_LABEL, HPOGraphExporter.DISEASE_LABEL};
     }
 
     @Override

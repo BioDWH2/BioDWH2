@@ -9,28 +9,28 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | ID                            | Name                                                                                                                                                    | License                                                               | Website                                                                 |
 |-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|-------------------------------------------------------------------------|
 | ADReCS                        | Adverse Drug Reaction Classification System                                                                                                             | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) | [Link](https://bioinf.xmu.edu.cn/ADReCS/)                               |
-| BasicFormalOntology           | Basic Formal Ontology                                                                                                                                   | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://basic-formal-ontology.org)                               |
-| BiologicalSpatialOntology     | Biological Spatial Ontology                                                                                                                             | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)             | [Link](https://github.com/obophenotype/biological-spatial-ontology)     |
+| BasicFormalOntology           | Basic Formal Ontology (BFO)                                                                                                                             | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://basic-formal-ontology.org)                               |
+| BiologicalSpatialOntology     | Biological Spatial Ontology (BSPO)                                                                                                                      | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)             | [Link](https://github.com/obophenotype/biological-spatial-ontology)     |
 | BioM2MetDisease               | BioM2MetDisease                                                                                                                                         |                                                                       | [Link](http://bio-bigdata.hrbmu.edu.cn/BioM2MetDisease/)                |
 | BRENDA                        | BRENDA                                                                                                                                                  | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://www.brenda-enzymes.org)                                  |
 | BRENDATissueOntology          | BRENDA Tissue Ontology                                                                                                                                  | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://www.brenda-enzymes.org/ontology.php?ontology_id=3)       |
 | CancerDrugsDB                 | A curated listing of licensed cancer drugs by the Anticancer Fund                                                                                       |                                                                       | [Link](https://www.anticancerfund.org/en/cancerdrugs-db)                |
-| CellOntology                  | Cell Ontology                                                                                                                                           | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/obophenotype/cell-ontology)                   |
+| CellOntology                  | Cell Ontology (CL)                                                                                                                                      | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/obophenotype/cell-ontology)                   |
 | CMAUP                         | Collective Molecular Activities of Useful Plants                                                                                                        |                                                                       | [Link](http://bidd.group/CMAUP/)                                        |
-| DiseaseOntology               | Human Disease Ontology                                                                                                                                  | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)         | [Link](https://disease-ontology.org)                                    |
+| DiseaseOntology               | Human Disease Ontology (DO)                                                                                                                             | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)         | [Link](https://disease-ontology.org)                                    |
 | DrugBank                      | DrugBank                                                                                                                                                | [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)       | [Link](http://drugbank.ca)                                              |
 | DrugCentral                   | DrugCentral                                                                                                                                             | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)       | [Link](http://drugcentral.org)                                          |
-| ExperimentalFactorOntology    | Experimental Factor Ontology                                                                                                                            | Apache-2.0                                                            | [Link](https://www.ebi.ac.uk/efo/)                                      |
+| ExperimentalFactorOntology    | Experimental Factor Ontology (EFO)                                                                                                                      | Apache-2.0                                                            | [Link](https://www.ebi.ac.uk/efo/)                                      |
 | EMA                           | European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC]                                                                                 |                                                                       | [Link](https://www.ema.europa.eu/en/medicines/download-medicine-data)   |
 | ENZYME                        | Expasy ENZYME                                                                                                                                           | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://enzyme.expasy.org)                                       |
 | GenCC                         | GenCC                                                                                                                                                   | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)         | [Link](https://thegencc.org)                                            |
 | Gene2Phenotype                | Datasets for use in diagnostic variant filtering                                                                                                        |                                                                       | [Link](https://www.ebi.ac.uk/gene2phenotype)                            |
-| GeneOntology                  | Gene Ontology                                                                                                                                           | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](http://geneontology.org)                                         |
+| GeneOntology                  | Gene Ontology (GO)                                                                                                                                      | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](http://geneontology.org)                                         |
 | HGNC                          | HUGO Gene Nomenclature Committee                                                                                                                        | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)         | [Link](https://www.genenames.org)                                       |
-| HPO                           | Human Phenotype Ontology                                                                                                                                | HPO license                                                           | [Link](https://hpo.jax.org)                                             |
+| HPO                           | Human Phenotype Ontology (HPO)                                                                                                                          | HPO license                                                           | [Link](https://hpo.jax.org)                                             |
 | HPRD                          | Human Protein Reference Database                                                                                                                        |                                                                       | [Link](http://www.hprd.org)                                             |
 | InterPro                      | InterPro                                                                                                                                                |                                                                       | [Link](https://www.ebi.ac.uk/interpro/)                                 |
-| MammalianPhenotypeOntology    | Mammalian Phenotype Ontology                                                                                                                            | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/mgijax/mammalian-phenotype-ontology)          |
+| MammalianPhenotypeOntology    | Mammalian Phenotype Ontology (MP)                                                                                                                       | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/mgijax/mammalian-phenotype-ontology)          |
 | MassSpectrometryOntology      | Mass Spectrometry Ontology                                                                                                                              | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/HUPO-PSI/psi-ms-CV)                           |
 | MED-RT                        | Medication Reference Terminology (MED-RT™)                                                                                                              | UMLS license                                                          | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/)                            |
 | miR2Disease                   | miR2Disease                                                                                                                                             |                                                                       | [Link](http://www.mir2disease.org)                                      |
@@ -38,7 +38,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | miRDB                         | miRDB                                                                                                                                                   |                                                                       | [Link](https://www.mirdb.org)                                           |
 | miRTarBase                    | miRTarBase                                                                                                                                              |                                                                       | [Link](https://mirtarbase.cuhk.edu.cn)                                  |
 | MolecularInteractionsOntology | Molecular Interactions Controlled Vocabulary                                                                                                            | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/HUPO-PSI/psi-mi-CV)                           |
-| MondoDiseaseOntology          | Mondo Disease Ontology                                                                                                                                  | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://mondo.monarchinitiative.org)                             |
+| MondoDiseaseOntology          | Mondo Disease Ontology (Mondo)                                                                                                                          | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://mondo.monarchinitiative.org)                             |
 | NDF-RT                        | National Drug File – Reference Terminology (NDF-RT™)                                                                                                    | UMLS license                                                          | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/)                            |
 | Negatome                      | Negatome                                                                                                                                                |                                                                       | [Link](http://mips.helmholtz-muenchen.de/proj/ppi/negatome/)            |
 | NeuroBehaviourOntology        | Neuro Behaviour Ontology                                                                                                                                |                                                                       | [Link](https://github.com/obo-behavior/behavior-ontology)               |
@@ -46,6 +46,9 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | PathogenTransmissionOntology  | Pathogen Transmission Ontology                                                                                                                          | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)         | [Link](https://github.com/DiseaseOntology/PathogenTransmissionOntology) |
 | PharmGKB                      | PharmGKB                                                                                                                                                | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)       | [Link](https://www.pharmgkb.org)                                        |
 | PhenotypeAndTraitOntology     | Phenotype And Trait Ontology                                                                                                                            | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)             | [Link](https://github.com/pato-ontology/pato)                           |
+| PlantOntology                 | Plant Ontology (PO)                                                                                                                                     | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/Planteome/plant-ontology)                     |
+| PlantStressOntology           | Plant Stress Ontology (PSO)                                                                                                                             | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/Planteome/plant-stress-ontology)              |
+| PlantTraitOntology            | Plant Trait Ontology (TO)                                                                                                                               | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/Planteome/plant-trait-ontology)               |
 | ReDO-DB                       | A curated listing of non-cancer drugs which have shown some evidence of anticancer activity by the Anticancer Fund                                      |                                                                       | [Link](https://www.anticancerfund.org/en/redo-db)                       |
 | ReDOTrialsDB                  | A curated database, produced by the Anticancer Fund, of active clinical trials investigating the use of non-cancer drugs as potential cancer treatments |                                                                       | [Link](https://www.anticancerfund.org/en/redo-trials-db)                |
 | RNALocate                     | RNA subcellular localization database                                                                                                                   |                                                                       | [Link](http://www.rna-society.org/rnalocate/)                           |
@@ -1057,7 +1060,58 @@ Pathway Commons is an integrated resource of publicly available information abou
 - **License**: [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
 - **Citation**:
 - **Files used**:
-  - `patofull.obo`
+  - `pato-full.obo`
+
+**Configuration properties**:
+
+| Property       | Values     | Description                                              |
+|----------------|------------|----------------------------------------------------------|
+| forceExport    | true/false | Force graph export even if nothing changed               |
+| ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
+
+----
+
+### PlantOntology
+
+- **Website**: [https://github.com/Planteome/plant-ontology](https://github.com/Planteome/plant-ontology)
+- **License**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Citation**:
+- **Files used**:
+  - `po.obo`
+
+**Configuration properties**:
+
+| Property       | Values     | Description                                              |
+|----------------|------------|----------------------------------------------------------|
+| forceExport    | true/false | Force graph export even if nothing changed               |
+| ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
+
+----
+
+### PlantStressOntology
+
+- **Website**: [https://github.com/Planteome/plant-stress-ontology](https://github.com/Planteome/plant-stress-ontology)
+- **License**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Citation**:
+- **Files used**:
+  - `pso-full.obo`
+
+**Configuration properties**:
+
+| Property       | Values     | Description                                              |
+|----------------|------------|----------------------------------------------------------|
+| forceExport    | true/false | Force graph export even if nothing changed               |
+| ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
+
+----
+
+### PlantTraitOntology
+
+- **Website**: [https://github.com/Planteome/plant-trait-ontology](https://github.com/Planteome/plant-trait-ontology)
+- **License**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Citation**:
+- **Files used**:
+  - `to.obo`
 
 **Configuration properties**:
 

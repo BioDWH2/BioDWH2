@@ -1,28 +1,25 @@
 package de.unibi.agbi.biodwh2.ontologies;
 
 import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
-import de.unibi.agbi.biodwh2.core.io.GithubUtils;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.model.github.GithubAsset;
-import de.unibi.agbi.biodwh2.core.model.github.GithubRelease;
 import de.unibi.agbi.biodwh2.core.text.License;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
-public class MammalianPhenotypeOntologyDataSource extends SingleOBOOntologyDataSource {
-    private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})");
-    static final String FILE_NAME = "mp-full.obo";
+public class PlantStressOntologyDataSource extends SingleOBOOntologyDataSource {
+    private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})");
+    private static final String FILE_NAME = "pso-full.obo";
 
     @Override
     public String getId() {
-        return "MammalianPhenotypeOntology";
+        return "PlantStressOntology";
     }
 
     @Override
     public String getFullName() {
-        return "Mammalian Phenotype Ontology (MP)";
+        return "Plant Stress Ontology (PSO)";
     }
 
     @Override
@@ -32,12 +29,7 @@ public class MammalianPhenotypeOntologyDataSource extends SingleOBOOntologyDataS
 
     @Override
     protected String getDownloadUrl() {
-        final GithubRelease release = GithubUtils.getLatestRelease("mgijax", "mammalian-phenotype-ontology");
-        if (release != null)
-            for (final GithubAsset asset : release.assets)
-                if (FILE_NAME.equals(asset.name))
-                    return asset.browserDownloadUrl;
-        return null;
+        return "https://raw.githubusercontent.com/Planteome/plant-stress-ontology/master/" + FILE_NAME;
     }
 
     @Override
@@ -47,7 +39,7 @@ public class MammalianPhenotypeOntologyDataSource extends SingleOBOOntologyDataS
 
     @Override
     protected Version getVersionFromDataVersionLine(final String dataVersion) {
-        final Matcher matcher = DATE_PATTERN.matcher(dataVersion);
+        final Matcher matcher = VERSION_PATTERN.matcher(dataVersion);
         if (matcher.find())
             return new Version(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)),
                                Integer.parseInt(matcher.group(3)));
