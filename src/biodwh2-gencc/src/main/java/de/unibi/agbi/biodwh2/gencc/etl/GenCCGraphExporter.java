@@ -72,12 +72,12 @@ public class GenCCGraphExporter extends GraphExporter<GenCCDataSource> {
         builder.build();
     }
 
-    private Integer parsePMIDInteger(final String value) {
-        if (StringUtils.isNotBlank(value)) {
-            try {
-                return Integer.parseInt(value.trim());
-            } catch (NumberFormatException ignored) {
-            }
+    private Integer parsePMIDInteger(String value) {
+        value = value.trim();
+        if (StringUtils.isNumeric(value)) {
+            long l = Long.parseLong(value);
+            if (l <= Integer.MAX_VALUE)
+                return Integer.parseInt(value);
         }
         return null;
     }
