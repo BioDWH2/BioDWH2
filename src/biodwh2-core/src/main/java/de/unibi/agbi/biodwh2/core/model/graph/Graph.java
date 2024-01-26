@@ -355,6 +355,48 @@ public final class Graph extends MVStoreGraph {
         return new EdgeBuilder(this);
     }
 
+    public <T> Edge addEdgeFromModel(final Node from, final Node to, final T obj) {
+        final ClassMapping mapping = ClassMapping.get(obj);
+        final Edge e = Edge.newEdge(from.getId(), to.getId(), mapping.label);
+        mapping.setModelProperties(e, obj);
+        update(e);
+        return e;
+    }
+
+    public <T> Edge addEdgeFromModel(final Node from, final long toId, final T obj) {
+        final ClassMapping mapping = ClassMapping.get(obj);
+        final Edge e = Edge.newEdge(from.getId(), toId, mapping.label);
+        mapping.setModelProperties(e, obj);
+        update(e);
+        return e;
+    }
+
+    public <T> Edge addEdgeFromModel(final long fromId, final Node to, final T obj) {
+        final ClassMapping mapping = ClassMapping.get(obj);
+        final Edge e = Edge.newEdge(fromId, to.getId(), mapping.label);
+        mapping.setModelProperties(e, obj);
+        update(e);
+        return e;
+    }
+
+    public <T> Edge addEdgeFromModel(final long fromId, final long toId, final T obj) {
+        final ClassMapping mapping = ClassMapping.get(obj);
+        final Edge e = Edge.newEdge(fromId, toId, mapping.label);
+        mapping.setModelProperties(e, obj);
+        update(e);
+        return e;
+    }
+
+    public <T> Edge addEdgeFromModel(final long fromId, final long toId, final T obj, final String propertyKey1,
+                                     final Object propertyValue1) {
+        final ClassMapping mapping = ClassMapping.get(obj);
+        final Edge e = Edge.newEdge(fromId, toId, mapping.label);
+        mapping.setModelProperties(e, obj);
+        e.setProperty(propertyKey1, propertyValue1);
+        update(e);
+        return e;
+    }
+
     public static Graph createTempGraph() throws IOException {
         final Path tempFilePath = Files.createTempFile("graphdb_test", ".db");
         return new Graph(tempFilePath.toString());
