@@ -22,10 +22,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
@@ -44,7 +41,7 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
     private final Map<String, Long> diseaseNameNodeIdMap = new HashMap<>();
     private final Map<String, Long> pathwayNameNodeIdMap = new HashMap<>();
     private final Map<String, Long> proteinMetaboliteLinkNodeIdMap = new HashMap<>();
-    private final Map<String, List<Long>> proteinMetaboliteLinkCache = new HashMap<>();
+    private final Map<String, Set<Long>> proteinMetaboliteLinkCache = new HashMap<>();
     private final Map<String, MetaboliteStructure> metaboliteStructureMap = new HashMap<>();
 
     public HMDBGraphExporter(final HMDBDataSource dataSource) {
@@ -137,7 +134,7 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
                         proteinMetaboliteLinkNodeIdMap.put(key, associationNodeId);
                     }
                     if (!proteinMetaboliteLinkCache.containsKey(reference.metabolite.accession))
-                        proteinMetaboliteLinkCache.put(reference.metabolite.accession, new ArrayList<>());
+                        proteinMetaboliteLinkCache.put(reference.metabolite.accession, new HashSet<>());
                     proteinMetaboliteLinkCache.get(reference.metabolite.accession).add(associationNodeId);
                     final Long referenceNodeId = getOrCreateReferenceNode(graph, reference.reference);
                     graph.addEdge(proteinNode, associationNodeId, "ASSOCIATED_WITH");
@@ -311,7 +308,7 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
         if (metabolite.taxonomy != null) {
             // TODO
         }
-        final List<Long> proteinMetaboliteLinkNodeIds = proteinMetaboliteLinkCache.get(metabolite.accession);
+        final Set<Long> proteinMetaboliteLinkNodeIds = proteinMetaboliteLinkCache.get(metabolite.accession);
         if (proteinMetaboliteLinkNodeIds != null)
             for (final Long associationNodeId : proteinMetaboliteLinkNodeIds)
                 graph.addEdge(metaboliteNode.getId(), associationNodeId, "ASSOCIATED_WITH");
