@@ -34,7 +34,6 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
     static final String GENE_LABEL = "Gene";
     static final String PUBLICATION_LABEL = "Publication";
     private static final String INTERACTION_LABEL = "Interaction";
-    private static final String ID_KEY = "id";
     private static final String SPECIES_KEY = "species";
 
     private final Map<String, SpeciesLookup.Entry> speciesMap = new HashMap<>();

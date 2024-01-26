@@ -31,7 +31,6 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private static final String DRUGBANK_ID_KEY = "drugbank_id";
     private static final String DRUGBANK_IDS_KEY = "drugbank_ids";
     private static final String SMPDB_ID_KEY = "smpdb_id";
-    private static final String ID_KEY = "id";
     private static final String NAME_KEY = "name";
     private static final String DESCRIPTION_KEY = "description";
     private static final String SEQUENCE_KEY = "sequence";

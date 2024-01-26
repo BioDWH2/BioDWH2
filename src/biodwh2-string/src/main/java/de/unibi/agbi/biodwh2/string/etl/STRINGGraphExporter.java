@@ -38,9 +38,9 @@ public class STRINGGraphExporter extends GraphExporter<STRINGDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode(SPECIES_LABEL, "id", IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, "id", IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(CLUSTER_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(SPECIES_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(CLUSTER_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         exportSpecies(workspace, graph);
         final Map<String, Long> proteinIdNodeIdMap = exportProteins(workspace, graph);
         exportCluster(workspace, graph);
@@ -52,7 +52,7 @@ public class STRINGGraphExporter extends GraphExporter<STRINGDataSource> {
 
     private void exportSpecies(final Workspace workspace, final Graph graph) {
         for (final Species species : parseTsvFile(workspace, Species.class, "species.txt")) {
-            graph.addNode(SPECIES_LABEL, "id", species.taxonId, "type", species.type, "name_compact",
+            graph.addNode(SPECIES_LABEL, ID_KEY, species.taxonId, "type", species.type, "name_compact",
                           species.nameCompact, "official_name_ncbi", species.officialNameNCBI, "domain",
                           species.domain);
         }
@@ -91,10 +91,10 @@ public class STRINGGraphExporter extends GraphExporter<STRINGDataSource> {
             }
             final Node node;
             if (nodeAliases != null)
-                node = graph.addNode(PROTEIN_LABEL, "id", protein.id, "preferred_name", protein.preferredName, "size",
+                node = graph.addNode(PROTEIN_LABEL, ID_KEY, protein.id, "preferred_name", protein.preferredName, "size",
                                      protein.size, "annotation", protein.annotation, "aliases", nodeAliases);
             else
-                node = graph.addNode(PROTEIN_LABEL, "id", protein.id, "preferred_name", protein.preferredName, "size",
+                node = graph.addNode(PROTEIN_LABEL, ID_KEY, protein.id, "preferred_name", protein.preferredName, "size",
                                      protein.size, "annotation", protein.annotation);
             proteinIdNodeIdMap.put(protein.id, node.getId());
         }
@@ -114,12 +114,12 @@ public class STRINGGraphExporter extends GraphExporter<STRINGDataSource> {
 
     private void exportCluster(final Workspace workspace, final Graph graph) {
         for (final ClusterInfo cluster : parseTsvFile(workspace, ClusterInfo.class, "9606.clusters.info.txt.gz")) {
-            graph.addNode(CLUSTER_LABEL, "id", cluster.clusterId, "ncbi_taxid", cluster.ncbiTaxId, "size",
+            graph.addNode(CLUSTER_LABEL, ID_KEY, cluster.clusterId, "ncbi_taxid", cluster.ncbiTaxId, "size",
                           cluster.clusterSize, "best_described_by", cluster.bestDescribedBy);
         }
         for (final ClusterTree tree : parseTsvFile(workspace, ClusterTree.class, "9606.clusters.tree.txt.gz")) {
-            final Node childNode = graph.findNode(CLUSTER_LABEL, "id", tree.childClusterId);
-            final Node parentNode = graph.findNode(CLUSTER_LABEL, "id", tree.parentClusterId);
+            final Node childNode = graph.findNode(CLUSTER_LABEL, ID_KEY, tree.childClusterId);
+            final Node parentNode = graph.findNode(CLUSTER_LABEL, ID_KEY, tree.parentClusterId);
             graph.addEdge(childNode, parentNode, "CHILD_OF");
         }
     }
@@ -127,10 +127,11 @@ public class STRINGGraphExporter extends GraphExporter<STRINGDataSource> {
     private void exportClusterProteinLinks(final Workspace workspace, final Graph graph,
                                            final Map<String, Long> proteinIdNodeIdMap) {
         long i = 0;
-        Long totalLinkCount = FileUtils.tryGetGzipLineCount(workspace, dataSource, "9606.clusters.proteins.txt.gz");
+        final Long totalLinkCount = FileUtils.tryGetGzipLineCount(workspace, dataSource,
+                                                                  "9606.clusters.proteins.txt.gz");
         for (final ClusterProtein link : parseTsvFile(workspace, ClusterProtein.class,
                                                       "9606.clusters.proteins.txt.gz")) {
-            final Node clusterNode = graph.findNode(CLUSTER_LABEL, "id", link.clusterId);
+            final Node clusterNode = graph.findNode(CLUSTER_LABEL, ID_KEY, link.clusterId);
             graph.addEdge(proteinIdNodeIdMap.get(link.proteinId), clusterNode, "PART_OF");
             i += 1;
             logProgressIfNecessary(i, totalLinkCount);
@@ -145,7 +146,8 @@ public class STRINGGraphExporter extends GraphExporter<STRINGDataSource> {
     private void exportLinks(final Workspace workspace, final Graph graph, final Map<String, Long> proteinIdNodeIdMap) {
         graph.beginEdgeIndicesDelay("ASSOCIATED_WITH");
         long i = 0;
-        Long totalLinkCount = FileUtils.tryGetGzipLineCount(workspace, dataSource, "9606.protein.links.full.txt.gz");
+        final Long totalLinkCount = FileUtils.tryGetGzipLineCount(workspace, dataSource,
+                                                                  "9606.protein.links.full.txt.gz");
         for (final ProteinLink link : parseSpaceSeparatedValuesFile(workspace, ProteinLink.class,
                                                                     "9606.protein.links.full.txt.gz")) {
             final Long proteinNode1 = proteinIdNodeIdMap.get(link.protein1);
@@ -155,8 +157,7 @@ public class STRINGGraphExporter extends GraphExporter<STRINGDataSource> {
                             proteinNode2 + " (" + link.protein2 + ")");
                 continue;
             }
-            graph.buildEdge().withLabel("ASSOCIATED_WITH").fromNode(proteinNode1).toNode(proteinNode2).withModel(link)
-                 .build();
+            graph.addEdgeFromModel(proteinNode1, proteinNode2, link);
             i += 1;
             logProgressIfNecessary(i, totalLinkCount);
         }
@@ -180,8 +181,8 @@ public class STRINGGraphExporter extends GraphExporter<STRINGDataSource> {
                                      final Map<String, Long> proteinIdNodeIdMap) {
         graph.beginEdgeIndicesDelay("PHYSICALLY_INTERACTS_WITH");
         long i = 0;
-        Long totalLinkCount = FileUtils.tryGetGzipLineCount(workspace, dataSource,
-                                                            "9606.protein.physical.links.full.txt.gz");
+        final Long totalLinkCount = FileUtils.tryGetGzipLineCount(workspace, dataSource,
+                                                                  "9606.protein.physical.links.full.txt.gz");
         for (final ProteinPhysicalLink link : parseSpaceSeparatedValuesFile(workspace, ProteinPhysicalLink.class,
                                                                             "9606.protein.physical.links.full.txt.gz")) {
             final Long proteinNode1 = proteinIdNodeIdMap.get(link.protein1);
@@ -191,8 +192,7 @@ public class STRINGGraphExporter extends GraphExporter<STRINGDataSource> {
                             proteinNode2 + " (" + link.protein2 + ")");
                 continue;
             }
-            graph.buildEdge().withLabel("PHYSICALLY_INTERACTS_WITH").fromNode(proteinNode1).toNode(proteinNode2)
-                 .withModel(link).build();
+            graph.addEdgeFromModel(proteinNode1, proteinNode2, link);
             i += 1;
             logProgressIfNecessary(i, totalLinkCount);
         }
