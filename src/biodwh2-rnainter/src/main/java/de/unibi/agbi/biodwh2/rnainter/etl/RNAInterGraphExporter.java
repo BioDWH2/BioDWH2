@@ -6,13 +6,11 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
-import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.rnainter.RNAInterDataSource;
 import de.unibi.agbi.biodwh2.rnainter.model.Entry;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,8 +27,8 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
     static final String PROTEIN_LABEL = "Protein";
     private static final String HISTONE_MODIFICATION_LABEL = "HistoneModification";
     static final String RNA_LABEL = "RNA";
-    private static final String INTERACTS_WITH_LABEL = "INTERACTS_WITH";
-    private static final String NOT_AVAILABLE_VALUE = "N/A";
+    public static final String INTERACTS_WITH_LABEL = "INTERACTS_WITH";
+    public static final String NOT_AVAILABLE_VALUE = "N/A";
     private static final String RNA_BINDING_PROTEIN_TYPE = "RBP";
     private static final String TF_TYPE = "TF";
     private static final String PROTEIN_TYPE = "P";
@@ -77,7 +75,7 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
                                                    entry.species1, rnaKeyNodeIdMap);
                 final Long toId = getOrCreateRNA(graph, entry.interactor2Symbol, entry.rawId2, entry.category2,
                                                  entry.species2, rnaKeyNodeIdMap);
-                createEdge(graph, fromId, toId, entry);
+                graph.addEdgeFromModel(fromId, toId, entry, ID_KEY, entry.rnaInterId);
             }
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export file '" + RNAInterUpdater.RR_FILE_NAME + "'", e);
@@ -103,7 +101,7 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
                                                    entry.species1, rnaKeyNodeIdMap);
                 final Long toId = getOrCreateProtein(graph, entry.interactor2Symbol, entry.rawId2, entry.category2,
                                                      entry.species2, proteinKeyNodeIdMap);
-                createEdge(graph, fromId, toId, entry);
+                graph.addEdgeFromModel(fromId, toId, entry, ID_KEY, entry.rnaInterId);
             }
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export file '" + RNAInterUpdater.RP_FILE_NAME + "'", e);
@@ -122,7 +120,7 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
                 // DNA always has "DNA" category
                 final Long toId = getOrCreateGene(graph, entry.interactor2Symbol, entry.rawId2, entry.species2,
                                                   geneKeyNodeIdMap);
-                createEdge(graph, fromId, toId, entry);
+                graph.addEdgeFromModel(fromId, toId, entry, ID_KEY, entry.rnaInterId);
             }
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export file '" + RNAInterUpdater.RD_FILE_NAME + "'", e);
@@ -141,7 +139,7 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
                 // Compound always has N/A species and "compound" category
                 final Long toId = getOrCreateCompound(graph, entry.interactor2Symbol, entry.rawId2,
                                                       compoundNameNodeIdMap);
-                createEdge(graph, fromId, toId, entry);
+                graph.addEdgeFromModel(fromId, toId, entry, ID_KEY, entry.rnaInterId);
             }
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export file '" + RNAInterUpdater.RC_FILE_NAME + "'", e);
@@ -160,7 +158,7 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
                 // Histone modification always has N/A species, N/A rawId and "histone modification" category
                 final Long toId = getOrCreateHistoneModification(graph, entry.interactor2Symbol,
                                                                  histoneModificationSymbolNodeIdMap);
-                createEdge(graph, fromId, toId, entry);
+                graph.addEdgeFromModel(fromId, toId, entry, ID_KEY, entry.rnaInterId);
             }
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export file '" + RNAInterUpdater.RH_FILE_NAME + "'", e);
@@ -187,20 +185,6 @@ public class RNAInterGraphExporter extends GraphExporter<RNAInterDataSource> {
             node = graph.addNode(RNA_LABEL, ID_KEY, rawId, SPECIES_KEY, species, SYMBOL_KEY, symbol, TYPE_KEY,
                                  category);
         return node.getId();
-    }
-
-    private void createEdge(final Graph graph, final Long from, final Long to, final Entry entry) {
-        final EdgeBuilder builder = graph.buildEdge().withLabel(INTERACTS_WITH_LABEL).fromNode(from).toNode(to);
-        builder.withProperty("id", entry.rnaInterId);
-        if (!NOT_AVAILABLE_VALUE.equals(entry.score))
-            builder.withPropertyIfNotNull("score", entry.score);
-        if (!NOT_AVAILABLE_VALUE.equals(entry.strong))
-            builder.withPropertyIfNotNull("strong", StringUtils.splitByWholeSeparator(entry.strong, "//"));
-        if (!NOT_AVAILABLE_VALUE.equals(entry.weak))
-            builder.withPropertyIfNotNull("weak", StringUtils.splitByWholeSeparator(entry.weak, "//"));
-        if (!NOT_AVAILABLE_VALUE.equals(entry.predict))
-            builder.withPropertyIfNotNull("predict", StringUtils.splitByWholeSeparator(entry.predict, "//"));
-        builder.build();
     }
 
     private Long getOrCreateProtein(final Graph graph, final String symbol, final String rawId, final String category,

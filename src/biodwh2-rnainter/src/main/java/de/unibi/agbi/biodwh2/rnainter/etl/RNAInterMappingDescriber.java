@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.rnainter.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
@@ -65,6 +66,7 @@ public class RNAInterMappingDescriber extends MappingDescriber {
                 case "shRNA":
                 case "sRNA":
                 case "Mt_tRNA":
+                    return describeRNA(node, RNANodeMappingDescription.RNAType.UNKNOWN);
                 case "antisense":
                 case "non_stop_decay":
                 case "nonsense_mediated_decay":
@@ -88,7 +90,8 @@ public class RNAInterMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeRNA(final Node node, final RNANodeMappingDescription.RNAType rnaType) {
         final NodeMappingDescription description = new RNANodeMappingDescription(rnaType);
-        final String id = node.getProperty("id");
+        description.addName(node.getProperty(RNAInterGraphExporter.NAME_KEY));
+        final String id = node.getProperty(GraphExporter.ID_KEY);
         if (id != null) {
             final String[] idParts = StringUtils.split(id, ":", 2);
             switch (idParts[0]) {
@@ -103,13 +106,13 @@ public class RNAInterMappingDescriber extends MappingDescriber {
                     break;
             }
         }
-        description.addName(node.getProperty(RNAInterGraphExporter.NAME_KEY));
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describeCompound(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
-        final String id = node.getProperty("id");
+        description.addName(node.getProperty(RNAInterGraphExporter.NAME_KEY));
+        final String id = node.getProperty(GraphExporter.ID_KEY);
         if (id != null) {
             final String[] idParts = StringUtils.split(id, ":", 2);
             switch (idParts[0]) {
@@ -121,13 +124,13 @@ public class RNAInterMappingDescriber extends MappingDescriber {
                     break;
             }
         }
-        description.addName(node.getProperty(RNAInterGraphExporter.NAME_KEY));
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describeProtein(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PROTEIN);
-        final String id = node.getProperty("id");
+        description.addName(node.getProperty(RNAInterGraphExporter.NAME_KEY));
+        final String id = node.getProperty(GraphExporter.ID_KEY);
         if (id != null) {
             final String[] idParts = StringUtils.split(id, ":", 2);
             switch (idParts[0]) {
@@ -139,24 +142,27 @@ public class RNAInterMappingDescriber extends MappingDescriber {
                     break;
             }
         }
-        description.addName(node.getProperty(RNAInterGraphExporter.NAME_KEY));
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describeGene(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
-        final String id = node.getProperty("id");
+        description.addName(node.getProperty(RNAInterGraphExporter.NAME_KEY));
+        final String id = node.getProperty(GraphExporter.ID_KEY);
         if (id != null) {
             final String[] idParts = StringUtils.split(id, ":", 2);
             if (idParts[0].equals("NCBI"))
                 description.addIdentifier(IdentifierType.NCBI_GENE, Integer.parseInt(idParts[1]));
         }
-        description.addName(node.getProperty(RNAInterGraphExporter.NAME_KEY));
         return new NodeMappingDescription[]{description};
     }
 
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
+        if (edges.length == 1) {
+            if (edges[0].getLabel().endsWith(RNAInterGraphExporter.INTERACTS_WITH_LABEL))
+                return new PathMappingDescription(PathMappingDescription.EdgeType.INTERACTS);
+        }
         return null;
     }
 
@@ -170,6 +176,9 @@ public class RNAInterMappingDescriber extends MappingDescriber {
 
     @Override
     protected PathMapping[] getEdgePathMappings() {
-        return new PathMapping[0];
+        final PathMapping rrInteractionPath = new PathMapping().add(RNAInterGraphExporter.RNA_LABEL,
+                                                                    RNAInterGraphExporter.INTERACTS_WITH_LABEL,
+                                                                    RNAInterGraphExporter.RNA_LABEL);
+        return new PathMapping[]{rrInteractionPath};
     }
 }
