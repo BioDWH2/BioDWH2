@@ -80,6 +80,7 @@
         <module>biodwh2-ontologies</module>
         <module>biodwh2-iid</module>
         <module>biodwh2-npcdr</module>
+        <module>biodwh2-reactome</module>
     </modules>
 
     <packaging>pom</packaging>
