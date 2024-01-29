@@ -44,6 +44,11 @@ public class ReactomeUpdater extends Updater<ReactomeDataSource> {
             HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + FILE_NAME,
                                              dataSource.resolveSourceFilePath(workspace, FILE_NAME));
             if (LOGGER.isInfoEnabled())
+                LOGGER.info("Removing old extracted tables...");
+            for (final String fileName : dataSource.listSourceFiles(workspace))
+                if (!FILE_NAME.equals(fileName))
+                    FileUtils.safeDelete(dataSource.resolveSourceFilePath(workspace, fileName));
+            if (LOGGER.isInfoEnabled())
                 LOGGER.info("Extracting Reactome sql tables as tsv...");
             try (final GZIPInputStream inputStream = FileUtils.openGzip(workspace, dataSource, FILE_NAME)) {
                 if (!SQLToTSVConverter.process(inputStream, dataSource.getSourceFolderPath(workspace)))
