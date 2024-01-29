@@ -5,14 +5,13 @@ import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -35,6 +34,29 @@ public final class HTTPClient {
              FileOutputStream outputStream = new FileOutputStream(filePath)) {
             outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
         }
+    }
+
+    public static void downloadStream(final InputStream stream, final OutputStream outputStream) throws IOException {
+        try (ReadableByteChannel urlByteChannel = Channels.newChannel(stream)) {
+            final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
+            fastCopy(urlByteChannel, outputChannel);
+        }
+    }
+
+    public static void fastCopy(final ReadableByteChannel in, final WritableByteChannel out) throws IOException {
+        final ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
+        while (in.read(buffer) != -1) {
+            buffer.flip();
+            out.write(buffer);
+            buffer.compact();
+        }
+        buffer.flip();
+        while (buffer.hasRemaining())
+            out.write(buffer);
+    }
+
+    public static void downloadFileAsBrowser(final String uri, final OutputStream stream) throws IOException {
+        downloadStream(getUrlInputStream(uri), stream);
     }
 
     public static void downloadFileAsBrowser(final String uri, final String filePath) throws IOException {

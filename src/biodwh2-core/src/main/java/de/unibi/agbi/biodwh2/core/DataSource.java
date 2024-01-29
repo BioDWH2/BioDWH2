@@ -76,7 +76,7 @@ public abstract class DataSource {
 
     private void createFolderStructureIfNotExists(final Workspace workspace) throws IOException {
         Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId()));
-        Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId(), SOURCE_DIRECTORY_NAME));
+        Files.createDirectories(getSourceFolderPath(workspace));
     }
 
     private void createOrLoadMetadata(final Workspace workspace) throws IOException {
@@ -194,7 +194,7 @@ public abstract class DataSource {
     }
 
     public final String[] listSourceFiles(final Workspace workspace) {
-        final Path sourcePath = Paths.get(workspace.getSourcesDirectory(), getId(), SOURCE_DIRECTORY_NAME);
+        final Path sourcePath = getSourceFolderPath(workspace);
         try {
             return Files.walk(sourcePath).filter(Files::isRegularFile).map(sourcePath::relativize).map(Path::toString)
                         .toArray(String[]::new);
@@ -203,6 +203,10 @@ public abstract class DataSource {
                 LOGGER.error("Failed to list files of data source '" + getId() + "'", e);
         }
         return new String[0];
+    }
+
+    public final Path getSourceFolderPath(final Workspace workspace) {
+        return Paths.get(workspace.getSourcesDirectory(), getId(), SOURCE_DIRECTORY_NAME);
     }
 
     public final boolean isUpToDate(final Workspace workspace) {

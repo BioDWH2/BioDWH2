@@ -251,8 +251,12 @@ public final class FileUtils {
     }
 
     public static boolean writeTextToUTF8File(final Path path, final String text) {
+        return writeTextToUTF8File(path, text, false);
+    }
+
+    public static boolean writeTextToUTF8File(final Path path, final String text, boolean append) {
         try {
-            org.apache.commons.io.FileUtils.writeStringToFile(path.toFile(), text, StandardCharsets.UTF_8);
+            org.apache.commons.io.FileUtils.writeStringToFile(path.toFile(), text, StandardCharsets.UTF_8, append);
             return true;
         } catch (IOException e) {
             return false;
