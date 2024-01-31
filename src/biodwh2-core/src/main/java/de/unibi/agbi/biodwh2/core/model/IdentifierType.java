@@ -7,7 +7,8 @@ public enum IdentifierType {
      */
     ACTRN_TRIAL("ACTRN", null, null, null),
     CAS("CAS", CharSequence.class, "cas", "^\\d{1,7}-\\d{2}-\\d$"),
-    CHEMBL("ChEMBL", null, null, null),
+    CHEBI("CHEBI", Integer.class, "chebi", "^\\d+$"),
+    CHEMBL("ChEMBL", CharSequence.class, "chembl", null),
     CHEMSPIDER("ChemSpider", null, null, null),
     /**
      * Chinese Clinical Trial Registry (ChiCTR) https://www.chictr.org.cn

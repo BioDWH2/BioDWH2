@@ -59,9 +59,9 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
             else if (reference.startsWith("KEGG Drug"))
                 description.addIdentifier(IdentifierType.KEGG, getIdFromPrefixIdPair(reference));
             /*
-            "ChEBI", "Drugs Product Database (DPD)", "FDA Drug Label at DailyMed", "National Drug Code Directory",
-            "PubChem Substance", "Therapeutic Targets Database", "URL", "ChemSpider", "BindingDB", "HET", "PDB",
-            "IUPHAR Ligand", "HMDB", "ClinicalTrials.gov", "DrugBank Metabolite", "GenBank", "UniProtKB", "ATCC"
+            "Drugs Product Database (DPD)", "FDA Drug Label at DailyMed", "National Drug Code Directory", "HMDB",
+            "PubChem Substance", "Therapeutic Targets Database", "URL", "BindingDB", "HET", "PDB", "UniProtKB", "ATCC",
+            "IUPHAR Ligand", "ClinicalTrials.gov", "DrugBank Metabolite", "GenBank"
              */
         for (final String rxNormIdentifier : getRxNormIdentifiers(node))
             description.addIdentifier(IdentifierType.RX_NORM_CUI, rxNormIdentifier);
@@ -87,7 +87,7 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
         description.addName(node.getProperty("name"));
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
-        for (final String reference : getCrossReferences(node))
+        for (final String reference : getCrossReferences(node)) {
             if (reference.startsWith("DrugBank"))
                 description.addIdentifier(IdentifierType.DRUG_BANK, getIdFromPrefixIdPair(reference));
             else if (reference.startsWith("KEGG Drug"))
@@ -96,12 +96,18 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
                 description.addIdentifier(IdentifierType.KEGG, getIdFromPrefixIdPair(reference));
             else if (reference.startsWith("Chemical Abstracts Service"))
                 description.addIdentifier(IdentifierType.CAS, getIdFromPrefixIdPair(reference));
+            else if (reference.startsWith("ChEBI"))
+                description.addIdentifier(IdentifierType.CHEBI,
+                                          Integer.parseInt(reference.substring(reference.lastIndexOf(':') + 1)));
+            else if (reference.startsWith("ChemSpider"))
+                description.addIdentifier(IdentifierType.CHEMSPIDER,
+                                          Integer.parseInt(getIdFromPrefixIdPair(reference)));
             /*
-            "PubChem Compound", "ChEBI", "ChemSpider", "PubChem Substance", "URL", "IUPHAR Ligand", "PDB",
-            "Drugs Product Database (DPD)", "Therapeutic Targets Database", "ClinicalTrials.gov",
-            "FDA Drug Label at DailyMed", "National Drug Code Directory", "BindingDB", "HET", "HMDB", "GenBank",
-            "UniProtKB", "ATCC"
+            "PubChem Compound", "PubChem Substance", "URL", "IUPHAR Ligand", "PDB", "Drugs Product Database (DPD)",
+            "Therapeutic Targets Database", "ClinicalTrials.gov", "FDA Drug Label at DailyMed", "UniProtKB", "ATCC",
+            "National Drug Code Directory", "BindingDB", "HET", "HMDB", "GenBank"
              */
+        }
         for (final String rxNormIdentifier : getRxNormIdentifiers(node))
             description.addIdentifier(IdentifierType.RX_NORM_CUI, rxNormIdentifier);
         return description;

@@ -97,8 +97,9 @@ public class HMDBMappingDescriber extends MappingDescriber {
         description.addIdentifier(IdentifierType.KEGG, node.<String>getProperty("kegg_id"));
         description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, node.<Integer>getProperty("pubchem_compound_id"));
         description.addIdentifier(IdentifierType.CHEMSPIDER, node.<Integer>getProperty("chemspider_id"));
-        // foodb_id, pdb_id, chebi_id, phenol_explorer_compound_id, knapsack_id, biocyc_id, bigg_id,
-        // wikipedia_id, metlin_id, vmh_id, fbonto_id, cas_registry_number
+        description.addIdentifier(IdentifierType.CHEBI, node.<Integer>getProperty("chebi_id"));
+        // foodb_id, pdb_id, phenol_explorer_compound_id, knapsack_id, biocyc_id, bigg_id, wikipedia_id, vmh_id,
+        // metlin_id, fbonto_id, cas_registry_number
         description.addName(node.getProperty("name"));
         description.addName(node.getProperty("iupac_name"));
         description.addNames(node.<String[]>getProperty("synonyms"));
