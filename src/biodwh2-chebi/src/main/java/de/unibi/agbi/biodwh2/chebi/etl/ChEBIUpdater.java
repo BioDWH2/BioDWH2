@@ -4,12 +4,14 @@ import de.unibi.agbi.biodwh2.chebi.ChEBIDataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPWebUpdater;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ChEBIUpdater extends MultiFileFTPWebUpdater<ChEBIDataSource> {
@@ -34,15 +36,27 @@ public class ChEBIUpdater extends MultiFileFTPWebUpdater<ChEBIDataSource> {
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         if (!super.tryUpdateFiles(workspace))
             return false;
-        // The header of the 3star filtered compound origins file is wrong and needs to be fixed
+        // The header of the 3star filtered compound origins file is wrong as well as some rows with additional empty
+        // columns and needs to be fixed
         try {
             final Path filePath = Paths.get(dataSource.resolveSourceFilePath(workspace, COMPOUND_ORIGINS_FILE_NAME));
             final List<String> lines = Files.readAllLines(filePath, StandardCharsets.ISO_8859_1);
             lines.set(0,
                       "ID\tCOMPOUND_ID\tSPECIES_TEXT\tSPECIES_ACCESSION\tCOMPONENT_TEXT\tCOMPONENT_ACCESSION\tSTRAIN_TEXT\tSTRAIN_ACCESSION\tSOURCE_TYPE\tSOURCE_ACCESSION\tCOMMENTS");
+            for (int i = 1; i < lines.size(); i++) {
+                String line = lines.get(i);
+                final String[] parts = StringUtils.splitPreserveAllTokens(line, '\t');
+                if (parts.length > 11) {
+                    List<String> fixed = new ArrayList<>(List.of(parts));
+                    for (int j = fixed.size() - 1; j >= 0 && fixed.size() > 11; j--)
+                        if (fixed.get(j).isBlank())
+                            fixed.remove(j);
+                    lines.set(i, String.join("\t", fixed));
+                }
+            }
             Files.write(filePath, lines, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new UpdaterException("Failed to fix file header '" + COMPOUND_ORIGINS_FILE_NAME + "'", e);
+            throw new UpdaterException("Failed to fix file '" + COMPOUND_ORIGINS_FILE_NAME + "'", e);
         }
         return true;
     }

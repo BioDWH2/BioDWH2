@@ -21,6 +21,7 @@ public class ChEBIGraphExporter extends GraphExporter<ChEBIDataSource> {
     private static final Logger LOGGER = LogManager.getLogger(ChEBIGraphExporter.class);
     public static final String COMPOUND_LABEL = "Compound";
     public static final String STRUCTURE_LABEL = "Structure";
+    public static final String ORIGIN_LABEL = "Origin";
 
     public ChEBIGraphExporter(final ChEBIDataSource dataSource) {
         super(dataSource);
@@ -35,23 +36,29 @@ public class ChEBIGraphExporter extends GraphExporter<ChEBIDataSource> {
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.addIndex(IndexDescription.forNode(COMPOUND_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(STRUCTURE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Exporting compounds...");
+        graph.addIndex(IndexDescription.forNode(ORIGIN_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         final Map<Integer, String> compoundInchiMap = collectCompoundInchi(workspace);
         final Map<Integer, List<DBAccession>> compoundXrefsMap = collectCompoundXrefs(workspace);
-        final Map<Integer, List<Name>> compoundnamesMap = collectCompoundNames(workspace);
-        exportCompounds(workspace, graph, compoundInchiMap, compoundXrefsMap, compoundnamesMap);
+        final Map<Integer, List<Name>> compoundNamesMap = collectCompoundNames(workspace);
+        final Map<Integer, List<String>> compoundReferencesMap = collectCompoundReferences(workspace);
+        exportCompounds(workspace, graph, compoundInchiMap, compoundXrefsMap, compoundNamesMap, compoundReferencesMap);
+        compoundInchiMap.clear();
+        compoundXrefsMap.clear();
+        compoundReferencesMap.clear();
         exportStructures(workspace, graph);
         exportRelations(workspace, graph);
         exportChemicalData(workspace, graph);
-        return false;
+        exportCompoundOrigins(workspace, graph);
+        return true;
     }
 
     private Map<Integer, String> collectCompoundInchi(final Workspace workspace) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Collecting compound InChI...");
         final Map<Integer, String> result = new HashMap<>();
         try {
-            FileUtils.openGzipTsvWithHeader(workspace, dataSource, ChEBIUpdater.INCHI_FILE_NAME, ChEBIIdIchi.class,
-                                            (entry) -> result.put(entry.chebiId, entry.inchi));
+            FileUtils.openTsvWithHeader(workspace, dataSource, ChEBIUpdater.INCHI_FILE_NAME, ChEBIIdIchi.class,
+                                        (entry) -> result.put(entry.chebiId, entry.inchi));
         } catch (IOException e) {
             throw new ExporterException("Failed to export '" + ChEBIUpdater.INCHI_FILE_NAME + "'", e);
         }
@@ -59,12 +66,14 @@ public class ChEBIGraphExporter extends GraphExporter<ChEBIDataSource> {
     }
 
     private Map<Integer, List<DBAccession>> collectCompoundXrefs(final Workspace workspace) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Collecting compound xrefs...");
         final Map<Integer, List<DBAccession>> result = new HashMap<>();
         try {
-            FileUtils.openGzipTsvWithHeader(workspace, dataSource, ChEBIUpdater.DATABASE_ACCESSION_FILE_NAME,
-                                            DBAccession.class, (entry) -> result.computeIfAbsent(entry.compoundId,
-                                                                                                 (id) -> new ArrayList<>())
-                                                                                .add(entry));
+            FileUtils.openTsvWithHeader(workspace, dataSource, ChEBIUpdater.DATABASE_ACCESSION_FILE_NAME,
+                                        DBAccession.class,
+                                        (entry) -> result.computeIfAbsent(entry.compoundId, (id) -> new ArrayList<>())
+                                                         .add(entry));
         } catch (IOException e) {
             throw new ExporterException("Failed to export '" + ChEBIUpdater.DATABASE_ACCESSION_FILE_NAME + "'", e);
         }
@@ -72,6 +81,8 @@ public class ChEBIGraphExporter extends GraphExporter<ChEBIDataSource> {
     }
 
     private Map<Integer, List<Name>> collectCompoundNames(final Workspace workspace) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Collecting compound names...");
         final Map<Integer, List<Name>> result = new HashMap<>();
         try {
             FileUtils.openGzipTsvWithHeader(workspace, dataSource, ChEBIUpdater.NAMES_FILE_NAME, Name.class,
@@ -83,14 +94,36 @@ public class ChEBIGraphExporter extends GraphExporter<ChEBIDataSource> {
         return result;
     }
 
+    private Map<Integer, List<String>> collectCompoundReferences(final Workspace workspace) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Collecting compound references...");
+        final Map<Integer, List<String>> result = new HashMap<>();
+        try {
+            FileUtils.openGzipTsvWithHeaderWithoutQuoting(workspace, dataSource, ChEBIUpdater.REFERENCE_FILE_NAME,
+                                                          Reference.class,
+                                                          (entry) -> result.computeIfAbsent(entry.compoundId,
+                                                                                            (id) -> new ArrayList<>())
+                                                                           .add(entry.referenceId + '|' +
+                                                                                entry.referenceDbName + '|' +
+                                                                                entry.locationInRef + '|' +
+                                                                                entry.referenceName));
+        } catch (IOException e) {
+            throw new ExporterException("Failed to export '" + ChEBIUpdater.REFERENCE_FILE_NAME + "'", e);
+        }
+        return result;
+    }
+
     private void exportCompounds(final Workspace workspace, final Graph graph,
                                  final Map<Integer, String> compoundInchiMap,
                                  final Map<Integer, List<DBAccession>> compoundXrefsMap,
-                                 final Map<Integer, List<Name>> compoundnamesMap) {
+                                 final Map<Integer, List<Name>> compoundNamesMap,
+                                 final Map<Integer, List<String>> compoundReferencesMap) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting compounds...");
         try {
             FileUtils.openGzipTsvWithHeader(workspace, dataSource, ChEBIUpdater.COMPOUNDS_FILE_NAME, Compound.class,
                                             (entry) -> exportCompound(graph, compoundInchiMap, compoundXrefsMap,
-                                                                      compoundnamesMap, entry));
+                                                                      compoundNamesMap, compoundReferencesMap, entry));
             FileUtils.openGzipTsvWithHeader(workspace, dataSource, ChEBIUpdater.COMPOUNDS_FILE_NAME, Compound.class,
                                             (entry) -> exportCompoundChildOfRelation(graph, entry));
         } catch (IOException e) {
@@ -100,7 +133,8 @@ public class ChEBIGraphExporter extends GraphExporter<ChEBIDataSource> {
 
     private static void exportCompound(final Graph graph, final Map<Integer, String> compoundInchiMap,
                                        final Map<Integer, List<DBAccession>> compoundXrefsMap,
-                                       final Map<Integer, List<Name>> compoundnamesMap, final Compound entry) {
+                                       final Map<Integer, List<Name>> compoundNamesMap,
+                                       final Map<Integer, List<String>> compoundReferencesMap, final Compound entry) {
         final Map<String, Object> properties = new HashMap<>();
         final String inchi = compoundInchiMap.get(entry.id);
         if (inchi != null)
@@ -116,13 +150,16 @@ public class ChEBIGraphExporter extends GraphExporter<ChEBIDataSource> {
             addSpecificXrefTypeToProperties(xrefs, properties, "KEGG COMPOUND accession", "kegg_compound");
             addSpecificXrefTypeToProperties(xrefs, properties, "Drug Central accession", "drugcentral_id");
         }
-        final List<Name> names = compoundnamesMap.get(entry.id);
+        final List<Name> names = compoundNamesMap.get(entry.id);
         if (names != null) {
             final String[] namesArray = names.stream().map(
                     (x) -> x.source + '|' + x.type + '|' + x.language + '|' + x.adapted + '|' + x.name).toArray(
                     String[]::new);
             properties.put("names", namesArray);
         }
+        final List<String> references = compoundReferencesMap.get(entry.id);
+        if (references != null)
+            properties.put("references", references.toArray(new String[0]));
         graph.addNodeFromModel(entry, properties);
     }
 
@@ -210,6 +247,21 @@ public class ChEBIGraphExporter extends GraphExporter<ChEBIDataSource> {
                 final Node chemicalDataNode = builder.build();
                 graph.addEdge(compoundNode, chemicalDataNode, "HAS_CHEMICAL_DATA");
             }
+        }
+    }
+
+    private void exportCompoundOrigins(final Workspace workspace, final Graph graph) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting compound origins...");
+        try {
+            FileUtils.openTsvWithHeader(workspace, dataSource, ChEBIUpdater.COMPOUND_ORIGINS_FILE_NAME,
+                                        CompoundOrigin.class, (entry) -> {
+                        final Node compoundNode = graph.findNode(COMPOUND_LABEL, ID_KEY, entry.compoundId);
+                        final Node node = graph.addNodeFromModel(entry);
+                        graph.addEdge(compoundNode, node, "HAS_ORIGIN");
+                    });
+        } catch (IOException e) {
+            throw new ExporterException("Failed to export '" + ChEBIUpdater.COMPOUND_ORIGINS_FILE_NAME + "'", e);
         }
     }
 }

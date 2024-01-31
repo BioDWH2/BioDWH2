@@ -16,6 +16,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | BRENDATissueOntology          | BRENDA Tissue Ontology                                                                                                                                  | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://www.brenda-enzymes.org/ontology.php?ontology_id=3)       |
 | CancerDrugsDB                 | A curated listing of licensed cancer drugs by the Anticancer Fund                                                                                       |                                                                       | [Link](https://www.anticancerfund.org/en/cancerdrugs-db)                |
 | CellOntology                  | Cell Ontology (CL)                                                                                                                                      | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/obophenotype/cell-ontology)                   |
+| ChEBI                         | ChEBI                                                                                                                                                   | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://www.ebi.ac.uk/chebi/)                                    |
 | CMAUP                         | Collective Molecular Activities of Useful Plants                                                                                                        |                                                                       | [Link](http://bidd.group/CMAUP/)                                        |
 | DiseaseOntology               | Human Disease Ontology (DO)                                                                                                                             | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)         | [Link](https://disease-ontology.org)                                    |
 | DrugBank                      | DrugBank                                                                                                                                                | [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)       | [Link](http://drugbank.ca)                                              |
@@ -250,6 +251,30 @@ CancerDrugs_DB is a curated listing of licensed cancer drugs produced by the Ant
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
+
+----
+
+### ChEBI
+
+- **Website**: [https://www.ebi.ac.uk/chebi/](https://www.ebi.ac.uk/chebi/)
+- **License**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Citation**:
+- **Files used**:
+  - `chebiId_inchi_3star.tsv`
+  - `chemical_data_3star.tsv`
+  - `compound_origins_3star.tsv`
+  - `compounds_3star.tsv.gz`
+  - `database_accession_3star.tsv`
+  - `names_3star.tsv.gz`
+  - `reference_3star.tsv.gz`
+  - `relation_3star.tsv`
+  - `structures_3star.csv.gz`
+
+**Configuration properties**:
+
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |
 
 ----
 

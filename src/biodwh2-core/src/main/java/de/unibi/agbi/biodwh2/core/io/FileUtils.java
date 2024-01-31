@@ -220,6 +220,16 @@ public final class FileUtils {
         return openSeparatedValuesFile(stream, typeClass, '\t', true, false);
     }
 
+    public static <T> void openGzipTsvWithHeaderWithoutQuoting(final Workspace workspace, final DataSource dataSource,
+                                                               final String fileName, final Class<T> typeClass,
+                                                               final IOConsumer<T> consumer) throws IOException {
+        try (final InputStream stream = openGzip(workspace, dataSource, fileName)) {
+            final MappingIterator<T> iterator = openSeparatedValuesFile(stream, typeClass, '\t', true, false);
+            while (iterator.hasNext())
+                consumer.accept(iterator.next());
+        }
+    }
+
     public static <T> MappingIterator<T> openTarGzipTsv(final Workspace workspace, final DataSource dataSource,
                                                         final String fileName,
                                                         final Class<T> typeClass) throws IOException {
