@@ -81,6 +81,7 @@
         <module>biodwh2-iid</module>
         <module>biodwh2-npcdr</module>
         <module>biodwh2-reactome</module>
+        <module>biodwh2-chebi</module>
     </modules>
 
     <packaging>pom</packaging>
