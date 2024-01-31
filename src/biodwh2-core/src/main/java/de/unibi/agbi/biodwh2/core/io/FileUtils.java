@@ -128,6 +128,16 @@ public final class FileUtils {
         return openSeparatedValuesFile(stream, typeClass, ',', true);
     }
 
+    public static <T> void openGzipCsvWithHeader(final Workspace workspace, final DataSource dataSource,
+                                                 final String fileName, final Class<T> typeClass,
+                                                 final IOConsumer<T> consumer) throws IOException {
+        try (final InputStream stream = openGzip(workspace, dataSource, fileName)) {
+            final MappingIterator<T> iterator = openSeparatedValuesFile(stream, typeClass, ',', true);
+            while (iterator.hasNext())
+                consumer.accept(iterator.next());
+        }
+    }
+
     public static <T> MappingIterator<T> openTsv(final Workspace workspace, final DataSource dataSource,
                                                  final String fileName, final Class<T> typeClass) throws IOException {
         final InputStream stream = openInput(workspace, dataSource, fileName);
@@ -146,6 +156,16 @@ public final class FileUtils {
                                                            final Class<T> typeClass) throws IOException {
         final InputStream stream = openInput(workspace, dataSource, fileName);
         return openSeparatedValuesFile(stream, typeClass, '\t', true);
+    }
+
+    public static <T> void openTsvWithHeader(final Workspace workspace, final DataSource dataSource,
+                                             final String fileName, final Class<T> typeClass,
+                                             final IOConsumer<T> consumer) throws IOException {
+        try (final InputStream stream = openInput(workspace, dataSource, fileName)) {
+            final MappingIterator<T> iterator = openSeparatedValuesFile(stream, typeClass, '\t', true);
+            while (iterator.hasNext())
+                consumer.accept(iterator.next());
+        }
     }
 
     public static <T> MappingIterator<T> openTsvWithHeader(final InputStream stream,
@@ -180,6 +200,16 @@ public final class FileUtils {
                                                                final Class<T> typeClass) throws IOException {
         final InputStream stream = openGzip(workspace, dataSource, fileName);
         return openSeparatedValuesFile(stream, typeClass, '\t', true);
+    }
+
+    public static <T> void openGzipTsvWithHeader(final Workspace workspace, final DataSource dataSource,
+                                                 final String fileName, final Class<T> typeClass,
+                                                 final IOConsumer<T> consumer) throws IOException {
+        try (final InputStream stream = openGzip(workspace, dataSource, fileName)) {
+            final MappingIterator<T> iterator = openSeparatedValuesFile(stream, typeClass, '\t', true);
+            while (iterator.hasNext())
+                consumer.accept(iterator.next());
+        }
     }
 
     public static <T> MappingIterator<T> openGzipTsvWithHeaderWithoutQuoting(final Workspace workspace,
@@ -322,6 +352,11 @@ public final class FileUtils {
     @FunctionalInterface
     public interface ZipEntryConsumer<T, U> {
         void accept(T t, U u) throws Exception;
+    }
+
+    @FunctionalInterface
+    public interface IOConsumer<T> {
+        void accept(T t) throws IOException;
     }
 
     public static FromXmlParser createXmlParser(final InputStream stream,
