@@ -27,7 +27,7 @@ jobs:
           prerelease: false
       - uses: actions/setup-java@v1
         with:
-          java-version: '8'
+          java-version: '11'
           java-package: jdk+fx
       - name: print Java version
         run: java -version

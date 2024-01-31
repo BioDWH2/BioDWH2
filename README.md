@@ -18,7 +18,7 @@ A list of changes for each version can be found in the [Changelog](CHANGELOG.md)
 For using generated data warehouses inside Neo4j please see the separate [BioDWH2-Neo4j-Server repository](https://github.com/BioDWH2/BioDWH2-Neo4j-Server).
 
 ## Usage
-BioDWH2 is developed to be usable out of the box without any prerequisites except the Java Runtime Environment version 8. The JRE 8 is available [here](https://www.oracle.com/java/technologies/javase-jre8-downloads.html).
+BioDWH2 is developed to be usable out of the box without any prerequisites except the Java Runtime Environment version 11 or higher. The JRE 11 is available [here](https://adoptium.net/temurin/releases/?package=jre&version=11).
 
 For detailed information on how to use BioDWH2 please see the separate [documentation](doc/usage.md).
 

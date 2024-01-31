@@ -3,7 +3,6 @@ package de.unibi.agbi.biodwh2.core.io.mixml;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import javax.xml.bind.annotation.XmlElement;
 import java.util.List;
 
 /**

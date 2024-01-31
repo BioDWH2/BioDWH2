@@ -62,7 +62,7 @@ The basic file structure is visualized below:
 
 ## Requirements
 
-BioDWH2 requires the Java Runtime Environment version 8 or higher to be installed. The JRE 8 is available [here](https://www.oracle.com/java/technologies/javase-jre8-downloads.html).
+BioDWH2 requires the Java Runtime Environment version 11 or higher to be installed. The JRE 11 is available [here](https://adoptium.net/temurin/releases/?package=jre&version=11).
 
 ## Creating a workspace
 
