@@ -6,6 +6,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
+import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import de.unibi.agbi.biodwh2.mir2disease.Mir2diseaseDataSource;
 
 import java.io.IOException;
@@ -29,18 +30,8 @@ public class Mir2diseaseUpdater extends Updater<Mir2diseaseDataSource> {
             final Matcher matcher = versionPattern.matcher(source);
             Version newestVersion = null;
             while (matcher.find()) {
-                // parse months
-                final String[] months = new String[]{
-                        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Dec"
-                };
-                int month = 0;
-                for (int i = 0; i < months.length; i++) {
-                    if (months[i].equals(matcher.group(1))) {
-                        month = i + 1;
-                        break;
-                    }
-                }
-                final Version version = new Version(Integer.parseInt(matcher.group(3)), month,
+                final Version version = new Version(Integer.parseInt(matcher.group(3)),
+                                                    TextUtils.threeLetterMonthNameToInt(matcher.group(1).toLowerCase()),
                                                     Integer.parseInt(matcher.group(2)));
                 if (newestVersion == null || newestVersion.compareTo(version) < 0)
                     newestVersion = version;

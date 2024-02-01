@@ -7,6 +7,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
+import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import de.unibi.agbi.biodwh2.dgidb.DGIdbDataSource;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -28,15 +29,8 @@ public class DGIdbUpdater extends Updater<DGIdbDataSource> {
     private static final String LATEST_RELEASE_URL = "https://dgidb.org/downloads";
     private static final String DOWNLOAD_URL_PREFIX = "https://www.dgidb.org/";
 
-    private final Map<String, Integer> monthNameNumberMap = new HashMap<>();
-
-    public DGIdbUpdater(DGIdbDataSource dataSource) {
+    public DGIdbUpdater(final DGIdbDataSource dataSource) {
         super(dataSource);
-        final String[] months = {
-                "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-        };
-        for (int i = 0; i < months.length; i++)
-            monthNameNumberMap.put(months[i], i + 1);
     }
 
     @Override
@@ -83,7 +77,7 @@ public class DGIdbUpdater extends Updater<DGIdbDataSource> {
 
     private Version parseVersion(final String value) {
         final String[] parts = value.split("-");
-        return new Version(Integer.parseInt(parts[0]), monthNameNumberMap.get(parts[1]));
+        return new Version(Integer.parseInt(parts[0]), TextUtils.threeLetterMonthNameToInt(parts[1].toLowerCase()));
     }
 
     @Override

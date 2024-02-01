@@ -2,12 +2,39 @@ package de.unibi.agbi.biodwh2.core.text;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public final class TextUtils {
+    public static final String[] MONTH_NAMES = {
+            "january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
+            "november", "december"
+    };
+    public static final String[] THREE_LETTER_MONTH_NAMES = {
+            "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"
+    };
+    private static final Map<String, Integer> monthNameNumberMap = new HashMap<>();
+    private static final Map<String, Integer> threeLetterMonthNameNumberMap = new HashMap<>();
+
+    static {
+        for (int i = 0; i < MONTH_NAMES.length; i++) {
+            monthNameNumberMap.put(MONTH_NAMES[i], i + 1);
+            threeLetterMonthNameNumberMap.put(THREE_LETTER_MONTH_NAMES[i], i + 1);
+        }
+    }
+
     private TextUtils() {
+    }
+
+    public static int monthNameToInt(String name) {
+        name = name.toLowerCase();
+        final Integer result = monthNameNumberMap.get(name);
+        return result != null ? result : -1;
+    }
+
+    public static int threeLetterMonthNameToInt(String name) {
+        name = name.toLowerCase();
+        final Integer result = threeLetterMonthNameNumberMap.get(name);
+        return result != null ? result : -1;
     }
 
     public static String toUpperCamelCase(final String str) {
@@ -36,4 +63,5 @@ public final class TextUtils {
         }
         return result;
     }
+
 }

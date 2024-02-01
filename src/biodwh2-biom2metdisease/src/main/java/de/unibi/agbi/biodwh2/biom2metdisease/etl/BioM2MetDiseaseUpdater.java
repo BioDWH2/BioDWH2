@@ -7,6 +7,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
+import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -32,18 +33,8 @@ public class BioM2MetDiseaseUpdater extends Updater<BioM2MetDiseaseDataSource> {
             Version newestVersion = null;
             while (matcher.find()) {
                 final String[] dateParts = StringUtils.split(matcher.group(0), " ,()");
-                // parse months
-                final String[] months = new String[]{
-                        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Dec"
-                };
-                int month = 0;
-                for (int i = 0; i < months.length; i++) {
-                    if (months[i].equals(dateParts[0])) {
-                        month = i + 1;
-                        break;
-                    }
-                }
-                final Version version = new Version(Integer.parseInt(dateParts[2]), month,
+                final Version version = new Version(Integer.parseInt(dateParts[2]),
+                                                    TextUtils.threeLetterMonthNameToInt(dateParts[0].toLowerCase()),
                                                     Integer.parseInt(dateParts[1]));
                 if (newestVersion == null || newestVersion.compareTo(version) < 0)
                     newestVersion = version;

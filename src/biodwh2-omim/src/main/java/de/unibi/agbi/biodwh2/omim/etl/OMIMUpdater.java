@@ -7,12 +7,11 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterMalformedVersionException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
+import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import de.unibi.agbi.biodwh2.omim.OMIMDataSource;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,16 +25,8 @@ public class OMIMUpdater extends Updater<OMIMDataSource> {
     private static final Pattern DOWNLOAD_URL_PATTERN = Pattern.compile(
             "<h5>[\\s\\n]*Updated\\s+([A-Za-z]+)\\s+([0-9]+)(?:th|st|rd|nd)?,\\s+([0-9]{4})[\\s\\n]*</h5>");
 
-    private final Map<String, Integer> monthNameNumberMap = new HashMap<>();
-
     public OMIMUpdater(final OMIMDataSource dataSource) {
         super(dataSource);
-        final String[] months = {
-                "january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
-                "november", "december"
-        };
-        for (int i = 0; i < months.length; i++)
-            monthNameNumberMap.put(months[i], i + 1);
     }
 
     @Override
@@ -46,7 +37,8 @@ public class OMIMUpdater extends Updater<OMIMDataSource> {
             if (!matcher.find())
                 return null;
             final String month = matcher.group(1).toLowerCase(Locale.ROOT);
-            return parseVersion(matcher.group(3) + "." + monthNameNumberMap.get(month) + "." + matcher.group(2));
+            return parseVersion(
+                    matcher.group(3) + "." + TextUtils.monthNameToInt(month.toLowerCase()) + "." + matcher.group(2));
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }

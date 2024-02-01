@@ -7,6 +7,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.core.net.HTTPFTPClient;
+import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,28 +15,10 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updater<D> {
     private static final Logger LOGGER = LogManager.getLogger(MultiFileFTPWebUpdater.class);
-    private static final Map<String, Integer> THREE_LETTER_MONTHS = new HashMap<>();
-
-    static {
-        THREE_LETTER_MONTHS.put("jan", 1);
-        THREE_LETTER_MONTHS.put("feb", 2);
-        THREE_LETTER_MONTHS.put("mar", 3);
-        THREE_LETTER_MONTHS.put("apr", 4);
-        THREE_LETTER_MONTHS.put("may", 5);
-        THREE_LETTER_MONTHS.put("jun", 6);
-        THREE_LETTER_MONTHS.put("jul", 7);
-        THREE_LETTER_MONTHS.put("aug", 8);
-        THREE_LETTER_MONTHS.put("sep", 9);
-        THREE_LETTER_MONTHS.put("oct", 10);
-        THREE_LETTER_MONTHS.put("nov", 11);
-        THREE_LETTER_MONTHS.put("dec", 12);
-    }
 
     protected final HTTPFTPClient client;
 
@@ -77,8 +60,8 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
                 return new Version(Integer.parseInt(dateParts[0]), Integer.parseInt(dateParts[1]),
                                    Integer.parseInt(dateParts[2]));
             }
-            final Integer monthNumber = THREE_LETTER_MONTHS.get(dateParts[1].toLowerCase(Locale.US));
-            if (monthNumber != null) {
+            final int monthNumber = TextUtils.threeLetterMonthNameToInt(dateParts[1].toLowerCase(Locale.US));
+            if (monthNumber != -1) {
                 return new Version(Integer.parseInt(dateParts[2]), monthNumber, Integer.parseInt(dateParts[0]));
             }
         }

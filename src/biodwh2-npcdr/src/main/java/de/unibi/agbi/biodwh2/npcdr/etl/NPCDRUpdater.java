@@ -6,11 +6,10 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
+import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import de.unibi.agbi.biodwh2.npcdr.NPCDRDataSource;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,20 +36,12 @@ public class NPCDRUpdater extends Updater<NPCDRDataSource> {
             DRUG_CLINICAL_ICD_FILE_NAME
     };
 
-    private final Map<String, Integer> monthNameNumberMap = new HashMap<>();
-    private final Pattern versionPattern;
+    private final Pattern versionPattern = Pattern.compile(
+            "\\s(" + String.join("|", TextUtils.MONTH_NAMES) + ") ([1-2]?[0-9])(?:st|nd|rd|th), ([0-9]{4})",
+            Pattern.CASE_INSENSITIVE);
 
     public NPCDRUpdater(final NPCDRDataSource dataSource) {
         super(dataSource);
-        final String[] months = {
-                "January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
-                "November", "December"
-        };
-        for (int i = 0; i < months.length; i++)
-            monthNameNumberMap.put(months[i], i + 1);
-        versionPattern = Pattern.compile(
-                "\\s(" + String.join("|", months) + ") ([1-2]?[0-9])(?:st|nd|rd|th), ([0-9]{4})",
-                Pattern.CASE_INSENSITIVE);
     }
 
     @Override
@@ -59,7 +50,8 @@ public class NPCDRUpdater extends Updater<NPCDRDataSource> {
             final String source = HTTPClient.getWebsiteSource(VERSION_URL);
             final Matcher matcher = versionPattern.matcher(source);
             if (matcher.find()) {
-                return new Version(Integer.parseInt(matcher.group(3)), monthNameNumberMap.get(matcher.group(1)),
+                return new Version(Integer.parseInt(matcher.group(3)),
+                                   TextUtils.monthNameToInt(matcher.group(1).toLowerCase()),
                                    Integer.parseInt(matcher.group(2)));
             }
             return null;
