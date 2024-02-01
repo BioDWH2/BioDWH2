@@ -96,6 +96,10 @@ public final class Graph extends MVStoreGraph {
         return new NodeBuilder(this);
     }
 
+    public NodeBuilder buildNode(final String label) {
+        return new NodeBuilder(this).withLabel(label);
+    }
+
     public <T> Node addNodeFromModel(final T obj) {
         final ClassMapping mapping = ClassMapping.get(obj);
         final Node n = Node.newNode(mapping.label);
@@ -353,6 +357,10 @@ public final class Graph extends MVStoreGraph {
 
     public EdgeBuilder buildEdge() {
         return new EdgeBuilder(this);
+    }
+
+    public EdgeBuilder buildEdge(final String label) {
+        return new EdgeBuilder(this).withLabel(label);
     }
 
     public <T> Edge addEdgeFromModel(final Node from, final Node to, final T obj) {
