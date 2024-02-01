@@ -46,6 +46,7 @@ public class DGIdbGraphExporter extends GraphExporter<DGIdbDataSource> {
     private static final Logger LOGGER = LogManager.getLogger(DGIdbGraphExporter.class);
     static final String DRUG_LABEL = "Drug";
     static final String GENE_LABEL = "Gene";
+    public static final String INTERACTS_WITH_LABEL = "INTERACTS_WITH";
 
     public DGIdbGraphExporter(final DGIdbDataSource dataSource) {
         super(dataSource);
@@ -73,7 +74,8 @@ public class DGIdbGraphExporter extends GraphExporter<DGIdbDataSource> {
         final Map<String, List<Drug>> conceptIdDrugsMap = new HashMap<>();
         try {
             FileUtils.openTsvWithHeader(workspace, dataSource, DGIdbUpdater.DRUGS_FILE_NAME, Drug.class, (entry) -> {
-                conceptIdDrugsMap.computeIfAbsent(entry.conceptId, (x) -> new ArrayList<>()).add(entry);
+                if (entry.conceptId != null && !"NULL".equals(entry.conceptId))
+                    conceptIdDrugsMap.computeIfAbsent(entry.conceptId, (x) -> new ArrayList<>()).add(entry);
             });
         } catch (IOException e) {
             throw new ExporterException("Failed to export '" + DGIdbUpdater.DRUGS_FILE_NAME + "'", e);
@@ -147,7 +149,8 @@ public class DGIdbGraphExporter extends GraphExporter<DGIdbDataSource> {
         final Map<String, List<Gene>> conceptIdGenesMap = new HashMap<>();
         try {
             FileUtils.openTsvWithHeader(workspace, dataSource, DGIdbUpdater.GENES_FILE_NAME, Gene.class, (entry) -> {
-                conceptIdGenesMap.computeIfAbsent(entry.conceptId, (x) -> new ArrayList<>()).add(entry);
+                if (entry.conceptId != null && !"NULL".equals(entry.conceptId))
+                    conceptIdGenesMap.computeIfAbsent(entry.conceptId, (x) -> new ArrayList<>()).add(entry);
             });
         } catch (IOException e) {
             throw new ExporterException("Failed to export '" + DGIdbUpdater.GENES_FILE_NAME + "'", e);
