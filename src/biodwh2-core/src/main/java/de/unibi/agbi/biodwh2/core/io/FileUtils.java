@@ -45,6 +45,19 @@ public final class FileUtils {
         return new BufferedInputStream(Files.newInputStream(Paths.get(filePath)));
     }
 
+    public static BufferedInputStream openInput(final String filePath, int skipRows) throws IOException {
+        final var stream = new BufferedInputStream(Files.newInputStream(Paths.get(filePath)));
+        if (skipRows > 0) {
+            for (int i = 0; i < skipRows; i++) {
+                char c;
+                do {
+                    c = (char) stream.read();
+                } while (c != '\n');
+            }
+        }
+        return stream;
+    }
+
     public static GZIPInputStream openGzip(final Workspace workspace, final DataSource dataSource,
                                            final String fileName) throws IOException {
         return new GZIPInputStream(openInput(workspace, dataSource, fileName));
@@ -178,6 +191,11 @@ public final class FileUtils {
                                                                          final String fileName,
                                                                          final Class<T> typeClass) throws IOException {
         final InputStream stream = openInput(workspace, dataSource, fileName);
+        return openSeparatedValuesFile(stream, typeClass, '\t', true, false);
+    }
+
+    public static <T> MappingIterator<T> openTsvWithHeaderWithoutQuoting(final InputStream stream,
+                                                                         final Class<T> typeClass) throws IOException {
         return openSeparatedValuesFile(stream, typeClass, '\t', true, false);
     }
 
