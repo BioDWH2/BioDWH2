@@ -12,10 +12,12 @@ import java.io.IOException;
 
 public class HerbUpdater extends Updater<HerbDataSource> {
     private static final String URL_PREFIX = "http://herb.ac.cn/download/file/?file_path=/data/Web_server/HERB_web/static/download_data/";
-    private static final String[] FILE_NAMES = new String[]{
-            "HERB_disease_info.txt", "HERB_experiment_info.txt", "HERB_herb_info.txt", "HERB_ingredient_info.txt",
-            "HERB_reference_info.txt", "HERB_target_info.txt"
-    };
+    static final String DISEASES_FILE_NAME = "HERB_disease_info.txt";
+    static final String EXPERIMENTS_FILE_NAME = "HERB_experiment_info.txt";
+    static final String HERBS_FILE_NAME = "HERB_herb_info.txt";
+    static final String INGREDIENTS_FILE_NAME = "HERB_ingredient_info.txt";
+    static final String REFERENCES_FILE_NAME = "HERB_reference_info.txt";
+    static final String TARGETS_FILE_NAME = "HERB_target_info.txt";
 
     public HerbUpdater(final HerbDataSource dataSource) {
         super(dataSource);
@@ -28,12 +30,12 @@ public class HerbUpdater extends Updater<HerbDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        for (final String fileName : FILE_NAMES) {
+        for (final String fileName : expectedFileNames()) {
             try {
                 HTTPClient.downloadFileAsBrowser(URL_PREFIX + fileName,
                                                  dataSource.resolveSourceFilePath(workspace, fileName));
             } catch (IOException e) {
-                throw new UpdaterConnectionException(e);
+                throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
             }
         }
         return true;
@@ -42,5 +44,13 @@ public class HerbUpdater extends Updater<HerbDataSource> {
     @Override
     protected boolean versionNotAvailable() {
         return true;
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{
+                DISEASES_FILE_NAME, EXPERIMENTS_FILE_NAME, HERBS_FILE_NAME, INGREDIENTS_FILE_NAME, REFERENCES_FILE_NAME,
+                TARGETS_FILE_NAME
+        };
     }
 }

@@ -34,7 +34,6 @@ public class NodeMappingDescription {
         PUBLICATION,
         RNA,
         SYMPTOM,
-        TARGET,
         TAXON,
         UNKNOWN,
         VARIANT
@@ -136,6 +135,10 @@ public class NodeMappingDescription {
     public void addIdentifier(final String type, final Integer id) {
         if (id != null)
             addIdentifierWithoutChecks(type, id.toString());
+    }
+
+    public boolean hasIdentifiers() {
+        return !identifier.isEmpty();
     }
 
     public Set<String> getIdentifiers() {

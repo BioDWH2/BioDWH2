@@ -25,7 +25,7 @@ public class Mir2diseaseMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeTarget(Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription((NodeMappingDescription.NodeType.TARGET));
+        final NodeMappingDescription description = new NodeMappingDescription((NodeMappingDescription.NodeType.GENE));
         description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("validated target"));
         return new NodeMappingDescription[]{description};
     }

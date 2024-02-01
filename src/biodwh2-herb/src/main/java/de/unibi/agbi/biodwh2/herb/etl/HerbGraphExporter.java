@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.herb.etl;
 
-import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
@@ -17,6 +16,10 @@ import java.io.IOException;
 
 public class HerbGraphExporter extends GraphExporter<HerbDataSource> {
     private static final Logger LOGGER = LogManager.getLogger(HerbGraphExporter.class);
+    public static final String HERB_LABEL = "Herb";
+    public static final String INGREDIENT_LABEL = "Ingredient";
+    public static final String TARGET_LABEL = "Target";
+    public static final String DISEASE_LABEL = "Disease";
 
     public HerbGraphExporter(final HerbDataSource dataSource) {
         super(dataSource);
@@ -24,54 +27,102 @@ public class HerbGraphExporter extends GraphExporter<HerbDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode("Herb", "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Ingredient", "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Target", "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Disease", "id", false, IndexDescription.Type.UNIQUE));
-        for (final Herb herb : parseTsvFile(workspace, Herb.class, "HERB_herb_info.txt"))
-            graph.addNodeFromModel(herb);
-        for (final Target target : parseTsvFile(workspace, Target.class, "HERB_target_info.txt"))
-            graph.addNodeFromModel(target);
-        for (final Disease disease : parseTsvFile(workspace, Disease.class, "HERB_disease_info.txt"))
-            graph.addNodeFromModel(disease);
-        for (final Ingredient ingredient : parseTsvFile(workspace, Ingredient.class, "HERB_ingredient_info.txt"))
-            graph.addNodeFromModel(ingredient);
-        for (final Experiment experiment : parseTsvFile(workspace, Experiment.class, "HERB_experiment_info.txt")) {
-            Node sourceNode = null;
-            if (experiment.herbOrIngredient.equalsIgnoreCase("herb")) {
-                sourceNode = graph.findNode("Herb", "id", experiment.herbOrIngredientId);
-            } else if (experiment.herbOrIngredient.equalsIgnoreCase("ingredient")) {
-                sourceNode = graph.findNode("Ingredient", "id", experiment.herbOrIngredientId);
-            }
-            if (sourceNode != null) {
-                final Node node = graph.addNodeFromModel(experiment);
-                graph.addEdge(sourceNode, node, "ASSOCIATED_WITH");
-            } else
-                graph.addNodeFromModel(experiment, "herb_or_ingredient_id", experiment.herbOrIngredientId);
-        }
-        /*
-        for (final Reference reference : parseTsvFile(workspace, Reference.class, "HERB_reference_info.txt")) {
-            // TODO
-        }
-        */
+        graph.addIndex(IndexDescription.forNode(HERB_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(INGREDIENT_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TARGET_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        exportHerbs(workspace, graph);
+        exportTargets(workspace, graph);
+        exportDiseases(workspace, graph);
+        exportIngredients(workspace, graph);
+        exportExperiments(workspace, graph);
+        exportReferences(workspace, graph);
         return true;
     }
 
-    private <T> Iterable<T> parseTsvFile(final Workspace workspace, final Class<T> typeVariableClass,
-                                         final String fileName) throws ExporterException {
+    private void exportHerbs(final Workspace workspace, final Graph graph) {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Exporting " + fileName + "...");
+            LOGGER.info("Exporting herbs...");
         try {
-            MappingIterator<T> iterator = FileUtils.openTsvWithHeader(workspace, dataSource, fileName,
-                                                                      typeVariableClass);
-            return () -> iterator;
+            FileUtils.openTsvWithHeader(workspace, dataSource, HerbUpdater.HERBS_FILE_NAME, Herb.class,
+                                        graph::addNodeFromModel);
         } catch (IOException e) {
-            throw new ExporterException("Failed to parse the file '" + fileName + "'", e);
+            throw new ExporterException("Failed to export '" + HerbUpdater.HERBS_FILE_NAME + "'", e);
+        }
+    }
+
+    private void exportTargets(final Workspace workspace, final Graph graph) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting targets...");
+        try {
+            FileUtils.openTsvWithHeader(workspace, dataSource, HerbUpdater.TARGETS_FILE_NAME, Target.class,
+                                        graph::addNodeFromModel);
+        } catch (IOException e) {
+            throw new ExporterException("Failed to export '" + HerbUpdater.TARGETS_FILE_NAME + "'", e);
+        }
+    }
+
+    private void exportDiseases(final Workspace workspace, final Graph graph) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting diseases...");
+        try {
+            FileUtils.openTsvWithHeader(workspace, dataSource, HerbUpdater.DISEASES_FILE_NAME, Disease.class,
+                                        graph::addNodeFromModel);
+        } catch (IOException e) {
+            throw new ExporterException("Failed to export '" + HerbUpdater.DISEASES_FILE_NAME + "'", e);
+        }
+    }
+
+    private void exportIngredients(final Workspace workspace, final Graph graph) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting ingredients...");
+        try {
+            FileUtils.openTsvWithHeader(workspace, dataSource, HerbUpdater.INGREDIENTS_FILE_NAME, Ingredient.class,
+                                        graph::addNodeFromModel);
+        } catch (IOException e) {
+            throw new ExporterException("Failed to export '" + HerbUpdater.INGREDIENTS_FILE_NAME + "'", e);
+        }
+    }
+
+    private void exportExperiments(final Workspace workspace, final Graph graph) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting experiments...");
+        try {
+            FileUtils.openTsvWithHeader(workspace, dataSource, HerbUpdater.EXPERIMENTS_FILE_NAME, Experiment.class,
+                                        (experiment -> exportExperiment(graph, experiment)));
+        } catch (IOException e) {
+            throw new ExporterException("Failed to export '" + HerbUpdater.EXPERIMENTS_FILE_NAME + "'", e);
+        }
+    }
+
+    private void exportExperiment(final Graph graph, final Experiment experiment) {
+        Node sourceNode = null;
+        if (experiment.herbOrIngredient.equalsIgnoreCase("herb"))
+            sourceNode = graph.findNode(HERB_LABEL, ID_KEY, experiment.herbOrIngredientId);
+        else if (experiment.herbOrIngredient.equalsIgnoreCase("ingredient"))
+            sourceNode = graph.findNode(INGREDIENT_LABEL, ID_KEY, experiment.herbOrIngredientId);
+        if (sourceNode != null) {
+            final Node node = graph.addNodeFromModel(experiment);
+            graph.addEdge(sourceNode, node, "ASSOCIATED_WITH");
+        } else
+            graph.addNodeFromModel(experiment, "herb_or_ingredient_id", experiment.herbOrIngredientId);
+    }
+
+    private void exportReferences(final Workspace workspace, final Graph graph) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting references...");
+        try {
+            FileUtils.openTsvWithHeader(workspace, dataSource, HerbUpdater.REFERENCES_FILE_NAME, Reference.class,
+                                        (experiment -> {
+                                            // TODO
+                                        }));
+        } catch (IOException e) {
+            throw new ExporterException("Failed to export '" + HerbUpdater.REFERENCES_FILE_NAME + "'", e);
         }
     }
 }

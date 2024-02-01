@@ -4,13 +4,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNumberProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
+import de.unibi.agbi.biodwh2.herb.etl.HerbGraphExporter;
 
 @JsonPropertyOrder({
         "Ingredient_id", "Ingredient_name", "Alias", "Ingredient_formula", "Ingredient_Smile", "Ingredient_weight",
         "OB_score", "CAS_id", "SymMap_id", "TCMID_id", "TCMSP_id", "TCM-ID_id", "PubChem_id", "DrugBank_id", ""
 })
-@GraphNodeLabel("Ingredient")
+@GraphNodeLabel(HerbGraphExporter.INGREDIENT_LABEL)
 public class Ingredient {
     @JsonProperty("Ingredient_id")
     @GraphProperty("id")
@@ -49,7 +51,7 @@ public class Ingredient {
     @GraphProperty(value = "tcm_id_class", emptyPlaceholder = "NA")
     public String tcmIdId;
     @JsonProperty("PubChem_id")
-    @GraphProperty(value = "pubchem_id", emptyPlaceholder = "NA")
+    @GraphNumberProperty(value = "pubchem_id", emptyPlaceholder = "NA")
     public String pubChemId;
     @JsonProperty("DrugBank_id")
     @GraphProperty(value = "drugbank_id", emptyPlaceholder = "NA")

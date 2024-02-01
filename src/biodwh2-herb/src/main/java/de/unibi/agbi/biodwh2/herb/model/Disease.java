@@ -4,13 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
+import de.unibi.agbi.biodwh2.herb.etl.HerbGraphExporter;
 
 @JsonPropertyOrder({
         "Disease_id", "DisGENet_disease_id", "Disease_name", "Disease_type", "DiseaseClass_MeSH",
         "DiseaseClassName_MeSH", "HPO_ClassId", "HPO_ClassName", "DO_ClassId", "DO_ClassName", "UMLS_SemanticTypeId",
         "UMLS_SemanticTypeName"
 })
-@GraphNodeLabel("Disease")
+@GraphNodeLabel(HerbGraphExporter.DISEASE_LABEL)
 public class Disease {
     @JsonProperty("Disease_id")
     @GraphProperty("id")

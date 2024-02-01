@@ -5,12 +5,13 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
+import de.unibi.agbi.biodwh2.herb.etl.HerbGraphExporter;
 
 @JsonPropertyOrder({
         "Target_id", "Tax_id", "Gene_id", "Gene_name", "Gene_alias", "Db_xrefs", "Chromosome", "Map_location",
         "Description", "Type_of_gene", "TTD_target_id", "TTD_target_type"
 })
-@GraphNodeLabel("Target")
+@GraphNodeLabel(HerbGraphExporter.TARGET_LABEL)
 public class Target {
     @JsonProperty("Target_id")
     @GraphProperty("id")
@@ -28,7 +29,7 @@ public class Target {
     @GraphArrayProperty(value = "gene_alias", arrayDelimiter = "; ", emptyPlaceholder = "-")
     public String geneAlias;
     @JsonProperty("Db_xrefs")
-    @GraphArrayProperty(value = "xrefs", arrayDelimiter = "; ")
+    @GraphArrayProperty(value = "xrefs", arrayDelimiter = {"; ", "|"}, emptyPlaceholder = {"-", "dbXrefs"})
     public String dbXrefs;
     @JsonProperty("Chromosome")
     @GraphProperty("chromosome")
