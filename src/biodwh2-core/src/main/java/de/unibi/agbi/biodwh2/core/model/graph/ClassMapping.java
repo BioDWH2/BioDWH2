@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.regex.Pattern;
 
 final class ClassMapping {
     static class ClassMappingField {
@@ -26,16 +27,26 @@ final class ClassMapping {
     }
 
     static final class ClassMappingArrayField extends ClassMappingField {
-        final String arrayDelimiter;
-        final String quotedArrayDelimiter;
+        final Pattern arrayDelimiter;
+        final Pattern quotedArrayDelimiter;
         final boolean quotedArrayElements;
         final String[] emptyPlaceholder;
 
-        ClassMappingArrayField(final Field field, final String propertyName, final String arrayDelimiter,
+        ClassMappingArrayField(final Field field, final String propertyName, final String[] arrayDelimiter,
                                final boolean quotedArrayElements, final String[] emptyPlaceholder) {
             super(field, propertyName, false, new String[0], ValueTransformation.NONE);
-            this.arrayDelimiter = arrayDelimiter;
-            quotedArrayDelimiter = "\"" + arrayDelimiter + "\"";
+            final var arrayDelimiterBuilder = new StringBuilder();
+            final var quotedArrayDelimiterBuilder = new StringBuilder();
+            for (int i = 0; i < arrayDelimiter.length; i++) {
+                if (i > 0) {
+                    arrayDelimiterBuilder.append('|');
+                    quotedArrayDelimiterBuilder.append('|');
+                }
+                arrayDelimiterBuilder.append(Pattern.quote(arrayDelimiter[i]));
+                quotedArrayDelimiterBuilder.append(Pattern.quote("\"" + arrayDelimiter[i] + "\""));
+            }
+            this.arrayDelimiter = Pattern.compile(arrayDelimiterBuilder.toString());
+            quotedArrayDelimiter = Pattern.compile(quotedArrayDelimiterBuilder.toString());
             this.quotedArrayElements = quotedArrayElements;
             this.emptyPlaceholder = emptyPlaceholder != null ? emptyPlaceholder : new String[0];
         }
@@ -243,12 +254,12 @@ final class ClassMapping {
             if (StringUtils.isEmpty(valueText))
                 return new String[0];
             if (field.quotedArrayElements && valueText.startsWith("\"")) {
-                final String[] elements = StringUtils.splitByWholeSeparator(valueText, field.quotedArrayDelimiter);
+                final String[] elements = field.quotedArrayDelimiter.split(valueText);
                 elements[0] = StringUtils.stripStart(elements[0], "\"");
                 elements[elements.length - 1] = StringUtils.stripEnd(elements[elements.length - 1], "\"");
                 return elements;
             }
-            return StringUtils.splitByWholeSeparator(valueText, field.arrayDelimiter);
+            return field.arrayDelimiter.split(valueText);
         }
         return null;
     }

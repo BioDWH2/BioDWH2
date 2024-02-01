@@ -107,6 +107,25 @@ class ClassMappingTest {
         assertArrayEquals(new String[]{"1234", "abcd", "hello"}, node.getProperty("list_transformed_to_array"));
     }
 
+    @Test
+    void arrayWithMultipleSeparators() {
+        final ClassMapping mapping = new ClassMapping(TestClassMultiSeparator.class);
+        final TestClassMultiSeparator instance = new TestClassMultiSeparator();
+        instance.array = "a";
+        final Node node = Node.newNode("test");
+        mapping.setModelProperties(node, instance);
+        assertArrayEquals(new String[]{"a"}, node.getProperty("array"));
+        instance.array = "a; bcd; d";
+        mapping.setModelProperties(node, instance);
+        assertArrayEquals(new String[]{"a", "bcd", "d"}, node.getProperty("array"));
+        instance.array = "a|bcd|d";
+        mapping.setModelProperties(node, instance);
+        assertArrayEquals(new String[]{"a", "bcd", "d"}, node.getProperty("array"));
+        instance.array = "a; bcd|d; x";
+        mapping.setModelProperties(node, instance);
+        assertArrayEquals(new String[]{"a", "bcd", "d", "x"}, node.getProperty("array"));
+    }
+
     @GraphNodeLabel("A")
     private static class TestClass {
         @GraphProperty("id")
@@ -125,5 +144,10 @@ class ClassMappingTest {
         public String quotedArray;
         @GraphProperty(value = "list_transformed_to_array", transformation = ValueTransformation.COLLECTION_TO_ARRAY)
         public List<String> listTransformedToArray;
+    }
+
+    private static class TestClassMultiSeparator {
+        @GraphArrayProperty(value = "array", arrayDelimiter = {"; ", "|"})
+        public String array;
     }
 }
