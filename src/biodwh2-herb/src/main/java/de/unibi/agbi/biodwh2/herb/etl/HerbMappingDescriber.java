@@ -5,6 +5,7 @@ import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.mapping.IdentifierUtils;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.mapping.PublicationNodeMappingDescription;
 import org.apache.commons.lang3.StringUtils;
 
 public class HerbMappingDescriber extends MappingDescriber {
@@ -20,18 +21,20 @@ public class HerbMappingDescriber extends MappingDescriber {
             return describeTarget(node);
         if (HerbGraphExporter.INGREDIENT_LABEL.equals(localMappingLabel))
             return describeIngredient(node);
+        if (HerbGraphExporter.REFERENCE_LABEL.equals(localMappingLabel))
+            return describeReference(node);
         return null;
     }
 
     private NodeMappingDescription[] describeDisease(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
         description.addName(node.getProperty("name"));
         description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("disgenet_id"));
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describeTarget(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
         description.addName(node.getProperty("gene_name"));
         final String[] xrefs = node.getProperty("xrefs");
         if (xrefs != null) {
@@ -55,7 +58,7 @@ public class HerbMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeIngredient(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
         description.addName(node.getProperty("name"));
         String casNumber = node.getProperty("cas_id");
         if (casNumber != null) {
@@ -69,6 +72,15 @@ public class HerbMappingDescriber extends MappingDescriber {
         return description.hasIdentifiers() ? new NodeMappingDescription[]{description} : null;
     }
 
+    private NodeMappingDescription[] describeReference(final Node node) {
+        final var description = new PublicationNodeMappingDescription();
+        description.doi = node.getProperty("doi");
+        description.pubmedId = node.getProperty("pubmed_id");
+        description.addIdentifier(IdentifierType.DOI, description.doi);
+        description.addIdentifier(IdentifierType.PUBMED_ID, description.pubmedId);
+        return new NodeMappingDescription[]{description};
+    }
+
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
         return null;
@@ -77,7 +89,8 @@ public class HerbMappingDescriber extends MappingDescriber {
     @Override
     protected String[] getNodeMappingLabels() {
         return new String[]{
-                HerbGraphExporter.DISEASE_LABEL, HerbGraphExporter.TARGET_LABEL, HerbGraphExporter.INGREDIENT_LABEL
+                HerbGraphExporter.DISEASE_LABEL, HerbGraphExporter.TARGET_LABEL, HerbGraphExporter.INGREDIENT_LABEL,
+                HerbGraphExporter.REFERENCE_LABEL
         };
     }
 

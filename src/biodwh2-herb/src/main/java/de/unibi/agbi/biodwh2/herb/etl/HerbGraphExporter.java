@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 public class HerbGraphExporter extends GraphExporter<HerbDataSource> {
     private static final Logger LOGGER = LogManager.getLogger(HerbGraphExporter.class);
@@ -20,6 +21,7 @@ public class HerbGraphExporter extends GraphExporter<HerbDataSource> {
     public static final String INGREDIENT_LABEL = "Ingredient";
     public static final String TARGET_LABEL = "Target";
     public static final String DISEASE_LABEL = "Disease";
+    public static final String REFERENCE_LABEL = "Reference";
 
     public HerbGraphExporter(final HerbDataSource dataSource) {
         super(dataSource);
@@ -36,6 +38,7 @@ public class HerbGraphExporter extends GraphExporter<HerbDataSource> {
         graph.addIndex(IndexDescription.forNode(INGREDIENT_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(TARGET_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(REFERENCE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         exportHerbs(workspace, graph);
         exportTargets(workspace, graph);
         exportDiseases(workspace, graph);
@@ -81,9 +84,10 @@ public class HerbGraphExporter extends GraphExporter<HerbDataSource> {
     private void exportIngredients(final Workspace workspace, final Graph graph) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting ingredients...");
-        try {
-            FileUtils.openTsvWithHeader(workspace, dataSource, HerbUpdater.INGREDIENTS_FILE_NAME, Ingredient.class,
-                                        graph::addNodeFromModel);
+        // Skip the header and load without header because there is a header column missing
+        try (final InputStream stream = FileUtils.openInput(
+                dataSource.resolveSourceFilePath(workspace, HerbUpdater.INGREDIENTS_FILE_NAME), 1)) {
+            FileUtils.openTsv(stream, Ingredient.class, graph::addNodeFromModel);
         } catch (IOException e) {
             throw new ExporterException("Failed to export '" + HerbUpdater.INGREDIENTS_FILE_NAME + "'", e);
         }
@@ -116,13 +120,25 @@ public class HerbGraphExporter extends GraphExporter<HerbDataSource> {
     private void exportReferences(final Workspace workspace, final Graph graph) {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting references...");
-        try {
-            FileUtils.openTsvWithHeader(workspace, dataSource, HerbUpdater.REFERENCES_FILE_NAME, Reference.class,
-                                        (experiment -> {
-                                            // TODO
-                                        }));
+        // Skip the header and load without header because they are shifted and some are missing
+        try (final InputStream stream = FileUtils.openInput(
+                dataSource.resolveSourceFilePath(workspace, HerbUpdater.REFERENCES_FILE_NAME), 1)) {
+            FileUtils.openTsv(stream, Reference.class, (reference) -> exportReference(graph, reference));
         } catch (IOException e) {
             throw new ExporterException("Failed to export '" + HerbUpdater.REFERENCES_FILE_NAME + "'", e);
         }
+    }
+
+    private void exportReference(final Graph graph, final Reference reference) {
+        Node sourceNode = null;
+        if (reference.herbOrIngredient.equalsIgnoreCase("herb"))
+            sourceNode = graph.findNode(HERB_LABEL, ID_KEY, reference.herbOrIngredientId);
+        else if (reference.herbOrIngredient.equalsIgnoreCase("ingredient"))
+            sourceNode = graph.findNode(INGREDIENT_LABEL, ID_KEY, reference.herbOrIngredientId);
+        if (sourceNode != null) {
+            final Node node = graph.addNodeFromModel(reference);
+            graph.addEdge(sourceNode, node, "ASSOCIATED_WITH");
+        } else
+            graph.addNodeFromModel(reference, "herb_or_ingredient_id", reference.herbOrIngredientId);
     }
 }

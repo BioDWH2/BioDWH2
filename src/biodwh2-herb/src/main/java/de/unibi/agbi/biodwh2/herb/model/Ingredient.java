@@ -10,7 +10,7 @@ import de.unibi.agbi.biodwh2.herb.etl.HerbGraphExporter;
 
 @JsonPropertyOrder({
         "Ingredient_id", "Ingredient_name", "Alias", "Ingredient_formula", "Ingredient_Smile", "Ingredient_weight",
-        "OB_score", "CAS_id", "SymMap_id", "TCMID_id", "TCMSP_id", "TCM-ID_id", "PubChem_id", "DrugBank_id", ""
+        "OB_score", "CAS_id", "SymMap_id", "TCMID_id", "TCMSP_id", "TCM-ID_id", "PubChem_id", "DrugBank_id", "_unknown"
 })
 @GraphNodeLabel(HerbGraphExporter.INGREDIENT_LABEL)
 public class Ingredient {
@@ -47,7 +47,7 @@ public class Ingredient {
     @JsonProperty("TCMSP_id")
     @GraphProperty(value = "tcmsp_id", emptyPlaceholder = "NA")
     public String tcmspId;
-    @JsonProperty("TCM_ID_id")
+    @JsonProperty("TCM-ID_id")
     @GraphProperty(value = "tcm_id_class", emptyPlaceholder = "NA")
     public String tcmIdId;
     @JsonProperty("PubChem_id")
@@ -57,6 +57,6 @@ public class Ingredient {
     @GraphProperty(value = "drugbank_id", emptyPlaceholder = "NA")
     public String drugBankId;
     // There is a column without name in the file which should be ignored
-    @JsonProperty()
-    public String empty;
+    @JsonProperty("_unknown")
+    private String empty;
 }

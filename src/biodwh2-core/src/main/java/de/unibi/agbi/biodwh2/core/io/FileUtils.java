@@ -157,6 +157,18 @@ public final class FileUtils {
         return openSeparatedValuesFile(stream, typeClass, '\t', false);
     }
 
+    public static <T> MappingIterator<T> openTsv(final InputStream stream,
+                                                 final Class<T> typeClass) throws IOException {
+        return openSeparatedValuesFile(stream, typeClass, '\t', false);
+    }
+
+    public static <T> void openTsv(final InputStream stream, final Class<T> typeClass,
+                                   final IOConsumer<T> consumer) throws IOException {
+        final MappingIterator<T> iterator = openSeparatedValuesFile(stream, typeClass, '\t', false);
+        while (iterator.hasNext())
+            consumer.accept(iterator.next());
+    }
+
     public static <T> MappingIterator<T> openTsvWithoutQuoting(final Workspace workspace, final DataSource dataSource,
                                                                final String fileName,
                                                                final Class<T> typeClass) throws IOException {
@@ -184,6 +196,13 @@ public final class FileUtils {
     public static <T> MappingIterator<T> openTsvWithHeader(final InputStream stream,
                                                            final Class<T> typeClass) throws IOException {
         return openSeparatedValuesFile(stream, typeClass, '\t', true);
+    }
+
+    public static <T> void openTsvWithHeader(final InputStream stream, final Class<T> typeClass,
+                                             final IOConsumer<T> consumer) throws IOException {
+        final MappingIterator<T> iterator = openSeparatedValuesFile(stream, typeClass, '\t', true);
+        while (iterator.hasNext())
+            consumer.accept(iterator.next());
     }
 
     public static <T> MappingIterator<T> openTsvWithHeaderWithoutQuoting(final Workspace workspace,
