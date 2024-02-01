@@ -2,39 +2,29 @@ package de.unibi.agbi.biodwh2.dgidb.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
+import de.unibi.agbi.biodwh2.dgidb.etl.DGIdbGraphExporter;
 
-import java.util.Objects;
-
-@GraphNodeLabel("Gene")
-@JsonPropertyOrder({"gene_claim_name", "gene_name", "entrez_id", "gene_claim_source"})
+@JsonPropertyOrder({"name", "nomenclature", "concept_id", "gene_claim_name", "source_db_name", "source_db_version"})
+@GraphNodeLabel(DGIdbGraphExporter.GENE_LABEL)
 public class Gene {
-    @GraphProperty("claim_name")
+    @GraphProperty("name")
+    @JsonProperty("name")
+    public String name;
+    @GraphProperty("nomenclature")
+    @JsonProperty("nomenclature")
+    public String nomenclature;
+    @GraphProperty("concept_id")
+    @JsonProperty("concept_id")
+    public String conceptId;
+    @GraphProperty("gene_claim_name")
     @JsonProperty("gene_claim_name")
     public String geneClaimName;
-    @GraphProperty("name")
-    @JsonProperty("gene_name")
-    public String geneName;
-    @GraphProperty("entrez_id")
-    @JsonProperty("entrez_id")
-    public String entrezId;
-    @JsonProperty("gene_claim_source")
-    public String geneClaimSource;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        Gene gene = (Gene) o;
-        return Objects.equals(geneClaimName, gene.geneClaimName) && Objects.equals(geneName, gene.geneName) &&
-               Objects.equals(entrezId, gene.entrezId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(geneClaimName, geneName, entrezId);
-    }
+    @GraphProperty("source_db_name")
+    @JsonProperty("source_db_name")
+    public String sourceDBName;
+    @GraphProperty("source_db_version")
+    @JsonProperty("source_db_version")
+    public String sourceDBVersion;
 }

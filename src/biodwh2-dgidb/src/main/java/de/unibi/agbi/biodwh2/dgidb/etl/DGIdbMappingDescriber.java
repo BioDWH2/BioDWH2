@@ -15,13 +15,13 @@ public class DGIdbMappingDescriber extends MappingDescriber {
     }
 
     @Override
-    protected String[] getNodeMappingLabels() {
-        return new String[0];
+    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
+        return null;
     }
 
     @Override
-    public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
-        return null;
+    protected String[] getNodeMappingLabels() {
+        return new String[0];
     }
 
     @Override
