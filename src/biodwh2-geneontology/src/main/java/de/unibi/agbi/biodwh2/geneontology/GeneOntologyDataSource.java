@@ -53,8 +53,4 @@ public class GeneOntologyDataSource extends OntologyDataSource {
     public MappingDescriber getMappingDescriber() {
         return new GeneOntologyMappingDescriber(this);
     }
-
-    @Override
-    protected void unloadData() {
-    }
 }

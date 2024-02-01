@@ -46,8 +46,4 @@ public class BioM2MetDiseaseDataSource extends DataSource {
     public MappingDescriber getMappingDescriber() {
         return new BioM2MetDiseaseMappingDescriber(this);
     }
-
-    @Override
-    protected void unloadData() {
-    }
 }

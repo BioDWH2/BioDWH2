@@ -24,11 +24,6 @@ public class STITCHDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new STITCHGraphExporter(this);
     }
@@ -36,9 +31,5 @@ public class STITCHDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new STITCHMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

@@ -30,11 +30,6 @@ public class TissuesDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new TissuesGraphExporter(this);
     }
@@ -42,9 +37,5 @@ public class TissuesDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new TissuesMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

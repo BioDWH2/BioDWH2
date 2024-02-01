@@ -24,11 +24,6 @@ public class HerbDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new HerbGraphExporter(this);
     }
@@ -36,9 +31,5 @@ public class HerbDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new HerbMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

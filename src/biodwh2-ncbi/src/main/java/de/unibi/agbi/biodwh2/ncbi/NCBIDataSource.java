@@ -37,8 +37,4 @@ public class NCBIDataSource extends DataSource {
     public MappingDescriber getMappingDescriber() {
         return new NCBIMappingDescriber(this);
     }
-
-    @Override
-    protected void unloadData() {
-    }
 }

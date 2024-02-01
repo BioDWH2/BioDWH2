@@ -27,11 +27,6 @@ public class TarBaseDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new TarBaseGraphExporter(this);
     }
@@ -39,10 +34,6 @@ public class TarBaseDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new TarBaseMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 
     @Override

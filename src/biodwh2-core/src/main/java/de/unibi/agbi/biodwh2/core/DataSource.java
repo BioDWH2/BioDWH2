@@ -3,10 +3,7 @@ package de.unibi.agbi.biodwh2.core;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
-import de.unibi.agbi.biodwh2.core.etl.Parser;
-import de.unibi.agbi.biodwh2.core.etl.Updater;
+import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
@@ -59,7 +56,9 @@ public abstract class DataSource {
 
     protected abstract Updater<? extends DataSource> getUpdater();
 
-    protected abstract Parser<? extends DataSource> getParser();
+    protected Parser<? extends DataSource> getParser() {
+        return new PassThroughParser<>(this);
+    }
 
     protected abstract GraphExporter<? extends DataSource> getGraphExporter();
 
@@ -187,7 +186,8 @@ public abstract class DataSource {
         }
     }
 
-    protected abstract void unloadData();
+    protected void unloadData() {
+    }
 
     public final String resolveSourceFilePath(final Workspace workspace, final String filePath) {
         return Paths.get(workspace.getSourcesDirectory(), getId(), SOURCE_DIRECTORY_NAME, filePath).toString();

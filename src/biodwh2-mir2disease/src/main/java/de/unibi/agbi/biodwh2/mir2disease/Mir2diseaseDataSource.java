@@ -50,8 +50,4 @@ public class Mir2diseaseDataSource extends DataSource {
     public MappingDescriber getMappingDescriber() {
         return new Mir2diseaseMappingDescriber(this);
     }
-
-    @Override
-    protected void unloadData() {
-    }
 }

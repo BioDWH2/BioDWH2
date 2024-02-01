@@ -40,11 +40,6 @@ public class BrendaDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new BrendaGraphExporter(this);
     }
@@ -52,10 +47,6 @@ public class BrendaDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new BrendaMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 
     @Override

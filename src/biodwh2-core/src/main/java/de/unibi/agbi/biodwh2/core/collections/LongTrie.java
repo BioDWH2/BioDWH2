@@ -136,7 +136,6 @@ public class LongTrie extends AbstractCollection<Long> implements Serializable, 
     @Override
     public <T> T[] toArray(T[] a) {
         final List<Long> values = values();
-        //noinspection SuspiciousToArrayCall
         return values.toArray(a);
     }
 

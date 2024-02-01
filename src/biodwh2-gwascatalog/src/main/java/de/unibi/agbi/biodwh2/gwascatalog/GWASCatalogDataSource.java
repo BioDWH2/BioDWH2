@@ -24,11 +24,6 @@ public class GWASCatalogDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new GWASCatalogGraphExporter(this);
     }
@@ -36,9 +31,5 @@ public class GWASCatalogDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new GWASCatalogMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

@@ -30,11 +30,6 @@ public class ChEBIDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new ChEBIGraphExporter(this);
     }
@@ -42,9 +37,5 @@ public class ChEBIDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new ChEBIMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

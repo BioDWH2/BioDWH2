@@ -43,8 +43,4 @@ public class SiderDataSource extends DataSource {
     public MappingDescriber getMappingDescriber() {
         return new SiderMappingDescriber(this);
     }
-
-    @Override
-    protected void unloadData() {
-    }
 }

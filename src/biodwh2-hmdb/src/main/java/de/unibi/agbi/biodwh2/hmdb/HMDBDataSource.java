@@ -24,11 +24,6 @@ public class HMDBDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new HMDBGraphExporter(this);
     }
@@ -36,9 +31,5 @@ public class HMDBDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new HMDBMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

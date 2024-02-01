@@ -27,11 +27,6 @@ public class RefSeqDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new RefSeqGraphExporter(this);
     }
@@ -39,10 +34,6 @@ public class RefSeqDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new RefSeqMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 
     @Override

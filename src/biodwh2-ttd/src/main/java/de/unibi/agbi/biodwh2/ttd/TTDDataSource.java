@@ -33,10 +33,6 @@ public class TTDDataSource extends DataSource {
         return new TTDUpdater(this);
     }
 
-    @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
 
     @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
@@ -46,9 +42,5 @@ public class TTDDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new TTDMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

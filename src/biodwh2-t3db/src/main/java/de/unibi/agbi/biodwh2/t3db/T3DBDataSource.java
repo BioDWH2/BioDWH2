@@ -24,11 +24,6 @@ public class T3DBDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new T3DBGraphExporter(this);
     }
@@ -36,9 +31,5 @@ public class T3DBDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new T3DBMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

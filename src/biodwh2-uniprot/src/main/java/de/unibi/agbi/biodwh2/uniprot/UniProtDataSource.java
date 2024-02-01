@@ -30,11 +30,6 @@ public class UniProtDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new UniProtGraphExporter(this);
     }
@@ -42,9 +37,5 @@ public class UniProtDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new UniProtMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

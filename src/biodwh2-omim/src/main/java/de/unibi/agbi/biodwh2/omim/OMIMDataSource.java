@@ -67,8 +67,4 @@ public class OMIMDataSource extends DataSource {
     public MappingDescriber getMappingDescriber() {
         return new OMIMMappingDescriber(this);
     }
-
-    @Override
-    protected void unloadData() {
-    }
 }

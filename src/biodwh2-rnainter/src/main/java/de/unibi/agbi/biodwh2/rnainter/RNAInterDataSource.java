@@ -24,11 +24,6 @@ public class RNAInterDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new RNAInterGraphExporter(this);
     }
@@ -36,9 +31,5 @@ public class RNAInterDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new RNAInterMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

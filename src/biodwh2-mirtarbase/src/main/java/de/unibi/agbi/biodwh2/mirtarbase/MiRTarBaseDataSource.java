@@ -29,11 +29,6 @@ public class MiRTarBaseDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new MiRTarBaseGraphExporter(this);
     }
@@ -41,9 +36,5 @@ public class MiRTarBaseDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new MiRTarBaseMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

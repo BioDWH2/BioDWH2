@@ -40,11 +40,6 @@ public class EnzymeDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new EnzymeGraphExporter(this);
     }
@@ -52,9 +47,5 @@ public class EnzymeDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new EnzymeMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

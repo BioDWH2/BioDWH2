@@ -2,10 +2,14 @@ package de.unibi.agbi.biodwh2.core.mocks.mock2;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
-import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
+import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.etl.Parser;
+import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.mocks.MockParser;
 import de.unibi.agbi.biodwh2.core.mocks.MockUpdater;
-import de.unibi.agbi.biodwh2.core.mocks.mock2.etl.*;
+import de.unibi.agbi.biodwh2.core.mocks.mock2.etl.Mock2GraphExporter;
+import de.unibi.agbi.biodwh2.core.mocks.mock2.etl.Mock2MappingDescriber;
 
 public class Mock2DataSource extends DataSource {
     @Override
@@ -36,9 +40,5 @@ public class Mock2DataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new Mock2MappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

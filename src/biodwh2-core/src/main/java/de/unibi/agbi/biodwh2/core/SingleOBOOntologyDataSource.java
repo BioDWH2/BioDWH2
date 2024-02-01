@@ -16,11 +16,6 @@ public abstract class SingleOBOOntologyDataSource extends OntologyDataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new SingleOBOGraphExporter(this);
     }
@@ -28,10 +23,6 @@ public abstract class SingleOBOOntologyDataSource extends OntologyDataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new SingleOBOMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 
     protected abstract String getDownloadUrl();

@@ -24,11 +24,6 @@ public class Gene2PhenotypeDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new Gene2PhenotypeGraphExporter(this);
     }
@@ -36,9 +31,5 @@ public class Gene2PhenotypeDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new Gene2PhenotypeMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

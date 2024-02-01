@@ -35,11 +35,6 @@ public class ReactomeDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new ReactomeGraphExporter(this);
     }
@@ -47,9 +42,5 @@ public class ReactomeDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new ReactomeMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

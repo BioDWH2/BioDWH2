@@ -24,11 +24,6 @@ public class InterProDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new InterProGraphExporter(this);
     }
@@ -36,9 +31,5 @@ public class InterProDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new InterProMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

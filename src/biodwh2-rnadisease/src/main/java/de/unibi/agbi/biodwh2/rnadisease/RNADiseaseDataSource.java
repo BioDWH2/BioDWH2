@@ -24,11 +24,6 @@ public class RNADiseaseDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new RNADiseaseGraphExporter(this);
     }
@@ -36,9 +31,5 @@ public class RNADiseaseDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new RNADiseaseMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

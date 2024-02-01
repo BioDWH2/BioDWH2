@@ -125,7 +125,6 @@ public class ReverseLongTrie extends AbstractCollection<Long> implements Seriali
     @Override
     public <T> T[] toArray(T[] a) {
         final List<Long> values = values();
-        //noinspection SuspiciousToArrayCall
         return values.toArray(a);
     }
 

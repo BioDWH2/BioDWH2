@@ -30,11 +30,6 @@ public class GuideToPharmacologyDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new GuideToPharmacologyGraphExporter(this);
     }
@@ -42,9 +37,5 @@ public class GuideToPharmacologyDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new GuideToPharmacologyMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

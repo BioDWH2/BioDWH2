@@ -30,11 +30,6 @@ public class DiseasesDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new DiseasesGraphExporter(this);
     }
@@ -42,9 +37,5 @@ public class DiseasesDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new DiseasesMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

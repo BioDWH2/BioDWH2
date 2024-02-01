@@ -24,11 +24,6 @@ public class CPDBDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new CPDBGraphExporter(this);
     }
@@ -36,9 +31,5 @@ public class CPDBDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new CPDBMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

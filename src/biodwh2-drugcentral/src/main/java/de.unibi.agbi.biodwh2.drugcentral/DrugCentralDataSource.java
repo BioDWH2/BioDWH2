@@ -64,10 +64,6 @@ public class DrugCentralDataSource extends DataSource {
     }
 
     @Override
-    protected void unloadData() {
-    }
-
-    @Override
     public Map<String, DataSourcePropertyType> getAvailableProperties() {
         final Map<String, DataSourcePropertyType> result = super.getAvailableProperties();
         result.put("skipLINCSSignatures", DataSourcePropertyType.BOOLEAN);

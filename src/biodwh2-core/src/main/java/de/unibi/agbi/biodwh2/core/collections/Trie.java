@@ -99,7 +99,6 @@ public final class Trie extends AbstractCollection<CharSequence> implements Seri
     @Override
     public <T> T[] toArray(T[] a) {
         final List<CharSequence> values = values();
-        //noinspection SuspiciousToArrayCall
         return values.toArray(a);
     }
 

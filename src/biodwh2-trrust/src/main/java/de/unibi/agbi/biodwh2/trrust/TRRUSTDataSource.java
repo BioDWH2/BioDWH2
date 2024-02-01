@@ -35,11 +35,6 @@ public class TRRUSTDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new TRRUSTGraphExporter(this);
     }
@@ -47,9 +42,5 @@ public class TRRUSTDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new TRRUSTMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

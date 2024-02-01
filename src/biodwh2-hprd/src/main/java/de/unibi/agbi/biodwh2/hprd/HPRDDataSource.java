@@ -24,11 +24,6 @@ public class HPRDDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new HPRDGraphExporter(this);
     }
@@ -36,9 +31,5 @@ public class HPRDDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new HPRDMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

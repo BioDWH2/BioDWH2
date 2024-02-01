@@ -27,11 +27,6 @@ public class MiRDBDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new MiRDBGraphExporter(this);
     }
@@ -46,9 +41,5 @@ public class MiRDBDataSource extends DataSource {
         final Map<String, DataSourcePropertyType> result = super.getAvailableProperties();
         result.put("scoreThreshold", DataSourcePropertyType.DECIMAL);
         return result;
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

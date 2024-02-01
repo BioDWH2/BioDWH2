@@ -24,11 +24,6 @@ public class RNALocateDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new RNALocateGraphExporter(this);
     }
@@ -36,9 +31,5 @@ public class RNALocateDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new RNALocateMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

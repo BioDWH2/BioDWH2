@@ -24,11 +24,6 @@ public class NPCDRDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new NPCDRGraphExporter(this);
     }
@@ -36,9 +31,5 @@ public class NPCDRDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new NPCDRMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

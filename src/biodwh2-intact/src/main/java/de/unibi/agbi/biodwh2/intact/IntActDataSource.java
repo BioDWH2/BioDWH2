@@ -45,11 +45,6 @@ public class IntActDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new IntActGraphExporter(this);
     }
@@ -57,9 +52,5 @@ public class IntActDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new IntActMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

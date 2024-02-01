@@ -52,10 +52,6 @@ public class HPODataSource extends OntologyDataSource {
     }
 
     @Override
-    protected void unloadData() {
-    }
-
-    @Override
     public Map<String, DataSourcePropertyType> getAvailableProperties() {
         final Map<String, DataSourcePropertyType> result = super.getAvailableProperties();
         result.put("omimLicensed", DataSourcePropertyType.BOOLEAN);

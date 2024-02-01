@@ -35,11 +35,6 @@ public class GenCCDataSource extends DataSource {
     }
 
     @Override
-    protected Parser<? extends DataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
     protected GraphExporter<? extends DataSource> getGraphExporter() {
         return new GenCCGraphExporter(this);
     }
@@ -47,9 +42,5 @@ public class GenCCDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new GenCCMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }
