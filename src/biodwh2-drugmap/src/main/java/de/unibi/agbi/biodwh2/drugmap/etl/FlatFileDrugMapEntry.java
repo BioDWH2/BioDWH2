@@ -24,4 +24,8 @@ public class FlatFileDrugMapEntry {
         final List<String> values = properties.get(key);
         return values != null && !values.isEmpty() ? values.get(0) : null;
     }
+
+    public boolean hasKey(final String key) {
+        return properties.containsKey(key);
+    }
 }

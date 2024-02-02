@@ -22,6 +22,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | DiseaseOntology               | Human Disease Ontology (DO)                                                                                                                             | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)         | [Link](https://disease-ontology.org)                                    |
 | DrugBank                      | DrugBank                                                                                                                                                | [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)       | [Link](http://drugbank.ca)                                              |
 | DrugCentral                   | DrugCentral                                                                                                                                             | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)       | [Link](http://drugcentral.org)                                          |
+| DrugMap                       | DrugMap                                                                                                                                                 |                                                                       | [Link](http://drugmap.idrblab.net)                                      |
 | ExperimentalFactorOntology    | Experimental Factor Ontology (EFO)                                                                                                                      | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)             | [Link](https://www.ebi.ac.uk/efo/)                                      |
 | EMA                           | European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC]                                                                                 |                                                                       | [Link](https://www.ema.europa.eu/en/medicines/download-medicine-data)   |
 | ENZYME                        | Expasy ENZYME                                                                                                                                           | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://enzyme.expasy.org)                                       |
@@ -426,6 +427,28 @@ DrugCentral is an online drug information resource created and maintained by the
 | skipDrugLabelFullTexts | true/false | Skip export of drug label full text information to reduce graph database size |
 | skipLINCSSignatures    | true/false | Skip export of LINCS signatures to reduce graph database size                 |
 | skipFAERSReports       | true/false | Skip export of FAERS reports to reduce graph database size                    |
+
+----
+
+### DrugMap
+
+- **Website**: [http://drugmap.idrblab.net](http://drugmap.idrblab.net)
+- **License**:
+- **Citation**: ```Li F, Yin J, Lu M, et al. DrugMAP: molecular atlas and pharma-information of all drugs. Nucleic Acids Res. 2023;51(D1):D1288-D1299. doi:``` [10.1093/nar/gkac813](https://doi.org/10.1093/nar/gkac813)
+- **Files used**:
+  - ```01-General-Information-of-Drug.txt```
+  - ```02-General-Information-of-Drug-Therapeutic-Target.txt```
+  - ```03-General-Information-of-Drug-Transporter.txt```
+  - ```04-General-Information-of-Drug-Metabolizing-Enzyme.txt```
+  - ```06-Drug-to-DTT-Mapping-Information.txt```
+  - ```07-Drug-to-DTP-Mapping-Information.txt```
+  - ```08-Drug-to-DME-Mapping-Information.txt```
+
+**Configuration properties**:
+
+| Property               | Values     | Description                                                                   |
+|------------------------|------------|-------------------------------------------------------------------------------|
+| forceExport            | true/false | Force graph export even if nothing changed                                    |
 
 ----
 

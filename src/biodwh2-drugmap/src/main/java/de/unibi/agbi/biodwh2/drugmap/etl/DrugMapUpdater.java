@@ -21,11 +21,9 @@ public class DrugMapUpdater extends Updater<DrugMapDataSource> {
     static final String THERAPEUTIC_TARGETS_FILE_NAME = "02-General-Information-of-Drug-Therapeutic-Target.txt";
     static final String TRANSPORTERS_FILE_NAME = "03-General-Information-of-Drug-Transporter.txt";
     static final String ENZYMES_FILE_NAME = "04-General-Information-of-Drug-Metabolizing-Enzyme.txt";
-    static final String SEQUENCES_FILE_NAME = "05-Protein-Sequence-of-All-Molecule-(DTT, DTP, DME).fasta";
     static final String DRUG_DTT_FILE_NAME = "06-Drug-to-DTT-Mapping-Information.txt";
     static final String DRUG_DTP_FILE_NAME = "07-Drug-to-DTP-Mapping-Information.txt";
     static final String DRUG_DME_FILE_NAME = "08-Drug-to-DME-Mapping-Information.txt";
-    static final String ATLAS_FILE_NAME = "09-Molecular-Interaction-Atlas-of-All-Drug.txt";
 
     private static final Pattern VERSION_PATTERN = Pattern.compile(
             "(" + String.join("|", TextUtils.THREE_LETTER_MONTH_NAMES) + ") ([1-2]?[0-9])(st|nd|rd|th), ([0-9]{4})",
@@ -69,7 +67,7 @@ public class DrugMapUpdater extends Updater<DrugMapDataSource> {
     protected String[] expectedFileNames() {
         return new String[]{
                 DRUGS_FILE_NAME, THERAPEUTIC_TARGETS_FILE_NAME, TRANSPORTERS_FILE_NAME, ENZYMES_FILE_NAME,
-                SEQUENCES_FILE_NAME, DRUG_DTT_FILE_NAME, DRUG_DTP_FILE_NAME, DRUG_DME_FILE_NAME, ATLAS_FILE_NAME
+                DRUG_DTT_FILE_NAME, DRUG_DTP_FILE_NAME, DRUG_DME_FILE_NAME
         };
     }
 }
