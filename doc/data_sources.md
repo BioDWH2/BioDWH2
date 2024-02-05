@@ -34,6 +34,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | HMDB                          | Human Metabolome Database                                                                                                                               | non-commercial with attribution                                       | [Link](https://hmdb.ca)                                                 |
 | HPO                           | Human Phenotype Ontology (HPO)                                                                                                                          | HPO license                                                           | [Link](https://hpo.jax.org)                                             |
 | HPRD                          | Human Protein Reference Database                                                                                                                        |                                                                       | [Link](http://www.hprd.org)                                             |
+| IID                           | Integrated Interactions Database (IID)                                                                                                                  | Free for academic purposes                                            | [Link](https://iid.ophid.utoronto.ca)                                   |
 | InterPro                      | InterPro                                                                                                                                                |                                                                       | [Link](https://www.ebi.ac.uk/interpro/)                                 |
 | MammalianPhenotypeOntology    | Mammalian Phenotype Ontology (MP)                                                                                                                       | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/mgijax/mammalian-phenotype-ontology)          |
 | MassSpectrometryOntology      | Mass Spectrometry Ontology                                                                                                                              | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/HUPO-PSI/psi-ms-CV)                           |
@@ -737,6 +738,39 @@ The Human Phenotype Ontology (HPO) provides a standardized vocabulary of phenoty
 - **Citation**:
 - **Files used**:
   - `psi30/species/human.zip`
+
+**Configuration properties**:
+
+| Property    | Values     | Description                                |
+|-------------|------------|--------------------------------------------|
+| forceExport | true/false | Force graph export even if nothing changed |
+
+----
+
+### IID
+
+- **Website**: [https://iid.ophid.utoronto.ca](https://iid.ophid.utoronto.ca)
+- **License**:
+- **Citation**:
+- **Files used**:
+  - `alpaca_annotated_PPIs.txt.gz`
+  - `cat_annotated_PPIs.txt.gz`
+  - `chicken_annotated_PPIs.txt.gz`
+  - `cow_annotated_PPIs.txt.gz`
+  - `dog_annotated_PPIs.txt.gz`
+  - `duck_annotated_PPIs.txt.gz`
+  - `fly_annotated_PPIs.txt.gz`
+  - `guinea_pig_annotated_PPIs.txt.gz`
+  - `horse_annotated_PPIs.txt.gz`
+  - `human_annotated_PPIs.txt.gz`
+  - `mouse_annotated_PPIs.txt.gz`
+  - `pig_annotated_PPIs.txt.gz`
+  - `rabbit_annotated_PPIs.txt.gz`
+  - `rat_annotated_PPIs.txt.gz`
+  - `sheep_annotated_PPIs.txt.gz`
+  - `turkey_annotated_PPIs.txt.gz`
+  - `worm_annotated_PPIs.txt.gz`
+  - `yeast_annotated_PPIs.txt.gz`
 
 **Configuration properties**:
 
