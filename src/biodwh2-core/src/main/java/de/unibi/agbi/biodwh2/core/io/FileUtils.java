@@ -159,7 +159,7 @@ public final class FileUtils {
 
     public static <T> void openTsv(final Workspace workspace, final DataSource dataSource, final String fileName,
                                    final Class<T> typeClass, final IOConsumer<T> consumer) throws IOException {
-        try (final InputStream stream = openGzip(workspace, dataSource, fileName)) {
+        try (final InputStream stream = openInput(workspace, dataSource, fileName)) {
             final MappingIterator<T> iterator = openSeparatedValuesFile(stream, typeClass, '\t', false);
             while (iterator.hasNext())
                 consumer.accept(iterator.next());
