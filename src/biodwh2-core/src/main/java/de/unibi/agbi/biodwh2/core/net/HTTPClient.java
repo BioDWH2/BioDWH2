@@ -101,6 +101,11 @@ public final class HTTPClient {
             } catch (IOException ex) {
                 if (counter < retries) {
                     counter++;
+                    try {
+                        // Small wait to not overpower the server
+                        Thread.sleep(5000);
+                    } catch (InterruptedException ignored) {
+                    }
                     continue;
                 }
                 throw ex;

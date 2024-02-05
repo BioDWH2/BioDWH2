@@ -2,13 +2,10 @@ package de.unibi.agbi.biodwh2.hprd.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.hprd.HPRDDataSource;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,20 +31,15 @@ public class HPRDUpdater extends Updater<HPRDDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser(retrieveFileUrl(), dataSource.resolveSourceFilePath(workspace, FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        downloadFileAsBrowser(workspace, retrieveFileUrl(), FILE_NAME);
         return true;
     }
 
-    private String retrieveFileUrl() throws IOException {
-        final String source = HTTPClient.getWebsiteSource(VERSION_URL);
+    private String retrieveFileUrl() throws UpdaterException {
+        final String source = getWebsiteSource(VERSION_URL);
         final Matcher matcher = VERSION_PATTERN.matcher(source);
-        if (matcher.find()) {
+        if (matcher.find())
             return "http://hprd.org/RELEASE" + matcher.group(1) + "/HPRD_FLAT_FILES" + matcher.group(2);
-        }
         return null;
     }
 

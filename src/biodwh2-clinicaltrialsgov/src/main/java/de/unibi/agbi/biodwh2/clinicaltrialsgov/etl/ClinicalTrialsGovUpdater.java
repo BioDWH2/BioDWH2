@@ -3,12 +3,9 @@ package de.unibi.agbi.biodwh2.clinicaltrialsgov.etl;
 import de.unibi.agbi.biodwh2.clinicaltrialsgov.ClinicalTrialsGovDataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -35,11 +32,7 @@ public class ClinicalTrialsGovUpdater extends Updater<ClinicalTrialsGovDataSourc
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL, dataSource.resolveSourceFilePath(workspace, FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + DOWNLOAD_URL + "'", e);
-        }
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL, FILE_NAME);
         return true;
     }
 

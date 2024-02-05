@@ -2,13 +2,9 @@ package de.unibi.agbi.biodwh2.hpo.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.OBOOntologyUpdater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.hpo.HPODataSource;
-
-import java.io.IOException;
 
 public class HPOUpdater extends OBOOntologyUpdater<HPODataSource> {
     public static final String ANNOTATIONS_FILE_NAME = "phenotype.hpoa";
@@ -46,20 +42,10 @@ public class HPOUpdater extends OBOOntologyUpdater<HPODataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        updateFile(workspace, ANNOTATIONS_URL, ANNOTATIONS_FILE_NAME);
-        updateFile(workspace, GENES_TO_PHENOTYPES_URL, GENES_TO_PHENOTYPE_FILE_NAME);
-        updateFile(workspace, PHENOTYPES_TO_GENES_URL, PHENOTYPE_TO_GENES_FILE_NAME);
+        downloadFileAsBrowser(workspace, ANNOTATIONS_URL, ANNOTATIONS_FILE_NAME);
+        downloadFileAsBrowser(workspace, GENES_TO_PHENOTYPES_URL, GENES_TO_PHENOTYPE_FILE_NAME);
+        downloadFileAsBrowser(workspace, PHENOTYPES_TO_GENES_URL, PHENOTYPE_TO_GENES_FILE_NAME);
         return super.tryUpdateFiles(workspace);
-    }
-
-    private void updateFile(final Workspace workspace, final String url,
-                            final String fileName) throws UpdaterConnectionException {
-        final String targetFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
-        try {
-            HTTPClient.downloadFileAsBrowser(url, targetFilePath);
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
-        }
     }
 
     @Override

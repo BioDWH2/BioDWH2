@@ -46,14 +46,8 @@ public class RNALocateUpdater extends Updater<RNALocateDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser(EXPERIMENTAL_FILE_URL,
-                                             dataSource.resolveSourceFilePath(workspace, EXPERIMENTAL_FILE_NAME));
-            HTTPClient.downloadFileAsBrowser(DATABASE_FILE_URL,
-                                             dataSource.resolveSourceFilePath(workspace, DATABASE_FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        downloadFileAsBrowser(workspace, EXPERIMENTAL_FILE_URL, EXPERIMENTAL_FILE_NAME);
+        downloadFileAsBrowser(workspace, DATABASE_FILE_URL, DATABASE_FILE_NAME);
         return true;
     }
 

@@ -2,13 +2,10 @@ package de.unibi.agbi.biodwh2.cpdb.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.cpdb.CPDBDataSource;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -61,15 +58,8 @@ public class CPDBUpdater extends Updater<CPDBDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        for (final String fileName : expectedFileNames()) {
-            final String url = downloadUrlMap.get(fileName);
-            final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
-            try {
-                HTTPClient.downloadFileAsBrowser(url, filePath);
-            } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
-            }
-        }
+        for (final String fileName : expectedFileNames())
+            downloadFileAsBrowser(workspace, downloadUrlMap.get(fileName), fileName);
         return true;
     }
 

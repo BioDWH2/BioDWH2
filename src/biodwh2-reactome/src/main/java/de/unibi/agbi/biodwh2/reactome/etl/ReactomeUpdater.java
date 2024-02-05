@@ -2,12 +2,10 @@ package de.unibi.agbi.biodwh2.reactome.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.sql.SQLToTSVConverter;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.reactome.ReactomeDataSource;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
@@ -35,25 +33,19 @@ public class ReactomeUpdater extends Updater<ReactomeDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + FILE_NAME,
-                                             dataSource.resolveSourceFilePath(workspace, FILE_NAME));
-            if (LOGGER.isInfoEnabled())
-                LOGGER.info("Removing old extracted tables...");
-            for (final String fileName : dataSource.listSourceFiles(workspace))
-                if (!FILE_NAME.equals(fileName))
-                    FileUtils.safeDelete(dataSource.resolveSourceFilePath(workspace, fileName));
-            if (LOGGER.isInfoEnabled())
-                LOGGER.info("Extracting Reactome sql tables as tsv...");
-            try (final GZIPInputStream inputStream = FileUtils.openGzip(workspace, dataSource, FILE_NAME)) {
-                if (!SQLToTSVConverter.process(inputStream, dataSource.getSourceFolderPath(workspace)))
-                    throw new UpdaterException("Failed to extract sql tables as tsv from file '" + FILE_NAME + "'");
-            } catch (IOException e) {
-                throw new UpdaterException("Failed to extract sql tables as tsv from file '" + FILE_NAME + "'", e);
-            }
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + FILE_NAME, FILE_NAME);
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Removing old extracted tables...");
+        for (final String fileName : dataSource.listSourceFiles(workspace))
+            if (!FILE_NAME.equals(fileName))
+                FileUtils.safeDelete(dataSource.resolveSourceFilePath(workspace, fileName));
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Extracting Reactome sql tables as tsv...");
+        try (final GZIPInputStream inputStream = FileUtils.openGzip(workspace, dataSource, FILE_NAME)) {
+            if (!SQLToTSVConverter.process(inputStream, dataSource.getSourceFolderPath(workspace)))
+                throw new UpdaterException("Failed to extract sql tables as tsv from file '" + FILE_NAME + "'");
         } catch (IOException e) {
-            throw new UpdaterConnectionException(
-                    "Failed to download file file '" + DOWNLOAD_URL_PREFIX + FILE_NAME + "'", e);
+            throw new UpdaterException("Failed to extract sql tables as tsv from file '" + FILE_NAME + "'", e);
         }
         return true;
     }

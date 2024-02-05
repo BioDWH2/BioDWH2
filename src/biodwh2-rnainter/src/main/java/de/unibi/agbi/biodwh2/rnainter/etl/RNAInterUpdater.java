@@ -2,19 +2,12 @@ package de.unibi.agbi.biodwh2.rnainter.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.rnainter.RNAInterDataSource;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.io.IOException;
 
 public class RNAInterUpdater extends Updater<RNAInterDataSource> {
-    private static final Logger LOGGER = LogManager.getLogger(RNAInterUpdater.class);
     private static final String DOWNLOAD_URL_PREFIX = "http://www.rnainter.org/raidMedia/download/";
     static final String RR_FILE_NAME = "Download_data_RR.tar.gz";
     static final String RP_FILE_NAME = "Download_data_RP.tar.gz";
@@ -36,23 +29,12 @@ public class RNAInterUpdater extends Updater<RNAInterDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        downloadFile(workspace, 1, RR_FILE_NAME);
-        downloadFile(workspace, 2, RP_FILE_NAME);
-        downloadFile(workspace, 3, RD_FILE_NAME);
-        downloadFile(workspace, 4, RC_FILE_NAME);
-        downloadFile(workspace, 5, RH_FILE_NAME);
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + RR_FILE_NAME, RR_FILE_NAME);
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + RP_FILE_NAME, RP_FILE_NAME);
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + RD_FILE_NAME, RD_FILE_NAME);
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + RC_FILE_NAME, RC_FILE_NAME);
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + RH_FILE_NAME, RH_FILE_NAME);
         return true;
-    }
-
-    private void downloadFile(final Workspace workspace, int step, String fileName) throws UpdaterConnectionException {
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("(" + step + "/5) Downloading file '" + fileName + "'...");
-        try {
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + fileName,
-                                             dataSource.resolveSourceFilePath(workspace, fileName));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + DOWNLOAD_URL_PREFIX + fileName + "'", e);
-        }
     }
 
     @Override

@@ -7,7 +7,6 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.AnonymousFTPClient;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.kegg.KeggDataSource;
 
 import java.io.IOException;
@@ -73,9 +72,9 @@ public class KeggUpdater extends Updater<KeggDataSource> {
         success = success && updateFile(workspace, dataSource, ftpClient, "drug/" + DRUG_FILE_NAME);
         success = success && updateFile(workspace, dataSource, ftpClient, "network/" + NETWORK_FILE_NAME);
         success = success && updateFile(workspace, dataSource, ftpClient, "network/" + VARIANT_FILE_NAME);
-        success = success && downloadAPIFile(workspace, HUMAN_GENES_LIST_URL, HUMAN_GENES_LIST_FILE_NAME);
-        success = success && downloadAPIFile(workspace, COMPOUNDS_LIST_URL, COMPOUNDS_LIST_FILE_NAME);
-        success = success && downloadAPIFile(workspace, ORGANISMS_LIST_URL, ORGANISMS_LIST_FILE_NAME);
+        downloadFileAsBrowser(workspace, HUMAN_GENES_LIST_URL, HUMAN_GENES_LIST_FILE_NAME);
+        downloadFileAsBrowser(workspace, COMPOUNDS_LIST_URL, COMPOUNDS_LIST_FILE_NAME);
+        downloadFileAsBrowser(workspace, ORGANISMS_LIST_URL, ORGANISMS_LIST_FILE_NAME);
         return success;
     }
 
@@ -87,16 +86,6 @@ public class KeggUpdater extends Updater<KeggDataSource> {
             return ftpClient.downloadFile(FTP_BASE_PATH + filePath, sourceFilePath);
         } catch (IOException e) {
             throw new UpdaterConnectionException("Failed to download file '" + FTP_BASE_PATH + filePath + "'", e);
-        }
-    }
-
-    private boolean downloadAPIFile(final Workspace workspace, final String url,
-                                    final String fileName) throws UpdaterConnectionException {
-        try {
-            HTTPClient.downloadFileAsBrowser(url, dataSource.resolveSourceFilePath(workspace, fileName));
-            return true;
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
         }
     }
 

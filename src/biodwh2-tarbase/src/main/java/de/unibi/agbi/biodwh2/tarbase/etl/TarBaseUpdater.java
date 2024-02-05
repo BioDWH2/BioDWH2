@@ -2,13 +2,9 @@ package de.unibi.agbi.biodwh2.tarbase.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.tarbase.TarBaseDataSource;
-
-import java.io.IOException;
 
 public class TarBaseUpdater extends Updater<TarBaseDataSource> {
     private static final String DOWNLOAD_URL_PREFIX = "https://dianalab.e-ce.uth.gr/tarbasev9/data/";
@@ -28,15 +24,8 @@ public class TarBaseUpdater extends Updater<TarBaseDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        for (final String fileName : FILE_NAMES) {
-            try {
-                HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + fileName,
-                                                 dataSource.resolveSourceFilePath(workspace, fileName));
-            } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download file '" + DOWNLOAD_URL_PREFIX + fileName + "'",
-                                                     e);
-            }
-        }
+        for (final String fileName : FILE_NAMES)
+            downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }
 

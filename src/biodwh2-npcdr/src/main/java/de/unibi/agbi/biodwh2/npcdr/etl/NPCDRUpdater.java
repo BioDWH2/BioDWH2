@@ -2,14 +2,11 @@ package de.unibi.agbi.biodwh2.npcdr.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import de.unibi.agbi.biodwh2.npcdr.NPCDRDataSource;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -58,14 +55,8 @@ public class NPCDRUpdater extends Updater<NPCDRDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            for (String fileName : FILE_NAMES) {
-                HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + fileName,
-                                                 dataSource.resolveSourceFilePath(workspace, fileName));
-            }
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        for (String fileName : FILE_NAMES)
+            downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }
 

@@ -2,13 +2,9 @@ package de.unibi.agbi.biodwh2.tatonetti2012.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.tatonetti2012.Tatonetti2012DataSource;
-
-import java.io.IOException;
 
 public class Tatonetti2012Updater extends Updater<Tatonetti2012DataSource> {
     private static final String OFFSIDES_DOWNLOAD_URL = "https://stacks.stanford.edu/file/druid:zq918jm7358/3003377s-offsides.zip";
@@ -27,14 +23,8 @@ public class Tatonetti2012Updater extends Updater<Tatonetti2012DataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser(OFFSIDES_DOWNLOAD_URL,
-                                             dataSource.resolveSourceFilePath(workspace, OFFSIDES_FILE_NAME));
-            HTTPClient.downloadFileAsBrowser(TWOSIDES_DOWNLOAD_URL,
-                                             dataSource.resolveSourceFilePath(workspace, TWOSIDES_FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        downloadFileAsBrowser(workspace, OFFSIDES_DOWNLOAD_URL, OFFSIDES_FILE_NAME);
+        downloadFileAsBrowser(workspace, TWOSIDES_DOWNLOAD_URL, TWOSIDES_FILE_NAME);
         return true;
     }
 

@@ -41,24 +41,9 @@ public final class GWASCatalogUpdater extends Updater<GWASCatalogDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser(ASSOCIATIONS_FILE_URL,
-                                             dataSource.resolveSourceFilePath(workspace, ASSOCIATIONS_FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download '" + ASSOCIATIONS_FILE_URL + "'", e);
-        }
-        try {
-            HTTPClient.downloadFileAsBrowser(STUDIES_FILE_URL,
-                                             dataSource.resolveSourceFilePath(workspace, STUDIES_FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download '" + STUDIES_FILE_URL + "'", e);
-        }
-        try {
-            HTTPClient.downloadFileAsBrowser(ANCESTRY_FILE_URL,
-                                             dataSource.resolveSourceFilePath(workspace, ANCESTRY_FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download '" + ANCESTRY_FILE_URL + "'", e);
-        }
+        downloadFileAsBrowser(workspace, ASSOCIATIONS_FILE_URL, ASSOCIATIONS_FILE_NAME);
+        downloadFileAsBrowser(workspace, STUDIES_FILE_URL, STUDIES_FILE_NAME);
+        downloadFileAsBrowser(workspace, ANCESTRY_FILE_URL, ANCESTRY_FILE_NAME);
         return true;
     }
 

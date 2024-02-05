@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.pharmgkb.etl;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
@@ -55,21 +54,8 @@ public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        boolean success = true;
-        for (String name : FILE_NAMES)
-            success = success && downloadFile(name, workspace, dataSource);
-        return success;
-    }
-
-    private boolean downloadFile(final String fileName, final Workspace workspace,
-                                 final DataSource dataSource) throws UpdaterConnectionException {
-        final String url = "https://s3.pgkb.org/data/" + fileName;
-        final String sourceFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
-        try {
-            HTTPClient.downloadFileAsBrowser(url, sourceFilePath);
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
-        }
+        for (String fileName : FILE_NAMES)
+            downloadFileAsBrowser(workspace, "https://s3.pgkb.org/data/" + fileName, fileName);
         return true;
     }
 

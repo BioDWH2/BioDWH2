@@ -2,13 +2,10 @@ package de.unibi.agbi.biodwh2.ema.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.ema.EMADataSource;
 
-import java.io.IOException;
 import java.util.Calendar;
 
 /**
@@ -37,14 +34,8 @@ public class EMAUpdater extends Updater<EMADataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser(EPAR_TABLE_URL,
-                                             dataSource.resolveSourceFilePath(workspace, EPAR_TABLE_FILE_NAME));
-            HTTPClient.downloadFileAsBrowser(HMPC_TABLE_URL,
-                                             dataSource.resolveSourceFilePath(workspace, HMPC_TABLE_FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        downloadFileAsBrowser(workspace, EPAR_TABLE_URL, EPAR_TABLE_FILE_NAME);
+        downloadFileAsBrowser(workspace, HMPC_TABLE_URL, HMPC_TABLE_FILE_NAME);
         return true;
     }
 

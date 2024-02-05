@@ -2,13 +2,10 @@ package de.unibi.agbi.biodwh2.iid.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.iid.IIDDataSource;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,17 +41,10 @@ public class IIDUpdater extends Updater<IIDDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            for (String fileName : PPI_NETWORK_FILE_NAMES) {
-                HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + fileName,
-                                                 dataSource.resolveSourceFilePath(workspace, fileName));
-            }
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + HUMAN_TISSUE_EXPRESSION_FILE_NAME,
-                                             dataSource.resolveSourceFilePath(workspace,
-                                                                              HUMAN_TISSUE_EXPRESSION_FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        for (String fileName : PPI_NETWORK_FILE_NAMES)
+            downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + HUMAN_TISSUE_EXPRESSION_FILE_NAME,
+                              HUMAN_TISSUE_EXPRESSION_FILE_NAME);
         return true;
     }
 

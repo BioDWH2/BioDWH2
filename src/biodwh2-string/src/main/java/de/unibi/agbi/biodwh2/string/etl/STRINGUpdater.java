@@ -5,12 +5,10 @@ import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.string.STRINGDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -64,13 +62,9 @@ public class STRINGUpdater extends Updater<STRINGDataSource> {
         if (url == null)
             throw new UpdaterConnectionException(
                     "Failed to retrieve download url for file prefix '" + filePrefix + "'");
-        try {
-            String fileName = url.substring(url.lastIndexOf('/') + 1);
-            fileName = VERSION_PATTERN.matcher(fileName).replaceAll("");
-            HTTPClient.downloadFileAsBrowser(url, dataSource.resolveSourceFilePath(workspace, fileName));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
-        }
+        String fileName = url.substring(url.lastIndexOf('/') + 1);
+        fileName = VERSION_PATTERN.matcher(fileName).replaceAll("");
+        downloadFileAsBrowser(workspace, url, fileName);
     }
 
     @Override

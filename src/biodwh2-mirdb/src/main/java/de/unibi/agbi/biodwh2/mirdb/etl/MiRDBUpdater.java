@@ -2,14 +2,11 @@ package de.unibi.agbi.biodwh2.mirdb.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.mirdb.MiRDBDataSource;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,12 +43,7 @@ public class MiRDBUpdater extends Updater<MiRDBDataSource> {
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         if (downloadUrl == null)
             return false;
-        try {
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + downloadUrl,
-                                             dataSource.resolveSourceFilePath(workspace, FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + downloadUrl, FILE_NAME);
         return true;
     }
 

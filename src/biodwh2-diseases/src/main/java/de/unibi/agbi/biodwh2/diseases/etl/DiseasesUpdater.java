@@ -2,13 +2,10 @@ package de.unibi.agbi.biodwh2.diseases.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.diseases.DiseasesDataSource;
 
-import java.io.IOException;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -43,14 +40,8 @@ public class DiseasesUpdater extends Updater<DiseasesDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            for (final String fileName : FILE_NAMES) {
-                HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + fileName,
-                                                 dataSource.resolveSourceFilePath(workspace, fileName));
-            }
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        for (final String fileName : FILE_NAMES)
+            downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }
 

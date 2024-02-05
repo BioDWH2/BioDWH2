@@ -2,14 +2,11 @@ package de.unibi.agbi.biodwh2.mir2disease.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import de.unibi.agbi.biodwh2.mir2disease.Mir2diseaseDataSource;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,15 +39,8 @@ public class Mir2diseaseUpdater extends Updater<Mir2diseaseDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        for (final String fileName : expectedFileNames()) {
-            final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
-            try {
-                HTTPClient.downloadFileAsBrowser(M2D_DOWNLOAD_URL + fileName, filePath);
-            } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download file '" + M2D_DOWNLOAD_URL + fileName + "'",
-                                                     e);
-            }
-        }
+        for (final String fileName : expectedFileNames())
+            downloadFileAsBrowser(workspace, M2D_DOWNLOAD_URL + fileName, fileName);
         return true;
     }
 

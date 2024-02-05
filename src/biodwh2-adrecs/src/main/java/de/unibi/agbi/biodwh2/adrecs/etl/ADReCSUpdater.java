@@ -3,13 +3,10 @@ package de.unibi.agbi.biodwh2.adrecs.etl;
 import de.unibi.agbi.biodwh2.adrecs.ADReCSDataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,20 +37,12 @@ public class ADReCSUpdater extends Updater<ADReCSDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        tryDownloadFile(workspace, DRUG_ADR_FILE_NAME);
-        tryDownloadFile(workspace, DRUG_ADR_QUANTIFICATION_FILE_NAME);
-        tryDownloadFile(workspace, ADR_ONTOLOGY_FILE_NAME);
-        tryDownloadFile(workspace, DRUG_INFO_FILE_NAME);
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + DRUG_ADR_FILE_NAME, DRUG_ADR_FILE_NAME);
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + DRUG_ADR_QUANTIFICATION_FILE_NAME,
+                              DRUG_ADR_QUANTIFICATION_FILE_NAME);
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + ADR_ONTOLOGY_FILE_NAME, ADR_ONTOLOGY_FILE_NAME);
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + DRUG_INFO_FILE_NAME, DRUG_INFO_FILE_NAME);
         return true;
-    }
-
-    private void tryDownloadFile(final Workspace workspace, final String fileName) throws UpdaterConnectionException {
-        try {
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + fileName,
-                                             dataSource.resolveSourceFilePath(workspace, fileName));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + DOWNLOAD_URL_PREFIX + fileName + "'", e);
-        }
     }
 
     @Override

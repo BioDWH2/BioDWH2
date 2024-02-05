@@ -5,7 +5,6 @@ import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.core.net.HTTPFTPClient;
 import de.unibi.agbi.biodwh2.intact.IntActDataSource;
 
@@ -45,13 +44,8 @@ public class IntActUpdater extends Updater<IntActDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser(HUMAN_DOWNLOAD_URL,
-                                             dataSource.resolveSourceFilePath(workspace, HUMAN_FILE_NAME));
-            return true;
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        downloadFileAsBrowser(workspace, HUMAN_DOWNLOAD_URL, HUMAN_FILE_NAME);
+        return true;
     }
 
     @Override

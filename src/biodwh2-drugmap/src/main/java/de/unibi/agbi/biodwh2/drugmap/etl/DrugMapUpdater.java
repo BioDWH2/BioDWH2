@@ -2,15 +2,12 @@ package de.unibi.agbi.biodwh2.drugmap.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import de.unibi.agbi.biodwh2.drugmap.DrugMapDataSource;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,15 +44,8 @@ public class DrugMapUpdater extends Updater<DrugMapDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        for (String fileName : expectedFileNames()) {
-            try {
-                HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + StringUtils.replace(fileName, " ", "%20"),
-                                                 dataSource.resolveSourceFilePath(workspace, fileName));
-            } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download file '" + DOWNLOAD_URL_PREFIX + fileName + "'",
-                                                     e);
-            }
-        }
+        for (String fileName : expectedFileNames())
+            downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + StringUtils.replace(fileName, " ", "%20"), fileName);
         return true;
     }
 

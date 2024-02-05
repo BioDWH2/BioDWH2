@@ -42,15 +42,8 @@ public class Gene2PhenotypeUpdater extends Updater<Gene2PhenotypeDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        for (final String fileName : FILE_NAMES) {
-            final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
-            try {
-                HTTPClient.downloadFileAsBrowser(G2P_DOWNLOAD_URL + fileName, filePath);
-            } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download file '" + G2P_DOWNLOAD_URL + fileName + "'",
-                                                     e);
-            }
-        }
+        for (final String fileName : FILE_NAMES)
+            downloadFileAsBrowser(workspace, G2P_DOWNLOAD_URL + fileName, fileName);
         return true;
     }
 

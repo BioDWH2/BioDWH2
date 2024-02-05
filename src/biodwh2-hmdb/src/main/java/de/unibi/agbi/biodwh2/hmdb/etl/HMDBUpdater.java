@@ -2,13 +2,10 @@ package de.unibi.agbi.biodwh2.hmdb.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.hmdb.HMDBDataSource;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,9 +14,6 @@ public class HMDBUpdater extends Updater<HMDBDataSource> {
     static final String METABOLITES_XML_FILE_NAME = "hmdb_metabolites.zip";
     static final String PROTEINS_XML_FILE_NAME = "hmdb_proteins.zip";
     static final String STRUCTURES_SDF_FILE_NAME = "structures.zip";
-    private static final String[] DOWNLOAD_FILE_NAMES = new String[]{
-            STRUCTURES_SDF_FILE_NAME, METABOLITES_XML_FILE_NAME, PROTEINS_XML_FILE_NAME
-    };
 
     public HMDBUpdater(final HMDBDataSource dataSource) {
         super(dataSource);
@@ -43,19 +37,15 @@ public class HMDBUpdater extends Updater<HMDBDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            for (final String downloadFileName : DOWNLOAD_FILE_NAMES) {
-                HTTPClient.downloadFileAsBrowser("https://hmdb.ca/system/downloads/current/" + downloadFileName,
-                                                 dataSource.resolveSourceFilePath(workspace, downloadFileName));
-            }
-            return true;
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        for (final String fileName : expectedFileNames())
+            downloadFileAsBrowser(workspace, "https://hmdb.ca/system/downloads/current/" + fileName, fileName);
+        return true;
     }
 
     @Override
     protected String[] expectedFileNames() {
-        return DOWNLOAD_FILE_NAMES;
+        return new String[]{
+                STRUCTURES_SDF_FILE_NAME, METABOLITES_XML_FILE_NAME, PROTEINS_XML_FILE_NAME
+        };
     }
 }

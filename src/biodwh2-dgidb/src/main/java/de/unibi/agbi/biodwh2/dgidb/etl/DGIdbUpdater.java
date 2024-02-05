@@ -1,18 +1,14 @@
 package de.unibi.agbi.biodwh2.dgidb.etl;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterMalformedVersionException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import de.unibi.agbi.biodwh2.dgidb.DGIdbDataSource;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -80,21 +76,12 @@ public class DGIdbUpdater extends Updater<DGIdbDataSource> {
         final DownloadVersion newestVersion = getNewestDownloadVersion();
         if (newestVersion == null)
             return false;
-        downloadFile(workspace, dataSource, newestVersion.versionText, INTERACTIONS_FILE_NAME);
-        downloadFile(workspace, dataSource, newestVersion.versionText, DRUGS_FILE_NAME);
-        downloadFile(workspace, dataSource, newestVersion.versionText, GENES_FILE_NAME);
-        downloadFile(workspace, dataSource, newestVersion.versionText, CATEGORIES_FILE_NAME);
+        final String urlPrefix = DOWNLOAD_URL_PREFIX + newestVersion.versionText + '/';
+        downloadFileAsBrowser(workspace, urlPrefix + INTERACTIONS_FILE_NAME, INTERACTIONS_FILE_NAME);
+        downloadFileAsBrowser(workspace, urlPrefix + DRUGS_FILE_NAME, DRUGS_FILE_NAME);
+        downloadFileAsBrowser(workspace, urlPrefix + GENES_FILE_NAME, GENES_FILE_NAME);
+        downloadFileAsBrowser(workspace, urlPrefix + CATEGORIES_FILE_NAME, CATEGORIES_FILE_NAME);
         return true;
-    }
-
-    private void downloadFile(final Workspace workspace, final DataSource dataSource, final String versionText,
-                              final String fileName) throws UpdaterException {
-        final String url = DOWNLOAD_URL_PREFIX + versionText + '/' + fileName;
-        try {
-            HTTPClient.downloadFileAsBrowser(url, dataSource.resolveSourceFilePath(workspace, fileName));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
-        }
     }
 
     @Override

@@ -2,13 +2,9 @@ package de.unibi.agbi.biodwh2.geneontology.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.OBOOntologyUpdater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.geneontology.GeneOntologyDataSource;
-
-import java.io.IOException;
 
 public class GeneOntologyUpdater extends OBOOntologyUpdater<GeneOntologyDataSource> {
     static final String OBO_FILE_NAME = "go.obo";
@@ -28,20 +24,8 @@ public class GeneOntologyUpdater extends OBOOntologyUpdater<GeneOntologyDataSour
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         for (final String fileName : ANNOTATION_FILE_NAMES)
-            if (!updateAnnotationFile(workspace, fileName))
-                return false;
+            downloadFileAsBrowser(workspace, ANNOTATION_URL_PREFIX + fileName, fileName);
         return super.tryUpdateFiles(workspace);
-    }
-
-    private boolean updateAnnotationFile(final Workspace workspace,
-                                         final String fileName) throws UpdaterConnectionException {
-        final String outputFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
-        try {
-            HTTPClient.downloadFileAsBrowser(ANNOTATION_URL_PREFIX + fileName, outputFilePath);
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download '" + ANNOTATION_URL_PREFIX + fileName + "'", e);
-        }
-        return true;
     }
 
     @Override

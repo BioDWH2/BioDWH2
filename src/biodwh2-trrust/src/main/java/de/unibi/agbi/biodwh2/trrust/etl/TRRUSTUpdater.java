@@ -2,13 +2,10 @@ package de.unibi.agbi.biodwh2.trrust.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.trrust.TRRUSTDataSource;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,14 +31,8 @@ public class TRRUSTUpdater extends Updater<TRRUSTDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + HUMAN_FILE_NAME,
-                                             dataSource.resolveSourceFilePath(workspace, HUMAN_FILE_NAME));
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + MOUSE_FILE_NAME,
-                                             dataSource.resolveSourceFilePath(workspace, MOUSE_FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + HUMAN_FILE_NAME, HUMAN_FILE_NAME);
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + MOUSE_FILE_NAME, MOUSE_FILE_NAME);
         return true;
     }
 

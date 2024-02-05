@@ -8,7 +8,6 @@ import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,7 +33,7 @@ public abstract class OBOOntologyUpdater<D extends DataSource> extends Updater<D
         String dataVersionLine = null;
         String line;
         try (final var stream = HTTPClient.getUrlInputStream(getDownloadUrl());
-             BufferedReader bufferedReader = FileUtils.createBufferedReaderFromStream(stream.stream)) {
+             final var bufferedReader = FileUtils.createBufferedReaderFromStream(stream.stream)) {
             while ((line = bufferedReader.readLine()) != null) {
                 final String trimmedLine = line.trim();
                 if (trimmedLine.startsWith("data-version:"))
@@ -66,12 +65,7 @@ public abstract class OBOOntologyUpdater<D extends DataSource> extends Updater<D
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            final String targetFilePath = dataSource.resolveSourceFilePath(workspace, getTargetFileName());
-            HTTPClient.downloadFileAsBrowser(getDownloadUrl(), targetFilePath);
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + getDownloadUrl() + "'", e);
-        }
+        downloadFileAsBrowser(workspace, getDownloadUrl(), getTargetFileName());
         return true;
     }
 

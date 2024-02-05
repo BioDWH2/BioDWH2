@@ -2,13 +2,10 @@ package de.unibi.agbi.biodwh2.rnadisease.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.rnadisease.RNADiseaseDataSource;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,21 +42,13 @@ public class RNADiseaseUpdater extends Updater<RNADiseaseDataSource> {
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         if (lastVersion == null)
             getNewestVersion(workspace);
-        try {
-            downloadFile(workspace, ALL_EXPERIMENTAL_FILE_NAME);
-            downloadFile(workspace, MIRNA_PREDICTED_FILE_NAME);
-            downloadFile(workspace, LNCRNA_PREDICTED_FILE_NAME);
-            downloadFile(workspace, CIRCRNA_PREDICTED_FILE_NAME);
-            downloadFile(workspace, PIRNA_PREDICTED_FILE_NAME);
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        final String urlPrefix = DOWNLOAD_URL_PREFIX + DOWNLOAD_FILE_PREFIX + lastVersion + "_";
+        downloadFileAsBrowser(workspace, urlPrefix + ALL_EXPERIMENTAL_FILE_NAME, ALL_EXPERIMENTAL_FILE_NAME);
+        downloadFileAsBrowser(workspace, urlPrefix + MIRNA_PREDICTED_FILE_NAME, MIRNA_PREDICTED_FILE_NAME);
+        downloadFileAsBrowser(workspace, urlPrefix + LNCRNA_PREDICTED_FILE_NAME, LNCRNA_PREDICTED_FILE_NAME);
+        downloadFileAsBrowser(workspace, urlPrefix + CIRCRNA_PREDICTED_FILE_NAME, CIRCRNA_PREDICTED_FILE_NAME);
+        downloadFileAsBrowser(workspace, urlPrefix + PIRNA_PREDICTED_FILE_NAME, PIRNA_PREDICTED_FILE_NAME);
         return true;
-    }
-
-    private void downloadFile(final Workspace workspace, final String fileName) throws IOException {
-        HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + DOWNLOAD_FILE_PREFIX + lastVersion + "_" + fileName,
-                                         dataSource.resolveSourceFilePath(workspace, fileName));
     }
 
     @Override

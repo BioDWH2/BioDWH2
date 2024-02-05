@@ -8,7 +8,6 @@ import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.unii.UNIIDataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -66,14 +65,8 @@ public class UNIIUpdater extends Updater<UNIIDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + UNIIS_FILE_NAME,
-                                             dataSource.resolveSourceFilePath(workspace, UNIIS_FILE_NAME));
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + UNII_DATA_FILE_NAME,
-                                             dataSource.resolveSourceFilePath(workspace, UNII_DATA_FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + UNIIS_FILE_NAME, UNIIS_FILE_NAME);
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + UNII_DATA_FILE_NAME, UNII_DATA_FILE_NAME);
         return true;
     }
 

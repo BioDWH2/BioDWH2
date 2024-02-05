@@ -2,14 +2,11 @@ package de.unibi.agbi.biodwh2.redotrialsdb.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.redotrialsdb.ReDOTrialsDBDataSource;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,12 +33,7 @@ public final class ReDOTrialsDBUpdater extends Updater<ReDOTrialsDBDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        final String outputFilePath = dataSource.resolveSourceFilePath(workspace, FILE_NAME);
-        try {
-            HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL, outputFilePath);
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + DOWNLOAD_URL + "'", e);
-        }
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL, FILE_NAME);
         return true;
     }
 

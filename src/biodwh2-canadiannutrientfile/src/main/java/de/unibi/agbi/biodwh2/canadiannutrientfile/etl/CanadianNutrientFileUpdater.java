@@ -3,13 +3,10 @@ package de.unibi.agbi.biodwh2.canadiannutrientfile.etl;
 import de.unibi.agbi.biodwh2.canadiannutrientfile.CanadianNutrientFileDataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,11 +40,7 @@ public class CanadianNutrientFileUpdater extends Updater<CanadianNutrientFileDat
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser(CNF_DOWNLOAD_URL, dataSource.resolveSourceFilePath(workspace, FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + CNF_DOWNLOAD_URL + "'", e);
-        }
+        downloadFileAsBrowser(workspace, CNF_DOWNLOAD_URL, FILE_NAME);
         return true;
     }
 

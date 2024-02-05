@@ -3,12 +3,9 @@ package de.unibi.agbi.biodwh2.cmaup.etl;
 import de.unibi.agbi.biodwh2.cmaup.CMAUPDataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,11 +38,7 @@ public class CMAUPUpdater extends Updater<CMAUPDataSource> {
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         for (final String fileName : expectedFileNames()) {
             final String url = "http://bidd.group/CMAUP/downloadFiles/CMAUPv" + lastVersion + "_download_" + fileName;
-            try {
-                HTTPClient.downloadFileAsBrowser(url, dataSource.resolveSourceFilePath(workspace, fileName));
-            } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
-            }
+            downloadFileAsBrowser(workspace, url, fileName);
         }
         return true;
     }
