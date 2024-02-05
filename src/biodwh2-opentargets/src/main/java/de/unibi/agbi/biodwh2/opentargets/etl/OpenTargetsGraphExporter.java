@@ -1,23 +1,26 @@
 package de.unibi.agbi.biodwh2.opentargets.etl;
 
+import blue.strategic.parquet.Hydrator;
+import blue.strategic.parquet.HydratorSupplier;
+import blue.strategic.parquet.ParquetReader;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
-import de.unibi.agbi.biodwh2.core.io.json.NDJsonObjectMapper;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
-import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.opentargets.OpenTargetsDataSource;
-import de.unibi.agbi.biodwh2.opentargets.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.parquet.io.DelegatingSeekableInputStream;
+import org.apache.parquet.io.InputFile;
+import org.apache.parquet.io.SeekableInputStream;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OpenTargetsGraphExporter extends GraphExporter<OpenTargetsDataSource> {
     private static final Logger LOGGER = LogManager.getLogger(OpenTargetsGraphExporter.class);
@@ -45,15 +48,75 @@ public class OpenTargetsGraphExporter extends GraphExporter<OpenTargetsDataSourc
         graph.addIndex(IndexDescription.forNode(MOLECULE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(REFERENCE_LABEL, ID_KEY, IndexDescription.Type.NON_UNIQUE));
-        exportMolecules(workspace, graph);
-        exportDiseases(workspace, graph);
-        exportMechanismsOfAction(workspace, graph);
-        exportDrugWarnings(workspace, graph);
-        exportIndications(workspace, graph);
-        exportPathways(workspace, graph);
-        return true;
+        Hydrator<Map<String, Object>, Map<String, Object>> hydrator = new Hydrator<>() {
+            @Override
+            public Map<String, Object> start() {
+                return new HashMap<>();
+            }
+
+            @Override
+            public HashMap<String, Object> add(Map<String, Object> target, String heading, Object value) {
+                HashMap<String, Object> r = new HashMap<>(target);
+                r.put(heading, value);
+                return r;
+            }
+
+            @Override
+            public Map<String, Object> finish(Map<String, Object> target) {
+                return target;
+            }
+        };
+        try (final var stream = FileUtils.openZip(workspace, dataSource, OpenTargetsUpdater.DISEASES_FILE_NAME)) {
+            while (stream.getNextEntry() != null) {
+                final byte[] data = stream.readAllBytes();
+                final var dataStream = new ByteArrayInputStream(data) {
+                    public int getPos() {
+                        return super.pos;
+                    }
+
+                    public void seek(int newPos) {
+                        pos = newPos;
+                    }
+                };
+                final var inputFile = new InputFile() {
+                    @Override
+                    public long getLength() {
+                        return data.length;
+                    }
+
+                    @Override
+                    public SeekableInputStream newStream() {
+                        return new DelegatingSeekableInputStream(dataStream) {
+                            @Override
+                            public long getPos() {
+                                return dataStream.getPos();
+                            }
+
+                            @Override
+                            public void seek(long newPos) {
+                                dataStream.seek((int) newPos);
+                            }
+                        };
+                    }
+                };
+                ParquetReader.streamContent(inputFile, HydratorSupplier.constantly(hydrator)).forEach((entry) -> {
+                    entry.values();
+                });
+            }
+            return false;
+        } catch (IOException e) {
+            throw new ExporterFormatException(e);
+        }
+        //exportMolecules(workspace, graph);
+        //exportDiseases(workspace, graph);
+        //exportMechanismsOfAction(workspace, graph);
+        //exportDrugWarnings(workspace, graph);
+        //exportIndications(workspace, graph);
+        //exportPathways(workspace, graph);
+        //return false;
     }
 
+    /*
     private void exportMolecules(final Workspace workspace, final Graph graph) {
         // TODO: relationships, links, references, etc.
         for (final Molecule molecule : openJsonFile(workspace, OpenTargetsUpdater.MOLECULE_FILE_NAME, Molecule.class))
@@ -171,5 +234,5 @@ public class OpenTargetsGraphExporter extends GraphExporter<OpenTargetsDataSourc
                 graph.addEdge(node, graph.findNode(PATHWAY_LABEL, ID_KEY, parentId), "CHILD_OF");
         }
         // TODO: path?
-    }
+    }*/
 }

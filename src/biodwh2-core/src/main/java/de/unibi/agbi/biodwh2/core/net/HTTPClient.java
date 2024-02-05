@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -34,6 +35,14 @@ public final class HTTPClient {
             final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
             fastCopy(stream.contentLength, urlByteChannel, outputChannel, progressReporter);
             //outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
+        }
+    }
+
+    public static void downloadStream(final StreamWithContentLength inputStream, final OutputStream outputStream,
+                                      final BiConsumer<Long, Long> progressReporter) throws IOException {
+        try (ReadableByteChannel urlByteChannel = Channels.newChannel(inputStream.stream)) {
+            final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
+            fastCopy(inputStream.contentLength, urlByteChannel, outputChannel, progressReporter);
         }
     }
 
