@@ -57,7 +57,8 @@ public class T3DBUpdater extends Updater<T3DBDataSource> {
                 HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + fileName,
                                                  dataSource.resolveSourceFilePath(workspace, fileName));
             } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
+                throw new UpdaterConnectionException("Failed to download file '" + DOWNLOAD_URL_PREFIX + fileName + "'",
+                                                     e);
             }
         }
         return true;

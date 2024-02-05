@@ -47,7 +47,8 @@ public class Mir2diseaseUpdater extends Updater<Mir2diseaseDataSource> {
             try {
                 HTTPClient.downloadFileAsBrowser(M2D_DOWNLOAD_URL + fileName, filePath);
             } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
+                throw new UpdaterConnectionException("Failed to download file '" + M2D_DOWNLOAD_URL + fileName + "'",
+                                                     e);
             }
         }
         return true;

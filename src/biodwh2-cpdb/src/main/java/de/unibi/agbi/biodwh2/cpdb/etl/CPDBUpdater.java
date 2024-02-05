@@ -62,11 +62,12 @@ public class CPDBUpdater extends Updater<CPDBDataSource> {
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         for (final String fileName : expectedFileNames()) {
+            final String url = downloadUrlMap.get(fileName);
             final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
             try {
-                HTTPClient.downloadFileAsBrowser(downloadUrlMap.get(fileName), filePath);
+                HTTPClient.downloadFileAsBrowser(url, filePath);
             } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
+                throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
             }
         }
         return true;

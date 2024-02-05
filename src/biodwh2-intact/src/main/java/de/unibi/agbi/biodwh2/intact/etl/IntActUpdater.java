@@ -53,4 +53,9 @@ public class IntActUpdater extends Updater<IntActDataSource> {
             throw new UpdaterConnectionException(e);
         }
     }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{HUMAN_FILE_NAME};
+    }
 }

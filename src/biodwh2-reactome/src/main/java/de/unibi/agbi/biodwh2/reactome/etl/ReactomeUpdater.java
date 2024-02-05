@@ -52,7 +52,8 @@ public class ReactomeUpdater extends Updater<ReactomeDataSource> {
                 throw new UpdaterException("Failed to extract sql tables as tsv from file '" + FILE_NAME + "'", e);
             }
         } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + FILE_NAME + "'", e);
+            throw new UpdaterConnectionException(
+                    "Failed to download file file '" + DOWNLOAD_URL_PREFIX + FILE_NAME + "'", e);
         }
         return true;
     }

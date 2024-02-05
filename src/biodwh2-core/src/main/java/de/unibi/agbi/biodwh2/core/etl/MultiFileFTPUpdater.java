@@ -55,7 +55,7 @@ public abstract class MultiFileFTPUpdater<D extends DataSource> extends Updater<
                 final String sourceFilePath = dataSource.resolveSourceFilePath(workspace, getTargetFileNames()[i]);
                 success = success && ftpClient.downloadFile(getFTPFilePaths()[i], sourceFilePath);
             } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download '" + getTargetFileNames()[i] + "'", e);
+                throw new UpdaterConnectionException("Failed to download file '" + getTargetFileNames()[i] + "'", e);
             }
         }
         ftpClient.tryDisconnect();

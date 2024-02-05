@@ -40,7 +40,7 @@ public final class ReDOTrialsDBUpdater extends Updater<ReDOTrialsDBDataSource> {
         try {
             HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL, outputFilePath);
         } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download '" + DOWNLOAD_URL + "'", e);
+            throw new UpdaterConnectionException("Failed to download file '" + DOWNLOAD_URL + "'", e);
         }
         return true;
     }

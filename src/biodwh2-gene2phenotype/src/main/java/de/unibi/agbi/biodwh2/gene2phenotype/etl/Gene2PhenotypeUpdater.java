@@ -47,9 +47,15 @@ public class Gene2PhenotypeUpdater extends Updater<Gene2PhenotypeDataSource> {
             try {
                 HTTPClient.downloadFileAsBrowser(G2P_DOWNLOAD_URL + fileName, filePath);
             } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
+                throw new UpdaterConnectionException("Failed to download file '" + G2P_DOWNLOAD_URL + fileName + "'",
+                                                     e);
             }
         }
         return true;
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return FILE_NAMES;
     }
 }

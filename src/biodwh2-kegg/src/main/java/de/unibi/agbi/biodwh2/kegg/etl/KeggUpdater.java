@@ -81,12 +81,12 @@ public class KeggUpdater extends Updater<KeggDataSource> {
 
     private boolean updateFile(Workspace workspace, DataSource dataSource, AnonymousFTPClient ftpClient,
                                String filePath) throws UpdaterException {
-        String fileName = Paths.get(filePath).getFileName().toString();
+        final String fileName = Paths.get(filePath).getFileName().toString();
+        final String sourceFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
         try {
-            String sourceFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
             return ftpClient.downloadFile(FTP_BASE_PATH + filePath, sourceFilePath);
         } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download '" + fileName + "'", e);
+            throw new UpdaterConnectionException("Failed to download file '" + FTP_BASE_PATH + filePath + "'", e);
         }
     }
 
@@ -96,7 +96,7 @@ public class KeggUpdater extends Updater<KeggDataSource> {
             HTTPClient.downloadFileAsBrowser(url, dataSource.resolveSourceFilePath(workspace, fileName));
             return true;
         } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download '" + fileName + "'", e);
+            throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
         }
     }
 

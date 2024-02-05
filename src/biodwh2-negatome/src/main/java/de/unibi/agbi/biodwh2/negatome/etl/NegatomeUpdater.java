@@ -40,7 +40,8 @@ public class NegatomeUpdater extends Updater<NegatomeDataSource> {
                 HTTPClient.downloadFileAsBrowser(DONWLOAD_URL_PREFIX + fileName,
                                                  dataSource.resolveSourceFilePath(workspace, fileName));
             } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
+                throw new UpdaterConnectionException("Failed to download file '" + DONWLOAD_URL_PREFIX + fileName + "'",
+                                                     e);
             }
         }
         return true;

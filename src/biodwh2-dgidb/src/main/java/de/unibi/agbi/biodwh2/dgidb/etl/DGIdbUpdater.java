@@ -93,7 +93,14 @@ public class DGIdbUpdater extends Updater<DGIdbDataSource> {
         try {
             HTTPClient.downloadFileAsBrowser(url, dataSource.resolveSourceFilePath(workspace, fileName));
         } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file \"" + url + "\"", e);
+            throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
         }
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{
+                INTERACTIONS_FILE_NAME, DRUGS_FILE_NAME, GENES_FILE_NAME, CATEGORIES_FILE_NAME
+        };
     }
 }

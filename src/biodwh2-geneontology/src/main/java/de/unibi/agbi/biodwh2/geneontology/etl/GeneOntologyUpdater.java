@@ -39,7 +39,7 @@ public class GeneOntologyUpdater extends OBOOntologyUpdater<GeneOntologyDataSour
         try {
             HTTPClient.downloadFileAsBrowser(ANNOTATION_URL_PREFIX + fileName, outputFilePath);
         } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download '" + fileName + "'", e);
+            throw new UpdaterConnectionException("Failed to download '" + ANNOTATION_URL_PREFIX + fileName + "'", e);
         }
         return true;
     }

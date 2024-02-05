@@ -71,7 +71,7 @@ public abstract class OBOOntologyUpdater<D extends DataSource> extends Updater<D
             final String targetFilePath = dataSource.resolveSourceFilePath(workspace, getTargetFileName());
             HTTPClient.downloadFileAsBrowser(getDownloadUrl(), targetFilePath);
         } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download '" + getTargetFileName() + "'", e);
+            throw new UpdaterConnectionException("Failed to download file '" + getDownloadUrl() + "'", e);
         }
         return true;
     }

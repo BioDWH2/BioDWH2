@@ -69,24 +69,36 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
         final Map<String, String> drugBankProperties = dataSource.getProperties(workspace);
         final String username = drugBankProperties.getOrDefault("username", null);
         final String password = drugBankProperties.getOrDefault("password", null);
-        if (username != null && username.length() > 0 && password != null && password.length() > 0) {
+        if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
             final JsonNode releases = loadReleasesJson();
             final JsonNode latestRelease = releases.get(0);
             final String latestReleaseUrl = latestRelease.get("url").asText();
             try {
-                String filePath = dataSource.resolveSourceFilePath(workspace, FULL_DATABASE_FILE_NAME);
+                final String filePath = dataSource.resolveSourceFilePath(workspace, FULL_DATABASE_FILE_NAME);
                 HTTPClient.downloadFileAsBrowser(latestReleaseUrl + FULL_DATABASE_URL_SUFFIX, filePath, username,
                                                  password);
-                filePath = dataSource.resolveSourceFilePath(workspace, STRUCTURES_SDF_FILE_NAME);
+            } catch (IOException e) {
+                throw new UpdaterConnectionException(
+                        "Failed to download file '" + latestReleaseUrl + FULL_DATABASE_URL_SUFFIX + "'", e);
+            }
+            try {
+                final String filePath = dataSource.resolveSourceFilePath(workspace, STRUCTURES_SDF_FILE_NAME);
                 HTTPClient.downloadFileAsBrowser(latestReleaseUrl + DRUG_STRUCTURES_URL_SUFFIX, filePath, username,
                                                  password);
-                filePath = dataSource.resolveSourceFilePath(workspace, METABOLITE_STRUCTURES_SDF_FILE_NAME);
+            } catch (IOException e) {
+                throw new UpdaterConnectionException(
+                        "Failed to download file '" + latestReleaseUrl + DRUG_STRUCTURES_URL_SUFFIX + "'", e);
+            }
+            try {
+                final String filePath = dataSource.resolveSourceFilePath(workspace,
+                                                                         METABOLITE_STRUCTURES_SDF_FILE_NAME);
                 HTTPClient.downloadFileAsBrowser(latestReleaseUrl + METABOLITE_STRUCTURES_URL_SUFFIX, filePath,
                                                  username, password);
-                return true;
             } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download files", e);
+                throw new UpdaterConnectionException(
+                        "Failed to download file '" + latestReleaseUrl + METABOLITE_STRUCTURES_URL_SUFFIX + "'", e);
             }
+            return true;
         }
         throw new UpdaterOnlyManuallyException();
     }

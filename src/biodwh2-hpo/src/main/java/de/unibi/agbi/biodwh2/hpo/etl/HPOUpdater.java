@@ -46,19 +46,20 @@ public class HPOUpdater extends OBOOntologyUpdater<HPODataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            updateFile(workspace, ANNOTATIONS_URL, ANNOTATIONS_FILE_NAME);
-            updateFile(workspace, GENES_TO_PHENOTYPES_URL, GENES_TO_PHENOTYPE_FILE_NAME);
-            updateFile(workspace, PHENOTYPES_TO_GENES_URL, PHENOTYPE_TO_GENES_FILE_NAME);
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download HPO annotations", e);
-        }
+        updateFile(workspace, ANNOTATIONS_URL, ANNOTATIONS_FILE_NAME);
+        updateFile(workspace, GENES_TO_PHENOTYPES_URL, GENES_TO_PHENOTYPE_FILE_NAME);
+        updateFile(workspace, PHENOTYPES_TO_GENES_URL, PHENOTYPE_TO_GENES_FILE_NAME);
         return super.tryUpdateFiles(workspace);
     }
 
-    private void updateFile(final Workspace workspace, final String url, final String fileName) throws IOException {
+    private void updateFile(final Workspace workspace, final String url,
+                            final String fileName) throws UpdaterConnectionException {
         final String targetFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
-        HTTPClient.downloadFileAsBrowser(url, targetFilePath);
+        try {
+            HTTPClient.downloadFileAsBrowser(url, targetFilePath);
+        } catch (IOException e) {
+            throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
+        }
     }
 
     @Override

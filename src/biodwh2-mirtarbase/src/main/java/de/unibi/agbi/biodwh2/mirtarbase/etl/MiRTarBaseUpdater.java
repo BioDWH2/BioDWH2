@@ -50,7 +50,7 @@ public class MiRTarBaseUpdater extends Updater<MiRTarBaseDataSource> {
             try {
                 HTTPClient.downloadFileAsBrowser(url, dataSource.resolveSourceFilePath(workspace, fileName));
             } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
+                throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
             }
         }
         return true;

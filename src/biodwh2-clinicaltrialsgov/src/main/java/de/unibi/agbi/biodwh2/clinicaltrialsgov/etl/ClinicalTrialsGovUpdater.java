@@ -38,7 +38,7 @@ public class ClinicalTrialsGovUpdater extends Updater<ClinicalTrialsGovDataSourc
         try {
             HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL, dataSource.resolveSourceFilePath(workspace, FILE_NAME));
         } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download '" + DOWNLOAD_URL + "'", e);
+            throw new UpdaterConnectionException("Failed to download file '" + DOWNLOAD_URL + "'", e);
         }
         return true;
     }

@@ -63,11 +63,12 @@ public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
 
     private boolean downloadFile(final String fileName, final Workspace workspace,
                                  final DataSource dataSource) throws UpdaterConnectionException {
+        final String url = "https://s3.pgkb.org/data/" + fileName;
+        final String sourceFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
         try {
-            String sourceFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
-            HTTPClient.downloadFileAsBrowser("https://s3.pgkb.org/data/" + fileName, sourceFilePath);
+            HTTPClient.downloadFileAsBrowser(url, sourceFilePath);
         } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download '" + fileName + "'", e);
+            throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
         }
         return true;
     }

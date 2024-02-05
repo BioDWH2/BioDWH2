@@ -40,12 +40,11 @@ public class CMAUPUpdater extends Updater<CMAUPDataSource> {
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         for (final String fileName : expectedFileNames()) {
+            final String url = "http://bidd.group/CMAUP/downloadFiles/CMAUPv" + lastVersion + "_download_" + fileName;
             try {
-                HTTPClient.downloadFileAsBrowser(
-                        "http://bidd.group/CMAUP/downloadFiles/CMAUPv" + lastVersion + "_download_" + fileName,
-                        dataSource.resolveSourceFilePath(workspace, fileName));
+                HTTPClient.downloadFileAsBrowser(url, dataSource.resolveSourceFilePath(workspace, fileName));
             } catch (IOException e) {
-                throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
+                throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
             }
         }
         return true;

@@ -47,7 +47,7 @@ public class BioM2MetDiseaseUpdater extends Updater<BioM2MetDiseaseDataSource> {
         try {
             HTTPClient.downloadFileAsBrowser(B2MD_DOWNLOAD_URL, filePath);
         } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file '" + FILE_NAME + "'", e);
+            throw new UpdaterConnectionException("Failed to download file '" + B2MD_DOWNLOAD_URL + "'", e);
         }
         return true;
     }

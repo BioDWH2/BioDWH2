@@ -46,7 +46,7 @@ public class CanadianNutrientFileUpdater extends Updater<CanadianNutrientFileDat
         try {
             HTTPClient.downloadFileAsBrowser(CNF_DOWNLOAD_URL, dataSource.resolveSourceFilePath(workspace, FILE_NAME));
         } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file", e);
+            throw new UpdaterConnectionException("Failed to download file '" + CNF_DOWNLOAD_URL + "'", e);
         }
         return true;
     }

@@ -69,7 +69,7 @@ public class STRINGUpdater extends Updater<STRINGDataSource> {
             fileName = VERSION_PATTERN.matcher(fileName).replaceAll("");
             HTTPClient.downloadFileAsBrowser(url, dataSource.resolveSourceFilePath(workspace, fileName));
         } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to download file from '" + url + "'", e);
+            throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
         }
     }
 
