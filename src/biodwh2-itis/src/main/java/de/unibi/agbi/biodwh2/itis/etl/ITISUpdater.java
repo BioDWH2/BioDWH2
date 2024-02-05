@@ -6,7 +6,6 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterMalformedVersionException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import de.unibi.agbi.biodwh2.itis.ITISDataSource;
 import org.apache.commons.io.FileUtils;
@@ -27,15 +26,11 @@ public class ITISUpdater extends Updater<ITISDataSource> {
 
     @Override
     public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        try {
-            String html = HTTPClient.getWebsiteSource(VERSION_URL);
-            html = StringUtils.splitByWholeSeparator(html, "Database download files are currently from the")[1];
-            html = StringUtils.splitByWholeSeparator(html, "<b>")[1];
-            html = StringUtils.splitByWholeSeparator(html, "</b>")[0].trim();
-            return parseVersion(html);
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        String html = getWebsiteSource(VERSION_URL);
+        html = StringUtils.splitByWholeSeparator(html, "Database download files are currently from the")[1];
+        html = StringUtils.splitByWholeSeparator(html, "<b>")[1];
+        html = StringUtils.splitByWholeSeparator(html, "</b>")[0].trim();
+        return parseVersion(html);
     }
 
     private Version parseVersion(final String version) throws UpdaterMalformedVersionException {

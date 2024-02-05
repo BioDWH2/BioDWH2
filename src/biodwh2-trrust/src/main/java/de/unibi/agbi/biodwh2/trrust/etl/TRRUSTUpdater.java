@@ -25,14 +25,10 @@ public class TRRUSTUpdater extends Updater<TRRUSTDataSource> {
 
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        try {
-            final String source = HTTPClient.getWebsiteSource(VERSION_URL);
-            final Matcher matcher = VERSION_PATTERN.matcher(source);
-            if (matcher.find())
-                return Version.tryParse(matcher.group(0));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        final String source = getWebsiteSource(VERSION_URL);
+        final Matcher matcher = VERSION_PATTERN.matcher(source);
+        if (matcher.find())
+            return Version.tryParse(matcher.group(0));
         return null;
     }
 

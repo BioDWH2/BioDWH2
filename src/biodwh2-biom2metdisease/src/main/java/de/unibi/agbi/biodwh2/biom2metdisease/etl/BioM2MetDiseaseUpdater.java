@@ -20,33 +20,29 @@ public class BioM2MetDiseaseUpdater extends Updater<BioM2MetDiseaseDataSource> {
     private static final String B2MD_DOWNLOAD_URL =
             "http://bio-bigdata.hrbmu.edu.cn/BioM2MetDisease/resources/" + FILE_NAME;
 
-    public BioM2MetDiseaseUpdater(BioM2MetDiseaseDataSource dataSource) {
+    public BioM2MetDiseaseUpdater(final BioM2MetDiseaseDataSource dataSource) {
         super(dataSource);
     }
 
     @Override
-    protected Version getNewestVersion(Workspace workspace) throws UpdaterException {
-        try {
-            final String source = HTTPClient.getWebsiteSource(B2MD_MAIN_URL);
-            final Pattern versionPattern = Pattern.compile("([a-zA-Z]{3} [0-9]{1,2}, [0-9]{4})");
-            final Matcher matcher = versionPattern.matcher(source);
-            Version newestVersion = null;
-            while (matcher.find()) {
-                final String[] dateParts = StringUtils.split(matcher.group(0), " ,()");
-                final Version version = new Version(Integer.parseInt(dateParts[2]),
-                                                    TextUtils.threeLetterMonthNameToInt(dateParts[0].toLowerCase()),
-                                                    Integer.parseInt(dateParts[1]));
-                if (newestVersion == null || newestVersion.compareTo(version) < 0)
-                    newestVersion = version;
-            }
-            return newestVersion;
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to get newest version", e);
+    protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
+        final String source = getWebsiteSource(B2MD_MAIN_URL);
+        final Pattern versionPattern = Pattern.compile("([a-zA-Z]{3} [0-9]{1,2}, [0-9]{4})");
+        final Matcher matcher = versionPattern.matcher(source);
+        Version newestVersion = null;
+        while (matcher.find()) {
+            final String[] dateParts = StringUtils.split(matcher.group(0), " ,()");
+            final Version version = new Version(Integer.parseInt(dateParts[2]),
+                                                TextUtils.threeLetterMonthNameToInt(dateParts[0].toLowerCase()),
+                                                Integer.parseInt(dateParts[1]));
+            if (newestVersion == null || newestVersion.compareTo(version) < 0)
+                newestVersion = version;
         }
+        return newestVersion;
     }
 
     @Override
-    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
+    protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         final String filePath = dataSource.resolveSourceFilePath(workspace, FILE_NAME);
         try {
             HTTPClient.downloadFileAsBrowser(B2MD_DOWNLOAD_URL, filePath);
@@ -54,5 +50,10 @@ public class BioM2MetDiseaseUpdater extends Updater<BioM2MetDiseaseDataSource> {
             throw new UpdaterConnectionException("Failed to download file '" + FILE_NAME + "'", e);
         }
         return true;
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{FILE_NAME};
     }
 }

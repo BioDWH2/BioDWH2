@@ -26,15 +26,11 @@ public class NegatomeUpdater extends Updater<NegatomeDataSource> {
 
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        try {
-            final String html = HTTPClient.getWebsiteSource(DONWLOAD_URL_PREFIX);
-            final Matcher matcher = VERSION_PATTERN.matcher(html);
-            if (!matcher.find())
-                return null;
-            return new Version(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        final String html = getWebsiteSource(DONWLOAD_URL_PREFIX);
+        final Matcher matcher = VERSION_PATTERN.matcher(html);
+        if (!matcher.find())
+            return null;
+        return new Version(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
     }
 
     @Override

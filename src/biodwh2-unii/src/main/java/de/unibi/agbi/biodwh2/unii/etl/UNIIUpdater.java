@@ -34,7 +34,7 @@ public class UNIIUpdater extends Updater<UNIIDataSource> {
     public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         Version newestVersion = null;
         try {
-            final Document document = Jsoup.parse(HTTPClient.getWebsiteSource(WEBSITE_URL));
+            final Document document = Jsoup.parse(getWebsiteSource(WEBSITE_URL));
             for (final Element script : document.select("script")) {
                 if ("__NEXT_DATA__".equalsIgnoreCase(script.id())) {
                     newestVersion = parseJsonFileList(script.html());

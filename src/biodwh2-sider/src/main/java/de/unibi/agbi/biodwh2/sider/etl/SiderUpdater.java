@@ -28,14 +28,10 @@ public class SiderUpdater extends Updater<SiderDataSource> {
 
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        try {
-            final String html = HTTPClient.getWebsiteSource(VERSION_URL);
-            final Matcher matcher = VERSION_PATTERN.matcher(html);
-            if (matcher.find())
-                return new Version(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        final String html = getWebsiteSource(VERSION_URL);
+        final Matcher matcher = VERSION_PATTERN.matcher(html);
+        if (matcher.find())
+            return new Version(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
         return null;
     }
 

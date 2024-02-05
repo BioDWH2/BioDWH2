@@ -13,6 +13,7 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 public class TissuesUpdater extends Updater<TissuesDataSource> {
+    private static final String DOWNLOAD_URL_PREFIX = "https://download.jensenlab.org/";
     static final String INTEGRATED_FILE_NAME = "human_tissue_integrated_full.tsv";
     static final String KNOWLEDGE_FILE_NAME = "human_tissue_knowledge_full.tsv";
     static final String EXPERIMENTS_FILE_NAME = "human_tissue_experiments_full.tsv";
@@ -33,16 +34,19 @@ public class TissuesUpdater extends Updater<TissuesDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser("https://download.jensenlab.org/human_tissue_integrated_full.tsv",
-                                             dataSource.resolveSourceFilePath(workspace, INTEGRATED_FILE_NAME));
-            HTTPClient.downloadFileAsBrowser("https://download.jensenlab.org/human_tissue_knowledge_full.tsv",
-                                             dataSource.resolveSourceFilePath(workspace, KNOWLEDGE_FILE_NAME));
-            HTTPClient.downloadFileAsBrowser("https://download.jensenlab.org/human_tissue_experiments_full.tsv",
-                                             dataSource.resolveSourceFilePath(workspace, EXPERIMENTS_FILE_NAME));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
+        for (final String fileName : expectedFileNames()) {
+            try {
+                HTTPClient.downloadFileAsBrowser(DOWNLOAD_URL_PREFIX + fileName,
+                                                 dataSource.resolveSourceFilePath(workspace, fileName));
+            } catch (IOException e) {
+                throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
+            }
         }
         return true;
+    }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{INTEGRATED_FILE_NAME, KNOWLEDGE_FILE_NAME, EXPERIMENTS_FILE_NAME};
     }
 }

@@ -48,17 +48,13 @@ public class CPDBUpdater extends Updater<CPDBDataSource> {
 
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        try {
-            final String source = HTTPClient.getWebsiteSource(VERSION_URL, 3);
-            final Matcher matcher = VERSION_PATTERN.matcher(source);
-            if (matcher.find()) {
-                final int day = Integer.parseInt(matcher.group(1));
-                final int month = Integer.parseInt(matcher.group(2));
-                final int year = Integer.parseInt(matcher.group(3));
-                return new Version(year, month, day);
-            }
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
+        final String source = getWebsiteSource(VERSION_URL, 5);
+        final Matcher matcher = VERSION_PATTERN.matcher(source);
+        if (matcher.find()) {
+            final int day = Integer.parseInt(matcher.group(1));
+            final int month = Integer.parseInt(matcher.group(2));
+            final int year = Integer.parseInt(matcher.group(3));
+            return new Version(year, month, day);
         }
         return null;
     }

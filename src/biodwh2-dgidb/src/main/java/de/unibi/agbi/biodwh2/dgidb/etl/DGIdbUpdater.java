@@ -57,17 +57,12 @@ public class DGIdbUpdater extends Updater<DGIdbDataSource> {
     }
 
     private DownloadVersion[] getDownloadVersions() throws UpdaterException {
-        String source;
-        try {
-            source = HTTPClient.getWebsiteSource(VERSION_URL);
-            final Matcher mainJSMatcher = MAIN_JS_PATTERN.matcher(source);
-            if (mainJSMatcher.find())
-                source = HTTPClient.getWebsiteSource(MAIN_JS_URL_PREFIX + mainJSMatcher.group(1));
-            else
-                throw new UpdaterMalformedVersionException("Failed to retrieve versions");
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        String source = getWebsiteSource(VERSION_URL);
+        final Matcher mainJSMatcher = MAIN_JS_PATTERN.matcher(source);
+        if (mainJSMatcher.find())
+            source = getWebsiteSource(MAIN_JS_URL_PREFIX + mainJSMatcher.group(1));
+        else
+            throw new UpdaterMalformedVersionException("Failed to retrieve versions");
         final Matcher matcher = VERSION_PATTERN.matcher(source);
         final List<DownloadVersion> versions = new ArrayList<>();
         while (matcher.find()) {

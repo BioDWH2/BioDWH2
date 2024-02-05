@@ -26,22 +26,18 @@ public class Mir2diseaseUpdater extends Updater<Mir2diseaseDataSource> {
 
     @Override
     public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        try {
-            final String source = HTTPClient.getWebsiteSource(M2D_MAIN_URL);
-            final Pattern versionPattern = Pattern.compile("Creation Date: ([a-zA-Z]{3}).([0-9]{1,2}), ([0-9]{4})");
-            final Matcher matcher = versionPattern.matcher(source);
-            Version newestVersion = null;
-            while (matcher.find()) {
-                final Version version = new Version(Integer.parseInt(matcher.group(3)),
-                                                    TextUtils.threeLetterMonthNameToInt(matcher.group(1).toLowerCase()),
-                                                    Integer.parseInt(matcher.group(2)));
-                if (newestVersion == null || newestVersion.compareTo(version) < 0)
-                    newestVersion = version;
-            }
-            return newestVersion;
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to get newest version", e);
+        final String source = getWebsiteSource(M2D_MAIN_URL);
+        final Pattern versionPattern = Pattern.compile("Creation Date: ([a-zA-Z]{3}).([0-9]{1,2}), ([0-9]{4})");
+        final Matcher matcher = versionPattern.matcher(source);
+        Version newestVersion = null;
+        while (matcher.find()) {
+            final Version version = new Version(Integer.parseInt(matcher.group(3)),
+                                                TextUtils.threeLetterMonthNameToInt(matcher.group(1).toLowerCase()),
+                                                Integer.parseInt(matcher.group(2)));
+            if (newestVersion == null || newestVersion.compareTo(version) < 0)
+                newestVersion = version;
         }
+        return newestVersion;
     }
 
     @Override

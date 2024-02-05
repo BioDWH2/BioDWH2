@@ -28,16 +28,12 @@ public class ADReCSUpdater extends Updater<ADReCSDataSource> {
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         Version version = null;
-        try {
-            final String source = HTTPClient.getWebsiteSource("http://bioinf.xmu.edu.cn/ADReCS/update.jsp");
-            final Matcher matcher = UPDATE_DATE_PATTERN.matcher(source);
-            while (matcher.find()) {
-                final Version v = Version.tryParse(StringUtils.replace(matcher.group(0), "/", "."));
-                if (v != null && (version == null || v.compareTo(version) > 0))
-                    version = v;
-            }
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
+        final String source = getWebsiteSource("http://bioinf.xmu.edu.cn/ADReCS/update.jsp");
+        final Matcher matcher = UPDATE_DATE_PATTERN.matcher(source);
+        while (matcher.find()) {
+            final Version v = Version.tryParse(StringUtils.replace(matcher.group(0), "/", "."));
+            if (v != null && (version == null || v.compareTo(version) > 0))
+                version = v;
         }
         return version;
     }

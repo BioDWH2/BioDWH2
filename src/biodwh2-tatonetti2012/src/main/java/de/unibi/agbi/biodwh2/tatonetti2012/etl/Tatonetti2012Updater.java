@@ -37,4 +37,9 @@ public class Tatonetti2012Updater extends Updater<Tatonetti2012DataSource> {
         }
         return true;
     }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{OFFSIDES_FILE_NAME, TWOSIDES_FILE_NAME};
+    }
 }

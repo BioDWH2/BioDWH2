@@ -28,12 +28,7 @@ public class MiRDBUpdater extends Updater<MiRDBDataSource> {
 
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        final String source;
-        try {
-            source = HTTPClient.getWebsiteSource(VERSION_URL);
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        final String source = getWebsiteSource(VERSION_URL);
         final String[] parts = StringUtils.splitByWholeSeparator(source, "<p>Current version:</p>", 2);
         if (parts.length == 2) {
             final String versionTableSource = StringUtils.splitByWholeSeparator(parts[1], "</table>", 2)[0];

@@ -27,22 +27,18 @@ public class HMDBUpdater extends Updater<HMDBDataSource> {
 
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        try {
-            final String source = HTTPClient.getWebsiteSource("https://hmdb.ca/downloads");
-            final Matcher matcher = VERSION_PATTERN.matcher(source);
-            Version latestVersion = null;
-            while (matcher.find()) {
-                final int year = Integer.parseInt(matcher.group(1));
-                final int month = Integer.parseInt(matcher.group(2));
-                final int day = Integer.parseInt(matcher.group(3));
-                final Version foundVersion = new Version(year, month, day);
-                if (latestVersion == null || foundVersion.compareTo(latestVersion) > 0)
-                    latestVersion = foundVersion;
-            }
-            return latestVersion;
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
+        final String source = getWebsiteSource("https://hmdb.ca/downloads");
+        final Matcher matcher = VERSION_PATTERN.matcher(source);
+        Version latestVersion = null;
+        while (matcher.find()) {
+            final int year = Integer.parseInt(matcher.group(1));
+            final int month = Integer.parseInt(matcher.group(2));
+            final int day = Integer.parseInt(matcher.group(3));
+            final Version foundVersion = new Version(year, month, day);
+            if (latestVersion == null || foundVersion.compareTo(latestVersion) > 0)
+                latestVersion = foundVersion;
         }
+        return latestVersion;
     }
 
     @Override

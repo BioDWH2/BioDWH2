@@ -32,17 +32,13 @@ public class STRINGUpdater extends Updater<STRINGDataSource> {
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         Version version = null;
-        try {
-            final String source = HTTPClient.getWebsiteSource(DOWNLOAD_PAGE_URL);
-            final Matcher matcher = FILE_URL_PATTERN.matcher(source);
-            fileDownloadUrls.clear();
-            while (matcher.find()) {
-                if (version == null)
-                    version = Version.tryParse(matcher.group(2));
-                fileDownloadUrls.put(matcher.group(1).substring(0, matcher.group(1).length() - 2), matcher.group(0));
-            }
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
+        final String source = getWebsiteSource(DOWNLOAD_PAGE_URL);
+        final Matcher matcher = FILE_URL_PATTERN.matcher(source);
+        fileDownloadUrls.clear();
+        while (matcher.find()) {
+            if (version == null)
+                version = Version.tryParse(matcher.group(2));
+            fileDownloadUrls.put(matcher.group(1).substring(0, matcher.group(1).length() - 2), matcher.group(0));
         }
         return version;
     }

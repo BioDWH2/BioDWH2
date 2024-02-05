@@ -47,18 +47,14 @@ public class TTDUpdater extends Updater<TTDDataSource> {
 
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        try {
-            final String source = HTTPClient.getWebsiteSource(VERSION_URL, 5);
-            final Matcher matcher = versionPattern.matcher(source);
-            if (matcher.find()) {
-                return new Version(Integer.parseInt(matcher.group(4)),
-                                   TextUtils.monthNameToInt(matcher.group(1).toLowerCase()),
-                                   Integer.parseInt(matcher.group(2)));
-            }
-            return null;
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to retrieve website source", e);
+        final String source = getWebsiteSource(VERSION_URL, 5);
+        final Matcher matcher = versionPattern.matcher(source);
+        if (matcher.find()) {
+            return new Version(Integer.parseInt(matcher.group(4)),
+                               TextUtils.monthNameToInt(matcher.group(1).toLowerCase()),
+                               Integer.parseInt(matcher.group(2)));
         }
+        return null;
     }
 
     @Override

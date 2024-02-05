@@ -4,12 +4,15 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.cache.DataSourceVersion;
 import de.unibi.agbi.biodwh2.core.cache.OnlineVersionCache;
+import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
+import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -121,5 +124,21 @@ public abstract class Updater<D extends DataSource> {
     protected static Version convertDateTimeToVersion(final LocalDateTime dateTime) {
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd.HHmmss");
         return Version.parse(dateTime.format(formatter));
+    }
+
+    protected String getWebsiteSource(final String url) throws UpdaterConnectionException {
+        try {
+            return HTTPClient.getWebsiteSource(url);
+        } catch (IOException e) {
+            throw new UpdaterConnectionException("Failed to retrieve version", e);
+        }
+    }
+
+    protected String getWebsiteSource(final String url, int retries) throws UpdaterConnectionException {
+        try {
+            return HTTPClient.getWebsiteSource(url, retries);
+        } catch (IOException e) {
+            throw new UpdaterConnectionException("Failed to retrieve version", e);
+        }
     }
 }

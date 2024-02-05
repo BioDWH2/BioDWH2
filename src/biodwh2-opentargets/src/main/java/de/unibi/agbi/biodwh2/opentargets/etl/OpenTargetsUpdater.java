@@ -10,7 +10,6 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterMalformedVersionException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.AnonymousFTPClient;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.core.net.HTTPFTPClient;
 import de.unibi.agbi.biodwh2.opentargets.OpenTargetsDataSource;
 import org.apache.commons.lang3.StringUtils;
@@ -19,7 +18,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.zip.GZIPOutputStream;
@@ -56,30 +54,8 @@ public class OpenTargetsUpdater extends Updater<OpenTargetsDataSource> {
     }
 
     private JsonNode loadDataVersionJson() throws UpdaterException {
-        String source = "";
-        int tries = 0;
-        while (tries < 10) {
-            try {
-                source = HTTPClient.getWebsiteSource(DATA_VERSION_URL);
-                break;
-            } catch (UnknownHostException e) {
-                tries++;
-                if (tries == 10)
-                    throw new UpdaterConnectionException(e);
-                else
-                    trySleep(1000);
-            } catch (IOException e) {
-                throw new UpdaterConnectionException(e);
-            }
-        }
+        final String source = getWebsiteSource(DATA_VERSION_URL, 5);
         return parseJsonSource(source);
-    }
-
-    private void trySleep(final int ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (InterruptedException ignored) {
-        }
     }
 
     private JsonNode parseJsonSource(final String source) throws UpdaterMalformedVersionException {

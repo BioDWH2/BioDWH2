@@ -39,17 +39,13 @@ public class GuideToPharmacologyUpdater extends Updater<GuideToPharmacologyDataS
     }
 
     private Map<Version, String> getFileUrlsWithVersion() throws UpdaterException {
-        try {
-            final Map<Version, String> result = new HashMap<>();
-            final String html = HTTPClient.getWebsiteSource(DOWNLOAD_PAGE_URL);
-            final Matcher matcher = DOWNLOAD_URL_PATTERN.matcher(html);
-            while (matcher.find())
-                result.put(Version.tryParse(matcher.group(1)), BASE_PAGE_URL + matcher.group(0));
-            if (result.size() > 0)
-                return result;
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        final Map<Version, String> result = new HashMap<>();
+        final String html = getWebsiteSource(DOWNLOAD_PAGE_URL);
+        final Matcher matcher = DOWNLOAD_URL_PATTERN.matcher(html);
+        while (matcher.find())
+            result.put(Version.tryParse(matcher.group(1)), BASE_PAGE_URL + matcher.group(0));
+        if (!result.isEmpty())
+            return result;
         throw new UpdaterConnectionException("Failed to get database download URL from download page");
     }
 

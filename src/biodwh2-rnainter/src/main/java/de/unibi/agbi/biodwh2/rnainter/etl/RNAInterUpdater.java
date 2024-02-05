@@ -28,12 +28,7 @@ public class RNAInterUpdater extends Updater<RNAInterDataSource> {
 
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        final String source;
-        try {
-            source = HTTPClient.getWebsiteSource("http://www.rnainter.org");
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        final String source = getWebsiteSource("http://www.rnainter.org");
         final String part = StringUtils.splitByWholeSeparator(source, "<meta name=\"description\" content=\"")[1];
         final String versionText = part.split("\"")[0].replace("rnainter", "").replace("version", "").trim();
         return Version.tryParse(versionText);

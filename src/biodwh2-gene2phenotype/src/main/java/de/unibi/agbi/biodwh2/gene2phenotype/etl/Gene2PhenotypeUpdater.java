@@ -26,22 +26,18 @@ public class Gene2PhenotypeUpdater extends Updater<Gene2PhenotypeDataSource> {
 
     @Override
     public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        try {
-            final String source = HTTPClient.getWebsiteSource(G2P_MAIN_URL);
-            final Pattern versionPattern = Pattern.compile("<strong>([0-9]{4}-[0-9]{2}-[0-9]{2})</strong>");
-            final Matcher matcher = versionPattern.matcher(source);
-            Version newestVersion = null;
-            while (matcher.find()) {
-                final String[] dateParts = StringUtils.split(matcher.group(1), '-');
-                final Version version = new Version(Integer.parseInt(dateParts[0]), Integer.parseInt(dateParts[1]),
-                                                    Integer.parseInt(dateParts[2]));
-                if (newestVersion == null || newestVersion.compareTo(version) < 0)
-                    newestVersion = version;
-            }
-            return newestVersion;
-        } catch (IOException e) {
-            throw new UpdaterConnectionException("Failed to get newest version", e);
+        final String source = getWebsiteSource(G2P_MAIN_URL);
+        final Pattern versionPattern = Pattern.compile("<strong>([0-9]{4}-[0-9]{2}-[0-9]{2})</strong>");
+        final Matcher matcher = versionPattern.matcher(source);
+        Version newestVersion = null;
+        while (matcher.find()) {
+            final String[] dateParts = StringUtils.split(matcher.group(1), '-');
+            final Version version = new Version(Integer.parseInt(dateParts[0]), Integer.parseInt(dateParts[1]),
+                                                Integer.parseInt(dateParts[2]));
+            if (newestVersion == null || newestVersion.compareTo(version) < 0)
+                newestVersion = version;
         }
+        return newestVersion;
     }
 
     @Override

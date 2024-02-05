@@ -38,14 +38,10 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
     }
 
     private String getDrugCentralFileUrl() throws UpdaterException {
-        try {
-            final String html = HTTPClient.getWebsiteSource(DOWNLOAD_PAGE_URL);
-            final Matcher matcher = DOWNLOAD_URL_PATTERN.matcher(html);
-            if (matcher.find())
-                return matcher.group(1);
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        final String html = getWebsiteSource(DOWNLOAD_PAGE_URL);
+        final Matcher matcher = DOWNLOAD_URL_PATTERN.matcher(html);
+        if (matcher.find())
+            return matcher.group(1);
         throw new UpdaterConnectionException("Failed to get database download URL from download page");
     }
 

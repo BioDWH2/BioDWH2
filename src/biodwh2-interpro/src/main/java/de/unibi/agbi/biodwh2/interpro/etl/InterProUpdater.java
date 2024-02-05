@@ -24,15 +24,10 @@ public class InterProUpdater extends Updater<InterProDataSource> {
 
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        try {
-            final String source = HTTPClient.getWebsiteSource(RELEASE_NOTES_URL);
-            final Matcher releaseMatcher = RELEASE_PATTERN.matcher(source);
-            if (releaseMatcher.find())
-                return new Version(Integer.parseInt(releaseMatcher.group(1)),
-                                   Integer.parseInt(releaseMatcher.group(2)));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        final String source = getWebsiteSource(RELEASE_NOTES_URL);
+        final Matcher releaseMatcher = RELEASE_PATTERN.matcher(source);
+        if (releaseMatcher.find())
+            return new Version(Integer.parseInt(releaseMatcher.group(1)), Integer.parseInt(releaseMatcher.group(2)));
         return null;
     }
 

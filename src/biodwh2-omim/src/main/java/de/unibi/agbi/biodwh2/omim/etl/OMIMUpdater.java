@@ -31,17 +31,13 @@ public class OMIMUpdater extends Updater<OMIMDataSource> {
 
     @Override
     public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        try {
-            final String html = HTTPClient.getWebsiteSource(OMIM_PAGE_URL);
-            final Matcher matcher = DOWNLOAD_URL_PATTERN.matcher(html);
-            if (!matcher.find())
-                return null;
-            final String month = matcher.group(1).toLowerCase(Locale.ROOT);
-            return parseVersion(
-                    matcher.group(3) + "." + TextUtils.monthNameToInt(month.toLowerCase()) + "." + matcher.group(2));
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        final String html = getWebsiteSource(OMIM_PAGE_URL);
+        final Matcher matcher = DOWNLOAD_URL_PATTERN.matcher(html);
+        if (!matcher.find())
+            return null;
+        final String month = matcher.group(1).toLowerCase(Locale.ROOT);
+        return parseVersion(
+                matcher.group(3) + "." + TextUtils.monthNameToInt(month.toLowerCase()) + "." + matcher.group(2));
     }
 
     private Version parseVersion(final String version) throws UpdaterMalformedVersionException {

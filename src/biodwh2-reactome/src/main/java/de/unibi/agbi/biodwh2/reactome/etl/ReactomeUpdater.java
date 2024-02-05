@@ -27,14 +27,9 @@ public class ReactomeUpdater extends Updater<ReactomeDataSource> {
 
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        try {
-            final String source = HTTPClient.getWebsiteSource(
-                    "https://reactome.org/ContentService/data/database/version").trim();
-            if (NumberUtils.isCreatable(source))
-                return new Version(Integer.parseInt(source), 0);
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        final String source = getWebsiteSource("https://reactome.org/ContentService/data/database/version").trim();
+        if (NumberUtils.isCreatable(source))
+            return new Version(Integer.parseInt(source), 0);
         return null;
     }
 
