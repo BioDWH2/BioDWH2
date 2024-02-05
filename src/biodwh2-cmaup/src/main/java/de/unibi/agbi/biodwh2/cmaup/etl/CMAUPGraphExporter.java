@@ -1,13 +1,11 @@
 package de.unibi.agbi.biodwh2.cmaup.etl;
 
-import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.cmaup.CMAUPDataSource;
 import de.unibi.agbi.biodwh2.cmaup.model.*;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
-import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -15,11 +13,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Optional;
 
 public class CMAUPGraphExporter extends GraphExporter<CMAUPDataSource> {
     private static final Logger LOGGER = LogManager.getLogger(CMAUPGraphExporter.class);
+    public static final String PLANT_LABEL = "Plant";
+    public static final String INGREDIENT_LABEL = "Ingredient";
+    public static final String TARGET_LABEL = "Target";
+    public static final String TARGETS_LABEL = "TARGETS";
 
     public CMAUPGraphExporter(final CMAUPDataSource dataSource) {
         super(dataSource);
@@ -32,69 +32,81 @@ public class CMAUPGraphExporter extends GraphExporter<CMAUPDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode("Plant", ID_KEY, false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Ingredient", ID_KEY, false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode("Target", ID_KEY, false, IndexDescription.Type.UNIQUE));
-        final String[] fileNames = dataSource.listSourceFiles(workspace);
-        for (final Plant plant : openTsvFile(workspace, fileNames, "_Plants.txt", Plant.class, true)) {
-            graph.addNodeFromModel(plant);
-        }
-        // _Ingredients_All.txt has a malformed header row
-        for (final Ingredient ingredient : openTsvFile(workspace, fileNames, "_Ingredients_onlyActive.txt",
-                                                       Ingredient.class, true)) {
-            graph.addNodeFromModel(ingredient);
-        }
-        for (final Target target : openTsvFile(workspace, fileNames, "_Targets.txt", Target.class, true)) {
-            graph.addNodeFromModel(target);
-        }
-        for (final PlantIngredientAssociation association : openTsvFile(workspace, fileNames,
-                                                                        "_Plant_Ingredient_Associations_onlyActiveIngredients.txt",
-                                                                        PlantIngredientAssociation.class, false)) {
-            final Node plantNode = graph.findNode("Plant", ID_KEY, association.plantId);
-            final Node ingredientNode = graph.findNode("Ingredient", ID_KEY, association.ingredientId);
-            graph.addEdge(plantNode, ingredientNode, "CONTAINS");
-        }
-        for (final IngredientTargetAssociation association : openTsvFile(workspace, fileNames,
-                                                                         "_Ingredient_Target_Associations_ActivityValues_References.txt",
-                                                                         IngredientTargetAssociation.class, true)) {
-            final Node ingredientNode = graph.findNode("Ingredient", ID_KEY, association.ingredientId);
-            final Node targetNode = graph.findNode("Target", ID_KEY, association.targetId);
-            // Skipping ingredient-target associations where the ingredient is not active
-            if (ingredientNode == null)
-                continue;
-            // Skipping targets not in targets file
-            if (targetNode == null)
-                continue;
-            final EdgeBuilder builder = graph.buildEdge().withLabel("TARGETS").fromNode(ingredientNode).toNode(
-                    targetNode);
-            builder.withPropertyIfNotNull("activity_type", association.activityType);
-            builder.withPropertyIfNotNull("activity_value", association.activityValue);
-            builder.withPropertyIfNotNull("activity_relationship", association.activityRelationship);
-            builder.withPropertyIfNotNull("activity_unit", association.activityUnit);
-            builder.withPropertyIfNotNull("reference_id", association.referenceId);
-            builder.withPropertyIfNotNull("reference_id_type", association.referenceIdType);
-            builder.withPropertyIfNotNull("reference_id_others", association.referenceIdOthers);
-            builder.build();
-        }
+        graph.addIndex(IndexDescription.forNode(PLANT_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(INGREDIENT_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TARGET_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        exportPlants(workspace, graph);
+        exportIngredients(workspace, graph);
+        exportTargets(workspace, graph);
+        exportPlantIngredientAssociations(workspace, graph);
+        exportIngredientTargetAssociations(workspace, graph);
         return true;
     }
 
-    private <T> Iterable<T> openTsvFile(final Workspace workspace, final String[] fileNames,
-                                        final String fileNameSuffix, final Class<T> typeClass,
-                                        final boolean withHeader) {
-        final Optional<String> fileName = Arrays.stream(fileNames).filter((x) -> x.endsWith(fileNameSuffix))
-                                                .findFirst();
-        if (!fileName.isPresent())
-            throw new ExporterException("File with suffix " + fileNameSuffix + " not found");
+    private void exportPlants(final Workspace workspace, final Graph graph) {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Exporting " + fileName.get());
+            LOGGER.info("Exporting plants...");
         try {
-            final MappingIterator<T> iterator = withHeader ? FileUtils.openTsvWithHeader(workspace, dataSource,
-                                                                                         fileName.get(), typeClass) :
-                                                FileUtils.openTsv(workspace, dataSource, fileName.get(), typeClass);
-            return () -> iterator;
+            FileUtils.openTsvWithHeader(workspace, dataSource, CMAUPUpdater.PLANTS_FILE_NAME, Plant.class,
+                                        graph::addNodeFromModel);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ExporterException("Failed to export '" + CMAUPUpdater.PLANTS_FILE_NAME + "'", e);
+        }
+    }
+
+    private void exportIngredients(final Workspace workspace, final Graph graph) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting ingredients...");
+        try {
+            FileUtils.openTsvWithHeader(workspace, dataSource, CMAUPUpdater.INGREDIENTS_ONLY_ACTIVE_FILE_NAME,
+                                        Ingredient.class, graph::addNodeFromModel);
+        } catch (IOException e) {
+            throw new ExporterException("Failed to export '" + CMAUPUpdater.INGREDIENTS_ONLY_ACTIVE_FILE_NAME + "'", e);
+        }
+    }
+
+    private void exportTargets(final Workspace workspace, final Graph graph) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting targets...");
+        try {
+            FileUtils.openTsvWithHeader(workspace, dataSource, CMAUPUpdater.TARGETS_FILE_NAME, Target.class,
+                                        graph::addNodeFromModel);
+        } catch (IOException e) {
+            throw new ExporterException("Failed to export '" + CMAUPUpdater.TARGETS_FILE_NAME + "'", e);
+        }
+    }
+
+    private void exportPlantIngredientAssociations(final Workspace workspace, final Graph graph) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting plant ingredient associations...");
+        try {
+            FileUtils.openTsv(workspace, dataSource, CMAUPUpdater.PLANT_INGREDIENT_ASSOCIATIONS_ONLY_ACTIVE_FILE_NAME,
+                              PlantIngredientAssociation.class, ((entry) -> {
+                        final Node plantNode = graph.findNode(PLANT_LABEL, ID_KEY, entry.plantId);
+                        final Node ingredientNode = graph.findNode(INGREDIENT_LABEL, ID_KEY, entry.ingredientId);
+                        graph.addEdge(plantNode, ingredientNode, "CONTAINS");
+                    }));
+        } catch (IOException e) {
+            throw new ExporterException(
+                    "Failed to export '" + CMAUPUpdater.PLANT_INGREDIENT_ASSOCIATIONS_ONLY_ACTIVE_FILE_NAME + "'", e);
+        }
+    }
+
+    private void exportIngredientTargetAssociations(final Workspace workspace, final Graph graph) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting ingredient target associations...");
+        try {
+            FileUtils.openTsvWithHeader(workspace, dataSource, CMAUPUpdater.INGREDIENT_TARGET_ASSOCIATIONS_FILE_NAME,
+                                        IngredientTargetAssociation.class, ((entry) -> {
+                        final Node ingredientNode = graph.findNode(INGREDIENT_LABEL, ID_KEY, entry.ingredientId);
+                        final Node targetNode = graph.findNode(TARGET_LABEL, ID_KEY, entry.targetId);
+                        // Skipping ingredient-target associations where the ingredient is not active and targets not in targets file
+                        if (ingredientNode != null && targetNode != null)
+                            graph.addEdgeFromModel(ingredientNode, targetNode, entry);
+                    }));
+        } catch (IOException e) {
+            throw new ExporterException(
+                    "Failed to export '" + CMAUPUpdater.INGREDIENT_TARGET_ASSOCIATIONS_FILE_NAME + "'", e);
         }
     }
 }

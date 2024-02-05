@@ -13,11 +13,11 @@ public class CMAUPMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if ("Plant".equals(localMappingLabel))
+        if (CMAUPGraphExporter.PLANT_LABEL.equals(localMappingLabel))
             return describePlant(node);
-        if ("Ingredient".equals(localMappingLabel))
+        if (CMAUPGraphExporter.INGREDIENT_LABEL.equals(localMappingLabel))
             return describeIngredient(node);
-        if ("Target".equals(localMappingLabel))
+        if (CMAUPGraphExporter.TARGET_LABEL.equals(localMappingLabel))
             return describeTarget(node);
         return null;
     }
@@ -52,22 +52,29 @@ public class CMAUPMappingDescriber extends MappingDescriber {
         description.addIdentifier(IdentifierType.HGNC_SYMBOL, node.<String>getProperty("gene_symbol"));
         description.addIdentifier(IdentifierType.UNIPROT_KB, node.<String>getProperty("uniprot_id"));
         description.addIdentifier(IdentifierType.CHEMBL, node.<String>getProperty("chembl_id"));
-        // TODO: ttd_id
+        // ttd_id
         return new NodeMappingDescription[]{description};
     }
 
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
+        if (edges.length == 1)
+            return new PathMappingDescription(PathMappingDescription.EdgeType.TARGETS);
         return null;
     }
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{"Plant", "Ingredient", "Target"};
+        return new String[]{
+                CMAUPGraphExporter.PLANT_LABEL, CMAUPGraphExporter.INGREDIENT_LABEL, CMAUPGraphExporter.TARGET_LABEL
+        };
     }
 
     @Override
     protected PathMapping[] getEdgePathMappings() {
-        return new PathMapping[0];
+        final PathMapping targetsPath = new PathMapping().add(CMAUPGraphExporter.INGREDIENT_LABEL,
+                                                              CMAUPGraphExporter.TARGETS_LABEL,
+                                                              CMAUPGraphExporter.TARGET_LABEL);
+        return new PathMapping[]{targetsPath};
     }
 }

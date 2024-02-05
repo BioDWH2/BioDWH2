@@ -14,6 +14,13 @@ import java.util.regex.Pattern;
 
 public class CMAUPUpdater extends Updater<CMAUPDataSource> {
     private static final Pattern VERSION_PATTERN = Pattern.compile("CMAUPv([0-9]+\\.[0-9]+)_");
+    static final String PLANTS_FILE_NAME = "Plants.txt";
+    static final String INGREDIENTS_ONLY_ACTIVE_FILE_NAME = "Ingredients_onlyActive.txt";
+    static final String TARGETS_FILE_NAME = "Targets.txt";
+    static final String PLANT_INGREDIENT_ASSOCIATIONS_ONLY_ACTIVE_FILE_NAME = "Plant_Ingredient_Associations_onlyActiveIngredients.txt";
+    static final String INGREDIENT_TARGET_ASSOCIATIONS_FILE_NAME = "Ingredient_Target_Associations_ActivityValues_References.txt";
+
+    private String lastVersion;
 
     public CMAUPUpdater(final CMAUPDataSource dataSource) {
         super(dataSource);
@@ -32,31 +39,23 @@ public class CMAUPUpdater extends Updater<CMAUPDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        try {
-            final String source = HTTPClient.getWebsiteSource("http://bidd.group/CMAUP/download.html");
-            final Matcher matcher = VERSION_PATTERN.matcher(source);
-            if (matcher.find()) {
-                final String version = matcher.group(1);
-                downloadFile(workspace, version, "_download_Plants.txt");
-                downloadFile(workspace, version, "_download_Ingredients_All.txt");
-                downloadFile(workspace, version, "_download_Ingredients_onlyActive.txt");
-                downloadFile(workspace, version, "_download_Targets.txt");
-                downloadFile(workspace, version, "_download_Plant_Ingredient_Associations_allIngredients.txt");
-                downloadFile(workspace, version, "_download_Plant_Ingredient_Associations_onlyActiveIngredients.txt");
-                downloadFile(workspace, version,
-                             "_download_Ingredient_Target_Associations_ActivityValues_References.txt");
-                return true;
+        for (final String fileName : expectedFileNames()) {
+            try {
+                HTTPClient.downloadFileAsBrowser(
+                        "http://bidd.group/CMAUP/downloadFiles/CMAUPv" + lastVersion + "_download_" + fileName,
+                        dataSource.resolveSourceFilePath(workspace, fileName));
+            } catch (IOException e) {
+                throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
             }
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
         }
-        return false;
+        return true;
     }
 
-    private void downloadFile(final Workspace workspace, final String version,
-                              final String fileNameSuffix) throws IOException {
-        final String fileName = "CMAUPv" + version + fileNameSuffix;
-        HTTPClient.downloadFileAsBrowser("http://bidd.group/CMAUP/downloadFiles/" + fileName,
-                                         dataSource.resolveSourceFilePath(workspace, fileName));
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{
+                PLANTS_FILE_NAME, INGREDIENTS_ONLY_ACTIVE_FILE_NAME, TARGETS_FILE_NAME,
+                PLANT_INGREDIENT_ASSOCIATIONS_ONLY_ACTIVE_FILE_NAME, INGREDIENT_TARGET_ASSOCIATIONS_FILE_NAME
+        };
     }
 }

@@ -5,7 +5,9 @@ import de.unibi.agbi.biodwh2.cmaup.etl.CMAUPMappingDescriber;
 import de.unibi.agbi.biodwh2.cmaup.etl.CMAUPUpdater;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
-import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
+import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.etl.Updater;
 
 public class CMAUPDataSource extends DataSource {
     @Override
@@ -15,7 +17,7 @@ public class CMAUPDataSource extends DataSource {
 
     @Override
     public DevelopmentState getDevelopmentState() {
-        return DevelopmentState.InDevelopment;
+        return DevelopmentState.Usable;
     }
 
     @Override

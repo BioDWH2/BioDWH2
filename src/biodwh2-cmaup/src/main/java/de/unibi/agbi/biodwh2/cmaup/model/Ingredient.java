@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.cmaup.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import de.unibi.agbi.biodwh2.cmaup.etl.CMAUPGraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
@@ -10,7 +11,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
         "mlogp", "xlogp", "hba", "hbd", "psa", "rotatable_bond", "rings", "heavy_atom", "lipinski_failure",
         "standard_inchi", "standard_inchi_key", "canonical_smiles"
 })
-@GraphNodeLabel("Ingredient")
+@GraphNodeLabel(CMAUPGraphExporter.INGREDIENT_LABEL)
 public class Ingredient {
     @JsonProperty("Ingredient_ID")
     @GraphProperty("id")

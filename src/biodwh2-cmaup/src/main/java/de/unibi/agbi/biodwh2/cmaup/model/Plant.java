@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.cmaup.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import de.unibi.agbi.biodwh2.cmaup.etl.CMAUPGraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNumberProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
@@ -10,7 +11,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
         "Plant_ID", "Plant_Name", "Species_Tax_ID", "Species_Name", "Genus_Tax_ID", "Genus_Name", "Family_Tax_ID",
         "Family_Name"
 })
-@GraphNodeLabel("Plant")
+@GraphNodeLabel(CMAUPGraphExporter.PLANT_LABEL)
 public class Plant {
     @JsonProperty("Plant_ID")
     @GraphProperty("id")

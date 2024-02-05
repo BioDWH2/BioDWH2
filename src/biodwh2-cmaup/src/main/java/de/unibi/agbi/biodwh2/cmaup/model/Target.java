@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.cmaup.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import de.unibi.agbi.biodwh2.cmaup.etl.CMAUPGraphExporter;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphBooleanProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
@@ -11,7 +12,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
         "Target_ID", "Gene_Symbol", "Protein_Name", "Uniprot_ID", "ChEMBL_ID", "TTD_ID", "Target_Class_Level1",
         "Target_Class_Level2", "Target_Class_Level3"
 })
-@GraphNodeLabel("Target")
+@GraphNodeLabel(CMAUPGraphExporter.TARGET_LABEL)
 public class Target {
     @JsonProperty("Target_ID")
     @GraphProperty("id")
