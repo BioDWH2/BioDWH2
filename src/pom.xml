@@ -83,6 +83,7 @@
         <module>biodwh2-reactome</module>
         <module>biodwh2-chebi</module>
         <module>biodwh2-drugmap</module>
+        <module>biodwh2-iig</module>
     </modules>
 
     <packaging>pom</packaging>

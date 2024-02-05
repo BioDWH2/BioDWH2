@@ -95,6 +95,13 @@ public final class FileUtils {
         return openSeparatedValuesFile(stream, typeClass, ',', true);
     }
 
+    public static <T> void openCsvWithHeader(final InputStream stream, final Class<T> typeClass,
+                                             final IOConsumer<T> consumer) throws IOException {
+        final var iterator = openSeparatedValuesFile(stream, typeClass, ',', true);
+        while (iterator.hasNext())
+            consumer.accept(iterator.next());
+    }
+
     public static <T> MappingIterator<T> openSeparatedValuesFile(final InputStream stream, final Class<T> typeClass,
                                                                  final char separator,
                                                                  final boolean withHeader) throws IOException {
