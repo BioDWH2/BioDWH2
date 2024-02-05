@@ -6,7 +6,6 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterMalformedVersionException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.drugcentral.DrugCentralDataSource;
 import org.apache.commons.lang3.StringUtils;
 
@@ -55,19 +54,10 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        final String dumpFilePath = dataSource.resolveSourceFilePath(workspace, SQL_DUMP_FILE_PATH);
-        downloadDrugCentralDatabase(dumpFilePath);
+        downloadFileAsBrowser(workspace, getDrugCentralFileUrl(), SQL_DUMP_FILE_PATH);
         removeOldExtractedTsvFiles(workspace);
-        extractTsvFilesFromDatabaseDump(workspace, dumpFilePath);
+        extractTsvFilesFromDatabaseDump(workspace, dataSource.resolveSourceFilePath(workspace, SQL_DUMP_FILE_PATH));
         return true;
-    }
-
-    private void downloadDrugCentralDatabase(final String dumpFilePath) throws UpdaterException {
-        try {
-            HTTPClient.downloadFileAsBrowser(getDrugCentralFileUrl(), dumpFilePath);
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
     }
 
     private void removeOldExtractedTsvFiles(final Workspace workspace) {

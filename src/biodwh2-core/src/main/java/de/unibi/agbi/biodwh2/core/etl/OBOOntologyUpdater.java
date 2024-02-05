@@ -10,7 +10,6 @@ import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,8 +33,8 @@ public abstract class OBOOntologyUpdater<D extends DataSource> extends Updater<D
         String dateLine = null;
         String dataVersionLine = null;
         String line;
-        try (InputStream stream = HTTPClient.getUrlInputStream(getDownloadUrl());
-             BufferedReader bufferedReader = FileUtils.createBufferedReaderFromStream(stream)) {
+        try (final var stream = HTTPClient.getUrlInputStream(getDownloadUrl());
+             BufferedReader bufferedReader = FileUtils.createBufferedReaderFromStream(stream.stream)) {
             while ((line = bufferedReader.readLine()) != null) {
                 final String trimmedLine = line.trim();
                 if (trimmedLine.startsWith("data-version:"))

@@ -27,6 +27,7 @@ public abstract class Updater<D extends DataSource> {
     }
 
     private static final Logger LOGGER = LogManager.getLogger(Updater.class);
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     protected final D dataSource;
 
@@ -140,5 +141,38 @@ public abstract class Updater<D extends DataSource> {
         } catch (IOException e) {
             throw new UpdaterConnectionException("Failed to retrieve version", e);
         }
+    }
+
+    protected void downloadFileAsBrowser(final Workspace workspace, final String url,
+                                         final String fileName) throws UpdaterException {
+        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        final int[] rotateIndex = {0};
+        final long[] lastTime = {System.currentTimeMillis()};
+        char[] rotateChars = {'|', '/', '-', '\\'};
+        System.out.print(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
+        System.out.print(
+                " [INFO ] " + getClass().getName() + " - Downloading file '" + fileName + "' " + rotateChars[0] +
+                " [  0%]");
+        try {
+            HTTPClient.downloadFileAsBrowser(url, filePath, (position, length) -> {
+                long currentTime = System.currentTimeMillis();
+                if (currentTime - lastTime[0] > 1000) {
+                    rotateIndex[0] = (rotateIndex[0] + 1) % rotateChars.length;
+                    lastTime[0] += 1000;
+                }
+                System.out.print("\b\b\b\b\b\b\b\b");
+                System.out.print(rotateChars[rotateIndex[0]]);
+                if (length == null) {
+                    System.out.print(" [  ?%]");
+                } else {
+                    String percentage = String.format("%1$3s", (int) (position * 100.0 / length));
+                    System.out.print(" [" + percentage + "%]");
+                }
+            });
+        } catch (IOException e) {
+            System.out.print("\b\b\b\b\b\b\b\bX [  ?%]");
+            throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
+        }
+        System.out.println("\b\b\b\b\b\b\b\b\u2713 [100%]");
     }
 }

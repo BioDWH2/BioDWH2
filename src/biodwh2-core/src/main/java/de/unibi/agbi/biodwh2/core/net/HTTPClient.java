@@ -5,7 +5,9 @@ import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -16,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public final class HTTPClient {
     @SuppressWarnings("SpellCheckingInspection")
@@ -24,54 +27,50 @@ public final class HTTPClient {
     private HTTPClient() {
     }
 
-    @SuppressWarnings("unused")
-    public static void downloadFile(final String uri, final String filePath) throws IOException {
-        downloadStream(new URL(uri).openStream(), filePath);
-    }
-
-    public static void downloadStream(final InputStream stream, final String filePath) throws IOException {
-        try (ReadableByteChannel urlByteChannel = Channels.newChannel(stream);
+    public static void downloadStream(final StreamWithContentLength stream, final String filePath,
+                                      final BiConsumer<Long, Long> progressReporter) throws IOException {
+        try (ReadableByteChannel urlByteChannel = Channels.newChannel(stream.stream);
              FileOutputStream outputStream = new FileOutputStream(filePath)) {
-            outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
-        }
-    }
-
-    public static void downloadStream(final InputStream stream, final OutputStream outputStream) throws IOException {
-        try (ReadableByteChannel urlByteChannel = Channels.newChannel(stream)) {
             final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
-            fastCopy(urlByteChannel, outputChannel);
+            fastCopy(stream.contentLength, urlByteChannel, outputChannel, progressReporter);
+            //outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);
         }
     }
 
-    public static void fastCopy(final ReadableByteChannel in, final WritableByteChannel out) throws IOException {
+    public static void fastCopy(final Long length, final ReadableByteChannel in, final WritableByteChannel out,
+                                final BiConsumer<Long, Long> progressReporter) throws IOException {
+        long offset = 0;
         final ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
         while (in.read(buffer) != -1) {
             buffer.flip();
-            out.write(buffer);
+            offset += out.write(buffer);
             buffer.compact();
+            if (progressReporter != null)
+                progressReporter.accept(offset, length);
         }
         buffer.flip();
         while (buffer.hasRemaining())
             out.write(buffer);
     }
 
-    public static void downloadFileAsBrowser(final String uri, final OutputStream stream) throws IOException {
-        downloadStream(getUrlInputStream(uri), stream);
+    public static void downloadFileAsBrowser(final String uri, final String filePath) throws IOException {
+        downloadStream(getUrlInputStream(uri), filePath, null);
     }
 
-    public static void downloadFileAsBrowser(final String uri, final String filePath) throws IOException {
-        downloadStream(getUrlInputStream(uri), filePath);
+    public static void downloadFileAsBrowser(final String uri, final String filePath,
+                                             final BiConsumer<Long, Long> progressReporter) throws IOException {
+        downloadStream(getUrlInputStream(uri), filePath, progressReporter);
     }
 
     public static void downloadFileAsBrowser(final String uri, final String filePath, final String username,
                                              final String password) throws IOException {
-        downloadStream(getUrlInputStream(uri, username, password), filePath);
+        downloadStream(getUrlInputStream(uri, username, password), filePath, null);
     }
 
     public static void downloadFileAsBrowser(final String uri, final String filePath, final String username,
                                              final String password,
                                              final Map<String, String> additionalHeaders) throws IOException {
-        downloadStream(getUrlInputStream(uri, username, password, additionalHeaders), filePath);
+        downloadStream(getUrlInputStream(uri, username, password, additionalHeaders), filePath, null);
     }
 
     public static String getWebsiteSource(final String url) throws IOException {
@@ -92,8 +91,8 @@ public final class HTTPClient {
         int counter = 0;
         while (counter <= retries) {
             StringBuilder result = new StringBuilder();
-            try (BufferedReader reader = FileUtils.createBufferedReaderFromStream(
-                    getUrlInputStream(url, username, password))) {
+            try (final var stream = getUrlInputStream(url, username, password)) {
+                final var reader = FileUtils.createBufferedReaderFromStream(stream.stream);
                 String inputLine = reader.readLine();
                 while (inputLine != null) {
                     result.append(inputLine).append('\n');
@@ -111,17 +110,18 @@ public final class HTTPClient {
         return null;
     }
 
-    public static InputStream getUrlInputStream(final String url) throws IOException {
+    public static StreamWithContentLength getUrlInputStream(final String url) throws IOException {
         return getUrlInputStream(url, null, null, null);
     }
 
-    public static InputStream getUrlInputStream(final String url, final String username,
-                                                final String password) throws IOException {
+    public static StreamWithContentLength getUrlInputStream(final String url, final String username,
+                                                            final String password) throws IOException {
         return getUrlInputStream(url, username, password, null);
     }
 
-    public static InputStream getUrlInputStream(final String url, final String username, final String password,
-                                                final Map<String, String> additionalHeaders) throws IOException {
+    public static StreamWithContentLength getUrlInputStream(final String url, final String username,
+                                                            final String password,
+                                                            final Map<String, String> additionalHeaders) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) new URL(url).openConnection();
         if (username != null && password != null)
             urlConnection.setRequestProperty("Authorization", getBasicAuthForCredentials(username, password));
@@ -132,7 +132,11 @@ public final class HTTPClient {
         urlConnection.setInstanceFollowRedirects(false);
         urlConnection.connect();
         urlConnection = redirectURLConnectionIfNecessary(urlConnection);
-        return urlConnection.getInputStream();
+        final StreamWithContentLength result = new StreamWithContentLength();
+        result.stream = urlConnection.getInputStream();
+        if (result.stream != null)
+            result.contentLength = urlConnection.getContentLengthLong();
+        return result;
     }
 
     private static String getBasicAuthForCredentials(final String username, final String password) {
@@ -185,14 +189,25 @@ public final class HTTPClient {
     }
 
     public static LocalDateTime peekZipModificationDateTime(final String url) throws IOException {
-        final InputStream stream = getUrlInputStream(url);
-        if (stream != null) {
+        final var stream = getUrlInputStream(url);
+        if (stream.stream != null) {
             final byte[] data = new byte[14];
-            final int bytesRead = stream.read(data);
-            stream.close();
+            final int bytesRead = stream.stream.read(data);
+            stream.stream.close();
             if (bytesRead >= 14)
                 return BinaryUtils.parseMSDOSDateTime(data[10], data[11], data[12], data[13]);
         }
         return null;
+    }
+
+    public static class StreamWithContentLength implements AutoCloseable {
+        public InputStream stream;
+        public Long contentLength;
+
+        @Override
+        public void close() throws IOException {
+            if (stream != null)
+                stream.close();
+        }
     }
 }
