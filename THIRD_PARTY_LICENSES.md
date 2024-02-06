@@ -3,7 +3,7 @@ BioDWH2 is developed and distributed with the following third party dependencies
 
 |       | Apache License, Version 2.0 | MIT License | BSD License | MPL 2.0 / EPL 1.0 |
 |-------|:---------------------------:|:-----------:|:-----------:|:-----------------:|
-| Count |             16              |      1      |      2      |         1         |
+| Count |             27              |      2      |      3      |         1         |
 
 ## Dependency tree
   * **[1]** ```org.apache.commons.commons-lang3``` version ```3.14.0``` licensed under ```Apache License, Version 2.0```
@@ -33,6 +33,24 @@ BioDWH2 is developed and distributed with the following third party dependencies
       * **[11]**
   * **[18]** ```info.picocli.picocli``` version ```4.7.5``` licensed under ```Apache License, Version 2.0```
   * **[19]** ```org.antlr.antlr4-runtime``` version ```4.13.1``` licensed under ```BSD-3-Clause License```
+  * **[20]** ```org.apache.parquet.parquet-column``` version ```1.13.1``` licensed under ```Apache License, Version 2.0```
+    * **[21]** ```org.apache.parquet.parquet-common``` version ```1.13.1``` licensed under ```Apache License, Version 2.0```
+      * **[22]** ```org.apache.parquet.parquet-format-structures``` version ```1.13.1``` licensed under ```Apache License, Version 2.0```
+    * **[23]** ```org.apache.parquet.parquet-encoding``` version ```1.13.1``` licensed under ```Apache License, Version 2.0```
+      * **[21]**
+    * **[24]** ```org.apache.yetus.audience-annotations``` version ```0.13.0``` licensed under ```Apache License, Version 2.0```
+  * **[25]** ```org.apache.parquet.parquet-hadoop``` version ```1.13.1``` licensed under ```Apache License, Version 2.0```
+    * **[20]**
+    * **[21]**
+    * **[22]**
+    * **[24]**
+    * **[26]** ```org.apache.parquet.parquet-jackson``` version ```1.13.1``` licensed under ```Apache License, Version 2.0```
+    * **[27]** ```org.xerial.snappy.snappy-java``` version ```1.1.8.3``` licensed under ```Apache License, Version 2.0```
+    * **[28]** ```io.airlift.aircompressor``` version ```0.21``` licensed under ```Apache License, Version 2.0```
+    * **[29]** ```com.github.luben.zstd-jni``` version ```1.5.0-1``` licensed under ```BSD-2-Clause License```
+    * **[30]** ```org.apache.logging.log4j.log4j-slf4j2-impl``` version ```2.22.1``` licensed under ```Apache License, Version 2.0```
+      * **[31]** ```org.apache.logging.log4j.log4j-api``` version ```2.22.1``` licensed under ```Apache License, Version 2.0```
+      * **[32]** ```org.slf4j.slf4j-api``` version ```1.7.22``` licensed under ```MIT License```
 
 ## org.h2.mvstore
 This software contains modified redistributions of the MVStore component from the H2 database engine (https://h2database.com),

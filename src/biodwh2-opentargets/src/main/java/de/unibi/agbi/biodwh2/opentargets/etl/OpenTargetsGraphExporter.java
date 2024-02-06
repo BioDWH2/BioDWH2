@@ -1,8 +1,5 @@
 package de.unibi.agbi.biodwh2.opentargets.etl;
 
-import blue.strategic.parquet.Hydrator;
-import blue.strategic.parquet.HydratorSupplier;
-import blue.strategic.parquet.ParquetReader;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
@@ -13,14 +10,16 @@ import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.opentargets.OpenTargetsDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.parquet.hadoop.metadata.ParquetMetadata;
 import org.apache.parquet.io.DelegatingSeekableInputStream;
 import org.apache.parquet.io.InputFile;
 import org.apache.parquet.io.SeekableInputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.zip.ZipInputStream;
 
 public class OpenTargetsGraphExporter extends GraphExporter<OpenTargetsDataSource> {
     private static final Logger LOGGER = LogManager.getLogger(OpenTargetsGraphExporter.class);
@@ -48,191 +47,79 @@ public class OpenTargetsGraphExporter extends GraphExporter<OpenTargetsDataSourc
         graph.addIndex(IndexDescription.forNode(MOLECULE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(REFERENCE_LABEL, ID_KEY, IndexDescription.Type.NON_UNIQUE));
-        Hydrator<Map<String, Object>, Map<String, Object>> hydrator = new Hydrator<>() {
-            @Override
-            public Map<String, Object> start() {
-                return new HashMap<>();
+        exportMolecules(workspace, graph);
+        exportDiseases(workspace, graph);
+        return false;
+    }
+
+    private void exportMolecules(final Workspace workspace, final Graph graph) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting molecules...");
+        processParquetZip(workspace, OpenTargetsUpdater.MOLECULE_FILE_NAME,
+                          (metadata, entry) -> exportMolecule(graph, metadata, entry));
+    }
+
+    private void exportMolecule(final Graph graph, final ParquetMetadata metadata, final Map<String, Object> entry) {
+        // TODO
+        graph.addNode(MOLECULE_LABEL, ID_KEY, entry.get("id"));
+    }
+
+    private void processParquetZip(Workspace workspace, final String fileName,
+                                   final BiConsumer<ParquetMetadata, Map<String, Object>> consumer) {
+        try (final var stream = FileUtils.openZip(workspace, dataSource, fileName)) {
+            while (stream.getNextEntry() != null) {
+                final var inputFile = getInputFileFromZipStream(stream);
+                final var metadata = ParquetReader.readMetadata(inputFile);
+                ParquetReader.streamContent(inputFile).forEach((entry) -> consumer.accept(metadata, entry));
+            }
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to export '" + fileName + "'", e);
+        }
+    }
+
+    private static InputFile getInputFileFromZipStream(final ZipInputStream stream) throws IOException {
+        final byte[] data = stream.readAllBytes();
+        final var dataStream = new ByteArrayInputStream(data) {
+            public int getPos() {
+                return super.pos;
             }
 
-            @Override
-            public HashMap<String, Object> add(Map<String, Object> target, String heading, Object value) {
-                HashMap<String, Object> r = new HashMap<>(target);
-                r.put(heading, value);
-                return r;
-            }
-
-            @Override
-            public Map<String, Object> finish(Map<String, Object> target) {
-                return target;
+            public void seek(int newPos) {
+                pos = newPos;
             }
         };
-        try (final var stream = FileUtils.openZip(workspace, dataSource, OpenTargetsUpdater.DISEASES_FILE_NAME)) {
-            while (stream.getNextEntry() != null) {
-                final byte[] data = stream.readAllBytes();
-                final var dataStream = new ByteArrayInputStream(data) {
-                    public int getPos() {
-                        return super.pos;
-                    }
-
-                    public void seek(int newPos) {
-                        pos = newPos;
-                    }
-                };
-                final var inputFile = new InputFile() {
-                    @Override
-                    public long getLength() {
-                        return data.length;
-                    }
-
-                    @Override
-                    public SeekableInputStream newStream() {
-                        return new DelegatingSeekableInputStream(dataStream) {
-                            @Override
-                            public long getPos() {
-                                return dataStream.getPos();
-                            }
-
-                            @Override
-                            public void seek(long newPos) {
-                                dataStream.seek((int) newPos);
-                            }
-                        };
-                    }
-                };
-                ParquetReader.streamContent(inputFile, HydratorSupplier.constantly(hydrator)).forEach((entry) -> {
-                    entry.values();
-                });
+        return new InputFile() {
+            @Override
+            public long getLength() {
+                return data.length;
             }
-            return false;
-        } catch (IOException e) {
-            throw new ExporterFormatException(e);
-        }
-        //exportMolecules(workspace, graph);
-        //exportDiseases(workspace, graph);
-        //exportMechanismsOfAction(workspace, graph);
-        //exportDrugWarnings(workspace, graph);
-        //exportIndications(workspace, graph);
-        //exportPathways(workspace, graph);
-        //return false;
-    }
 
-    /*
-    private void exportMolecules(final Workspace workspace, final Graph graph) {
-        // TODO: relationships, links, references, etc.
-        for (final Molecule molecule : openJsonFile(workspace, OpenTargetsUpdater.MOLECULE_FILE_NAME, Molecule.class))
-            graph.addNodeFromModel(molecule);
-    }
+            @Override
+            public SeekableInputStream newStream() {
+                return new DelegatingSeekableInputStream(dataStream) {
+                    @Override
+                    public long getPos() {
+                        return dataStream.getPos();
+                    }
 
-    private <T> Iterable<T> openJsonFile(final Workspace workspace, final String fileName, final Class<T> type) {
-        final NDJsonObjectMapper mapper = new NDJsonObjectMapper();
-        try {
-            final Iterator<T> iterator = mapper.readValues(FileUtils.openGzip(workspace, dataSource, fileName), type);
-            return () -> iterator;
-        } catch (IOException e) {
-            throw new ExporterFormatException(e);
-        }
+                    @Override
+                    public void seek(long newPos) {
+                        dataStream.seek((int) newPos);
+                    }
+                };
+            }
+        };
     }
 
     private void exportDiseases(final Workspace workspace, final Graph graph) {
-        // TODO: ontology, ontology.sources, synonyms
-        for (final Disease disease : openJsonFile(workspace, OpenTargetsUpdater.DISEASES_FILE_NAME, Disease.class))
-            graph.addNodeFromModel(disease);
-        for (final Disease disease : openJsonFile(workspace, OpenTargetsUpdater.DISEASES_FILE_NAME, Disease.class)) {
-            final Node node = graph.findNode(DISEASE_LABEL, ID_KEY, disease.id);
-            for (final String childId : disease.children) {
-                final Node child = graph.findNode(DISEASE_LABEL, ID_KEY, childId);
-                graph.addEdge(child, node, "CHILD_OF");
-            }
-        }
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Exporting diseases...");
+        processParquetZip(workspace, OpenTargetsUpdater.DISEASES_FILE_NAME,
+                          (metadata, entry) -> exportDisease(graph, metadata, entry));
     }
 
-    private void exportMechanismsOfAction(final Workspace workspace, final Graph graph) {
-        for (final MechanismOfAction mechanism : openJsonFile(workspace,
-                                                              OpenTargetsUpdater.MECHANISM_OF_ACTION_FILE_NAME,
-                                                              MechanismOfAction.class)) {
-            final Node node = graph.addNode(MECHANISM_OF_ACTION_LABEL, "action_type", mechanism.actionType,
-                                            "mechanism_of_action", mechanism.mechanismOfAction);
-            for (final String chemblId : mechanism.chemblIds) {
-                final Node moleculeNode = graph.findNode(MOLECULE_LABEL, ID_KEY, chemblId);
-                graph.addEdge(moleculeNode, node, "HAS_MECHANISM_OF_ACTION");
-            }
-            // TODO: targets
-            for (final MechanismOfAction.Reference reference : mechanism.references) {
-                if (reference.ids.length == reference.urls.length) {
-                    for (int i = 0; i < reference.ids.length; i++) {
-                        final Node referenceNode = getOrCreateReference(graph, reference.source, reference.ids[i],
-                                                                        reference.urls[i]);
-                        graph.addEdge(node, referenceNode, HAS_REFERENCE_LABEL);
-                    }
-                } else if (reference.ids.length > 0 && reference.urls.length == 0) {
-                    for (final String id : reference.ids)
-                        graph.addEdge(node, getOrCreateReference(graph, reference.source, id, null),
-                                      HAS_REFERENCE_LABEL);
-                } else if (reference.ids.length == 0) {
-                    for (final String url : reference.urls)
-                        graph.addEdge(node, getOrCreateReference(graph, reference.source, null, url),
-                                      HAS_REFERENCE_LABEL);
-                } else if (LOGGER.isWarnEnabled())
-                    LOGGER.warn("Failed to add reference with uneven ids and urls " + reference);
-            }
-        }
+    private void exportDisease(final Graph graph, final ParquetMetadata metadata, final Map<String, Object> entry) {
+        // TODO
+        graph.addNode(DISEASE_LABEL, ID_KEY, entry.get("id"));
     }
-
-    private Node getOrCreateReference(final Graph graph, final String source, final String id, final String url) {
-        Node node = null;
-        if (id != null)
-            node = graph.findNode(REFERENCE_LABEL, ID_KEY, id, "source", source);
-        else if (url != null)
-            node = graph.findNode(REFERENCE_LABEL, "url", url, "source", source);
-        if (node == null) {
-            if (id != null && url != null)
-                node = graph.addNode(REFERENCE_LABEL, ID_KEY, id, "source", source, "url", url);
-            else if (id != null)
-                node = graph.addNode(REFERENCE_LABEL, ID_KEY, id, "source", source);
-            else if (url != null)
-                node = graph.addNode(REFERENCE_LABEL, "url", url, "source", source);
-        }
-        return node;
-    }
-
-    private void exportDrugWarnings(final Workspace workspace, final Graph graph) {
-        for (final DrugWarning warning : openJsonFile(workspace, OpenTargetsUpdater.DRUG_WARNINGS_FILE_NAME,
-                                                      DrugWarning.class)) {
-            final Node node = graph.addNodeFromModel(warning);
-            for (final DrugWarning.Reference reference : warning.references)
-                graph.addEdge(node, getOrCreateReference(graph, reference.refType, reference.refId, reference.refUrl),
-                              HAS_REFERENCE_LABEL);
-        }
-    }
-
-    private void exportIndications(final Workspace workspace, final Graph graph) {
-        for (final Indication indication : openJsonFile(workspace, OpenTargetsUpdater.INDICATION_FILE_NAME,
-                                                        Indication.class)) {
-            final Node moleculeNode = graph.findNode(MOLECULE_LABEL, ID_KEY, indication.id);
-            final List<String> approvedIndications = Arrays.asList(indication.approvedIndications);
-            for (final Indication.Entry entry : indication.indications) {
-                final Node diseaseNode = graph.findNode(DISEASE_LABEL, ID_KEY, entry.disease);
-                final Node indicationNode = graph.addNode(INDICATION_LABEL, "approved",
-                                                          approvedIndications.contains(entry.disease), "efo_name",
-                                                          entry.efoName, "max_phase", entry.maxPhaseForIndication);
-                graph.addEdge(moleculeNode, indicationNode, INDICATES_LABEL);
-                graph.addEdge(indicationNode, diseaseNode, INDICATES_LABEL);
-                for (final Indication.Reference reference : entry.references)
-                    for (final String id : reference.ids)
-                        graph.addEdge(indicationNode, getOrCreateReference(graph, reference.source, id, null),
-                                      HAS_REFERENCE_LABEL);
-            }
-        }
-    }
-
-    private void exportPathways(final Workspace workspace, final Graph graph) {
-        for (final Reactome reactome : openJsonFile(workspace, OpenTargetsUpdater.REACTOME_FILE_NAME, Reactome.class))
-            graph.addNodeFromModel(reactome);
-        for (final Reactome reactome : openJsonFile(workspace, OpenTargetsUpdater.REACTOME_FILE_NAME, Reactome.class)) {
-            final Node node = graph.findNode(PATHWAY_LABEL, ID_KEY, reactome.id);
-            for (final String parentId : reactome.parents)
-                graph.addEdge(node, graph.findNode(PATHWAY_LABEL, ID_KEY, parentId), "CHILD_OF");
-        }
-        // TODO: path?
-    }*/
 }
