@@ -15,4 +15,12 @@ public class Configuration {
     public String get(String x) {
         return null;
     }
+
+    public String[] getStrings(String x) {
+        return null;
+    }
+
+    public String[] getStrings(String x, String[] y) {
+        return y;
+    }
 }

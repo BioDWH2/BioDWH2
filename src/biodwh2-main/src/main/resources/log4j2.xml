@@ -8,5 +8,6 @@
         <Root level="info">
             <AppenderRef ref="console"/>
         </Root>
+        <Logger name="org.apache.parquet.hadoop.InternalParquetRecordReader" level="WARN" />
     </Loggers>
 </Configuration>

@@ -3,7 +3,7 @@ BioDWH2 is developed and distributed with the following third party dependencies
 
 |       | Apache License, Version 2.0 | MIT License | BSD License | MPL 2.0 / EPL 1.0 |
 |-------|:---------------------------:|:-----------:|:-----------:|:-----------------:|
-| Count |             27              |      2      |      3      |         1         |
+| Count |             29              |      2      |      3      |         1         |
 
 ## Dependency tree
   * **[1]** ```org.apache.commons.commons-lang3``` version ```3.14.0``` licensed under ```Apache License, Version 2.0```
@@ -51,6 +51,14 @@ BioDWH2 is developed and distributed with the following third party dependencies
     * **[30]** ```org.apache.logging.log4j.log4j-slf4j2-impl``` version ```2.22.1``` licensed under ```Apache License, Version 2.0```
       * **[31]** ```org.apache.logging.log4j.log4j-api``` version ```2.22.1``` licensed under ```Apache License, Version 2.0```
       * **[32]** ```org.slf4j.slf4j-api``` version ```1.7.22``` licensed under ```MIT License```
+  * **[33]** ```org.apache.parquet.parquet-avro``` version ```1.13.1``` licensed under ```Apache License, Version 2.0```
+    * **[20]**
+    * **[21]**
+    * **[25]**
+    * **[34]** ```org.apache.avro.avro``` version ```1.11.1``` licensed under ```Apache License, Version 2.0```
+      * **[4]**
+      * **[12]**
+      * **[14]**
 
 ## org.h2.mvstore
 This software contains modified redistributions of the MVStore component from the H2 database engine (https://h2database.com),

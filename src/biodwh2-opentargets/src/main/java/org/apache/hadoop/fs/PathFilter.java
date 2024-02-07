@@ -12,13 +12,6 @@
  */
 package org.apache.hadoop.fs;
 
-import java.io.EOFException;
-import java.io.IOException;
-
-public interface PositionedReadable {
-    int read(long position, byte[] buffer, int offset, int length) throws IOException;
-
-    void readFully(long position, byte[] buffer, int offset, int length) throws IOException;
-
-    void readFully(long position, byte[] buffer) throws IOException;
+public interface PathFilter {
+    boolean accept(Path path);
 }
