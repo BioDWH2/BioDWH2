@@ -4,7 +4,6 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
-import de.unibi.agbi.biodwh2.core.model.graph.mapping.PublicationNodeMappingDescription;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
@@ -16,48 +15,10 @@ public class OpenTargetsMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if (OpenTargetsGraphExporter.REFERENCE_LABEL.equals(localMappingLabel))
-            return describeReference(node);
         if (OpenTargetsGraphExporter.MOLECULE_LABEL.equals(localMappingLabel))
             return describeMolecule(node);
         if (OpenTargetsGraphExporter.DISEASE_LABEL.equals(localMappingLabel))
             return describeDisease(node);
-        return null;
-    }
-
-    private NodeMappingDescription[] describeReference(final Node node) {
-        final String source = node.getProperty("source");
-        final String id = node.getProperty("id");
-        if (source != null && id != null) {
-            // "Other", "FDA", "DailyMed", "ISBN", "Wikipedia", "EMA", "KEGG", "PMDA", "Health Canada", "Expert",
-            // "UniProt", "Patent", "IUPHAR", "PubChem", "InterPro", "USGPO", "NTP", "MEDSAFE"
-            switch (source) {
-                case "PubMed": {
-                    PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
-                    description.pubmedId = Integer.parseInt(id);
-                    description.addIdentifier(IdentifierType.PUBMED_ID, description.pubmedId);
-                    return new NodeMappingDescription[]{description};
-                }
-                case "DOI": {
-                    PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
-                    description.doi = id;
-                    description.addIdentifier(IdentifierType.DOI, id);
-                    return new NodeMappingDescription[]{description};
-                }
-                case "PMC": {
-                    PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
-                    description.pmcId = id;
-                    description.addIdentifier(IdentifierType.PUBMED_CENTRAL_ID, id);
-                    return new NodeMappingDescription[]{description};
-                }
-                case "ClinicalTrials": {
-                    NodeMappingDescription description = new NodeMappingDescription(
-                            NodeMappingDescription.NodeType.CLINICAL_TRIAL);
-                    description.addIdentifier(IdentifierType.NCT_NUMBER, id);
-                    return new NodeMappingDescription[]{description};
-                }
-            }
-        }
         return null;
     }
 
@@ -138,25 +99,17 @@ public class OpenTargetsMappingDescriber extends MappingDescriber {
     @Override
     protected String[] getNodeMappingLabels() {
         return new String[]{
-                OpenTargetsGraphExporter.REFERENCE_LABEL, OpenTargetsGraphExporter.MOLECULE_LABEL,
-                OpenTargetsGraphExporter.DISEASE_LABEL
+                OpenTargetsGraphExporter.MOLECULE_LABEL, OpenTargetsGraphExporter.DISEASE_LABEL
         };
     }
 
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
-        if (edges.length == 2 && edges[0].getLabel().endsWith(OpenTargetsGraphExporter.INDICATES_LABEL))
-            return new PathMappingDescription(PathMappingDescription.EdgeType.INDICATES);
         return null;
     }
 
     @Override
     protected PathMapping[] getEdgePathMappings() {
-        return new PathMapping[]{
-                new PathMapping().add(OpenTargetsGraphExporter.MOLECULE_LABEL, OpenTargetsGraphExporter.INDICATES_LABEL,
-                                      OpenTargetsGraphExporter.INDICATION_LABEL, EdgeDirection.FORWARD).add(
-                        OpenTargetsGraphExporter.INDICATION_LABEL, OpenTargetsGraphExporter.INDICATES_LABEL,
-                        OpenTargetsGraphExporter.DISEASE_LABEL, EdgeDirection.FORWARD)
-        };
+        return new PathMapping[0];
     }
 }
