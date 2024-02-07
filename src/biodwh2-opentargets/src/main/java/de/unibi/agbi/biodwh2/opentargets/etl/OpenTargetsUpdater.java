@@ -12,17 +12,14 @@ import de.unibi.agbi.biodwh2.opentargets.OpenTargetsDataSource;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class OpenTargetsUpdater extends Updater<OpenTargetsDataSource> {
-    private static final Logger LOGGER = LogManager.getLogger(OpenTargetsUpdater.class);
     private static final String FTP_VERSIONS_URL = "http://ftp.ebi.ac.uk/pub/databases/opentargets/platform/";
     private static final String FTP_BASE_URL = "https://ftp.ebi.ac.uk/pub/databases/opentargets/platform/latest/output/etl/parquet/";
     static final String BASELINE_EXPRESSION_FILE_NAME = "baselineExpression.parquet.zip";
@@ -80,53 +77,56 @@ public class OpenTargetsUpdater extends Updater<OpenTargetsDataSource> {
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         final var client = new HTTPFTPClient(FTP_BASE_URL);
-        try {
-            // Not used: AOTFClickhouse, AOTFElasticsearch, errors, ebisearchAssociations, ebisearchEvidence,
-            // searchDisease, searchDrug, searchTarget, associationByDatasourceDirect,
-            // associationByDatasourceIndirect, associationByDatatypeDirect, associationByDatatypeIndirect,
-            // associationByOverallDirect, associationByOverallIndirect, evidence
-            downloadFiles(workspace, client, "baselineExpression");
-            downloadFiles(workspace, client, "diseaseToPhenotype");
-            downloadFiles(workspace, client, "diseases");
-            downloadFiles(workspace, client, "drugWarnings");
-            downloadFiles(workspace, client, "fda/significantAdverseDrugReactions");
-            downloadFiles(workspace, client, "fda/significantAdverseTargetReactions");
-            downloadFiles(workspace, client, "go");
-            downloadFiles(workspace, client, "hpo");
-            downloadFiles(workspace, client, "indication");
-            downloadFiles(workspace, client, "interaction");
-            downloadFiles(workspace, client, "interactionEvidence");
-            downloadFiles(workspace, client, "knownDrugsAggregated");
-            downloadFiles(workspace, client, "mechanismOfAction");
-            downloadFiles(workspace, client, "molecule");
-            downloadFiles(workspace, client, "mousePhenotypes");
-            downloadFiles(workspace, client, "reactome");
-            downloadFiles(workspace, client, "targets");
-            downloadFiles(workspace, client, "epmcCooccurrences");
-            downloadFiles(workspace, client, "expressionSpecificity");
-            downloadFiles(workspace, client, "pharmacogenomics");
-            downloadFiles(workspace, client, "targetEssentiality");
-            downloadFiles(workspace, client, "targetPrioritisation");
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        // Not used: AOTFClickhouse, AOTFElasticsearch, errors, ebisearchAssociations, ebisearchEvidence,
+        // searchDisease, searchDrug, searchTarget, associationByDatasourceDirect,
+        // associationByDatasourceIndirect, associationByDatatypeDirect, associationByDatatypeIndirect,
+        // associationByOverallDirect, associationByOverallIndirect, evidence
+        downloadFiles(workspace, client, "baselineExpression");
+        downloadFiles(workspace, client, "diseaseToPhenotype");
+        downloadFiles(workspace, client, "diseases");
+        downloadFiles(workspace, client, "drugWarnings");
+        downloadFiles(workspace, client, "fda/significantAdverseDrugReactions");
+        downloadFiles(workspace, client, "fda/significantAdverseTargetReactions");
+        downloadFiles(workspace, client, "go");
+        downloadFiles(workspace, client, "hpo");
+        downloadFiles(workspace, client, "indication");
+        downloadFiles(workspace, client, "interaction");
+        downloadFiles(workspace, client, "interactionEvidence");
+        downloadFiles(workspace, client, "knownDrugsAggregated");
+        downloadFiles(workspace, client, "mechanismOfAction");
+        downloadFiles(workspace, client, "molecule");
+        downloadFiles(workspace, client, "mousePhenotypes");
+        downloadFiles(workspace, client, "reactome");
+        downloadFiles(workspace, client, "targets");
+        downloadFiles(workspace, client, "epmcCooccurrences");
+        downloadFiles(workspace, client, "expressionSpecificity");
+        downloadFiles(workspace, client, "pharmacogenomics");
+        downloadFiles(workspace, client, "targetEssentiality");
+        downloadFiles(workspace, client, "targetPrioritisation");
         return true;
     }
 
     private void downloadFiles(final Workspace workspace, final HTTPFTPClient client,
-                               final String directoryName) throws IOException {
-        final HTTPFTPClient.Entry[] entries = client.listDirectory(directoryName);
+                               final String directoryName) throws UpdaterConnectionException {
         final String fileName = StringUtils.replace(directoryName, "/", "_") + ".parquet.zip";
-        final String targetFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
-        final Optional<Integer> maxPartNumber = Arrays.stream(entries).map(e -> e.name).filter(
-                n -> n.startsWith("part-")).map(n -> Integer.parseInt(StringUtils.split(n, '-')[1])).max(
-                Integer::compareTo);
-        if (LOGGER.isInfoEnabled()) {
-            if (maxPartNumber.isPresent())
-                LOGGER.info("Downloading " + directoryName + " in " + (maxPartNumber.get() + 1) + " parts...");
-            else
-                LOGGER.info("Downloading " + directoryName + "...");
+        final HTTPFTPClient.Entry[] entries;
+        try {
+            entries = client.listDirectory(directoryName);
+        } catch (IOException e) {
+            throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
         }
+        final String targetFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        final int maxPartNumber = Arrays.stream(entries).map(e -> e.name).filter(n -> n.startsWith("part-")).map(
+                n -> Integer.parseInt(StringUtils.split(n, '-')[1])).max(Integer::compareTo).orElse(0) + 1;
+        final int maxPartNumberLength = String.valueOf(maxPartNumber).length();
+        final var backspaceString = "\b".repeat(maxPartNumberLength * 2 + 10);
+        final int[] rotateIndex = {0};
+        final int[] partIndex = {1};
+        final long[] lastTime = {System.currentTimeMillis()};
+        System.out.print(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
+        System.out.print(" [INFO ] " + getClass().getName() + " - Downloading file '" + fileName + "' ");
+        System.out.print("in " + maxPartNumber + " parts " + ROTATE_CHARS[0] + ' ' +
+                         String.format("%1$" + maxPartNumberLength + "s", 1) + "/" + maxPartNumber + " [  0%]");
         try (final var outputStream = new ZipArchiveOutputStream(FileUtils.openOutput(targetFilePath))) {
             for (final HTTPFTPClient.Entry entry : entries) {
                 if (entry.name.endsWith(".parquet")) {
@@ -134,11 +134,36 @@ public class OpenTargetsUpdater extends Updater<OpenTargetsDataSource> {
                     final var zipEntry = new ZipArchiveEntry(entry.name);
                     zipEntry.setSize(stream.contentLength);
                     outputStream.putArchiveEntry(zipEntry);
-                    HTTPClient.downloadStream(stream, outputStream, null);
+                    HTTPClient.downloadStream(stream, outputStream, (position, length) -> {
+                        long currentTime = System.currentTimeMillis();
+                        if (currentTime - lastTime[0] > 500) {
+                            rotateIndex[0] = (rotateIndex[0] + 1) % ROTATE_CHARS.length;
+                            lastTime[0] += 1000;
+                        }
+                        System.out.print(backspaceString);
+                        System.out.print(ROTATE_CHARS[rotateIndex[0]]);
+                        System.out.print(' ');
+                        System.out.printf("%1$" + maxPartNumberLength + "s", partIndex[0]);
+                        System.out.print('/');
+                        System.out.print(maxPartNumber);
+                        if (length == null) {
+                            System.out.print(" [  ?%]");
+                        } else {
+                            String percentage = String.format("%1$3s", (int) (position * 100.0 / length));
+                            System.out.print(" [" + percentage + "%]");
+                        }
+                    });
                     outputStream.closeArchiveEntry();
+                    partIndex[0]++;
                 }
             }
+        } catch (IOException e) {
+            System.out.print(backspaceString);
+            System.out.println("X [  ?%]");
+            throw new UpdaterConnectionException("Failed to download file '" + directoryName + "'", e);
         }
+        System.out.print(backspaceString);
+        System.out.println("\u2713 [100%]");
     }
 
     @Override
