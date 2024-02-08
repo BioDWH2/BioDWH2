@@ -6,6 +6,7 @@ import de.unibi.agbi.biodwh2.core.cache.DataSourceVersion;
 import de.unibi.agbi.biodwh2.core.cache.OnlineVersionCache;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
+import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.function.BiConsumer;
 
 public abstract class Updater<D extends DataSource> {
     public enum UpdateState {
@@ -147,6 +149,20 @@ public abstract class Updater<D extends DataSource> {
     protected void downloadFileAsBrowser(final Workspace workspace, final String url,
                                          final String fileName) throws UpdaterException {
         final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        downloadFileAsBrowser(url, fileName,
+                              (progressReporter) -> HTTPClient.downloadFileAsBrowser(url, filePath, progressReporter));
+    }
+
+    protected void downloadFileAsBrowser(final Workspace workspace, final String url, final String fileName,
+                                         final String username, final String password) throws UpdaterException {
+        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        downloadFileAsBrowser(url, fileName,
+                              (progressReporter) -> HTTPClient.downloadFileAsBrowser(url, filePath, username, password,
+                                                                                     progressReporter));
+    }
+
+    protected void downloadFileAsBrowser(final String url, final String fileName,
+                                         final FileUtils.IOConsumer<BiConsumer<Long, Long>> ioConsumer) throws UpdaterException {
         final int[] rotateIndex = {0};
         final long[] lastTime = {System.currentTimeMillis()};
         System.out.print(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
@@ -154,7 +170,7 @@ public abstract class Updater<D extends DataSource> {
                 " [INFO ] " + getClass().getName() + " - Downloading file '" + fileName + "' " + ROTATE_CHARS[0] +
                 " [  0%]");
         try {
-            HTTPClient.downloadFileAsBrowser(url, filePath, (position, length) -> {
+            ioConsumer.accept((position, length) -> {
                 long currentTime = System.currentTimeMillis();
                 if (currentTime - lastTime[0] > 500) {
                     rotateIndex[0] = (rotateIndex[0] + 1) % ROTATE_CHARS.length;
@@ -162,10 +178,10 @@ public abstract class Updater<D extends DataSource> {
                 }
                 System.out.print("\b\b\b\b\b\b\b\b");
                 System.out.print(ROTATE_CHARS[rotateIndex[0]]);
-                if (length == null) {
+                if (length == null || length <= 0) {
                     System.out.print(" [  ?%]");
                 } else {
-                    String percentage = String.format("%1$3s", (int) (position * 100.0 / length));
+                    final String percentage = String.format("%1$3s", (int) (position * 100.0 / length));
                     System.out.print(" [" + percentage + "%]");
                 }
             });

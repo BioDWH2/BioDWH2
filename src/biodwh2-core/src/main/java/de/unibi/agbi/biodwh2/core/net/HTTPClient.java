@@ -78,8 +78,20 @@ public final class HTTPClient {
 
     public static void downloadFileAsBrowser(final String uri, final String filePath, final String username,
                                              final String password,
+                                             final BiConsumer<Long, Long> progressReporter) throws IOException {
+        downloadStream(getUrlInputStream(uri, username, password), filePath, progressReporter);
+    }
+
+    public static void downloadFileAsBrowser(final String uri, final String filePath, final String username,
+                                             final String password,
                                              final Map<String, String> additionalHeaders) throws IOException {
         downloadStream(getUrlInputStream(uri, username, password, additionalHeaders), filePath, null);
+    }
+
+    public static void downloadFileAsBrowser(final String uri, final String filePath, final String username,
+                                             final String password, final Map<String, String> additionalHeaders,
+                                             final BiConsumer<Long, Long> progressReporter) throws IOException {
+        downloadStream(getUrlInputStream(uri, username, password, additionalHeaders), filePath, progressReporter);
     }
 
     public static String getWebsiteSource(final String url) throws IOException {
@@ -136,7 +148,7 @@ public final class HTTPClient {
     public static StreamWithContentLength getUrlInputStream(final String url, final String username,
                                                             final String password,
                                                             final Map<String, String> additionalHeaders) throws IOException {
-        HttpURLConnection urlConnection = (HttpURLConnection) new URL(url).openConnection();
+        var urlConnection = (HttpURLConnection) new URL(url).openConnection();
         if (username != null && password != null)
             urlConnection.setRequestProperty("Authorization", getBasicAuthForCredentials(username, password));
         urlConnection.setRequestProperty("User-Agent", USER_AGENT);
@@ -146,7 +158,7 @@ public final class HTTPClient {
         urlConnection.setInstanceFollowRedirects(false);
         urlConnection.connect();
         urlConnection = redirectURLConnectionIfNecessary(urlConnection);
-        final StreamWithContentLength result = new StreamWithContentLength();
+        final var result = new StreamWithContentLength();
         result.stream = urlConnection.getInputStream();
         if (result.stream != null)
             result.contentLength = urlConnection.getContentLengthLong();

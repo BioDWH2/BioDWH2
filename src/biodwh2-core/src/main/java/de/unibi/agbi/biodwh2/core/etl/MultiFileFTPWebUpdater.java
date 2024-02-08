@@ -71,11 +71,11 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         for (final String fileName : getFilePaths(workspace)) {
+            final String localFileName = Paths.get(fileName).getFileName().toString();
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Downloading '" + fileName + "'...");
             int tries = 1;
             while (tries < 6) {
-                final String localFileName = Paths.get(fileName).getFileName().toString();
                 final String resolvedFilePath = dataSource.resolveSourceFilePath(workspace, localFileName);
                 try {
                     HTTPClient.downloadFileAsBrowser(getFTPIndexUrl() + fileName, resolvedFilePath);
