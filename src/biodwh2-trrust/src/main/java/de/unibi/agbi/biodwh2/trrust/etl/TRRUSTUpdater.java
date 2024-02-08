@@ -31,8 +31,8 @@ public class TRRUSTUpdater extends Updater<TRRUSTDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + HUMAN_FILE_NAME, HUMAN_FILE_NAME);
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + MOUSE_FILE_NAME, MOUSE_FILE_NAME);
+        for (final String fileName : expectedFileNames())
+            downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }
 

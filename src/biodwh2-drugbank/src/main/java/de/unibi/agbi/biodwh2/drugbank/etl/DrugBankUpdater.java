@@ -4,13 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterMalformedVersionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterOnlyManuallyException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.drugbank.DrugBankDataSource;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.Map;
@@ -69,38 +68,18 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
         final Map<String, String> drugBankProperties = dataSource.getProperties(workspace);
         final String username = drugBankProperties.getOrDefault("username", null);
         final String password = drugBankProperties.getOrDefault("password", null);
-        if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
-            final JsonNode releases = loadReleasesJson();
-            final JsonNode latestRelease = releases.get(0);
-            final String latestReleaseUrl = latestRelease.get("url").asText();
-            try {
-                final String filePath = dataSource.resolveSourceFilePath(workspace, FULL_DATABASE_FILE_NAME);
-                HTTPClient.downloadFileAsBrowser(latestReleaseUrl + FULL_DATABASE_URL_SUFFIX, filePath, username,
-                                                 password);
-            } catch (IOException e) {
-                throw new UpdaterConnectionException(
-                        "Failed to download file '" + latestReleaseUrl + FULL_DATABASE_URL_SUFFIX + "'", e);
-            }
-            try {
-                final String filePath = dataSource.resolveSourceFilePath(workspace, STRUCTURES_SDF_FILE_NAME);
-                HTTPClient.downloadFileAsBrowser(latestReleaseUrl + DRUG_STRUCTURES_URL_SUFFIX, filePath, username,
-                                                 password);
-            } catch (IOException e) {
-                throw new UpdaterConnectionException(
-                        "Failed to download file '" + latestReleaseUrl + DRUG_STRUCTURES_URL_SUFFIX + "'", e);
-            }
-            try {
-                final String filePath = dataSource.resolveSourceFilePath(workspace,
-                                                                         METABOLITE_STRUCTURES_SDF_FILE_NAME);
-                HTTPClient.downloadFileAsBrowser(latestReleaseUrl + METABOLITE_STRUCTURES_URL_SUFFIX, filePath,
-                                                 username, password);
-            } catch (IOException e) {
-                throw new UpdaterConnectionException(
-                        "Failed to download file '" + latestReleaseUrl + METABOLITE_STRUCTURES_URL_SUFFIX + "'", e);
-            }
-            return true;
-        }
-        throw new UpdaterOnlyManuallyException();
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password))
+            throw new UpdaterOnlyManuallyException();
+        final JsonNode releases = loadReleasesJson();
+        final JsonNode latestRelease = releases.get(0);
+        final String latestReleaseUrl = latestRelease.get("url").asText();
+        downloadFileAsBrowser(workspace, latestReleaseUrl + FULL_DATABASE_URL_SUFFIX, FULL_DATABASE_FILE_NAME, username,
+                              password);
+        downloadFileAsBrowser(workspace, latestReleaseUrl + DRUG_STRUCTURES_URL_SUFFIX, STRUCTURES_SDF_FILE_NAME,
+                              username, password);
+        downloadFileAsBrowser(workspace, latestReleaseUrl + METABOLITE_STRUCTURES_URL_SUFFIX,
+                              METABOLITE_STRUCTURES_SDF_FILE_NAME, username, password);
+        return true;
     }
 
     @Override

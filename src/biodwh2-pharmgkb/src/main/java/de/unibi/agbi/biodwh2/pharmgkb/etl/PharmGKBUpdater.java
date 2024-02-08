@@ -54,7 +54,7 @@ public class PharmGKBUpdater extends Updater<PharmGKBDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        for (String fileName : FILE_NAMES)
+        for (final String fileName : FILE_NAMES)
             downloadFileAsBrowser(workspace, "https://s3.pgkb.org/data/" + fileName, fileName);
         return true;
     }

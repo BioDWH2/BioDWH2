@@ -26,12 +26,6 @@ public class NPCDRUpdater extends Updater<NPCDRDataSource> {
     static final String DRUG_FILE_NAME = "Drug_Information.txt";
     static final String DRUG_TARGET_FILE_NAME = "Drug_Target.txt";
     static final String DRUG_CLINICAL_ICD_FILE_NAME = "Clinical_and_ICD_of_Drug.txt";
-    private static final String[] FILE_NAMES = {
-            PAIR_INFO_FILE_NAME, EFFECT_EXPERIMENT_FILE_NAME, MOLECULE_REGULATION_TYPE_FILE_NAME, CELL_LINE_FILE_NAME,
-            MOLECULE_REGULATED_FILE_NAME, CLINICAL_ICD_FILE_NAME, NP_FILE_NAME, NP_SOURCE_FILE_NAME,
-            NP_TARGET_FILE_NAME, NP_CLINICAL_ICD_FILE_NAME, DRUG_FILE_NAME, DRUG_TARGET_FILE_NAME,
-            DRUG_CLINICAL_ICD_FILE_NAME
-    };
 
     private final Pattern versionPattern = Pattern.compile(
             "\\s(" + String.join("|", TextUtils.MONTH_NAMES) + ") ([1-2]?[0-9])(?:st|nd|rd|th), ([0-9]{4})",
@@ -55,13 +49,18 @@ public class NPCDRUpdater extends Updater<NPCDRDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        for (String fileName : FILE_NAMES)
+        for (String fileName : expectedFileNames())
             downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }
 
     @Override
     protected String[] expectedFileNames() {
-        return FILE_NAMES;
+        return new String[]{
+                PAIR_INFO_FILE_NAME, EFFECT_EXPERIMENT_FILE_NAME, MOLECULE_REGULATION_TYPE_FILE_NAME,
+                CELL_LINE_FILE_NAME, MOLECULE_REGULATED_FILE_NAME, CLINICAL_ICD_FILE_NAME, NP_FILE_NAME,
+                NP_SOURCE_FILE_NAME, NP_TARGET_FILE_NAME, NP_CLINICAL_ICD_FILE_NAME, DRUG_FILE_NAME,
+                DRUG_TARGET_FILE_NAME, DRUG_CLINICAL_ICD_FILE_NAME
+        };
     }
 }

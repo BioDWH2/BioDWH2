@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 public class HMDBUpdater extends Updater<HMDBDataSource> {
     private static final Pattern VERSION_PATTERN = Pattern.compile("<td>([0-9]{4})-([0-9]{2})-([0-9]{2})</td>");
+    private static final String DOWNLOAD_URL_PREFIX = "https://hmdb.ca/system/downloads/current/";
     static final String METABOLITES_XML_FILE_NAME = "hmdb_metabolites.zip";
     static final String PROTEINS_XML_FILE_NAME = "hmdb_proteins.zip";
     static final String STRUCTURES_SDF_FILE_NAME = "structures.zip";
@@ -38,14 +39,12 @@ public class HMDBUpdater extends Updater<HMDBDataSource> {
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         for (final String fileName : expectedFileNames())
-            downloadFileAsBrowser(workspace, "https://hmdb.ca/system/downloads/current/" + fileName, fileName);
+            downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }
 
     @Override
     protected String[] expectedFileNames() {
-        return new String[]{
-                STRUCTURES_SDF_FILE_NAME, METABOLITES_XML_FILE_NAME, PROTEINS_XML_FILE_NAME
-        };
+        return new String[]{STRUCTURES_SDF_FILE_NAME, METABOLITES_XML_FILE_NAME, PROTEINS_XML_FILE_NAME};
     }
 }

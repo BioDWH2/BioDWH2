@@ -19,11 +19,6 @@ public class DiseasesUpdater extends Updater<DiseasesDataSource> {
     static final String EXPERIMENTS_FILTERED_FILE_NAME = "human_disease_experiments_filtered.tsv";
     static final String INTEGRATED_FULL_FILE_NAME = "human_disease_integrated_full.tsv";
 
-    private static final String[] FILE_NAMES = new String[]{
-            TEXT_MINING_FILTERED_FILE_NAME, KNOWLEDGE_FILTERED_FILE_NAME, EXPERIMENTS_FILTERED_FILE_NAME,
-            INTEGRATED_FULL_FILE_NAME
-    };
-
     public DiseasesUpdater(final DiseasesDataSource dataSource) {
         super(dataSource);
     }
@@ -40,13 +35,16 @@ public class DiseasesUpdater extends Updater<DiseasesDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        for (final String fileName : FILE_NAMES)
+        for (final String fileName : expectedFileNames())
             downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }
 
     @Override
     protected String[] expectedFileNames() {
-        return FILE_NAMES;
+        return new String[]{
+                TEXT_MINING_FILTERED_FILE_NAME, KNOWLEDGE_FILTERED_FILE_NAME, EXPERIMENTS_FILTERED_FILE_NAME,
+                INTEGRATED_FULL_FILE_NAME
+        };
     }
 }

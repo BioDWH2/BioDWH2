@@ -7,7 +7,7 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.herb.HerbDataSource;
 
 public class HerbUpdater extends Updater<HerbDataSource> {
-    private static final String URL_PREFIX = "http://herb.ac.cn/download/file/?file_path=/data/Web_server/HERB_web/static/download_data/";
+    private static final String DOWNLOAD_URL_PREFIX = "http://herb.ac.cn/download/file/?file_path=/data/Web_server/HERB_web/static/download_data/";
     static final String DISEASES_FILE_NAME = "HERB_disease_info.txt";
     static final String EXPERIMENTS_FILE_NAME = "HERB_experiment_info.txt";
     static final String HERBS_FILE_NAME = "HERB_herb_info.txt";
@@ -27,7 +27,7 @@ public class HerbUpdater extends Updater<HerbDataSource> {
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         for (final String fileName : expectedFileNames())
-            downloadFileAsBrowser(workspace, URL_PREFIX + fileName, fileName);
+            downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }
 

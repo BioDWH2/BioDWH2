@@ -48,7 +48,7 @@ public class IIDUpdater extends Updater<IIDDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        for (String fileName : expectedFileNames())
+        for (final String fileName : expectedFileNames())
             downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }

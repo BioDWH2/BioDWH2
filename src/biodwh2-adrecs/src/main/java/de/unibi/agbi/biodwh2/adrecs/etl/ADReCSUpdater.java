@@ -37,11 +37,8 @@ public class ADReCSUpdater extends Updater<ADReCSDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + DRUG_ADR_FILE_NAME, DRUG_ADR_FILE_NAME);
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + DRUG_ADR_QUANTIFICATION_FILE_NAME,
-                              DRUG_ADR_QUANTIFICATION_FILE_NAME);
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + ADR_ONTOLOGY_FILE_NAME, ADR_ONTOLOGY_FILE_NAME);
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + DRUG_INFO_FILE_NAME, DRUG_INFO_FILE_NAME);
+        for (final String fileName : expectedFileNames())
+            downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }
 

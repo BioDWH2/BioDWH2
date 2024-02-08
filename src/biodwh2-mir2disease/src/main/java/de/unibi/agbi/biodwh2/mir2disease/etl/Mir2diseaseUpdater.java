@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 public class Mir2diseaseUpdater extends Updater<Mir2diseaseDataSource> {
     private static final String M2D_MAIN_URL = "http://watson.compbio.iupui.edu:8080/miR2Disease";
-    private static final String M2D_DOWNLOAD_URL = "http://watson.compbio.iupui.edu:8080/miR2Disease/download/";
+    private static final String DOWNLOAD_URL_PREFIX = "http://watson.compbio.iupui.edu:8080/miR2Disease/download/";
     static final String MI_RNA_TARGET_FILE_NAME = "miRtar.txt";
     static final String DISEASE_FILE_NAME = "diseaseList.txt";
     static final String ALL_ENTRIES_FILE_NAME = "AllEntries.txt";
@@ -40,7 +40,7 @@ public class Mir2diseaseUpdater extends Updater<Mir2diseaseDataSource> {
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         for (final String fileName : expectedFileNames())
-            downloadFileAsBrowser(workspace, M2D_DOWNLOAD_URL + fileName, fileName);
+            downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }
 

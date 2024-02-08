@@ -29,11 +29,8 @@ public class RNAInterUpdater extends Updater<RNAInterDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + RR_FILE_NAME, RR_FILE_NAME);
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + RP_FILE_NAME, RP_FILE_NAME);
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + RD_FILE_NAME, RD_FILE_NAME);
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + RC_FILE_NAME, RC_FILE_NAME);
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + RH_FILE_NAME, RH_FILE_NAME);
+        for (final String fileName : expectedFileNames())
+            downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }
 

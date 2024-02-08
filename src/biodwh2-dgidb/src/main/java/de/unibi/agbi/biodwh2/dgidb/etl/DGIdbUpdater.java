@@ -77,10 +77,8 @@ public class DGIdbUpdater extends Updater<DGIdbDataSource> {
         if (newestVersion == null)
             return false;
         final String urlPrefix = DOWNLOAD_URL_PREFIX + newestVersion.versionText + '/';
-        downloadFileAsBrowser(workspace, urlPrefix + INTERACTIONS_FILE_NAME, INTERACTIONS_FILE_NAME);
-        downloadFileAsBrowser(workspace, urlPrefix + DRUGS_FILE_NAME, DRUGS_FILE_NAME);
-        downloadFileAsBrowser(workspace, urlPrefix + GENES_FILE_NAME, GENES_FILE_NAME);
-        downloadFileAsBrowser(workspace, urlPrefix + CATEGORIES_FILE_NAME, CATEGORIES_FILE_NAME);
+        for (final String fileName : expectedFileNames())
+            downloadFileAsBrowser(workspace, urlPrefix + fileName, fileName);
         return true;
     }
 

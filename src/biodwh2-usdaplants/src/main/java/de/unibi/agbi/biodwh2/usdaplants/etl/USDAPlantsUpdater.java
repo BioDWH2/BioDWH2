@@ -2,15 +2,9 @@ package de.unibi.agbi.biodwh2.usdaplants.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.usdaplants.USDAPlantsDataSource;
-import org.apache.commons.io.FileUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 
 public class USDAPlantsUpdater extends Updater<USDAPlantsDataSource> {
     private static final String DOWNLOAD_URL = "https://plants.usda.gov/assets/docs/CompletePLANTSList/plantlst.txt";
@@ -32,13 +26,8 @@ public class USDAPlantsUpdater extends Updater<USDAPlantsDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        final File newFile = new File(dataSource.resolveSourceFilePath(workspace, PLANT_LIST_FILE_NAME));
-        try {
-            FileUtils.copyURLToFile(new URL(DOWNLOAD_URL), newFile);
-            return true;
-        } catch (IOException e) {
-            throw new UpdaterConnectionException(e);
-        }
+        downloadFileAsBrowser(workspace, DOWNLOAD_URL, PLANT_LIST_FILE_NAME);
+        return true;
     }
 
     @Override

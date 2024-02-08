@@ -43,11 +43,8 @@ public class RNADiseaseUpdater extends Updater<RNADiseaseDataSource> {
         if (lastVersion == null)
             getNewestVersion(workspace);
         final String urlPrefix = DOWNLOAD_URL_PREFIX + DOWNLOAD_FILE_PREFIX + lastVersion + "_";
-        downloadFileAsBrowser(workspace, urlPrefix + ALL_EXPERIMENTAL_FILE_NAME, ALL_EXPERIMENTAL_FILE_NAME);
-        downloadFileAsBrowser(workspace, urlPrefix + MIRNA_PREDICTED_FILE_NAME, MIRNA_PREDICTED_FILE_NAME);
-        downloadFileAsBrowser(workspace, urlPrefix + LNCRNA_PREDICTED_FILE_NAME, LNCRNA_PREDICTED_FILE_NAME);
-        downloadFileAsBrowser(workspace, urlPrefix + CIRCRNA_PREDICTED_FILE_NAME, CIRCRNA_PREDICTED_FILE_NAME);
-        downloadFileAsBrowser(workspace, urlPrefix + PIRNA_PREDICTED_FILE_NAME, PIRNA_PREDICTED_FILE_NAME);
+        for (final String fileName : expectedFileNames())
+            downloadFileAsBrowser(workspace, urlPrefix + fileName, fileName);
         return true;
     }
 

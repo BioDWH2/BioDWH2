@@ -27,14 +27,8 @@ public class TTDUpdater extends Updater<TTDDataSource> {
     static final String TARGET_COMPOUND_ACTIVITY_TSV = "P1-09-Target_compound_activity.txt";
     static final String TARGET_COMPOUND_MAPPIN_XLSX = "P1-07-Drug-TargetMapping.xlsx";
     static final String SEQUENCE_ALL_FILE_NAME = "P2-06-TTD_sequence_all.txt";
-    private static final String[] FILE_NAMES = {
-            TARGET_RAW_FLAT_FILE, DRUG_RAW_FLAT_FILE, DRUG_CROSSREF_FLAT_FILE, DRUG_SYNONYMS_FLAT_FILE,
-            DRUG_DISEASE_FLAT_FILE, TARGET_DISEASE_FLAT_FILE, TARGET_COMPOUND_MAPPIN_XLSX, BIOMARKER_DISEASE_TSV,
-            TARGET_COMPOUND_ACTIVITY_TSV, TARGET_UNIPORT_FLAT_FILE, SEQUENCE_ALL_FILE_NAME, DRUG_SDF_FILE_NAME,
-            KEGG_PATHWAY_TO_TARGET_TSV, WIKI_PATHWAY_TO_TARGET_TSV
-    };
 
-    private final Pattern versionPattern = Pattern.compile(
+    private static final Pattern VERSION_PATTERN = Pattern.compile(
             "<td>\\s(" + String.join("|", TextUtils.MONTH_NAMES) + ") ([1-2]?[0-9])(st|nd|rd|th), ([0-9]{4})",
             Pattern.CASE_INSENSITIVE);
 
@@ -45,7 +39,7 @@ public class TTDUpdater extends Updater<TTDDataSource> {
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         final String source = getWebsiteSource(VERSION_URL, 5);
-        final Matcher matcher = versionPattern.matcher(source);
+        final Matcher matcher = VERSION_PATTERN.matcher(source);
         if (matcher.find()) {
             return new Version(Integer.parseInt(matcher.group(4)),
                                TextUtils.monthNameToInt(matcher.group(1).toLowerCase()),
@@ -56,13 +50,18 @@ public class TTDUpdater extends Updater<TTDDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        for (String fileName : FILE_NAMES)
+        for (final String fileName : expectedFileNames())
             downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }
 
     @Override
     protected String[] expectedFileNames() {
-        return FILE_NAMES;
+        return new String[]{
+                TARGET_RAW_FLAT_FILE, DRUG_RAW_FLAT_FILE, DRUG_CROSSREF_FLAT_FILE, DRUG_SYNONYMS_FLAT_FILE,
+                DRUG_DISEASE_FLAT_FILE, TARGET_DISEASE_FLAT_FILE, TARGET_COMPOUND_MAPPIN_XLSX, BIOMARKER_DISEASE_TSV,
+                TARGET_COMPOUND_ACTIVITY_TSV, TARGET_UNIPORT_FLAT_FILE, SEQUENCE_ALL_FILE_NAME, DRUG_SDF_FILE_NAME,
+                KEGG_PATHWAY_TO_TARGET_TSV, WIKI_PATHWAY_TO_TARGET_TSV
+        };
     }
 }

@@ -50,9 +50,9 @@ public class OMIMUpdater extends Updater<OMIMDataSource> {
         final String downloadKey = dataSource.getProperties(workspace).get("downloadKey");
         final String urlPrefix = "https://data.omim.org/downloads/" + downloadKey + "/";
         downloadFileAsBrowser(workspace, MIM2GENE_DOWNLOAD_URL, MIM2GENE_FILENAME);
-        downloadFileAsBrowser(workspace, urlPrefix + "mimTitles.txt", MIMTITLES_FILENAME);
-        downloadFileAsBrowser(workspace, urlPrefix + "genemap2.txt", GENEMAP2_FILENAME);
-        downloadFileAsBrowser(workspace, urlPrefix + "morbidmap.txt", MORBIDMAP_FILENAME);
+        downloadFileAsBrowser(workspace, urlPrefix + MIMTITLES_FILENAME, MIMTITLES_FILENAME);
+        downloadFileAsBrowser(workspace, urlPrefix + GENEMAP2_FILENAME, GENEMAP2_FILENAME);
+        downloadFileAsBrowser(workspace, urlPrefix + MORBIDMAP_FILENAME, MORBIDMAP_FILENAME);
         return true;
     }
 

@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 public class IIGUpdater extends Updater<IIGDataSource> {
     private static final String VERSION_URL = "https://www.fda.gov/drugs/drug-approvals-and-databases/inactive-ingredients-database-download";
     static final String FILE_NAME = "iig.zip";
-    private static Pattern VERSION_PATTERN = Pattern.compile(
+    private static final Pattern VERSION_PATTERN = Pattern.compile(
             "(" + String.join("|", TextUtils.MONTH_NAMES) + ") ([0-9]{4}): Inactive Ingredient Database File",
             Pattern.CASE_INSENSITIVE);
 

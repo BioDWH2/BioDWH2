@@ -34,11 +34,8 @@ public class SiderUpdater extends Updater<SiderDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + DRUG_NAMES_FILE_NAME, DRUG_NAMES_FILE_NAME);
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + DRUG_ATC_FILE_NAME, DRUG_ATC_FILE_NAME);
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + INDICATIONS_FILE_NAME, INDICATIONS_FILE_NAME);
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + SIDE_EFFECTS_FILE_NAME, SIDE_EFFECTS_FILE_NAME);
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + FREQUENCIES_FILE_NAME, FREQUENCIES_FILE_NAME);
+        for (final String fileName : expectedFileNames())
+            downloadFileAsBrowser(workspace, DOWNLOAD_URL_PREFIX + fileName, fileName);
         return true;
     }
 

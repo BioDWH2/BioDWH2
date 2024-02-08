@@ -6,8 +6,6 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.string.STRINGDataSource;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +13,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class STRINGUpdater extends Updater<STRINGDataSource> {
-    private static final Logger LOGGER = LogManager.getLogger(STRINGUpdater.class);
     private static final String DOWNLOAD_PAGE_URL = "https://string-db.org/cgi/download?species_text=Homo+sapiens";
     private static final Pattern FILE_URL_PATTERN = Pattern.compile(
             "https://stringdb-static\\.org/download/([a-zA-Z.]+\\.v)([0-9]+\\.[0-9]+)(/9606\\.\\1\\2)?\\.(txt|fa)(\\.gz)?");
@@ -56,8 +53,6 @@ public class STRINGUpdater extends Updater<STRINGDataSource> {
     }
 
     private void downloadFile(final Workspace workspace, final String filePrefix) throws UpdaterException {
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Downloading " + filePrefix);
         final String url = fileDownloadUrls.get(filePrefix);
         if (url == null)
             throw new UpdaterConnectionException(

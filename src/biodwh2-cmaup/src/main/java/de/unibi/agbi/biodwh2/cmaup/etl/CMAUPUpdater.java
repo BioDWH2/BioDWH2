@@ -36,10 +36,9 @@ public class CMAUPUpdater extends Updater<CMAUPDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        for (final String fileName : expectedFileNames()) {
-            final String url = "http://bidd.group/CMAUP/downloadFiles/CMAUPv" + lastVersion + "_download_" + fileName;
-            downloadFileAsBrowser(workspace, url, fileName);
-        }
+        final String url = "http://bidd.group/CMAUP/downloadFiles/CMAUPv" + lastVersion + "_download_";
+        for (final String fileName : expectedFileNames())
+            downloadFileAsBrowser(workspace, url + fileName, fileName);
         return true;
     }
 
