@@ -26,8 +26,8 @@ public class NegatomeGraphExporter extends GraphExporter<NegatomeDataSource> {
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, "id", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(PFAM_DOMAIN_LABEL, "id", false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PFAM_DOMAIN_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         for (final ProteinPair pair : dataSource.proteinPairs.values()) {
             final EdgeBuilder builder = graph.buildEdge().withLabel("NOT_INTERACTS_WITH");
             builder.fromNode(getOrCreateProtein(graph, pair.uniProtId1));
@@ -55,12 +55,12 @@ public class NegatomeGraphExporter extends GraphExporter<NegatomeDataSource> {
     }
 
     private Node getOrCreateProtein(final Graph graph, final String id) {
-        final Node node = graph.findNode(PROTEIN_LABEL, "id", id);
-        return node == null ? graph.addNode(PROTEIN_LABEL, "id", id) : node;
+        final Node node = graph.findNode(PROTEIN_LABEL,ID_KEY, id);
+        return node == null ? graph.addNode(PROTEIN_LABEL, ID_KEY, id) : node;
     }
 
     private Node getOrCreatePfam(final Graph graph, final String id) {
-        final Node node = graph.findNode(PFAM_DOMAIN_LABEL, "id", id);
-        return node == null ? graph.addNode(PFAM_DOMAIN_LABEL, "id", id) : node;
+        final Node node = graph.findNode(PFAM_DOMAIN_LABEL, ID_KEY, id);
+        return node == null ? graph.addNode(PFAM_DOMAIN_LABEL, ID_KEY, id) : node;
     }
 }

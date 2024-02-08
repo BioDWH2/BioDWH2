@@ -30,7 +30,7 @@ public class NegatomeParser extends Parser<NegatomeDataSource> {
     }
 
     private void parseManualEntries(final Workspace workspace) throws IOException {
-        for (final String[] entry : parseTsvFile(workspace, "manual.txt")) {
+        for (final String[] entry : parseTsvFile(workspace, NegatomeUpdater.MANUAL_FILE_NAME)) {
             if (entry[0].startsWith("#"))
                 continue;
             final ProteinPair pair = getOrCreateProteinPair(entry[0], entry[1]);
@@ -41,7 +41,7 @@ public class NegatomeParser extends Parser<NegatomeDataSource> {
             pair.manualEvidence = entry[3];
             pair.isManual = true;
         }
-        for (final String[] entry : parseTsvFile(workspace, "manual_stringent.txt")) {
+        for (final String[] entry : parseTsvFile(workspace, NegatomeUpdater.MANUAL_STRINGENT_FILE_NAME)) {
             if (entry[0].startsWith("#"))
                 continue;
             final ProteinPair pair = getOrCreateProteinPair(entry[0], entry[1]);
@@ -56,7 +56,7 @@ public class NegatomeParser extends Parser<NegatomeDataSource> {
                 pair.manualEvidence = entry[3];
             pair.isManualStringent = true;
         }
-        for (final String[] entry : parseTsvFile(workspace, "manual_pfam.txt"))
+        for (final String[] entry : parseTsvFile(workspace, NegatomeUpdater.MANUAL_PFAM_FILE_NAME))
             getOrCreatePfamPair(entry[0], entry[1]).isManual = true;
     }
 
@@ -96,7 +96,7 @@ public class NegatomeParser extends Parser<NegatomeDataSource> {
     }
 
     private void parsePDBEntries(final Workspace workspace) throws IOException {
-        for (final String[] entry : parseTsvFile(workspace, "pdb.txt")) {
+        for (final String[] entry : parseTsvFile(workspace, NegatomeUpdater.PDB_FILE_NAME)) {
             if (entry[0].startsWith("#"))
                 continue;
             final ProteinPair pair = getOrCreateProteinPair(entry[0], entry[1]);
@@ -104,7 +104,7 @@ public class NegatomeParser extends Parser<NegatomeDataSource> {
             pair.pdbEvidence = entry[3];
             pair.isPDB = true;
         }
-        for (final String[] entry : parseTsvFile(workspace, "pdb_stringent.txt")) {
+        for (final String[] entry : parseTsvFile(workspace, NegatomeUpdater.PDB_STRINGENT_FILE_NAME)) {
             if (entry[0].startsWith("#"))
                 continue;
             final ProteinPair pair = getOrCreateProteinPair(entry[0], entry[1]);
@@ -114,7 +114,7 @@ public class NegatomeParser extends Parser<NegatomeDataSource> {
                 pair.pdbEvidence = entry[3];
             pair.isPDBStringent = true;
         }
-        for (final String[] entry : parseTsvFile(workspace, "pdb_pfam.txt"))
+        for (final String[] entry : parseTsvFile(workspace, NegatomeUpdater.PDB_PFAM_FILE_NAME))
             getOrCreatePfamPair(entry[0], entry[1]).isPDB = true;
     }
 }
