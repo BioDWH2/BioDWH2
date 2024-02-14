@@ -3,7 +3,9 @@ package de.unibi.agbi.biodwh2.ontologies;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.etl.OntologyGraphExporter;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
@@ -35,7 +37,7 @@ public class ExperimentalFactorOntologyDataSource extends SingleOBOOntologyDataS
 
     @Override
     public DevelopmentState getDevelopmentState() {
-        return DevelopmentState.InDevelopment;
+        return DevelopmentState.Usable;
     }
 
     @Override
@@ -70,12 +72,13 @@ public class ExperimentalFactorOntologyDataSource extends SingleOBOOntologyDataS
         @Override
         public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
             if (diseaseNodeId == null)
-                diseaseNodeId = graph.findNode("ExperimentalFactorOntology_Term", "id", "EFO:0000408").getId();
-            if ("Term".equals(localMappingLabel)) {
+                diseaseNodeId = graph.findNode("ExperimentalFactorOntology_Term", GraphExporter.ID_KEY, "EFO:0000408")
+                                     .getId();
+            if (OntologyGraphExporter.TERM_LABEL.equals(localMappingLabel)) {
                 if (isNodeChildOfDisease(graph, node.getId())) {
                     final NodeMappingDescription description = new NodeMappingDescription(
                             NodeMappingDescription.NodeType.DISEASE);
-                    final String id = node.getProperty("id");
+                    final String id = node.getProperty(GraphExporter.ID_KEY);
                     if (id != null) {
                         final String[] idParts = StringUtils.split(id, ':');
                         if ("EFO".equals(idParts[0]))
@@ -114,7 +117,7 @@ public class ExperimentalFactorOntologyDataSource extends SingleOBOOntologyDataS
 
         @Override
         protected String[] getNodeMappingLabels() {
-            return new String[]{"Term"};
+            return new String[]{OntologyGraphExporter.TERM_LABEL};
         }
 
         @Override
