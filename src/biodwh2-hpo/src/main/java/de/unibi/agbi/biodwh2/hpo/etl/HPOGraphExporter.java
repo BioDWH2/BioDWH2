@@ -22,7 +22,6 @@ import java.util.*;
 public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource> {
     static final String GENE_LABEL = "Gene";
     static final String DISEASE_LABEL = "Disease";
-    private static final String TERM_LABEL = "Term";
     private static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
 
     private boolean omimLicensed = false;

@@ -50,7 +50,7 @@ public final class FlatFileReader extends BaseReader<FlatFileEntry> {
                                                                                                           2);
             final String tag = parts[0];
             if (!currentTag.equals(tag) && !isLineContinuation) {
-                if (!"".equals(currentTag) && tagChunk.length() > 0)
+                if (!currentTag.isEmpty() && tagChunk.length() > 0)
                     result.add(new FlatFileEntry.KeyValuePair(currentTag, tagChunk.toString()));
                 currentTag = tag;
                 tagChunk = new StringBuilder();
@@ -61,7 +61,7 @@ public final class FlatFileReader extends BaseReader<FlatFileEntry> {
                 tagChunk.append(parts[1].trim());
             }
         }
-        if (!"".equals(currentTag) && tagChunk.length() > 0)
+        if (!currentTag.isEmpty() && tagChunk.length() > 0)
             result.add(new FlatFileEntry.KeyValuePair(currentTag, tagChunk.toString()));
         entry.properties.add(result);
     }

@@ -15,13 +15,13 @@ public class GFF3ReaderTest {
         try (InputStream stream = classLoader.getResourceAsStream("test_gff3.gff")) {
             final GFF3Reader reader = new GFF3Reader(stream, StandardCharsets.UTF_8);
             GFF3Entry entry = reader.readNextEntry();
-            assertTrue(entry instanceof GFF3PragmaEntry);
+            assertInstanceOf(GFF3PragmaEntry.class, entry);
             assertEquals("gff-version 3.1.26", ((GFF3PragmaEntry) entry).getValue());
             entry = reader.readNextEntry();
-            assertTrue(entry instanceof GFF3PragmaEntry);
+            assertInstanceOf(GFF3PragmaEntry.class, entry);
             assertEquals("sequence-region ctg123 1 1497228", ((GFF3PragmaEntry) entry).getValue());
             entry = reader.readNextEntry();
-            assertTrue(entry instanceof GFF3DataEntry);
+            assertInstanceOf(GFF3DataEntry.class, entry);
             assertEquals("ctg123", ((GFF3DataEntry) entry).getSeqId());
             assertNull(((GFF3DataEntry) entry).getSource());
             assertEquals("SO:0000704", ((GFF3DataEntry) entry).getTypeSOId());
@@ -37,7 +37,7 @@ public class GFF3ReaderTest {
             for (int i = 0; i < 9; i++)
                 reader.readNextEntry();
             entry = reader.readNextEntry();
-            assertTrue(entry instanceof GFF3DataEntry);
+            assertInstanceOf(GFF3DataEntry.class, entry);
             assertEquals("SO:0000316", ((GFF3DataEntry) entry).getTypeSOId());
             assertEquals("CDS", ((GFF3DataEntry) entry).getTypeSOName());
             assertEquals(1201L, ((GFF3DataEntry) entry).getStart());
@@ -55,20 +55,20 @@ public class GFF3ReaderTest {
         try (InputStream stream = classLoader.getResourceAsStream("test_gff3_with_fasta.gff")) {
             final GFF3Reader reader = new GFF3Reader(stream, StandardCharsets.UTF_8);
             GFF3Entry entry = reader.readNextEntry();
-            assertTrue(entry instanceof GFF3PragmaEntry);
+            assertInstanceOf(GFF3PragmaEntry.class, entry);
             entry = reader.readNextEntry();
-            assertTrue(entry instanceof GFF3PragmaEntry);
+            assertInstanceOf(GFF3PragmaEntry.class, entry);
             entry = reader.readNextEntry();
-            assertTrue(entry instanceof GFF3DataEntry);
+            assertInstanceOf(GFF3DataEntry.class, entry);
             entry = reader.readNextEntry();
-            assertTrue(entry instanceof GFF3DataEntry);
+            assertInstanceOf(GFF3DataEntry.class, entry);
             entry = reader.readNextEntry();
-            assertTrue(entry instanceof GFF3FastaEntry);
+            assertInstanceOf(GFF3FastaEntry.class, entry);
             assertEquals("ctg123", ((GFF3FastaEntry) entry).getTag());
             assertEquals("cttctgggcgtacccgattctcggagaacttgccgcaccattccgccttgtgttcattgctgcctg",
                          ((GFF3FastaEntry) entry).getSequence());
             entry = reader.readNextEntry();
-            assertTrue(entry instanceof GFF3FastaEntry);
+            assertInstanceOf(GFF3FastaEntry.class, entry);
             assertEquals("cnda0123", ((GFF3FastaEntry) entry).getTag());
             assertEquals("ttcaagtgctcagtcaatgtgattc", ((GFF3FastaEntry) entry).getSequence());
         }

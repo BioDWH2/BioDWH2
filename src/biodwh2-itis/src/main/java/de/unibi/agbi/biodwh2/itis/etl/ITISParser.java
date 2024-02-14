@@ -32,7 +32,7 @@ public class ITISParser extends Parser<ITISDataSource> {
     public boolean parse(final Workspace workspace) throws ParserException {
         try (TarArchiveInputStream stream = FileUtils.openTarGzip(workspace, dataSource, ITISUpdater.FILE_NAME)) {
             ArchiveEntry entry;
-            while ((entry = stream.getNextTarEntry()) != null)
+            while ((entry = stream.getNextEntry()) != null)
                 parseArchiveEntry(stream, getArchiveFileName(entry.getName()));
         } catch (IOException e) {
             throw new ParserFormatException("Failed to parse table files from '" + ITISUpdater.FILE_NAME + "'", e);

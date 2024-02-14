@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.pathwaycommons.etl;
 
-import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
@@ -42,9 +41,9 @@ public class PathwayCommonsGraphExporter extends GraphExporter<PathwayCommonsDat
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode(PATHWAY_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PATHWAY_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(GENE_LABEL, "symbol", IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         exportPathwayGeneSets(workspace, graph);
         exportPathwayProteinSets(workspace, graph);
         exportInteractions(workspace, graph);
@@ -52,10 +51,8 @@ public class PathwayCommonsGraphExporter extends GraphExporter<PathwayCommonsDat
     }
 
     private void exportPathwayGeneSets(final Workspace workspace, final Graph graph) {
-        try {
-            final GMTReader reader = new GMTReader(
-                    FileUtils.openGzip(workspace, dataSource, PathwayCommonsUpdater.ALL_HGNC_GMT_FILE_PATH),
-                    StandardCharsets.UTF_8);
+        try (final var reader = new GMTReader(
+                FileUtils.openGzip(workspace, dataSource, PathwayCommonsUpdater.ALL_HGNC_GMT_FILE_PATH))) {
             for (final GeneSet set : reader) {
                 final Node node = getOrCreatePathway(graph, set);
                 for (final String geneSymbol : set.getGenes()) {
@@ -69,10 +66,10 @@ public class PathwayCommonsGraphExporter extends GraphExporter<PathwayCommonsDat
     }
 
     private Node getOrCreatePathway(final Graph graph, final GeneSet set) {
-        Node node = graph.findNode(PATHWAY_LABEL, "id", set.getName());
+        Node node = graph.findNode(PATHWAY_LABEL, ID_KEY, set.getName());
         if (node == null) {
             final Map<String, String> description = parseGeneSetDescription(set.getDescription());
-            node = graph.addNode(PATHWAY_LABEL, "id", set.getName(), "name", description.get("name"), "organism",
+            node = graph.addNode(PATHWAY_LABEL, ID_KEY, set.getName(), "name", description.get("name"), "organism",
                                  description.get("organism"), "source", description.get("datasource"));
         }
         return node;
@@ -127,44 +124,40 @@ public class PathwayCommonsGraphExporter extends GraphExporter<PathwayCommonsDat
     }
 
     private Node getOrCreateProteinNode(final Graph graph, final String uniprotAccession) {
-        Node node = graph.findNode(PROTEIN_LABEL, "id", uniprotAccession);
+        Node node = graph.findNode(PROTEIN_LABEL, ID_KEY, uniprotAccession);
         if (node == null)
-            node = graph.addNode(PROTEIN_LABEL, "id", uniprotAccession);
+            node = graph.addNode(PROTEIN_LABEL, ID_KEY, uniprotAccession);
         return node;
     }
 
     private void exportInteractions(final Workspace workspace, final Graph graph) {
-        for (final InteractionEntry entry : loadInteractions(workspace)) {
-            final Node nodeA = graph.findNode(GENE_LABEL, "symbol", entry.participantA);
-            final Node nodeB = graph.findNode(GENE_LABEL, "symbol", entry.participantB);
-            if (nodeA != null && nodeB != null) {
-                final String edgeLabel = StringUtils.replace(entry.type, "-", "_").toUpperCase(Locale.US);
-                final String[] dataSources = StringUtils.isNotEmpty(entry.dataSources) ? StringUtils.split(
-                        entry.dataSources, ';') : null;
-                final String[] pmids = StringUtils.isNotEmpty(entry.pubmedIds) ? StringUtils.split(entry.pubmedIds,
-                                                                                                   ';') : null;
-                final String[] mediatorNames = StringUtils.isNotEmpty(entry.mediatorIds) ? StringUtils.split(
-                        entry.mediatorIds, ';') : null;
-                final EdgeBuilder builder = graph.buildEdge().fromNode(nodeA).toNode(nodeB).withLabel(edgeLabel);
-                builder.withPropertyIfNotNull("data_sources", dataSources);
-                builder.withPropertyIfNotNull("pathway_names", entry.pathwayNames);
-                builder.withPropertyIfNotNull("pubmed_ids", pmids);
-                builder.withPropertyIfNotNull("mediator_names", mediatorNames);
-                builder.build();
-            } else {
-                // TODO: handle missing nodes
-            }
+        try {
+            FileUtils.openGzipTsvWithHeader(workspace, dataSource, PathwayCommonsUpdater.ALL_HGNC_TXT_FILE_PATH,
+                                            InteractionEntry.class, (entry) -> exportInteraction(graph, entry));
+        } catch (IOException e) {
+            throw new ExporterFormatException(e);
         }
     }
 
-    private Iterable<InteractionEntry> loadInteractions(final Workspace workspace) {
-        try {
-            final MappingIterator<InteractionEntry> entries = FileUtils.openGzipTsvWithHeader(workspace, dataSource,
-                                                                                              PathwayCommonsUpdater.ALL_HGNC_TXT_FILE_PATH,
-                                                                                              InteractionEntry.class);
-            return () -> entries;
-        } catch (IOException e) {
-            throw new ExporterFormatException(e);
+    private void exportInteraction(final Graph graph, final InteractionEntry entry) {
+        final Node nodeA = graph.findNode(GENE_LABEL, "symbol", entry.participantA);
+        final Node nodeB = graph.findNode(GENE_LABEL, "symbol", entry.participantB);
+        if (nodeA != null && nodeB != null) {
+            final String edgeLabel = StringUtils.replace(entry.type, "-", "_").toUpperCase(Locale.US);
+            final String[] dataSources = StringUtils.isNotEmpty(entry.dataSources) ? StringUtils.split(
+                    entry.dataSources, ';') : null;
+            final String[] pmids = StringUtils.isNotEmpty(entry.pubmedIds) ? StringUtils.split(entry.pubmedIds, ';') :
+                                   null;
+            final String[] mediatorNames = StringUtils.isNotEmpty(entry.mediatorIds) ? StringUtils.split(
+                    entry.mediatorIds, ';') : null;
+            final EdgeBuilder builder = graph.buildEdge().fromNode(nodeA).toNode(nodeB).withLabel(edgeLabel);
+            builder.withPropertyIfNotNull("data_sources", dataSources);
+            builder.withPropertyIfNotNull("pathway_names", entry.pathwayNames);
+            builder.withPropertyIfNotNull("pubmed_ids", pmids);
+            builder.withPropertyIfNotNull("mediator_names", mediatorNames);
+            builder.build();
+        } else {
+            // TODO: handle missing nodes
         }
     }
 }

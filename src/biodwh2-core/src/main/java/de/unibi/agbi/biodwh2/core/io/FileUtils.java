@@ -297,7 +297,7 @@ public final class FileUtils {
                                                         final String fileName,
                                                         final Class<T> typeClass) throws IOException {
         final TarArchiveInputStream stream = openTarGzip(workspace, dataSource, fileName);
-        stream.getNextTarEntry();
+        stream.getNextEntry();
         return openSeparatedValuesFile(stream, typeClass, '\t', false);
     }
 
@@ -306,7 +306,7 @@ public final class FileUtils {
                                                                       final String fileName,
                                                                       final Class<T> typeClass) throws IOException {
         final TarArchiveInputStream stream = openTarGzip(workspace, dataSource, fileName);
-        stream.getNextTarEntry();
+        stream.getNextEntry();
         return openSeparatedValuesFile(stream, typeClass, '\t', false, false);
     }
 
@@ -314,7 +314,7 @@ public final class FileUtils {
                                                                   final DataSource dataSource, final String fileName,
                                                                   final Class<T> typeClass) throws IOException {
         final TarArchiveInputStream stream = openTarGzip(workspace, dataSource, fileName);
-        stream.getNextTarEntry();
+        stream.getNextEntry();
         return openSeparatedValuesFile(stream, typeClass, '\t', true);
     }
 
@@ -323,7 +323,7 @@ public final class FileUtils {
                                                                                 final String fileName,
                                                                                 final Class<T> typeClass) throws IOException {
         final TarArchiveInputStream stream = openTarGzip(workspace, dataSource, fileName);
-        stream.getNextTarEntry();
+        stream.getNextEntry();
         return openSeparatedValuesFile(stream, typeClass, '\t', true, false);
     }
 

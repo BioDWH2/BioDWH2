@@ -31,7 +31,7 @@ public abstract class BaseReader<T> implements Iterable<T>, AutoCloseable {
 
     @Override
     public Iterator<T> iterator() {
-        return new Iterator<T>() {
+        return new Iterator<>() {
             @Override
             public boolean hasNext() {
                 if (lastEntry == null)

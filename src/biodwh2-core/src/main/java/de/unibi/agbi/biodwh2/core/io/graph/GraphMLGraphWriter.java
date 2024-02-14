@@ -24,7 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-public final class GraphMLGraphWriter extends GraphWriter {
+public final class GraphMLGraphWriter implements GraphWriter {
     private static class Property {
         String id;
         String forType;

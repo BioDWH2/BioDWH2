@@ -48,7 +48,7 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
         try (final TarArchiveInputStream inputStream = FileUtils.openTarGzip(workspace, dataSource,
                                                                              BrendaUpdater.FILE_NAME)) {
             TarArchiveEntry entry;
-            while ((entry = inputStream.getNextTarEntry()) != null) {
+            while ((entry = inputStream.getNextEntry()) != null) {
                 if (entry.getName().startsWith("brenda_") && entry.getName().endsWith(".json")) {
                     final ObjectMapper mapper = new ObjectMapper();
                     final Brenda brenda = mapper.readValue(inputStream, Brenda.class);

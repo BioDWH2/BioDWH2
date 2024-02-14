@@ -6,12 +6,16 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public final class GMTReader extends BaseReader<GeneSet> {
-    @SuppressWarnings("unused")
     public GMTReader(final String filePath, final Charset charset) throws IOException {
         super(filePath, charset);
+    }
+
+    public GMTReader(final InputStream stream) {
+        super(stream, StandardCharsets.UTF_8);
     }
 
     public GMTReader(final InputStream stream, final Charset charset) {

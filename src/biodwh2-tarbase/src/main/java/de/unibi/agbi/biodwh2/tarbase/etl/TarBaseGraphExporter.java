@@ -51,7 +51,7 @@ public class TarBaseGraphExporter extends GraphExporter<TarBaseDataSource> {
     private void exportFile(final Workspace workspace, final Graph graph, final String fileName,
                             final Configuration.GlobalProperties.SpeciesFilter speciesFilter) {
         try (TarArchiveInputStream stream = FileUtils.openTarGzip(workspace, dataSource, fileName)) {
-            while (stream.getNextTarEntry() != null)
+            while (stream.getNextEntry() != null)
                 exportEntries(graph, FileUtils.openSeparatedValuesFile(stream, Entry.class, '\t', true, false),
                               speciesFilter);
         } catch (IOException e) {

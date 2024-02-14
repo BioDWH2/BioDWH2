@@ -89,7 +89,7 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
         try (final TarArchiveInputStream inputStream = FileUtils.openTarGzip(workspace, dataSource,
                                                                              HPRDUpdater.FILE_NAME)) {
             TarArchiveEntry entry;
-            while ((entry = inputStream.getNextTarEntry()) != null) {
+            while ((entry = inputStream.getNextEntry()) != null) {
                 if (entry.getName().endsWith(fileName)) {
                     try (final FastaReader reader = new FastaReader(inputStream, StandardCharsets.UTF_8)) {
                         final List<FastaEntry> result = new ArrayList<>();
@@ -132,7 +132,7 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
             LOGGER.info("Exporting " + fileName + "...");
         final TarArchiveInputStream inputStream = FileUtils.openTarGzip(workspace, dataSource, HPRDUpdater.FILE_NAME);
         TarArchiveEntry entry;
-        while ((entry = inputStream.getNextTarEntry()) != null)
+        while ((entry = inputStream.getNextEntry()) != null)
             if (entry.getName().endsWith(fileName))
                 return FileUtils.openSeparatedValuesFile(inputStream, classType, '\t', false, false);
         throw new ExporterFormatException("File '" + fileName + "' not found in archive");

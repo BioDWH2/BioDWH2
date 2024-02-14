@@ -65,7 +65,7 @@ public final class GFF3Reader extends BaseReader<GFF3Entry> {
     protected GFF3Entry readNextEntry() {
         String line;
         while ((line = readLineSafe()) != null) {
-            if (line.trim().length() == 0)
+            if (line.trim().isEmpty())
                 continue;
             if (nextSequenceTag != null) {
                 final String tag = nextSequenceTag;
@@ -103,7 +103,7 @@ public final class GFF3Reader extends BaseReader<GFF3Entry> {
             if (StringUtils.startsWith(seekLine, ">")) {
                 nextSequenceTag = seekLine.substring(1).trim();
                 break;
-            } else if (seekLine.length() > 0)
+            } else if (!seekLine.isEmpty())
                 sequence.append(seekLine);
         }
         return sequence.toString();
@@ -143,7 +143,7 @@ public final class GFF3Reader extends BaseReader<GFF3Entry> {
     }
 
     private boolean isFieldUndefined(final String field) {
-        return field == null || field.length() == 0 || (field.length() == 1 && field.charAt(0) == UNDEFINED_CHARACTER);
+        return field == null || field.isEmpty() || (field.length() == 1 && field.charAt(0) == UNDEFINED_CHARACTER);
     }
 
     private String replaceEscapedChars(String value) {

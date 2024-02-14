@@ -20,7 +20,7 @@ public final class NDJsonObjectMapper {
     }
 
     public <T> Iterator<T> readValues(final String content, final Class<T> valueType) {
-        return Arrays.stream(StringUtils.split(content, '\n')).map(String::trim).filter(l -> l.length() > 0).map(
+        return Arrays.stream(StringUtils.split(content, '\n')).map(String::trim).filter(l -> !l.isEmpty()).map(
                 l -> lineToJson(l, valueType)).iterator();
     }
 
@@ -58,7 +58,7 @@ public final class NDJsonObjectMapper {
         String line;
         while ((line = readLineSafe(reader)) != null) {
             line = line.trim();
-            if (line.length() > 0)
+            if (!line.isEmpty())
                 break;
         }
         return line;

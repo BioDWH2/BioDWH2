@@ -35,6 +35,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
     }
 
     private static final Logger LOGGER = LogManager.getLogger(OntologyGraphExporter.class);
+    public static final String TERM_LABEL = "Term";
 
     public OntologyGraphExporter(final D dataSource) {
         super(dataSource);
@@ -210,7 +211,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
             if (entry instanceof OboTerm) {
                 if (!createdTermIndex) {
                     createdTermIndex = true;
-                    graph.addIndex(IndexDescription.forNode("Term", ID_KEY, IndexDescription.Type.UNIQUE));
+                    graph.addIndex(IndexDescription.forNode(TERM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
                 }
                 exportTerm(graph, (OboTerm) entry, relationCache);
             } else if (entry instanceof OboTypedef) {

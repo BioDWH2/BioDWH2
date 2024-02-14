@@ -58,7 +58,7 @@ public final class FlatFileTTDReader implements Iterable<FlatFileTTDEntry>, Auto
         }
         if (!hasNext)
             currentEntry = new FlatFileTTDEntry();
-        return entry.properties.size() > 0 ? entry : null;
+        return !entry.properties.isEmpty() ? entry : null;
     }
 
     private String readLineSafe() {
@@ -71,7 +71,7 @@ public final class FlatFileTTDReader implements Iterable<FlatFileTTDEntry>, Auto
 
     @Override
     public Iterator<FlatFileTTDEntry> iterator() {
-        return new Iterator<FlatFileTTDEntry>() {
+        return new Iterator<>() {
             @Override
             public boolean hasNext() {
                 lastEntry = readNextEntry();

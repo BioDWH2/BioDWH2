@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 public class TTDUpdater extends Updater<TTDDataSource> {
     private static final String VERSION_URL = "http://db.idrblab.net/ttd/full-data-download";
     private static final String DOWNLOAD_URL_PREFIX = "http://db.idrblab.net/ttd/sites/default/files/ttd_database/";
-    static final String DRUG_SDF_FILE_NAME = "P3-01-All.sdf";
+    //static final String DRUG_SDF_FILE_NAME = "P3-01-All.sdf";
     static final String KEGG_PATHWAY_TO_TARGET_TSV = "P4-01-Target-KEGGpathway_all.txt";
     static final String WIKI_PATHWAY_TO_TARGET_TSV = "P4-06-Target-wikipathway_all.txt";
     static final String TARGET_RAW_FLAT_FILE = "P1-01-TTD_target_download.txt";
@@ -26,7 +26,7 @@ public class TTDUpdater extends Updater<TTDDataSource> {
     static final String DRUG_DISEASE_FLAT_FILE = "P1-05-Drug_disease.txt";
     static final String TARGET_COMPOUND_ACTIVITY_TSV = "P1-09-Target_compound_activity.txt";
     static final String TARGET_COMPOUND_MAPPIN_XLSX = "P1-07-Drug-TargetMapping.xlsx";
-    static final String SEQUENCE_ALL_FILE_NAME = "P2-06-TTD_sequence_all.txt";
+    //static final String SEQUENCE_ALL_FILE_NAME = "P2-06-TTD_sequence_all.txt";
 
     private static final Pattern VERSION_PATTERN = Pattern.compile(
             "<td>\\s(" + String.join("|", TextUtils.MONTH_NAMES) + ") ([1-2]?[0-9])(st|nd|rd|th), ([0-9]{4})",
@@ -60,7 +60,7 @@ public class TTDUpdater extends Updater<TTDDataSource> {
         return new String[]{
                 TARGET_RAW_FLAT_FILE, DRUG_RAW_FLAT_FILE, DRUG_CROSSREF_FLAT_FILE, DRUG_SYNONYMS_FLAT_FILE,
                 DRUG_DISEASE_FLAT_FILE, TARGET_DISEASE_FLAT_FILE, TARGET_COMPOUND_MAPPIN_XLSX, BIOMARKER_DISEASE_TSV,
-                TARGET_COMPOUND_ACTIVITY_TSV, TARGET_UNIPORT_FLAT_FILE, SEQUENCE_ALL_FILE_NAME, DRUG_SDF_FILE_NAME,
+                TARGET_COMPOUND_ACTIVITY_TSV, TARGET_UNIPORT_FLAT_FILE, //SEQUENCE_ALL_FILE_NAME, DRUG_SDF_FILE_NAME,
                 KEGG_PATHWAY_TO_TARGET_TSV, WIKI_PATHWAY_TO_TARGET_TSV
         };
     }
