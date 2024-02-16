@@ -91,7 +91,7 @@ public final class DataSourceLoader {
         } else if (bIsOntology) {
             return 1;
         }
-        return a.getId().compareTo(b.getId());
+        return a.getId().toLowerCase(Locale.ROOT).compareTo(b.getId().toLowerCase(Locale.ROOT));
     }
 
     public String[] getDataSourceIds() {
