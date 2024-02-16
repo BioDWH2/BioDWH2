@@ -6,7 +6,7 @@ public enum IdentifierType {
      * Australian Clinical Trials https://www.australianclinicaltrials.gov.au
      */
     ACTRN_TRIAL("ACTRN", null, null, null),
-    CAS("CAS", CharSequence.class, "cas", "^\\d{1,7}-\\d{2}-\\d$"),
+    CAS("CAS", CharSequence.class, "cas", "^\\d{1,7}-\\d{2}-\\d$", true),
     CHEBI("CHEBI", Integer.class, "chebi", "^\\d+$"),
     CHEMBL("ChEMBL", CharSequence.class, "chembl", null),
     CHEMSPIDER("ChemSpider", null, null, null),
@@ -22,8 +22,8 @@ public enum IdentifierType {
     /**
      * Digital Object Identifier (DOI) https://www.doi.org
      */
-    DOI("DOI", CharSequence.class, "doi", "^10.\\d{2,9}/.*$"),
-    DRUG_BANK("DrugBank", CharSequence.class, null, null),
+    DOI("DOI", CharSequence.class, "doi", "^10.\\d{2,9}/.*$", true),
+    DRUG_BANK("DrugBank", CharSequence.class, null, null, true),
     DRUG_CENTRAL("DrugCentral", Integer.class, null, null),
     /**
      * German Clinical Trials Register / Deutsches Register Klinischer Studien (DRKS) https://www.drks.de
@@ -48,7 +48,7 @@ public enum IdentifierType {
     FDA_SPL("FDA_SPL", null, null, null),
     GENE_CARD("GeneCard", null, null, null),
     GEN_ATLAS("GenAtlas", null, null, null),
-    HGNC_SYMBOL("HGNC_Symbol", CharSequence.class, "hgnc.symbol", "^[A-Za-z-0-9_]+(\\@)?$"),
+    HGNC_SYMBOL("HGNC_Symbol", CharSequence.class, "hgnc.symbol", "^[A-Za-z-0-9_]+(\\@)?$", true),
     HGNC_ID("HGNC", Integer.class, "hgnc", "^\\d{1,5}$"),
     ICD10("ICD10", null, null, null),
     ICD11("ICD11", null, null, null),
@@ -147,12 +147,19 @@ public enum IdentifierType {
     public final Class<?> expectedType;
     public final String bioregistryId;
     public final String localPattern;
+    public final boolean trimmed;
 
     IdentifierType(final String prefix, final Class<?> expectedType, final String bioregistryId,
                    final String localPattern) {
+        this(prefix, expectedType, bioregistryId, localPattern, false);
+    }
+
+    IdentifierType(final String prefix, final Class<?> expectedType, final String bioregistryId,
+                   final String localPattern, final boolean trimmed) {
         this.prefix = prefix;
         this.expectedType = expectedType;
         this.bioregistryId = bioregistryId;
         this.localPattern = localPattern;
+        this.trimmed = trimmed;
     }
 }

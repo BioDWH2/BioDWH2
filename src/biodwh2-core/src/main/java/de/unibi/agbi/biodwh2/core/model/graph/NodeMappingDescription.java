@@ -113,8 +113,10 @@ public class NodeMappingDescription {
             addIdentifierWithoutChecks(type, id);
     }
 
-    public void addIdentifier(final IdentifierType type, final String id) {
+    public void addIdentifier(final IdentifierType type, String id) {
         if (StringUtils.isNotEmpty(id)) {
+            if (type.trimmed && StringUtils.isNotEmpty(id))
+                id = id.trim();
             checkIdentifierRecommendedTypeIfAvailable(type, id);
             addIdentifierWithoutChecks(type.prefix, id);
         }
