@@ -9,6 +9,7 @@ import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,30 +45,22 @@ public final class GraphMLGraphWriter implements GraphWriter {
         properties = new ArrayList<>();
     }
 
+    @Override
+    public boolean write(final Workspace workspace, final DataSource dataSource, final Graph graph) {
+        removeOldExport(workspace, dataSource);
+        return write(dataSource.getFilePath(workspace, DataSourceFileType.INTERMEDIATE_GRAPHML_GZ), graph);
+    }
+
+    public void removeOldExport(final Workspace workspace, final DataSource dataSource) {
+        FileUtils.safeDelete(dataSource.getFilePath(workspace, DataSourceFileType.INTERMEDIATE_GRAPHML_GZ));
+    }
+
     public boolean write(final Path outputFilePath, final Graph graph) {
         labelKeyIdCounter = 0;
         labelKeyIdMap.clear();
         properties.clear();
         generateProperties(graph);
-        try (OutputStream outputStream = Files.newOutputStream(outputFilePath)) {
-            writeGraphFile(outputStream, graph);
-        } catch (XMLStreamException | IOException e) {
-            if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to write graphml file", e);
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public boolean write(final Workspace workspace, final DataSource dataSource, final Graph graph) {
-        labelKeyIdCounter = 0;
-        labelKeyIdMap.clear();
-        properties.clear();
-        removeOldExport(workspace, dataSource);
-        generateProperties(graph);
-        try (OutputStream stream = Files.newOutputStream(
-                dataSource.getFilePath(workspace, DataSourceFileType.INTERMEDIATE_GRAPHML))) {
+        try (final var stream = new GzipCompressorOutputStream(Files.newOutputStream(outputFilePath))) {
             writeGraphFile(stream, graph);
         } catch (XMLStreamException | IOException e) {
             if (LOGGER.isErrorEnabled())
@@ -75,12 +68,6 @@ public final class GraphMLGraphWriter implements GraphWriter {
             return false;
         }
         return true;
-    }
-
-    public void removeOldExport(final Workspace workspace, final DataSource dataSource) {
-        final Path path = dataSource.getFilePath(workspace, DataSourceFileType.INTERMEDIATE_GRAPHML);
-        if (!FileUtils.safeDelete(path) && LOGGER.isWarnEnabled())
-            LOGGER.warn("Failed to remove old GraphML export for data source '" + dataSource.getId() + "'");
     }
 
     private void generateProperties(final Graph graph) {

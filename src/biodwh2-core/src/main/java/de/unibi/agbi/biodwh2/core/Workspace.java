@@ -271,7 +271,7 @@ public final class Workspace {
     private boolean areDataSourceExportsMissing(final DataSource dataSource) {
         return fileDoesNotExist(dataSource.getFilePath(this, DataSourceFileType.PERSISTENT_GRAPH)) ||
                (!configuration.shouldSkipGraphMLExport() && fileDoesNotExist(
-                       dataSource.getFilePath(this, DataSourceFileType.INTERMEDIATE_GRAPHML)));
+                       dataSource.getFilePath(this, DataSourceFileType.INTERMEDIATE_GRAPHML_GZ)));
     }
 
     private boolean fileDoesNotExist(final Path filePath) {

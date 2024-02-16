@@ -341,7 +341,7 @@ public final class GraphMapper {
     }
 
     private void saveGraph(final Graph graph, final Workspace workspace) {
-        final Path outputGraphFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_GRAPHML);
+        final Path outputGraphFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_GRAPHML_GZ);
         if (workspace.getConfiguration().shouldSkipGraphMLExport()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Skipping mapped graph GraphML export as per configuration");

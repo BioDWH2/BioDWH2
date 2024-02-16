@@ -88,7 +88,7 @@ public final class GraphMerger {
         final Set<String> intersection = new HashSet<>(requestedStatus.keySet());
         intersection.retainAll(previousStatus.keySet());
         // If we have a previous state and any intersection between old and newly requested data sources, it's usable
-        return previousStatus.size() != 0 && intersection.size() != 0;
+        return !(previousStatus.isEmpty() || intersection.isEmpty());
     }
 
     private void mergeFromScratch(final Workspace workspace, final DataSource[] dataSources) throws MergerException {
@@ -143,7 +143,7 @@ public final class GraphMerger {
     }
 
     private void saveMergedGraph(final Workspace workspace, final Graph mergedGraph) {
-        final Path outputGraphFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_GRAPHML);
+        final Path outputGraphFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_GRAPHML_GZ);
         if (workspace.getConfiguration().shouldSkipGraphMLExport()) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Skipping merged graph GraphML export as per configuration");

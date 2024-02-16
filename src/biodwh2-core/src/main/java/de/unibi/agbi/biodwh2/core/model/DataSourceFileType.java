@@ -6,7 +6,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphFileFormat;
 public enum DataSourceFileType {
     METADATA("metadata.json"),
     PERSISTENT_GRAPH("intermediate." + Graph.EXTENSION),
-    INTERMEDIATE_GRAPHML("intermediate." + GraphFileFormat.GRAPH_ML.extension),
+    INTERMEDIATE_GRAPHML_GZ("intermediate." + GraphFileFormat.GRAPH_ML.extension + ".gz"),
     META_GRAPH_IMAGE("meta-graph.png"),
     META_GRAPH_STATISTICS("meta-graph-statistics.txt"),
     META_GRAPH_DYNAMIC_VIS("meta-graph.html");
