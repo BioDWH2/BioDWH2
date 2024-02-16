@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.gwascatalog.etl;
 
-import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
@@ -36,9 +35,9 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode(PUBLICATION_LABEL, "pmid", false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(STUDY_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(TRAIT_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(PUBLICATION_LABEL, "pmid", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(STUDY_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TRAIT_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         try {
             exportStudies(workspace, graph);
             exportAncestries(workspace, graph);
@@ -50,12 +49,8 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
     }
 
     private void exportStudies(final Workspace workspace, final Graph graph) throws IOException {
-        try (MappingIterator<Study> studies = FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource,
-                                                                                        GWASCatalogUpdater.STUDIES_FILE_NAME,
-                                                                                        Study.class)) {
-            while (studies.hasNext())
-                exportStudy(graph, studies.next());
-        }
+        FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource, GWASCatalogUpdater.STUDIES_FILE_NAME,
+                                                  Study.class, (entry) -> exportStudy(graph, entry));
     }
 
     private void exportStudy(final Graph graph, final Study study) {
@@ -70,11 +65,27 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         builder.withPropertyIfNotNull("disease_or_trait", study.diseaseOrTrait);
         builder.withPropertyIfNotNull("mapped_traits", study.mappedTrait);
         final Node node = builder.build();
-        final Node publicationNode = getOrCreatePublication(graph, study);
+        final Node publicationNode = getOrCreatePublication(graph, study.pubmedId, study.firstAuthor, study.journal,
+                                                            study.studyTitle, study.datePublished);
         graph.addEdge(node, publicationNode, "HAS_REFERENCE");
         final long[] traitNodeIds = exportTraits(graph, study.mappedTrait, study.mappedTraitUri);
         for (long traitNodeId : traitNodeIds)
             graph.addEdge(node, traitNodeId, "STUDIES");
+    }
+
+    private Node getOrCreatePublication(final Graph graph, final Integer pubmedId, final String firstAuthor,
+                                        final String journal, final String title, final String datePublished) {
+        Node node = graph.findNode(PUBLICATION_LABEL, "pmid", pubmedId);
+        if (node == null) {
+            final NodeBuilder builder = graph.buildNode().withLabel(PUBLICATION_LABEL);
+            builder.withProperty("pmid", pubmedId);
+            builder.withPropertyIfNotNull("first_author", firstAuthor);
+            builder.withPropertyIfNotNull("date_published", datePublished);
+            builder.withPropertyIfNotNull("journal", journal);
+            builder.withPropertyIfNotNull("title", title);
+            node = builder.build();
+        }
+        return node;
     }
 
     private long[] exportTraits(final Graph graph, final String mappedTrait, final String mappedTraitUri) {
@@ -107,33 +118,9 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         return result;
     }
 
-    private Node getOrCreatePublication(final Graph graph, final Study study) {
-        return getOrCreatePublication(graph, study.pubmedId, study.firstAuthor, study.journal, study.studyTitle,
-                                      study.datePublished);
-    }
-
-    private Node getOrCreatePublication(final Graph graph, final Integer pubmedId, final String firstAuthor,
-                                        final String journal, final String studyTitle, final String datePublished) {
-        Node node = graph.findNode(PUBLICATION_LABEL, "pmid", pubmedId);
-        if (node == null) {
-            final NodeBuilder builder = graph.buildNode().withLabel(PUBLICATION_LABEL);
-            builder.withProperty("pmid", pubmedId);
-            builder.withPropertyIfNotNull("first_author", firstAuthor);
-            builder.withPropertyIfNotNull("date_published", datePublished);
-            builder.withPropertyIfNotNull("journal", journal);
-            builder.withPropertyIfNotNull("title", studyTitle);
-            node = builder.build();
-        }
-        return node;
-    }
-
     private void exportAncestries(final Workspace workspace, final Graph graph) throws IOException {
-        try (MappingIterator<Ancestry> ancestries = FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource,
-                                                                                              GWASCatalogUpdater.ANCESTRY_FILE_NAME,
-                                                                                              Ancestry.class)) {
-            while (ancestries.hasNext())
-                exportAncestry(graph, ancestries.next());
-        }
+        FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource, GWASCatalogUpdater.ANCESTRY_FILE_NAME,
+                                                  Ancestry.class, (entry) -> exportAncestry(graph, entry));
     }
 
     private void exportAncestry(final Graph graph, final Ancestry ancestry) {
@@ -147,22 +134,14 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         builder.withPropertyIfNotNull("additional_description", ancestry.additionalAncestryDescription);
         final Node node = builder.build();
         final Node studyNode = graph.findNode(STUDY_LABEL, ID_KEY, ancestry.studyAccession);
-        graph.addEdge(studyNode, node, "WITH_ANCESTRY");
-        getOrCreatePublication(graph, ancestry);
-    }
-
-    private void getOrCreatePublication(final Graph graph, final Ancestry ancestry) {
+        if (studyNode != null) // TODO: check
+            graph.addEdge(studyNode, node, "WITH_ANCESTRY");
         getOrCreatePublication(graph, ancestry.pubmedId, ancestry.firstAuthor, null, null, ancestry.datePublished);
     }
 
     private void exportAssociations(final Workspace workspace, final Graph graph) throws IOException {
-        try (MappingIterator<Association> associations = FileUtils.openTsvWithHeaderWithoutQuoting(workspace,
-                                                                                                   dataSource,
-                                                                                                   GWASCatalogUpdater.ASSOCIATIONS_FILE_NAME,
-                                                                                                   Association.class)) {
-            while (associations.hasNext())
-                exportAssociation(graph, associations.next());
-        }
+        FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource, GWASCatalogUpdater.ASSOCIATIONS_FILE_NAME,
+                                                  Association.class, (entry) -> exportAssociation(graph, entry));
     }
 
     private void exportAssociation(final Graph graph, final Association association) {
@@ -197,11 +176,8 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         for (long traitNodeId : traitNodeIds)
             graph.addEdge(node, traitNodeId, "STUDIES");
         final Node studyNode = graph.findNode(STUDY_LABEL, ID_KEY, association.studyAccession);
-        graph.addEdge(studyNode, node, "WITH_ASSOCIATION");
-        getOrCreatePublication(graph, association);
-    }
-
-    private void getOrCreatePublication(final Graph graph, final Association association) {
+        if (studyNode != null) // TODO: check
+            graph.addEdge(studyNode, node, "WITH_ASSOCIATION");
         getOrCreatePublication(graph, association.pubmedId, association.firstAuthor, association.journal,
                                association.studyTitle, association.datePublished);
     }
