@@ -96,7 +96,8 @@ public class RNAInterMappingDescriber extends MappingDescriber {
             final String[] idParts = StringUtils.split(id, ":", 2);
             switch (idParts[0]) {
                 case "NCBI":
-                    description.addIdentifier(IdentifierType.NCBI_GENE, Integer.parseInt(idParts[1]));
+                    if (StringUtils.isNumeric(idParts[1]))
+                        description.addIdentifier(IdentifierType.NCBI_GENE, Integer.parseInt(idParts[1]));
                     break;
                 case "miRBase":
                     description.addIdentifier(IdentifierType.MIRBASE, idParts[1]);
