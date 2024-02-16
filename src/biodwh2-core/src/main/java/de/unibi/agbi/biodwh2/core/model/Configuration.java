@@ -70,7 +70,7 @@ public final class Configuration {
     public Integer getDataSourcePropertiesHash(final String dataSourceId) {
         final Map<String, String> properties = dataSourceProperties.get(dataSourceId);
         if (properties == null)
-            return null;
+            return 0;
         final int dataSourcePropertiesHash = properties.keySet().stream().sorted().map((k) -> (k + properties.get(
                 k)).hashCode()).reduce(0, Integer::sum);
         return getGlobalProperties().hashCode() ^ dataSourcePropertiesHash;
