@@ -44,7 +44,7 @@ public class RefSeqUpdater extends MultiFileFTPWebUpdater<RefSeqDataSource> {
 
     private String findAssemblyPath(final Workspace workspace) throws UpdaterException {
         String assemblyPath;
-        final String desiredAssembly = dataSource.getProperties(workspace).get("assembly");
+        final String desiredAssembly = dataSource.getStringProperty(workspace, "assembly");
         try {
             final HTTPFTPClient.Entry[] assemblies = client.listDirectory(HOMO_SAPIENS_ASSEMBLIES_PATH);
             if (desiredAssembly != null)

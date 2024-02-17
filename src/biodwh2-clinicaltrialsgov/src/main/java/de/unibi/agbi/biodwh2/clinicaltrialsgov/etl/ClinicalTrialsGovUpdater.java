@@ -20,8 +20,7 @@ public class ClinicalTrialsGovUpdater extends Updater<ClinicalTrialsGovDataSourc
 
     @Override
     protected Version getNewestVersion(final Workspace workspace) {
-        Integer updateIntervalDays = dataSource.getIntegerProperty(workspace, "updateIntervalDays");
-        updateIntervalDays = Math.max(1, updateIntervalDays != null ? updateIntervalDays : 7);
+        final int updateIntervalDays = Math.max(1, dataSource.getIntegerProperty(workspace, "updateIntervalDays", 7));
         final LocalDate start = LocalDate.parse("01.01.2022", DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         final LocalDate now = LocalDate.now();
         final long daysBetween = Duration.between(start.atStartOfDay(), now.atStartOfDay()).toDays();

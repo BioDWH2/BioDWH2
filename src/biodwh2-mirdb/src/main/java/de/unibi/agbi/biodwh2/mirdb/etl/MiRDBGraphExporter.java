@@ -7,7 +7,6 @@ import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.mapping.SpeciesLookup;
-import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -45,42 +44,24 @@ public class MiRDBGraphExporter extends GraphExporter<MiRDBDataSource> {
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.addIndex(IndexDescription.forNode(MI_RNA_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(M_RNA_LABEL, GENBANK_ACCESSION_KEY, IndexDescription.Type.UNIQUE));
-        final Configuration.GlobalProperties.SpeciesFilter speciesFilter = workspace.getConfiguration()
-                                                                                    .getGlobalProperties()
-                                                                                    .getSpeciesFilter();
-        final double scoreThreshold = getScoreThreshold(workspace);
+        final double scoreThreshold = dataSource.getDoubleProperty(workspace, "scoreThreshold", 50.0);
         graph.beginEdgeIndicesDelay(TARGETS_LABEL);
-        exportEntries(workspace, graph, speciesFilter, scoreThreshold);
+        exportEntries(workspace, graph, scoreThreshold);
         graph.endEdgeIndicesDelay(TARGETS_LABEL);
         return true;
     }
 
-    private double getScoreThreshold(final Workspace workspace) {
-        final String scoreThreshold = dataSource.getProperties(workspace).get("scoreThreshold");
-        if (scoreThreshold != null) {
-            try {
-                return Double.parseDouble(scoreThreshold);
-            } catch (Exception ignored) {
-            }
-        }
-        return 50.0;
-    }
-
-    private void exportEntries(final Workspace workspace, final Graph graph,
-                               final Configuration.GlobalProperties.SpeciesFilter speciesFilter,
-                               final double scoreThreshold) {
+    private void exportEntries(final Workspace workspace, final Graph graph, final double scoreThreshold) {
         try (final MappingIterator<Entry> entries = FileUtils.openGzipTsv(workspace, dataSource, MiRDBUpdater.FILE_NAME,
                                                                           Entry.class)) {
             while (entries.hasNext())
-                exportEntry(graph, entries.next(), speciesFilter, scoreThreshold);
+                exportEntry(graph, entries.next(), scoreThreshold);
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
     }
 
-    private void exportEntry(final Graph graph, final Entry entry,
-                             final Configuration.GlobalProperties.SpeciesFilter speciesFilter,
-                             final double scoreThreshold) {
+    private void exportEntry(final Graph graph, final Entry entry, final double scoreThreshold) {
         if (entry.targetScore != null && entry.targetScore < scoreThreshold)
             return;
         Node mirnaNode = graph.findNode(MI_RNA_LABEL, ID_KEY, entry.mirnaId);

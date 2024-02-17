@@ -207,7 +207,7 @@ public final class GraphMerger {
                     if (metadata.exportPropertiesHash == null || !metadata.exportPropertiesHash.equals(
                             requestedMetadata.exportPropertiesHash) ||
                         requestedMetadata.exportVersion > metadata.exportVersion || requestedMetadata.version.compareTo(
-                            metadata.version) > 0 || workspace.isDataSourceExportForced(metadata.id)) {
+                            metadata.version) > 0 || workspace.isDataSourceExportForced(dataSource)) {
                         removePreviousDataSourceVersion(mergedGraph, dataSource.getId());
                         mergeDataSource(workspace, dataSource, mergedGraph);
                     }

@@ -7,7 +7,6 @@ import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.mapping.SpeciesLookup;
-import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
@@ -40,27 +39,21 @@ public class TarBaseGraphExporter extends GraphExporter<TarBaseDataSource> {
         graph.addIndex(IndexDescription.forNode(GENE_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(TRANSCRIPT_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(MI_RNA_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
-        final Configuration.GlobalProperties.SpeciesFilter speciesFilter = workspace.getConfiguration()
-                                                                                    .getGlobalProperties()
-                                                                                    .getSpeciesFilter();
         for (final String fileName : TarBaseUpdater.FILE_NAMES)
-            exportFile(workspace, graph, fileName, speciesFilter);
+            exportFile(workspace, graph, fileName);
         return true;
     }
 
-    private void exportFile(final Workspace workspace, final Graph graph, final String fileName,
-                            final Configuration.GlobalProperties.SpeciesFilter speciesFilter) {
+    private void exportFile(final Workspace workspace, final Graph graph, final String fileName) {
         try (TarArchiveInputStream stream = FileUtils.openTarGzip(workspace, dataSource, fileName)) {
             while (stream.getNextEntry() != null)
-                exportEntries(graph, FileUtils.openSeparatedValuesFile(stream, Entry.class, '\t', true, false),
-                              speciesFilter);
+                exportEntries(graph, FileUtils.openSeparatedValuesFile(stream, Entry.class, '\t', true, false));
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export '" + fileName + "'", e);
         }
     }
 
-    private void exportEntries(final Graph graph, final MappingIterator<Entry> entries,
-                               final Configuration.GlobalProperties.SpeciesFilter speciesFilter) {
+    private void exportEntries(final Graph graph, final MappingIterator<Entry> entries) {
         graph.beginEdgeIndicesDelay(TARGETS_LABEL);
         graph.beginEdgeIndicesDelay(TRANSCRIBES_TO_LABEL);
         while (entries.hasNext()) {

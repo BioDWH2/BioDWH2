@@ -6,7 +6,6 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.mapping.SpeciesLookup;
-import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -41,9 +40,6 @@ public class TRRUSTGraphExporter extends GraphExporter<TRRUSTDataSource> {
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.addIndex(IndexDescription.forNode(TRANSCRIPTION_FACTOR_LABEL, GENE_ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(GENE_LABEL, GENE_ID_KEY, IndexDescription.Type.UNIQUE));
-        final Configuration.GlobalProperties.SpeciesFilter speciesFilter = workspace.getConfiguration()
-                                                                                    .getGlobalProperties()
-                                                                                    .getSpeciesFilter();
         try {
             if (speciesFilter.isSpeciesAllowed(SpeciesLookup.HOMO_SAPIENS.ncbiTaxId))
                 exportCollection(graph, loadXmlFile(workspace, TRRUSTUpdater.HUMAN_FILE_NAME));

@@ -47,7 +47,7 @@ public class OMIMUpdater extends Updater<OMIMDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        final String downloadKey = dataSource.getProperties(workspace).get("downloadKey");
+        final String downloadKey = dataSource.getStringProperty(workspace, "downloadKey");
         final String urlPrefix = "https://data.omim.org/downloads/" + downloadKey + "/";
         downloadFileAsBrowser(workspace, MIM2GENE_DOWNLOAD_URL, MIM2GENE_FILENAME);
         downloadFileAsBrowser(workspace, urlPrefix + MIMTITLES_FILENAME, MIMTITLES_FILENAME);

@@ -10,7 +10,6 @@ import de.unibi.agbi.biodwh2.core.io.fasta.FastaEntry;
 import de.unibi.agbi.biodwh2.core.io.fasta.FastaReader;
 import de.unibi.agbi.biodwh2.core.io.flatfile.FlatFileEntry;
 import de.unibi.agbi.biodwh2.core.io.flatfile.FlatFileReader;
-import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -56,11 +55,8 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
         graph.addIndex(IndexDescription.forNode(FAMILY_LABEL, "accession", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(SPECIES_LABEL, "ncbi_taxid", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(REFERENCE_LABEL, "pmid", IndexDescription.Type.UNIQUE));
-        final Configuration.GlobalProperties.SpeciesFilter speciesFilter = workspace.getConfiguration()
-                                                                                    .getGlobalProperties()
-                                                                                    .getSpeciesFilter();
         logStep(1, "species");
-        final Map<Long, Long> speciesIdNodeIdMap = exportSpecies(workspace, graph, speciesFilter);
+        final Map<Long, Long> speciesIdNodeIdMap = exportSpecies(workspace, graph);
         logStep(2, "pre_miRNAs");
         final Map<Long, Long> mirnaIdNodeIdMap = exportMirnas(workspace, graph, speciesIdNodeIdMap);
         logStep(3, "miRNAs");
@@ -83,8 +79,7 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
             LOGGER.info("(" + step + "/8) Exporting " + name + "...");
     }
 
-    private Map<Long, Long> exportSpecies(final Workspace workspace, final Graph graph,
-                                          final Configuration.GlobalProperties.SpeciesFilter speciesFilter) {
+    private Map<Long, Long> exportSpecies(final Workspace workspace, final Graph graph) {
         final Map<Long, Long> idNodeIdMap = new HashMap<>();
         for (final MirnaSpecies entry : parseGzipTsvFile(workspace, "mirna_species.txt.gz", MirnaSpecies.class)) {
             if (speciesFilter.isSpeciesAllowed("\\N".equals(entry.taxonId) ? null : Integer.parseInt(entry.taxonId))) {

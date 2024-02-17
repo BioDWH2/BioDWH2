@@ -7,6 +7,7 @@ import de.unibi.agbi.biodwh2.core.graphics.MetaGraphImage;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
+import de.unibi.agbi.biodwh2.core.model.SpeciesFilter;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
@@ -15,20 +16,33 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class GraphExporter<D extends DataSource> {
     private static final Logger LOGGER = LogManager.getLogger(GraphExporter.class);
     public static final String ID_KEY = "id";
 
     protected final D dataSource;
+    protected SpeciesFilter speciesFilter;
 
     public GraphExporter(final D dataSource) {
         this.dataSource = dataSource;
+        speciesFilter = new SpeciesFilter();
     }
 
     public abstract long getExportVersion();
 
     public final boolean export(final Workspace workspace) throws ExporterException {
+        final List<Integer> speciesFilterIds = new ArrayList<>();
+        final var workspaceSpeciesFilter = workspace.getConfiguration().getGlobalProperties().speciesFilter;
+        if (workspaceSpeciesFilter != null)
+            Collections.addAll(speciesFilterIds, workspaceSpeciesFilter);
+        final var dataSourceSpeciesFilter = dataSource.<List<Integer>>getProperty(workspace, "speciesFilter");
+        if (dataSourceSpeciesFilter != null)
+            speciesFilterIds.addAll(dataSourceSpeciesFilter);
+        speciesFilter = new SpeciesFilter(speciesFilterIds);
         boolean exportSuccessful;
         try (Graph g = new Graph(dataSource.getFilePath(workspace, DataSourceFileType.PERSISTENT_GRAPH))) {
             exportSuccessful = exportGraph(workspace, g);

@@ -12,7 +12,6 @@ import de.unibi.agbi.biodwh2.drugbank.DrugBankDataSource;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.Map;
 
 public class DrugBankUpdater extends Updater<DrugBankDataSource> {
     private static final String FULL_DATABASE_URL_SUFFIX = "/downloads/all-full-database";
@@ -65,9 +64,8 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        final Map<String, String> drugBankProperties = dataSource.getProperties(workspace);
-        final String username = drugBankProperties.getOrDefault("username", null);
-        final String password = drugBankProperties.getOrDefault("password", null);
+        final String username = dataSource.getStringProperty(workspace, "username");
+        final String password = dataSource.getStringProperty(workspace, "password");
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password))
             throw new UpdaterOnlyManuallyException();
         final JsonNode releases = loadReleasesJson();

@@ -220,23 +220,79 @@ public abstract class DataSource {
     public Map<String, DataSourcePropertyType> getAvailableProperties() {
         final Map<String, DataSourcePropertyType> result = new HashMap<>();
         result.put("forceExport", DataSourcePropertyType.BOOLEAN);
+        result.put("speciesFilter", DataSourcePropertyType.INTEGER_LIST);
         return result;
     }
 
-    public final Map<String, String> getProperties(final Workspace workspace) {
+    public final Map<String, Object> getProperties(final Workspace workspace) {
         return workspace.getConfiguration().getDataSourceProperties(getId());
     }
 
-    public final boolean getBooleanProperty(final Workspace workspace, final String key) {
-        return "true".equalsIgnoreCase(getProperties(workspace).get(key));
+    public final <T> T getProperty(final Workspace workspace, final String key) {
+        //noinspection unchecked
+        return (T) workspace.getConfiguration().getDataSourceProperties(getId()).get(key);
+    }
+
+    public final String getStringProperty(final Workspace workspace, final String key) {
+        final var value = getProperties(workspace).get(key);
+        return value != null ? value.toString() : null;
+    }
+
+    public final Boolean getBooleanProperty(final Workspace workspace, final String key) {
+        return getBooleanProperty(workspace, key, null);
+    }
+
+    public final Boolean getBooleanProperty(final Workspace workspace, final String key, final Boolean fallback) {
+        final var value = getProperties(workspace).get(key);
+        if (value == null)
+            return fallback;
+        if (value instanceof Boolean)
+            return (Boolean) value;
+        if (value instanceof Integer)
+            return (Integer) value == 1;
+        if (value instanceof Long)
+            return (Long) value == 1;
+        return "true".equalsIgnoreCase(value.toString());
     }
 
     public final Integer getIntegerProperty(final Workspace workspace, final String key) {
+        return getIntegerProperty(workspace, key, null);
+    }
+
+    public final Integer getIntegerProperty(final Workspace workspace, final String key, final Integer fallback) {
+        final var value = getProperties(workspace).get(key);
+        if (value == null)
+            return fallback;
+        if (value instanceof Integer)
+            return (Integer) value;
         try {
-            return Integer.parseInt(getProperties(workspace).get(key));
-        } catch (NumberFormatException ignored) {
-            return null;
+            return Integer.parseInt(value.toString());
+        } catch (Exception ignored) {
         }
+        return fallback;
+    }
+
+    public final Double getDoubleProperty(final Workspace workspace, final String key) {
+        return getDoubleProperty(workspace, key, null);
+    }
+
+    public final Double getDoubleProperty(final Workspace workspace, final String key, Double fallback) {
+        final var value = getProperties(workspace).get(key);
+        if (value == null)
+            return fallback;
+        if (value instanceof Integer)
+            return (double) (Integer) value;
+        if (value instanceof Long)
+            return (double) (Long) value;
+        if (value instanceof Float)
+            return (double) (Float) value;
+        if (value instanceof Double)
+            return (double) (Double) value;
+        try {
+            return Double.parseDouble(value.toString());
+        } catch (Exception ignored) {
+        }
+        return fallback;
     }
 
     void setVersion(final Workspace workspace, final Version version) {

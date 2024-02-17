@@ -20,7 +20,7 @@ public final class Configuration {
     @JsonProperty("globalProperties")
     private final GlobalProperties globalProperties;
     @JsonProperty("dataSourceProperties")
-    private final Map<String, Map<String, String>> dataSourceProperties;
+    private final Map<String, Map<String, Object>> dataSourceProperties;
     @JsonProperty("skipGraphMLExport")
     private final Boolean skipGraphMLExport;
     @JsonProperty("skipMetaGraphGeneration")
@@ -54,12 +54,8 @@ public final class Configuration {
         dataSourceIds.remove(dataSourceId);
     }
 
-    public boolean hasPropertiesForDataSource(final String dataSourceId) {
-        return dataSourceProperties.containsKey(dataSourceId);
-    }
-
-    public Map<String, String> getDataSourceProperties(final String dataSourceId) {
-        final Map<String, String> properties = dataSourceProperties.get(dataSourceId);
+    public Map<String, Object> getDataSourceProperties(final String dataSourceId) {
+        final Map<String, Object> properties = dataSourceProperties.get(dataSourceId);
         return properties == null ? new HashMap<>() : properties;
     }
 
@@ -68,7 +64,7 @@ public final class Configuration {
     }
 
     public Integer getDataSourcePropertiesHash(final String dataSourceId) {
-        final Map<String, String> properties = dataSourceProperties.get(dataSourceId);
+        final Map<String, Object> properties = dataSourceProperties.get(dataSourceId);
         if (properties == null)
             return 0;
         final int dataSourcePropertiesHash = properties.keySet().stream().sorted().map((k) -> (k + properties.get(
@@ -84,22 +80,13 @@ public final class Configuration {
         return Boolean.TRUE.equals(skipMetaGraphGeneration);
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true, value = {"speciesFilterHelper"})
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class GlobalProperties {
-        private SpeciesFilter speciesFilterHelper;
-
         @JsonProperty("speciesFilter")
-        private Integer[] speciesFilter;
+        public Integer[] speciesFilter;
 
         public GlobalProperties() {
             speciesFilter = new Integer[0];
-        }
-
-        @JsonIgnore
-        public SpeciesFilter getSpeciesFilter() {
-            if (speciesFilterHelper == null)
-                speciesFilterHelper = new SpeciesFilter(speciesFilter);
-            return speciesFilterHelper;
         }
 
         @Override
@@ -115,20 +102,6 @@ public final class Configuration {
         @Override
         public int hashCode() {
             return Arrays.hashCode(speciesFilter);
-        }
-
-        public static class SpeciesFilter {
-            private final Set<Integer> taxonIds;
-
-            public SpeciesFilter(final Integer[] taxonIds) {
-                this.taxonIds = new HashSet<>();
-                if (taxonIds != null)
-                    this.taxonIds.addAll(Arrays.asList(taxonIds));
-            }
-
-            public boolean isSpeciesAllowed(final Integer taxonId) {
-                return taxonIds == null || taxonIds.isEmpty() || taxonIds.contains(taxonId);
-            }
         }
     }
 }

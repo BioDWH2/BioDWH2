@@ -7,7 +7,6 @@ import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.XlsxMappingIterator;
 import de.unibi.agbi.biodwh2.core.mapping.SpeciesLookup;
-import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -86,15 +85,12 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
         graph.addIndex(IndexDescription.forNode(MIRNA_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(INTERACTION_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(PUBLICATION_LABEL, "pmid", IndexDescription.Type.UNIQUE));
-        final Configuration.GlobalProperties.SpeciesFilter speciesFilter = workspace.getConfiguration()
-                                                                                    .getGlobalProperties()
-                                                                                    .getSpeciesFilter();
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Collecting interaction target sites...");
         final Map<String, Map<Integer, Map<String, Map<String, String>>>> targetSiteMap = collectTargetSites(workspace);
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting interactions...");
-        exportInteractions(workspace, graph, speciesFilter, targetSiteMap);
+        exportInteractions(workspace, graph, targetSiteMap);
         return true;
     }
 
@@ -120,7 +116,6 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
     }
 
     private void exportInteractions(final Workspace workspace, final Graph graph,
-                                    final Configuration.GlobalProperties.SpeciesFilter speciesFilter,
                                     final Map<String, Map<Integer, Map<String, Map<String, String>>>> targetSiteMap) {
         final Map<Long, Set<Long>> addedInteractionEdges = new HashMap<>();
         final Map<String, Long> geneKeyNodeIdMap = new HashMap<>();
@@ -129,8 +124,7 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
         try (final InputStream inputStream = FileUtils.openInput(workspace, dataSource, "miRTarBase_MTI.xlsx");
              final XlsxMappingIterator<MTIEntry> iterator = new XlsxMappingIterator<>(MTIEntry.class, inputStream)) {
             while (iterator.hasNext())
-                exportInteraction(graph, speciesFilter, targetSiteMap, addedInteractionEdges, geneKeyNodeIdMap,
-                                  iterator.next());
+                exportInteraction(graph, targetSiteMap, addedInteractionEdges, geneKeyNodeIdMap, iterator.next());
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
@@ -138,13 +132,13 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
         graph.endEdgeIndicesDelay(ASSOCIATED_WITH_LABEL);
     }
 
-    private void exportInteraction(final Graph graph, final Configuration.GlobalProperties.SpeciesFilter speciesFilter,
+    private void exportInteraction(final Graph graph,
                                    final Map<String, Map<Integer, Map<String, Map<String, String>>>> targetSiteMap,
                                    final Map<Long, Set<Long>> addedInteractionEdges,
                                    final Map<String, Long> geneKeyNodeIdMap, final MTIEntry entry) {
-        final Node miRNANode = getOrCreateMiRNANode(graph, speciesFilter, entry.miRNA);
-        final Long geneNodeId = getOrCreateGeneNode(graph, speciesFilter, geneKeyNodeIdMap, entry.targetGene,
-                                                    entry.speciesTargetGene, entry.targetGeneEntrezId);
+        final Node miRNANode = getOrCreateMiRNANode(graph, entry.miRNA);
+        final Long geneNodeId = getOrCreateGeneNode(graph, geneKeyNodeIdMap, entry.targetGene, entry.speciesTargetGene,
+                                                    entry.targetGeneEntrezId);
         if (miRNANode == null || geneNodeId == null)
             return;
         final Node interactionNode = getOrCreateInteractionNode(graph, entry.miRTarBaseId);
@@ -169,9 +163,7 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
         }
     }
 
-    private Node getOrCreateMiRNANode(final Graph graph,
-                                      final Configuration.GlobalProperties.SpeciesFilter speciesFilter,
-                                      final String id) {
+    private Node getOrCreateMiRNANode(final Graph graph, final String id) {
         Node node = graph.findNode(MIRNA_LABEL, ID_KEY, id);
         if (node == null) {
             // entry.speciesMiRNA doesn't match the id in many cases, therefore we use a lookup from the id prefix.
@@ -194,10 +186,8 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
         return entry != null ? entry.ncbiTaxId : null;
     }
 
-    private Long getOrCreateGeneNode(final Graph graph,
-                                     final Configuration.GlobalProperties.SpeciesFilter speciesFilter,
-                                     final Map<String, Long> geneKeyNodeIdMap, final String id, final String species,
-                                     final Integer entrezGeneId) {
+    private Long getOrCreateGeneNode(final Graph graph, final Map<String, Long> geneKeyNodeIdMap, final String id,
+                                     final String species, final Integer entrezGeneId) {
         final String key = species + '_' + id;
         Long nodeId = geneKeyNodeIdMap.get(key);
         if (nodeId == null) {
