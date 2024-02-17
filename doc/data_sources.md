@@ -112,9 +112,10 @@ Adverse Drug Reaction Classification System (ADReCS) is a comprehensive ADR onto
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -133,6 +134,7 @@ The Basic Formal Ontology (BFO)
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -150,6 +152,7 @@ The Basic Formal Ontology (BFO)
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -161,6 +164,13 @@ The Basic Formal Ontology (BFO)
 - **Citation**:
 - **Files used**:
   - ```BioM2MetDiseaseData.txt```
+
+**Configuration properties**:
+
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -177,6 +187,7 @@ The Basic Formal Ontology (BFO)
 | Property        | Values     | Description                                                      |
 |-----------------|------------|------------------------------------------------------------------|
 | forceExport     | true/false | Force graph export even if nothing changed                       |
+| speciesFilter   | int[]      | Filter export with NCBI taxonomy ids                             |
 | licenseAccepted | true/false | Manual check if the license of BRENDA has been read and accepted |
 
 ----
@@ -197,6 +208,7 @@ cell lines, cell types and cell cultures.
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -216,9 +228,10 @@ Health Canada publishes databases which list nutrient values in Canadian foods. 
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -234,9 +247,10 @@ CancerDrugs_DB is a curated listing of licensed cancer drugs produced by the Ant
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -253,6 +267,7 @@ CancerDrugs_DB is a curated listing of licensed cancer drugs produced by the Ant
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -275,9 +290,10 @@ CancerDrugs_DB is a curated listing of licensed cancer drugs produced by the Ant
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -291,9 +307,10 @@ CancerDrugs_DB is a curated listing of licensed cancer drugs produced by the Ant
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -313,9 +330,10 @@ CMAUP is a database of molecular activities of useful plants.
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -328,9 +346,10 @@ CMAUP is a database of molecular activities of useful plants.
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -343,9 +362,10 @@ CMAUP is a database of molecular activities of useful plants.
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -362,6 +382,7 @@ CMAUP is a database of molecular activities of useful plants.
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -381,9 +402,10 @@ Gene-Disease association database
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -407,6 +429,7 @@ DrugBank Online is a comprehensive, free-to-access, online database containing i
 | Property             | Values     | Description                                                               |
 |----------------------|------------|---------------------------------------------------------------------------|
 | forceExport          | true/false | Force graph export even if nothing changed                                |
+| speciesFilter        | int[]      | Filter export with NCBI taxonomy ids                                      |
 | skipDrugInteractions | true/false | Skip exporting of drug interactions which currently take the longest time |
 
 ----
@@ -426,6 +449,7 @@ DrugCentral is an online drug information resource created and maintained by the
 | Property               | Values     | Description                                                                   |
 |------------------------|------------|-------------------------------------------------------------------------------|
 | forceExport            | true/false | Force graph export even if nothing changed                                    |
+| speciesFilter          | int[]      | Filter export with NCBI taxonomy ids                                          |
 | skipDrugLabelFullTexts | true/false | Skip export of drug label full text information to reduce graph database size |
 | skipLINCSSignatures    | true/false | Skip export of LINCS signatures to reduce graph database size                 |
 | skipFAERSReports       | true/false | Skip export of FAERS reports to reduce graph database size                    |
@@ -448,9 +472,10 @@ DrugCentral is an online drug information resource created and maintained by the
 
 **Configuration properties**:
 
-| Property               | Values     | Description                                                                   |
-|------------------------|------------|-------------------------------------------------------------------------------|
-| forceExport            | true/false | Force graph export even if nothing changed                                    |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -469,6 +494,7 @@ The Experimental Factor Ontology (EFO) provides a systematic description of many
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -487,9 +513,10 @@ European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC]
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -505,9 +532,10 @@ Expasy ENZYME
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -522,9 +550,10 @@ Expasy ENZYME
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -543,9 +572,10 @@ G2P is a publicly-accessible online system designed to facilitate the developmen
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -568,6 +598,7 @@ The Gene Ontology (GO) knowledgebase is the world’s largest source of informat
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -587,9 +618,10 @@ high-quality pharmacological and medicinal chemistry literature.
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -609,9 +641,10 @@ Nucleic Acids Research, 2019, Vol. 47 (Database issue): D1005-D1012.```
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -627,9 +660,10 @@ Expasy HAMAP
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -650,9 +684,10 @@ The HGNC is responsible for approving unique symbols and names for human loci, i
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -670,9 +705,10 @@ The HGNC is responsible for approving unique symbols and names for human loci, i
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -685,9 +721,10 @@ The HGNC is responsible for approving unique symbols and names for human loci, i
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -709,6 +746,7 @@ The Human Phenotype Ontology (HPO) provides a standardized vocabulary of phenoty
 | Property       | Values     | Description                                                                                                                                                               |
 |----------------|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed                                                                                                                                |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                                                                                                                                      |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete                                                                                                                  |
 | omimLicensed   | true/false | Annotations with evidence IEA require contacting OMIM ([info](https://hpo.jax.org/app/help/annotations)). By setting this flag to true, you agree that this has happened! |
 
@@ -726,9 +764,10 @@ The Human Phenotype Ontology (HPO) provides a standardized vocabulary of phenoty
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -742,9 +781,10 @@ The Human Phenotype Ontology (HPO) provides a standardized vocabulary of phenoty
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -775,9 +815,10 @@ The Human Phenotype Ontology (HPO) provides a standardized vocabulary of phenoty
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -791,9 +832,10 @@ The Human Phenotype Ontology (HPO) provides a standardized vocabulary of phenoty
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -809,9 +851,10 @@ InterPro provides functional analysis of proteins by classifying them into famil
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -832,9 +875,10 @@ Integrated Taxonomic Information System
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -847,9 +891,10 @@ Integrated Taxonomic Information System
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -866,6 +911,7 @@ Integrated Taxonomic Information System
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -883,6 +929,7 @@ Integrated Taxonomic Information System
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -898,9 +945,10 @@ Integrated Taxonomic Information System
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -913,6 +961,13 @@ Integrated Taxonomic Information System
   - ```miRtar.txt```
   - ```diseaseList.txt```
   - ```AllEntries.txt```
+
+**Configuration properties**:
+
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -944,9 +999,10 @@ Integrated Taxonomic Information System
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -965,6 +1021,7 @@ Integrated Taxonomic Information System
 | Property       | Values       | Description                                           |
 |----------------|--------------|-------------------------------------------------------|
 | forceExport    | true/false   | Force graph export even if nothing changed            |
+| speciesFilter  | int[]        | Filter export with NCBI taxonomy ids                  |
 | scoreThreshold | [0.0, 100.0] | Filter threshold for prediction score (default: 50.0) |
 
 ----
@@ -980,9 +1037,10 @@ Integrated Taxonomic Information System
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -999,6 +1057,7 @@ Integrated Taxonomic Information System
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -1016,6 +1075,7 @@ Integrated Taxonomic Information System
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -1030,9 +1090,10 @@ Integrated Taxonomic Information System
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1056,9 +1117,10 @@ The Negatome is a collection of protein and domain pairs which are unlikely enga
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1075,6 +1137,7 @@ The Negatome is a collection of protein and domain pairs which are unlikely enga
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -1096,10 +1159,11 @@ Online Mendelian Inheritance in Man® - An Online Catalog of Human Genes and Gen
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                                                      |
-|-------------|------------|----------------------------------------------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed                                       |
-| downloadKey |            | License key obtained by registering with OMIM.org required for downloading files |
+| Property      | Values     | Description                                                                      |
+|---------------|------------|----------------------------------------------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed                                       |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids                                             |
+| downloadKey   |            | License key obtained by registering with OMIM.org required for downloading files |
 
 ----
 
@@ -1114,9 +1178,10 @@ Open Targets is an innovative, large-scale, multi-year, public-private partnersh
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1132,9 +1197,10 @@ Pathway Commons is an integrated resource of publicly available information abou
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1147,9 +1213,10 @@ Pathway Commons is an integrated resource of publicly available information abou
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1166,6 +1233,7 @@ Pathway Commons is an integrated resource of publicly available information abou
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -1183,6 +1251,7 @@ Pathway Commons is an integrated resource of publicly available information abou
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -1200,6 +1269,7 @@ Pathway Commons is an integrated resource of publicly available information abou
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -1217,6 +1287,7 @@ Pathway Commons is an integrated resource of publicly available information abou
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -1237,9 +1308,10 @@ Expasy PROSITE and PRORULE
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1255,9 +1327,10 @@ ReDO_DB is a curated listing of non-cancer drugs which have shown some evidence 
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1273,9 +1346,10 @@ ReDOTrialsDB is a curated database, produced by the Anticancer Fund, of active c
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1289,10 +1363,11 @@ ReDOTrialsDB is a curated database, produced by the Anticancer Fund, of active c
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                     |
-|-------------|------------|-------------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed      |
-| assembly    |            | Assembly name to be used. Example: `GRCh38.p14` |
+| Property      | Values     | Description                                     |
+|---------------|------------|-------------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed      |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids            |
+| assembly      |            | Assembly name to be used. Example: `GRCh38.p14` |
 
 ----
 
@@ -1310,9 +1385,10 @@ ReDOTrialsDB is a curated database, produced by the Anticancer Fund, of active c
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1330,9 +1406,10 @@ ReDOTrialsDB is a curated database, produced by the Anticancer Fund, of active c
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1349,9 +1426,10 @@ RNA subcellular localization database
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1368,6 +1446,7 @@ RNA subcellular localization database
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -1400,9 +1479,10 @@ SIDER contains information on marketed medicines and their recorded adverse drug
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1417,9 +1497,10 @@ STITCH Chemical-Protein Interaction Networks
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1436,9 +1517,10 @@ STRING Protein-Protein Interaction Networks
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1459,9 +1541,10 @@ STRING Protein-Protein Interaction Networks
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1478,9 +1561,10 @@ STRING Protein-Protein Interaction Networks
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1498,9 +1582,10 @@ Tissue expression database
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1517,9 +1602,10 @@ Transcriptional Regulatory Relationships Unraveled by Sentence-based Text mining
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1546,9 +1632,10 @@ Transcriptional Regulatory Relationships Unraveled by Sentence-based Text mining
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1565,6 +1652,7 @@ Transcriptional Regulatory Relationships Unraveled by Sentence-based Text mining
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -1578,9 +1666,10 @@ Transcriptional Regulatory Relationships Unraveled by Sentence-based Text mining
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1593,9 +1682,10 @@ Transcriptional Regulatory Relationships Unraveled by Sentence-based Text mining
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
 
@@ -1612,6 +1702,7 @@ Transcriptional Regulatory Relationships Unraveled by Sentence-based Text mining
 | Property       | Values     | Description                                              |
 |----------------|------------|----------------------------------------------------------|
 | forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
@@ -1628,8 +1719,9 @@ The PLANTS Database provides standardized information about the vascular plants,
 
 **Configuration properties**:
 
-| Property    | Values     | Description                                |
-|-------------|------------|--------------------------------------------|
-| forceExport | true/false | Force graph export even if nothing changed |
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
 
 ----
