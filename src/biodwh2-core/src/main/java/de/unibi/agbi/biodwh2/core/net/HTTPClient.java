@@ -1,9 +1,14 @@
 package de.unibi.agbi.biodwh2.core.net;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.unibi.agbi.biodwh2.core.BinaryUtils;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -17,7 +22,9 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -224,6 +231,17 @@ public final class HTTPClient {
                 return BinaryUtils.parseMSDOSDateTime(data[10], data[11], data[12], data[13]);
         }
         return null;
+    }
+
+    public static List<JsonNode> findSchemaAnnotationsFromWebsiteSource(final String url) throws IOException {
+        final String source = getWebsiteSource(url);
+        final List<JsonNode> result = new ArrayList<>();
+        final Document document = Jsoup.parse(source);
+        final ObjectMapper mapper = new ObjectMapper();
+        for (final Element script : document.select("script"))
+            if (script.hasAttr("type") && "application/ld+json".equalsIgnoreCase(script.attr("type")))
+                mapper.readTree(script.html());
+        return result;
     }
 
     public static class StreamWithContentLength implements AutoCloseable {
