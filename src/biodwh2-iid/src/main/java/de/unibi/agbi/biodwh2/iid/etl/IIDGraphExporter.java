@@ -5,6 +5,7 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
+import de.unibi.agbi.biodwh2.core.mapping.SpeciesLookup;
 import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
@@ -193,30 +194,50 @@ public class IIDGraphExporter extends GraphExporter<IIDDataSource> {
         graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.beginEdgeIndicesDelay(INTERACTS_WITH_LABEL);
         final Map<String, Long> uniprotIdNodeIdMap = new HashMap<>();
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.ALPACA_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.CAT_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.CHICKEN_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.COW_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.DOG_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.DUCK_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.FLY_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.GUINEA_PIG_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.HORSE_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.HUMAN_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.MOUSE_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.PIG_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.RABBIT_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.RAT_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.SHEEP_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.TURKEY_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.WORM_PPI_FILE_NAME);
-        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.YEAST_PPI_FILE_NAME);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.ALPACA_PPI_FILE_NAME,
+                      SpeciesLookup.VICUGNA_PACOS.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.CAT_PPI_FILE_NAME,
+                      SpeciesLookup.FELIS_CATUS.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.CHICKEN_PPI_FILE_NAME,
+                      SpeciesLookup.GALLUS_GALLUS.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.COW_PPI_FILE_NAME,
+                      SpeciesLookup.BOS_TAURUS.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.DOG_PPI_FILE_NAME,
+                      SpeciesLookup.CANIS_FAMILIARIS.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.DUCK_PPI_FILE_NAME,
+                      SpeciesLookup.ANAS_PLATYRHYNCHOS.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.FLY_PPI_FILE_NAME,
+                      SpeciesLookup.DROSOPHILA_MELANOGASTER.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.GUINEA_PIG_PPI_FILE_NAME,
+                      SpeciesLookup.CAVIA_PORCELLUS.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.HORSE_PPI_FILE_NAME,
+                      SpeciesLookup.EQUUS_CABALLUS.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.HUMAN_PPI_FILE_NAME,
+                      SpeciesLookup.HOMO_SAPIENS.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.MOUSE_PPI_FILE_NAME,
+                      SpeciesLookup.MUS_MUSCULUS.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.PIG_PPI_FILE_NAME,
+                      SpeciesLookup.SUS_SCROFA.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.RABBIT_PPI_FILE_NAME,
+                      SpeciesLookup.ORYCTOLAGUS_CUNICULUS.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.RAT_PPI_FILE_NAME,
+                      SpeciesLookup.RATTUS_NORVEGICUS.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.SHEEP_PPI_FILE_NAME,
+                      SpeciesLookup.OVIS_ARIES.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.TURKEY_PPI_FILE_NAME,
+                      SpeciesLookup.MELEAGRIS_GALLOPAVO.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.WORM_PPI_FILE_NAME,
+                      SpeciesLookup.CAENORHABDITIS_ELEGANS.ncbiTaxId);
+        exportSpecies(workspace, graph, uniprotIdNodeIdMap, IIDUpdater.YEAST_PPI_FILE_NAME,
+                      SpeciesLookup.SACCHAROMYCES_CEREVISIAE.ncbiTaxId);
         graph.endEdgeIndicesDelay(INTERACTS_WITH_LABEL);
         return true;
     }
 
     private void exportSpecies(final Workspace workspace, final Graph graph, final Map<String, Long> uniprotIdNodeIdMap,
-                               final String fileName) {
+                               final String fileName, final Integer taxonId) {
+        if (!speciesFilter.isSpeciesAllowed(taxonId))
+            return;
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Exporting file '" + fileName + "'...");
         try (final var iterator = FileUtils.openGzipTsv(workspace, dataSource, fileName, String[].class)) {
