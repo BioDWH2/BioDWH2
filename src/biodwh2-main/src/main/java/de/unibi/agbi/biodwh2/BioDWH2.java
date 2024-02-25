@@ -45,6 +45,8 @@ public final class BioDWH2 {
             removeDataSource(commandLine);
         else if (commandLine.create != null)
             createWorkspace(commandLine.create);
+        else if (commandLine.configure)
+            configureWorkspace();
         else if (commandLine.status != null)
             checkWorkspaceState(commandLine.status, commandLine.verbose);
         else if (commandLine.update != null)
@@ -125,6 +127,10 @@ public final class BioDWH2 {
 
     private void createWorkspace(final String workspacePath) {
         new Workspace(workspacePath);
+    }
+
+    private void configureWorkspace() {
+        new WebConfigurator().run();
     }
 
     private void checkWorkspaceState(final String workspacePath, final boolean verbose) {

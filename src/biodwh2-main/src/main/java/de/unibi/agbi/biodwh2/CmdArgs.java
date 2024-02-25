@@ -17,6 +17,10 @@ public class CmdArgs {
             "-c", "--create"
     }, arity = "1", paramLabel = "<workspacePath>", description = "Create a new empty workspace", order = 10)
     public String create;
+    @CommandLine.Option(names = {
+            "--config"
+    }, description = "Start web-based configuration of workspaces", order = 9)
+    public boolean configure;
     @CommandLine.Option(names = {"--data-sources"}, description = "List all available data sources", order = 11)
     public boolean listDataSources;
     @CommandLine.Option(names = {
