@@ -36,6 +36,10 @@ public final class FileUtils {
         return new BufferedOutputStream(Files.newOutputStream(Paths.get(filePath)));
     }
 
+    public static BufferedOutputStream openOutput(final Path filePath) throws IOException {
+        return new BufferedOutputStream(Files.newOutputStream(filePath));
+    }
+
     public static BufferedInputStream openInput(final Workspace workspace, final DataSource dataSource,
                                                 final String fileName) throws IOException {
         return openInput(dataSource.resolveSourceFilePath(workspace, fileName));
@@ -45,8 +49,16 @@ public final class FileUtils {
         return new BufferedInputStream(Files.newInputStream(Paths.get(filePath)));
     }
 
+    public static BufferedInputStream openInput(final Path filePath) throws IOException {
+        return new BufferedInputStream(Files.newInputStream(filePath));
+    }
+
     public static BufferedInputStream openInput(final String filePath, int skipRows) throws IOException {
-        final var stream = new BufferedInputStream(Files.newInputStream(Paths.get(filePath)));
+        return openInput(Paths.get(filePath), skipRows);
+    }
+
+    public static BufferedInputStream openInput(final Path filePath, int skipRows) throws IOException {
+        final var stream = new BufferedInputStream(Files.newInputStream(filePath));
         if (skipRows > 0) {
             for (int i = 0; i < skipRows; i++) {
                 char c;
@@ -408,6 +420,10 @@ public final class FileUtils {
     }
 
     public static String[] readZipFilePaths(final String filePath) throws IOException {
+        return readZipFilePaths(Paths.get(filePath));
+    }
+
+    public static String[] readZipFilePaths(final Path filePath) throws IOException {
         List<String> result = new ArrayList<>();
         try (ZipInputStream zipStream = new ZipInputStream(openInput(filePath))) {
             ZipEntry entry;

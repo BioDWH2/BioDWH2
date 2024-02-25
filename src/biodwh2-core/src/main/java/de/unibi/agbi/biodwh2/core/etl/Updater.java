@@ -14,7 +14,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -90,7 +89,7 @@ public abstract class Updater<D extends DataSource> {
 
     private boolean areExpectedFilesPresent(final Workspace workspace) {
         for (final String fileName : expectedFileNames())
-            if (!Paths.get(dataSource.resolveSourceFilePath(workspace, fileName)).toFile().exists())
+            if (!dataSource.resolveSourceFilePath(workspace, fileName).toFile().exists())
                 return false;
         return true;
     }
@@ -148,14 +147,14 @@ public abstract class Updater<D extends DataSource> {
 
     protected void downloadFileAsBrowser(final Workspace workspace, final String url,
                                          final String fileName) throws UpdaterException {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName).toString();
         downloadFileAsBrowser(url, fileName,
                               (progressReporter) -> HTTPClient.downloadFileAsBrowser(url, filePath, progressReporter));
     }
 
     protected void downloadFileAsBrowser(final Workspace workspace, final String url, final String fileName,
                                          final String username, final String password) throws UpdaterException {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName).toString();
         downloadFileAsBrowser(url, fileName,
                               (progressReporter) -> HTTPClient.downloadFileAsBrowser(url, filePath, username, password,
                                                                                      progressReporter));

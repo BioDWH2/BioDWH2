@@ -81,7 +81,7 @@ public class KeggUpdater extends Updater<KeggDataSource> {
     private boolean updateFile(Workspace workspace, DataSource dataSource, AnonymousFTPClient ftpClient,
                                String filePath) throws UpdaterException {
         final String fileName = Paths.get(filePath).getFileName().toString();
-        final String sourceFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        final var sourceFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
         try {
             return ftpClient.downloadFile(FTP_BASE_PATH + filePath, sourceFilePath);
         } catch (IOException e) {

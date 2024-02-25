@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -65,11 +66,11 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
         for (final String file : files)
             if (file.endsWith(".tsv") || file.endsWith(".sql"))
                 //noinspection ResultOfMethodCallIgnored
-                new File(dataSource.resolveSourceFilePath(workspace, file)).delete();
+                dataSource.resolveSourceFilePath(workspace, file).toFile().delete();
     }
 
     private void extractTsvFilesFromDatabaseDump(final Workspace workspace,
-                                                 final String dumpFilePath) throws UpdaterException {
+                                                 final Path dumpFilePath) throws UpdaterException {
         try (BufferedReader reader = getBufferedReaderFromFile(dumpFilePath)) {
             final StringBuilder schema = new StringBuilder();
             PrintWriter writer = null;
@@ -90,7 +91,7 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
             }
             if (writer != null)
                 writer.close();
-            writer = new PrintWriter(dataSource.resolveSourceFilePath(workspace, "schema.sql"));
+            writer = new PrintWriter(dataSource.resolveSourceFilePath(workspace, "schema.sql").toFile());
             writer.println(schema);
             writer.close();
         } catch (IOException e) {
@@ -98,15 +99,16 @@ public class DrugCentralUpdater extends Updater<DrugCentralDataSource> {
         }
     }
 
-    private BufferedReader getBufferedReaderFromFile(final String filePath) throws IOException {
-        final GZIPInputStream zipStream = new GZIPInputStream(new FileInputStream(filePath));
+    private BufferedReader getBufferedReaderFromFile(final Path filePath) throws IOException {
+        final GZIPInputStream zipStream = new GZIPInputStream(new FileInputStream(filePath.toFile()));
         return new BufferedReader(new InputStreamReader(zipStream, StandardCharsets.UTF_8));
     }
 
     private PrintWriter getTsvWriterFromCopyLine(final Workspace workspace,
                                                  final String line) throws FileNotFoundException {
         final String tableName = StringUtils.split(line, ' ')[1].split("\\.")[1];
-        final PrintWriter writer = new PrintWriter(dataSource.resolveSourceFilePath(workspace, tableName + ".tsv"));
+        final PrintWriter writer = new PrintWriter(
+                dataSource.resolveSourceFilePath(workspace, tableName + ".tsv").toFile());
         final String columnNames = StringUtils.join(line.split("\\(")[1].split("\\)")[0].split(", "), '\t');
         writer.println(columnNames);
         return writer;

@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -18,6 +19,10 @@ public final class FlatFileDrugMapReader implements Iterable<FlatFileDrugMapEntr
     @SuppressWarnings("unused")
     public FlatFileDrugMapReader(final String filePath, final Charset charset) throws IOException {
         this(FileUtils.openInputStream(new File(filePath)), charset);
+    }
+
+    public FlatFileDrugMapReader(final Path filePath, final Charset charset) throws IOException {
+        this(FileUtils.openInputStream(filePath.toFile()), charset);
     }
 
     public FlatFileDrugMapReader(final InputStream stream, final Charset charset) {

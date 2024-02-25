@@ -70,7 +70,7 @@ public class GuideToPharmacologyUpdater extends Updater<GuideToPharmacologyDataS
         for (final String file : files)
             if (file.endsWith(".tsv") || file.endsWith(".sql"))
                 //noinspection ResultOfMethodCallIgnored
-                new File(dataSource.resolveSourceFilePath(workspace, file)).delete();
+                dataSource.resolveSourceFilePath(workspace, file).toFile().delete();
     }
 
     private void extractTsvFilesFromDatabaseDump(final Workspace workspace) throws UpdaterException {
@@ -92,7 +92,7 @@ public class GuideToPharmacologyUpdater extends Updater<GuideToPharmacologyDataS
             }
             if (writer != null)
                 writer.close();
-            writer = new PrintWriter(dataSource.resolveSourceFilePath(workspace, "schema.sql"));
+            writer = new PrintWriter(dataSource.resolveSourceFilePath(workspace, "schema.sql").toFile());
             writer.println(schema);
             writer.close();
         } catch (IOException e) {
@@ -114,7 +114,8 @@ public class GuideToPharmacologyUpdater extends Updater<GuideToPharmacologyDataS
         final String fullTableName = StringUtils.split(line, ' ')[1];
         final String[] fullTableNameParts = fullTableName.split("\\.");
         final String tableName = fullTableNameParts[fullTableNameParts.length - 1];
-        final PrintWriter writer = new PrintWriter(dataSource.resolveSourceFilePath(workspace, tableName + ".tsv"));
+        final PrintWriter writer = new PrintWriter(
+                dataSource.resolveSourceFilePath(workspace, tableName + ".tsv").toFile());
         final String columnNames = StringUtils.join(line.split("\\(")[1].split("\\)")[0].split(", "), '\t');
         writer.println(columnNames);
         return writer;

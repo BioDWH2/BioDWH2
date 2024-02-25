@@ -52,7 +52,7 @@ public abstract class MultiFileFTPUpdater<D extends DataSource> extends Updater<
         boolean success = true;
         for (int i = 0; i < getFTPFilePaths().length; i++) {
             try {
-                final String sourceFilePath = dataSource.resolveSourceFilePath(workspace, getTargetFileNames()[i]);
+                final var sourceFilePath = dataSource.resolveSourceFilePath(workspace, getTargetFileNames()[i]);
                 success = success && ftpClient.downloadFile(getFTPFilePaths()[i], sourceFilePath);
             } catch (IOException e) {
                 throw new UpdaterConnectionException("Failed to download file '" + getTargetFileNames()[i] + "'", e);

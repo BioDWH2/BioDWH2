@@ -49,7 +49,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         final boolean ignoreObsolete = ignoreObsolete(workspace);
-        final String filePath = dataSource.resolveSourceFilePath(workspace, getOntologyFileName());
+        final String filePath = dataSource.resolveSourceFilePath(workspace, getOntologyFileName()).toString();
         final String extension = FilenameUtils.getExtension(filePath);
         try {
             OboReader reader = null;

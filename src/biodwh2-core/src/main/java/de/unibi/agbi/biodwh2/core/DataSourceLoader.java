@@ -10,10 +10,11 @@ import java.util.stream.Collectors;
 
 public final class DataSourceLoader {
     private static final Logger LOGGER = LogManager.getLogger(DataSourceLoader.class);
+    private static DataSourceLoader instance;
 
     private final List<DataSource> dataSources;
 
-    public DataSourceLoader() {
+    private DataSourceLoader() {
         dataSources = new ArrayList<>();
         final List<Class<DataSource>> allDataSourceClasses = Factory.getInstance().getImplementations(DataSource.class);
         for (final Class<DataSource> dataSourceClass : allDataSourceClasses) {
@@ -23,7 +24,13 @@ public final class DataSourceLoader {
         }
     }
 
-    private DataSource tryInstantiateDataSource(final Class<DataSource> dataSourceClass) {
+    public static DataSourceLoader getInstance() {
+        if (instance == null)
+            instance = new DataSourceLoader();
+        return instance;
+    }
+
+    private static DataSource tryInstantiateDataSource(final Class<DataSource> dataSourceClass) {
         if (Modifier.isAbstract(dataSourceClass.getModifiers()))
             return null;
         try {
@@ -36,13 +43,17 @@ public final class DataSourceLoader {
         return null;
     }
 
+    public DataSource[] getDataSources() {
+        return dataSources.toArray(DataSource[]::new);
+    }
+
     public DataSource[] getDataSources(final String... dataSourceIds) {
         final Set<String> failedDataSourceIds = new HashSet<>();
         final Map<String, DataSource> result = new HashMap<>();
         for (final String id : dataSourceIds)
             result.put(id, null);
         final Set<String> remainingIds = new HashSet<>(result.keySet());
-        while (remainingIds.size() > 0) {
+        while (!remainingIds.isEmpty()) {
             for (final String id : remainingIds) {
                 final DataSource dataSource = getDataSourceById(id);
                 if (dataSource != null) {

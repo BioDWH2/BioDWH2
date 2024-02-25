@@ -58,7 +58,7 @@ public final class BioDWH2 {
     }
 
     private void listDataSources(final CmdArgs commandLine) {
-        final DataSourceLoader loader = new DataSourceLoader();
+        final DataSourceLoader loader = DataSourceLoader.getInstance();
         final String[] dataSourceIds = Arrays.stream(loader.getDataSourceIds()).filter(id -> !id.startsWith("Mock"))
                                              .sorted().toArray(String[]::new);
         if (commandLine.verbose) {
@@ -84,7 +84,7 @@ public final class BioDWH2 {
     private void addDataSource(final CmdArgs commandLine) {
         final String workspacePath = commandLine.addDataSource.get(0);
         final String dataSourceId = commandLine.addDataSource.get(1);
-        final DataSourceLoader loader = new DataSourceLoader();
+        final DataSourceLoader loader = DataSourceLoader.getInstance();
         final String[] matchedIds = Arrays.stream(loader.getDataSourceIds()).filter(
                 id -> id.equalsIgnoreCase(dataSourceId)).toArray(String[]::new);
         if (matchedIds.length > 0) {
@@ -105,7 +105,7 @@ public final class BioDWH2 {
     private void removeDataSource(final CmdArgs commandLine) {
         final String workspacePath = commandLine.removeDataSource.get(0);
         final String dataSourceId = commandLine.removeDataSource.get(1);
-        final DataSourceLoader loader = new DataSourceLoader();
+        final DataSourceLoader loader = DataSourceLoader.getInstance();
         final String[] matchedIds = Arrays.stream(loader.getDataSourceIds()).filter(
                 id -> id.equalsIgnoreCase(dataSourceId)).toArray(String[]::new);
         if (matchedIds.length > 0) {
@@ -128,12 +128,12 @@ public final class BioDWH2 {
     }
 
     private void checkWorkspaceState(final String workspacePath, final boolean verbose) {
-        final Workspace workspace = new Workspace(workspacePath);
+        final var workspace = new Workspace(workspacePath);
         workspace.checkState(verbose);
     }
 
     private void updateWorkspace(final CmdArgs commandLine) {
-        final Workspace workspace = new Workspace(commandLine.update);
+        final var workspace = new Workspace(commandLine.update);
         if (commandLine.runsInParallel)
             workspace.processDataSourcesInParallel(commandLine.skipUpdate, commandLine.numThreads);
         else
@@ -144,7 +144,7 @@ public final class BioDWH2 {
         final String workspacePath = commandLine.setDataSourceVersion.get(0);
         final String dataSourceId = commandLine.setDataSourceVersion.get(1);
         final String version = commandLine.setDataSourceVersion.get(2);
-        final Workspace workspace = new Workspace(workspacePath);
+        final var workspace = new Workspace(workspacePath);
         workspace.setDataSourceVersion(dataSourceId, version);
     }
 

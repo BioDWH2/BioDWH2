@@ -52,7 +52,7 @@ public class TRRUSTGraphExporter extends GraphExporter<TRRUSTDataSource> {
     }
 
     private Collection loadXmlFile(final Workspace workspace, final String fileName) throws IOException {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        final var filePath = dataSource.resolveSourceFilePath(workspace, fileName).toFile();
         final FileInputStream inputStream = new FileInputStream(filePath);
         final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
         final XmlMapper xmlMapper = new XmlMapper();

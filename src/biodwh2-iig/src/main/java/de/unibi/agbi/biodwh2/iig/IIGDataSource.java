@@ -16,6 +16,16 @@ public class IIGDataSource extends DataSource {
     }
 
     @Override
+    public String getFullName() {
+        return "Inactive Ingredients in Approved Drug Products";
+    }
+
+    @Override
+    public String getWebsite() {
+        return "https://www.accessdata.fda.gov/scripts/cder/iig/";
+    }
+
+    @Override
     public DevelopmentState getDevelopmentState() {
         return DevelopmentState.Usable;
     }

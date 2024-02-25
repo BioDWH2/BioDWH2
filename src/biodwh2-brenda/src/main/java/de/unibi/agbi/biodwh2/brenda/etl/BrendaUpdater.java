@@ -40,7 +40,7 @@ public class BrendaUpdater extends Updater<BrendaDataSource> {
                     BrendaDataSource.LICENSE_ACCEPTED_PROPERTY_KEY +
                     "\": true }' to your workspace config file after reading the license at " +
                     dataSource.getLicenseUrl());
-        final String filePath = dataSource.resolveSourceFilePath(workspace, FILE_NAME);
+        final var filePath = dataSource.resolveSourceFilePath(workspace, FILE_NAME);
         downloadFileAsBrowser(VERSION_URL, FILE_NAME,
                               (progressReporter) -> HTTPClient.downloadStream(getUrlInputStream(), filePath,
                                                                               progressReporter));

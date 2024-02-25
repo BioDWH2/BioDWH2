@@ -14,6 +14,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.regex.Matcher;
@@ -115,7 +116,7 @@ public class OpenTargetsUpdater extends Updater<OpenTargetsDataSource> {
         } catch (IOException e) {
             throw new UpdaterConnectionException("Failed to download file '" + fileName + "'", e);
         }
-        final String targetFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        final Path targetFilePath = dataSource.resolveSourceFilePath(workspace, fileName);
         final int maxPartNumber = Arrays.stream(entries).map(e -> e.name).filter(n -> n.startsWith("part-")).map(
                 n -> Integer.parseInt(StringUtils.split(n, '-')[1])).max(Integer::compareTo).orElse(0) + 1;
         final int maxPartNumberLength = String.valueOf(maxPartNumber).length();

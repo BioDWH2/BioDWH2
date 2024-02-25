@@ -301,11 +301,11 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
 
     private void exportDrugs(final Workspace workspace, final Graph graph) {
         final boolean skipDrugInteractions = dataSource.getBooleanProperty(workspace, "skipDrugInteractions");
-        final String filePath = dataSource.resolveSourceFilePath(workspace, DrugBankUpdater.FULL_DATABASE_FILE_NAME);
-        final File zipFile = new File(filePath);
-        if (!zipFile.exists())
+        final var filePath = dataSource.resolveSourceFilePath(workspace, DrugBankUpdater.FULL_DATABASE_FILE_NAME)
+                                       .toFile();
+        if (!filePath.exists())
             throw new ExporterException("Failed to find file '" + DrugBankUpdater.FULL_DATABASE_FILE_NAME + "'");
-        try (final ZipInputStream zipInputStream = openZipInputStream(zipFile)) {
+        try (final ZipInputStream zipInputStream = openZipInputStream(filePath)) {
             int counter = 1;
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {

@@ -8,7 +8,6 @@ import de.unibi.agbi.biodwh2.intact.IntActDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
@@ -24,9 +23,8 @@ public class IntActGraphExporter extends MIGraphExporter<IntActDataSource> {
     @Override
     protected void exportFiles(final Workspace workspace,
                                final ExportCallback<InputStream> callback) throws IOException {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, IntActUpdater.HUMAN_FILE_NAME);
-        final File zipFile = new File(filePath);
-        if (!zipFile.exists())
+        final var filePath = dataSource.resolveSourceFilePath(workspace, IntActUpdater.HUMAN_FILE_NAME).toFile();
+        if (!filePath.exists())
             throw new ExporterException("Failed to find file '" + IntActUpdater.HUMAN_FILE_NAME + "'");
         final ZipInputStream stream = FileUtils.openZip(workspace, dataSource, IntActUpdater.HUMAN_FILE_NAME);
         ZipEntry zipEntry;

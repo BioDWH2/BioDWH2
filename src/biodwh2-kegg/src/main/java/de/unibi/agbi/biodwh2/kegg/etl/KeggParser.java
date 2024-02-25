@@ -63,7 +63,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                                                         final Class<T> entryClass,
                                                         final String fileName) throws ParserFormatException {
         final List<T> result = new ArrayList<>();
-        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName).toString();
         try {
             final BufferedReader reader = new BufferedReader(new FileReader(filePath));
             final List<ChunkLine> chunk = new ArrayList<>();
@@ -77,7 +77,7 @@ public class KeggParser extends Parser<KeggDataSource> {
                 }
                 final String keyword = StringUtils.stripEnd(line.substring(0, Math.min(12, line.length())), null);
                 final String value = line.length() > 12 ? StringUtils.stripEnd(line.substring(12), null) : "";
-                if (keyword.length() > 0)
+                if (!keyword.isEmpty())
                     chunk.add(new ChunkLine(keyword, value));
                 else
                     chunk.get(chunk.size() - 1).value += '\n' + value;
@@ -95,7 +95,7 @@ public class KeggParser extends Parser<KeggDataSource> {
             return null;
         for (int i = 0; i < chunk.length; i++) {
             final ChunkLine line = chunk[i];
-            final boolean lineNotEmpty = line.value.trim().length() > 0;
+            final boolean lineNotEmpty = !line.value.trim().isEmpty();
             switch (line.keyword) {
                 case "ENTRY":
                     final String[] parts = StringUtils.split(line.value, ' ');

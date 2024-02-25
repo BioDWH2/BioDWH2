@@ -21,6 +21,8 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -37,8 +39,13 @@ public final class HTTPClient {
 
     public static void downloadStream(final StreamWithContentLength stream, final String filePath,
                                       final BiConsumer<Long, Long> progressReporter) throws IOException {
+        downloadStream(stream, Paths.get(filePath), progressReporter);
+    }
+
+    public static void downloadStream(final StreamWithContentLength stream, final Path filePath,
+                                      final BiConsumer<Long, Long> progressReporter) throws IOException {
         try (ReadableByteChannel urlByteChannel = Channels.newChannel(stream.stream);
-             FileOutputStream outputStream = new FileOutputStream(filePath)) {
+             FileOutputStream outputStream = new FileOutputStream(filePath.toFile())) {
             final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
             fastCopy(stream.contentLength, urlByteChannel, outputChannel, progressReporter);
             //outputStream.getChannel().transferFrom(urlByteChannel, 0, Long.MAX_VALUE);

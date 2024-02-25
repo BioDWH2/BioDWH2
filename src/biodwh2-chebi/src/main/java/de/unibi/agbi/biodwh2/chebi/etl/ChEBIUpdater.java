@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +38,7 @@ public class ChEBIUpdater extends MultiFileFTPWebUpdater<ChEBIDataSource> {
         // The header of the 3star filtered compound origins file is wrong as well as some rows with additional empty
         // columns and needs to be fixed
         try {
-            final Path filePath = Paths.get(dataSource.resolveSourceFilePath(workspace, COMPOUND_ORIGINS_FILE_NAME));
+            final Path filePath = dataSource.resolveSourceFilePath(workspace, COMPOUND_ORIGINS_FILE_NAME);
             final List<String> lines = Files.readAllLines(filePath, StandardCharsets.ISO_8859_1);
             lines.set(0,
                       "ID\tCOMPOUND_ID\tSPECIES_TEXT\tSPECIES_ACCESSION\tCOMPONENT_TEXT\tCOMPONENT_ACCESSION\tSTRAIN_TEXT\tSTRAIN_ACCESSION\tSOURCE_TYPE\tSOURCE_ACCESSION\tCOMMENTS");

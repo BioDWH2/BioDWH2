@@ -8,6 +8,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -73,6 +75,10 @@ public final class AnonymousFTPClient {
     }
 
     public boolean downloadFile(final String url, final String outputFilepath) throws IOException {
+        return downloadFile(url, Paths.get(outputFilepath));
+    }
+
+    public boolean downloadFile(final String url, final Path outputFilepath) throws IOException {
         try (OutputStream outputStream = FileUtils.openOutput(outputFilepath)) {
             return client.retrieveFile(url, outputStream);
         }

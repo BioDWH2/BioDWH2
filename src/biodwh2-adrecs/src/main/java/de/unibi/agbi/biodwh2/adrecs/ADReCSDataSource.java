@@ -5,13 +5,25 @@ import de.unibi.agbi.biodwh2.adrecs.etl.ADReCSMappingDescriber;
 import de.unibi.agbi.biodwh2.adrecs.etl.ADReCSUpdater;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
-import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
+import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.text.License;
 
 public class ADReCSDataSource extends DataSource {
     @Override
     public String getId() {
         return "ADReCS";
+    }
+
+    @Override
+    public String getFullName() {
+        return "Adverse Drug Reaction Classification System (ADReCS)";
+    }
+
+    @Override
+    public String getWebsite() {
+        return "https://bioinf.xmu.edu.cn/ADReCS/";
     }
 
     @Override

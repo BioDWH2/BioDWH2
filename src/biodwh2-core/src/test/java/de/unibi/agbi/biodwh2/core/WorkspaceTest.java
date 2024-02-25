@@ -34,14 +34,13 @@ class WorkspaceTest {
     @ParameterizedTest
     @MethodSource("parallelProvider")
     void processDataSourcesInParallel(boolean isParallel, int numIterations) {
-
         long start, stop, elapsed, averageExecutionTime;
         if (numIterations > 0) {
             numIterations = numIterations;
         }
         if (isParallel) {
             // => PARALLEL
-            final DataSource[] dataSources = new DataSourceLoader().getDataSources(ids);
+            final DataSource[] dataSources = DataSourceLoader.getInstance().getDataSources(ids);
             start = System.currentTimeMillis();
             for (int i = 0; i < numIterations; i++) {
                 Stream.of(dataSources).parallel().forEach(ds -> {
@@ -62,7 +61,7 @@ class WorkspaceTest {
                                df.format((float) averageExecutionTime) + " SECONDS), " + numIterations + " ITERATIONS");
         } else {
             // => SEQUENTIAL
-            final DataSource[] dataSources = new DataSourceLoader().getDataSources(ids);
+            final DataSource[] dataSources = DataSourceLoader.getInstance().getDataSources(ids);
             start = System.currentTimeMillis();
             for (int i = 0; i < numIterations; i++) {
                 for (final DataSource ds : dataSources) {
@@ -94,7 +93,7 @@ class WorkspaceTest {
     @ParameterizedTest
     @MethodSource("parallelPoolProvider")
     void processDataSourcesInParallelWithPool(int numThreads) {
-        final DataSource[] dataSources = new DataSourceLoader().getDataSources(ids);
+        final DataSource[] dataSources = DataSourceLoader.getInstance().getDataSources(ids);
         ForkJoinPool customPool = null;
         long start, stop, elapsed;
         try {

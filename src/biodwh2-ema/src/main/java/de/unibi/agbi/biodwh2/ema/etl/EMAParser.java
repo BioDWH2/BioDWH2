@@ -51,12 +51,13 @@ public class EMAParser extends Parser<EMADataSource> {
 
     private <T> List<T> loadXlsxTable(final Workspace workspace, final String fileName,
                                       final Class<T> type) throws IOException, ParserFormatException {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
-        final FileInputStream file = new FileInputStream(filePath);
-        final ReadableWorkbook workbook = new ReadableWorkbook(file, new ReadingOptions(true, false));
-        final Sheet sheet = workbook.getFirstSheet();
-        final String tsvContent = getTsvContentFromSheet(sheet);
-        return readAllEntriesFromTsvString(type, tsvContent);
+        final var filePath = dataSource.resolveSourceFilePath(workspace, fileName).toFile();
+        try (final var file = new FileInputStream(filePath)) {
+            final var workbook = new ReadableWorkbook(file, new ReadingOptions(true, false));
+            final Sheet sheet = workbook.getFirstSheet();
+            final String tsvContent = getTsvContentFromSheet(sheet);
+            return readAllEntriesFromTsvString(type, tsvContent);
+        }
     }
 
     private String getTsvContentFromSheet(final Sheet sheet) throws ParserFormatException, IOException {

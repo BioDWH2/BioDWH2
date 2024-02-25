@@ -42,11 +42,10 @@ public class DrugBankParser extends Parser<DrugBankDataSource> {
 
     private SdfReader getSdfReaderFromZip(final Workspace workspace, final DataSource dataSource,
                                           final String fileName) throws ParserException {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName);
-        final File zipFile = new File(filePath);
-        if (!zipFile.exists())
+        final var filePath = dataSource.resolveSourceFilePath(workspace, fileName).toFile();
+        if (!filePath.exists())
             throw new ParserFileNotFoundException(fileName);
-        final ZipInputStream zipInputStream = openZipInputStream(zipFile);
+        final ZipInputStream zipInputStream = openZipInputStream(filePath);
         try {
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {

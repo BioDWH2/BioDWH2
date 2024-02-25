@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -82,13 +81,12 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
     }
 
     private void exportProteins(final Workspace workspace, final Graph graph) {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, HMDBUpdater.PROTEINS_XML_FILE_NAME);
-        final File zipFile = new File(filePath);
-        if (!zipFile.exists())
+        final var filePath = dataSource.resolveSourceFilePath(workspace, HMDBUpdater.PROTEINS_XML_FILE_NAME).toFile();
+        if (!filePath.exists())
             throw new ExporterException("Failed to find file '" + HMDBUpdater.PROTEINS_XML_FILE_NAME + "'");
         try {
             final int[] counter = new int[]{1};
-            FileUtils.forEachZipEntry(zipFile, ".xml", (stream, entry) -> {
+            FileUtils.forEachZipEntry(filePath, ".xml", (stream, entry) -> {
                 final XmlMapper xmlMapper = new XmlMapper();
                 final FromXmlParser parser = FileUtils.createXmlParser(stream, xmlMapper);
                 // Skip the first structure token which is the root HMDB node
@@ -179,13 +177,12 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
     }
 
     private void extractStructureInformation(final Workspace workspace) {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, HMDBUpdater.STRUCTURES_SDF_FILE_NAME);
-        final File zipFile = new File(filePath);
-        if (!zipFile.exists())
+        final var filePath = dataSource.resolveSourceFilePath(workspace, HMDBUpdater.STRUCTURES_SDF_FILE_NAME).toFile();
+        if (!filePath.exists())
             throw new ExporterException("Failed to find file '" + HMDBUpdater.STRUCTURES_SDF_FILE_NAME + "'");
         try {
             final int[] counter = new int[]{1};
-            FileUtils.forEachZipEntry(zipFile, ".xml", (stream, zipEntry) -> {
+            FileUtils.forEachZipEntry(filePath, ".xml", (stream, zipEntry) -> {
                 final SdfReader reader = new SdfReader(stream, StandardCharsets.UTF_8);
                 for (final SdfEntry entry : reader) {
                     if (counter[0] % 10_000 == 0 && LOGGER.isInfoEnabled())
@@ -232,13 +229,13 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
     }
 
     private void exportMetabolites(final Workspace workspace, final Graph graph) {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, HMDBUpdater.METABOLITES_XML_FILE_NAME);
-        final File zipFile = new File(filePath);
-        if (!zipFile.exists())
+        final var filePath = dataSource.resolveSourceFilePath(workspace, HMDBUpdater.METABOLITES_XML_FILE_NAME)
+                                       .toFile();
+        if (!filePath.exists())
             throw new ExporterException("Failed to find file '" + HMDBUpdater.METABOLITES_XML_FILE_NAME + "'");
         try {
             final int[] counter = new int[]{1};
-            FileUtils.forEachZipEntry(zipFile, ".xml", (stream, entry) -> {
+            FileUtils.forEachZipEntry(filePath, ".xml", (stream, entry) -> {
                 final XmlMapper xmlMapper = new XmlMapper();
                 final FromXmlParser parser = FileUtils.createXmlParser(stream, xmlMapper);
                 // Skip the first structure token which is the root HMDB node

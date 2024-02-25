@@ -77,8 +77,8 @@ public class InterProGraphExporter extends GraphExporter<InterProDataSource> {
     }
 
     private InterproDB loadInterProDB(final Workspace workspace) throws IOException {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, InterProUpdater.FILE_NAME);
-        final FileInputStream inputStream = new FileInputStream(filePath);
+        final var filePath = dataSource.resolveSourceFilePath(workspace, InterProUpdater.FILE_NAME);
+        final FileInputStream inputStream = new FileInputStream(filePath.toFile());
         final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
         final GZIPInputStream zipStream = new GZIPInputStream(bufferedInputStream);
         final XmlMapper xmlMapper = new XmlMapper();

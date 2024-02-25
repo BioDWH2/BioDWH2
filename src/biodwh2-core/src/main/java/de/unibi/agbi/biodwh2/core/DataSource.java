@@ -14,7 +14,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,15 +32,19 @@ public abstract class DataSource {
     public abstract String getId();
 
     public String getFullName() {
-        return "-";
+        return "";
     }
 
     public String getDescription() {
-        return "-";
+        return "";
+    }
+
+    public String getWebsite() {
+        return null;
     }
 
     public String getLicense() {
-        return "-";
+        return "";
     }
 
     public String getLicenseUrl() {
@@ -74,7 +77,7 @@ public abstract class DataSource {
     }
 
     private void createFolderStructureIfNotExists(final Workspace workspace) throws IOException {
-        Files.createDirectories(Paths.get(workspace.getSourcesDirectory(), getId()));
+        Files.createDirectories(workspace.getDataSourceDirectory(getId()));
         Files.createDirectories(getSourceFolderPath(workspace));
     }
 
@@ -89,7 +92,7 @@ public abstract class DataSource {
     }
 
     public final Path getFilePath(final Workspace workspace, final DataSourceFileType type) {
-        return Paths.get(workspace.getSourcesDirectory(), getId(), type.getName());
+        return workspace.getDataSourceDirectory(getId()).resolve(type.getName());
     }
 
     private DataSourceMetadata loadMetadata(final Path filePath) {
@@ -189,8 +192,8 @@ public abstract class DataSource {
     protected void unloadData() {
     }
 
-    public final String resolveSourceFilePath(final Workspace workspace, final String filePath) {
-        return Paths.get(workspace.getSourcesDirectory(), getId(), SOURCE_DIRECTORY_NAME, filePath).toString();
+    public final Path resolveSourceFilePath(final Workspace workspace, final String filePath) {
+        return getSourceFolderPath(workspace).resolve(filePath);
     }
 
     public final String[] listSourceFiles(final Workspace workspace) {
@@ -206,7 +209,7 @@ public abstract class DataSource {
     }
 
     public final Path getSourceFolderPath(final Workspace workspace) {
-        return Paths.get(workspace.getSourcesDirectory(), getId(), SOURCE_DIRECTORY_NAME);
+        return workspace.getDataSourceDirectory(getId()).resolve(SOURCE_DIRECTORY_NAME);
     }
 
     public final boolean isUpToDate(final Workspace workspace) {

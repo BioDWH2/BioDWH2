@@ -45,11 +45,11 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         dbReferenceCitationNodeIdMap.clear();
         graph.addIndex(IndexDescription.forNode("Organism", "id", IndexDescription.Type.UNIQUE));
-        final String filePath = dataSource.resolveSourceFilePath(workspace, UniProtUpdater.HUMAN_SPROT_FILE_NAME);
-        final File zipFile = new File(filePath);
-        if (!zipFile.exists())
+        final File filePath = dataSource.resolveSourceFilePath(workspace, UniProtUpdater.HUMAN_SPROT_FILE_NAME)
+                                        .toFile();
+        if (!filePath.exists())
             throw new ExporterException("Failed to parse the file '" + UniProtUpdater.HUMAN_SPROT_FILE_NAME + "'");
-        try (final GZIPInputStream zipStream = openZipInputStream(zipFile)) {
+        try (final GZIPInputStream zipStream = openZipInputStream(filePath)) {
             final XmlMapper xmlMapper = new XmlMapper();
             final FromXmlParser parser = FileUtils.createXmlParser(zipStream, xmlMapper);
             // Skip the first structure token which is the root UniProt node

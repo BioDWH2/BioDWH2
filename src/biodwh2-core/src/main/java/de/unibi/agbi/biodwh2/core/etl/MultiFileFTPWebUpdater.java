@@ -76,7 +76,7 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
                 LOGGER.info("Downloading '" + fileName + "'...");
             int tries = 1;
             while (tries < 6) {
-                final String resolvedFilePath = dataSource.resolveSourceFilePath(workspace, localFileName);
+                final String resolvedFilePath = dataSource.resolveSourceFilePath(workspace, localFileName).toString();
                 try {
                     HTTPClient.downloadFileAsBrowser(getFTPIndexUrl() + fileName, resolvedFilePath);
                     break;

@@ -8,7 +8,10 @@ import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.DataSourceException;
 import de.unibi.agbi.biodwh2.core.exceptions.MergerException;
 import de.unibi.agbi.biodwh2.core.exceptions.WorkspaceException;
-import de.unibi.agbi.biodwh2.core.model.*;
+import de.unibi.agbi.biodwh2.core.model.Configuration;
+import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
+import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
+import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.migration.GraphMigrator;
 import de.unibi.agbi.biodwh2.core.text.TableFormatter;
@@ -20,7 +23,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -28,19 +30,14 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class Workspace {
+public final class Workspace extends BaseWorkspace {
     private static final Logger LOGGER = LogManager.getLogger(Workspace.class);
 
-    public static final int VERSION = 1;
-    private static final String SOURCES_DIRECTORY_NAME = "sources";
-    private static final String CONFIG_FILE_NAME = "config.json";
-
-    private final String workingDirectory;
     private final Configuration configuration;
     private final DataSource[] dataSources;
 
     public Workspace(final String workingDirectory) {
-        this.workingDirectory = workingDirectory;
+        super(workingDirectory);
         createWorkingDirectoryIfNotExists();
         configuration = createOrLoadConfiguration();
         dataSources = getUsedDataSources();
@@ -50,15 +47,11 @@ public final class Workspace {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Using workspace directory '" + workingDirectory + "'");
         try {
-            Files.createDirectories(Paths.get(workingDirectory));
-            Files.createDirectories(Paths.get(getSourcesDirectory()));
+            Files.createDirectories(workingDirectory);
+            Files.createDirectories(getSourcesDirectory());
         } catch (IOException e) {
             throw new WorkspaceException("Failed to create workspace directories", e);
         }
-    }
-
-    String getSourcesDirectory() {
-        return Paths.get(workingDirectory, SOURCES_DIRECTORY_NAME).toString();
     }
 
     private Configuration createOrLoadConfiguration() {
@@ -68,16 +61,6 @@ public final class Workspace {
         } catch (IOException e) {
             throw new WorkspaceException("Failed to load or create workspace configuration", e);
         }
-    }
-
-    private Configuration loadConfiguration() throws IOException {
-        final ObjectMapper objectMapper = new ObjectMapper();
-        final Path path = getConfigurationFilePath();
-        return Files.exists(path) ? objectMapper.readValue(path.toFile(), Configuration.class) : null;
-    }
-
-    private Path getConfigurationFilePath() {
-        return Paths.get(workingDirectory, CONFIG_FILE_NAME);
     }
 
     private Configuration createConfiguration() throws IOException {
@@ -92,7 +75,7 @@ public final class Workspace {
         final List<String> dataSourceIds = Arrays.asList(configuration.getDataSourceIds());
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Using data sources: " + StringUtils.join(dataSourceIds, ", "));
-        final DataSource[] result = new DataSourceLoader().getDataSources(configuration.getDataSourceIds());
+        final DataSource[] result = DataSourceLoader.getInstance().getDataSources(configuration.getDataSourceIds());
         if (result.length < configuration.getNumberOfDataSources()) {
             throw new WorkspaceException("Failed to load all data sources. Please ensure the configured data source " +
                                          "IDs are valid and all data source modules are available in the classpath.");
@@ -117,7 +100,7 @@ public final class Workspace {
             final int countUpToDate = dataSources.length - notUpToDate.size();
             LOGGER.info((countUpToDate == dataSources.length) ? "All data sources are up-to-date." :
                         countUpToDate + "/" + dataSources.length + " data sources are up-to-date.");
-            if (notUpToDate.size() > 0)
+            if (!notUpToDate.isEmpty())
                 LOGGER.info("Data sources to be updated: " + StringUtils.join(notUpToDate, ", "));
         }
     }
@@ -264,13 +247,9 @@ public final class Workspace {
     }
 
     private boolean areDataSourceExportsMissing(final DataSource dataSource) {
-        return fileDoesNotExist(dataSource.getFilePath(this, DataSourceFileType.PERSISTENT_GRAPH)) ||
-               (!configuration.shouldSkipGraphMLExport() && fileDoesNotExist(
+        return Files.notExists(dataSource.getFilePath(this, DataSourceFileType.PERSISTENT_GRAPH)) ||
+               (!configuration.shouldSkipGraphMLExport() && Files.notExists(
                        dataSource.getFilePath(this, DataSourceFileType.INTERMEDIATE_GRAPHML_GZ)));
-    }
-
-    private boolean fileDoesNotExist(final Path filePath) {
-        return Files.notExists(filePath);
     }
 
     /**
@@ -308,10 +287,6 @@ public final class Workspace {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("Merging of data sources failed", e);
         }
-    }
-
-    public Path getFilePath(final WorkspaceFileType type) {
-        return Paths.get(getSourcesDirectory(), type.getName());
     }
 
     private void mapDataSources(final boolean runsInParallel, final int numThreads) {

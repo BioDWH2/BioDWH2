@@ -15,6 +15,7 @@ import de.unibi.agbi.biodwh2.pharmgkb.model.guideline.GuidelineAnnotation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -33,18 +34,18 @@ public class PharmGKBParser extends Parser<PharmGKBDataSource> {
     @Override
     public boolean parse(final Workspace workspace) throws ParserException {
         for (final String filePath : PharmGKBUpdater.FILE_NAMES)
-            parseFile(dataSource, dataSource.resolveSourceFilePath(workspace, filePath));
+            parseFile(dataSource, dataSource.resolveSourceFilePath(workspace, filePath).toFile());
         return true;
     }
 
-    private void parseFile(final PharmGKBDataSource dataSource, final String filePath) throws ParserFormatException {
+    private void parseFile(final PharmGKBDataSource dataSource, final File filePath) throws ParserFormatException {
         try (ZipFile zipFile = new ZipFile(filePath)) {
             final Enumeration<? extends ZipEntry> entries = zipFile.entries();
             while (entries.hasMoreElements()) {
                 final ZipEntry zipEntry = entries.nextElement();
                 final String zipEntryName = zipEntry.getName();
                 final InputStream stream = zipFile.getInputStream(zipEntry);
-                parseZipFileEntry(dataSource, filePath, zipEntry, zipEntryName, stream);
+                parseZipFileEntry(dataSource, filePath.toString(), zipEntry, zipEntryName, stream);
             }
         } catch (IOException e) {
             throw new ParserFormatException("Failed to parse the file '" + filePath + "'", e);
