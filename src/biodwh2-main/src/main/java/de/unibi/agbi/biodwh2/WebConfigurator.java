@@ -6,7 +6,7 @@ import de.unibi.agbi.biodwh2.core.BaseWorkspace;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DataSourceLoader;
 import de.unibi.agbi.biodwh2.core.OntologyDataSource;
-import de.unibi.agbi.biodwh2.core.net.UrlUtils;
+import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import io.javalin.Javalin;
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.http.Context;
@@ -69,12 +69,30 @@ public class WebConfigurator {
         if (activeWorkspacePath != null && StringUtils.isNotEmpty(activeWorkspacePath.asText())) {
             final var activeWorkspace = new BaseWorkspace(activeWorkspacePath.asText());
             if (activeWorkspace.exists()) {
-                final var status = new HashMap<>();
+                final var status = new HashMap<String, Object>();
                 try {
                     final var configuration = activeWorkspace.loadConfiguration();
                     status.put("skipGraphMLExport", configuration.shouldSkipGraphMLExport());
                     status.put("skipMetaGraphGeneration", configuration.shouldSkipMetaGraphGeneration());
                     status.put("globalProperties", configuration.getGlobalProperties());
+                    final var activeDataSources = new ArrayList<Map<String, Object>>();
+                    for (final String dataSourceId : configuration.getDataSourceIds()) {
+                        final var dataSource = DataSourceLoader.getInstance().getDataSourceById(dataSourceId);
+                        final var dataSourceStatus = new HashMap<String, Object>();
+                        dataSourceStatus.put("id", dataSourceId);
+                        final var metadataFilePath = dataSource.getFilePath(activeWorkspace,
+                                                                            DataSourceFileType.METADATA);
+                        if (metadataFilePath.toFile().exists()) {
+                            final var metadata = dataSource.loadMetadata(metadataFilePath);
+                            if (metadata != null) {
+                                dataSourceStatus.put("updateSuccessful", metadata.updateSuccessful);
+                                dataSourceStatus.put("parseSuccessful", metadata.parseSuccessful);
+                                dataSourceStatus.put("exportSuccessful", metadata.exportSuccessful);
+                            }
+                        }
+                        activeDataSources.add(dataSourceStatus);
+                    }
+                    status.put("activeDataSources", activeDataSources);
                 } catch (IOException ignored) {
                 }
                 map.put("activeWorkspace", status);

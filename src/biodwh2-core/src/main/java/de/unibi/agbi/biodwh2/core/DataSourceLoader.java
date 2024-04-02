@@ -80,7 +80,7 @@ public final class DataSourceLoader {
         return sortedResult.toArray(new DataSource[0]);
     }
 
-    private DataSource getDataSourceById(final String id) {
+    public DataSource getDataSourceById(final String id) {
         for (final DataSource dataSource : dataSources)
             if (dataSource.getId().equals(id))
                 return dataSource;

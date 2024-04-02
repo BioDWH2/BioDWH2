@@ -170,7 +170,6 @@ public final class Workspace extends BaseWorkspace {
     }
 
     public void processDataSourcesInParallel(final boolean skipUpdate, final int numThreads) {
-
         if (configuration.getDataSourceIds().length == 0)
             throw new WorkspaceException("No data sources have been selected. Please ensure that data source IDs " +
                                          "have been added to the workspace config.json either directly or via " +

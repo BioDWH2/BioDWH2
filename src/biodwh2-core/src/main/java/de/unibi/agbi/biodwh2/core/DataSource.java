@@ -91,11 +91,11 @@ public abstract class DataSource {
         }
     }
 
-    public final Path getFilePath(final Workspace workspace, final DataSourceFileType type) {
+    public final Path getFilePath(final BaseWorkspace workspace, final DataSourceFileType type) {
         return workspace.getDataSourceDirectory(getId()).resolve(type.getName());
     }
 
-    private DataSourceMetadata loadMetadata(final Path filePath) {
+    public DataSourceMetadata loadMetadata(final Path filePath) {
         final ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.readValue(filePath.toFile(), DataSourceMetadata.class);
