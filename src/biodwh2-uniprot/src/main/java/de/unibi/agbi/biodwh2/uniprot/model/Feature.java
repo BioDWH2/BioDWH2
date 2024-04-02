@@ -12,6 +12,8 @@ public class Feature {
     public String original;
     @JacksonXmlElementWrapper(useWrapping = false)
     public List<String> variation;
+    public Ligand ligand;
+    public LigandPart ligandPart;
     public Location location;
     @JacksonXmlProperty(isAttribute = true)
     public String type;

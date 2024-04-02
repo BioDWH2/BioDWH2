@@ -18,9 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.xml.stream.XMLStreamException;
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +29,9 @@ import static java.util.stream.Collectors.groupingBy;
 public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
     private static final Logger LOGGER = LogManager.getLogger(UniProtGraphExporter.class);
     private static final Map<String, Long> dbReferenceCitationNodeIdMap = new HashMap<>();
+    static final String ORGANISM_LABEL = "Organism";
+    static final String PROTEIN_LABEL = "Protein";
+    static final String CITATION_LABEL = "Citation";
 
     public UniProtGraphExporter(final UniProtDataSource dataSource) {
         super(dataSource);
@@ -44,12 +45,12 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         dbReferenceCitationNodeIdMap.clear();
-        graph.addIndex(IndexDescription.forNode("Organism", "id", IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(ORGANISM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         final File filePath = dataSource.resolveSourceFilePath(workspace, UniProtUpdater.HUMAN_SPROT_FILE_NAME)
                                         .toFile();
         if (!filePath.exists())
             throw new ExporterException("Failed to parse the file '" + UniProtUpdater.HUMAN_SPROT_FILE_NAME + "'");
-        try (final GZIPInputStream zipStream = openZipInputStream(filePath)) {
+        try (final GZIPInputStream zipStream = FileUtils.openGzip(filePath.toString())) {
             final XmlMapper xmlMapper = new XmlMapper();
             final FromXmlParser parser = FileUtils.createXmlParser(zipStream, xmlMapper);
             // Skip the first structure token which is the root UniProt node
@@ -61,17 +62,11 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
         } catch (IOException | XMLStreamException e) {
             throw new ExporterFormatException(e);
         }
-        return false;
-    }
-
-    private static GZIPInputStream openZipInputStream(final File file) throws IOException {
-        final FileInputStream inputStream = new FileInputStream(file);
-        final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-        return new GZIPInputStream(bufferedInputStream);
+        return true;
     }
 
     private void exportEntry(final Graph graph, final Entry entry) throws ExporterException {
-        final NodeBuilder builder = graph.buildNode().withLabel("Protein");
+        final NodeBuilder builder = graph.buildNode().withLabel(PROTEIN_LABEL);
         builder.withPropertyIfNotNull("dataset", entry.dataset);
         builder.withPropertyIfNotNull("created", entry.created);
         builder.withPropertyIfNotNull("modified", entry.modified);
@@ -95,7 +90,7 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
             builder.withProperty("keyword_ids", entry.keyword.stream().map((k) -> k.id).toArray(String[]::new));
             // TODO: evidence
             for (final Keyword keyword : entry.keyword)
-                if (keyword.evidence != null && keyword.evidence.length() > 0)
+                if (keyword.evidence != null && !keyword.evidence.isEmpty())
                     LOGGER.warn("Evidence for keyword '" + keyword.value + "' (" + keyword.id + ") not exported");
         }
         final Node node = builder.build();
@@ -129,18 +124,18 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
         final Optional<DbReference> ncbiId = organism.dbReference.stream().filter(r -> "NCBI Taxonomy".equals(r.type))
                                                                  .findFirst();
         if (ncbiId.isPresent()) {
-            final Node node = graph.findNode("Organism", "id", ncbiId.get().id);
+            final Node node = graph.findNode(ORGANISM_LABEL, ID_KEY, ncbiId.get().id);
             if (node != null)
                 return node.getId();
         }
         // TODO: evidence
-        final NodeBuilder builder = graph.buildNode().withLabel("Organism");
+        final NodeBuilder builder = graph.buildNode().withLabel(ORGANISM_LABEL);
         Map<String, List<OrganismName>> namesPerType = organism.name.stream().collect(groupingBy((o) -> o.type));
         for (final String nameType : namesPerType.keySet())
             builder.withProperty(nameType + "_names", namesPerType.get(nameType).stream().map((n) -> n.value)
                                                                   .toArray(String[]::new));
-        ncbiId.ifPresent(r -> builder.withProperty("id", r.id));
-        if (organism.lineage != null && organism.lineage.taxon != null && organism.lineage.taxon.size() > 0)
+        ncbiId.ifPresent(r -> builder.withProperty(ID_KEY, r.id));
+        if (organism.lineage != null && organism.lineage.taxon != null && !organism.lineage.taxon.isEmpty())
             builder.withProperty("lineage", organism.lineage.taxon.toArray(new String[0]));
         // TODO: evidence, molecule, property
         final String[] dbReferences = organism.dbReference != null ? organism.dbReference.stream().map(
@@ -159,7 +154,7 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
         for (final String reference : dbReferences)
             if (dbReferenceCitationNodeIdMap.containsKey(reference))
                 return dbReferenceCitationNodeIdMap.get(reference);
-        final NodeBuilder builder = graph.buildNode().withLabel("Citation");
+        final NodeBuilder builder = graph.buildNode().withLabel(CITATION_LABEL);
         builder.withPropertyIfNotNull("title", citation.title);
         builder.withPropertyIfNotNull("type", citation.type);
         builder.withPropertyIfNotNull("date", citation.date);
