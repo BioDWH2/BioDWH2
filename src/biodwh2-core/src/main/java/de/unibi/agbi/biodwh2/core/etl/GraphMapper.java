@@ -228,7 +228,7 @@ public final class GraphMapper {
             if (pathMappings == null || pathMappings.isEmpty())
                 continue;
             if (LOGGER.isInfoEnabled())
-                LOGGER.info("Mapping edge paths for data source '" + entry.getKey() + "'");
+                LOGGER.info("Mapping edge paths for data source '{}'", entry.getKey());
             for (final PathMapping path : pathMappings) {
                 final ConcurrentHashMap<String, Boolean> mappedEdgeTypes = new ConcurrentHashMap<>();
                 mapPath(graph, entry.getValue(), path, runsInParallel, numThreads, mappedEdgeTypes);
@@ -248,7 +248,8 @@ public final class GraphMapper {
                          final boolean runsInParallel, final int numThreads,
                          final AbstractMap<String, Boolean> mappedEdgeTypes) {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Mapping edge paths " + path);
+            LOGGER.info("Mapping edge paths {}",
+                        path.toString(describer.getDataSourceId() + Graph.LABEL_PREFIX_SEPARATOR));
         final PathMapping.Segment segment = path.get(0);
         if (runsInParallel) {
             ForkJoinPool pool = null;
@@ -323,9 +324,10 @@ public final class GraphMapper {
             edgeIds[i] = pathIds[i * 2 + 1];
             edges[i] = graph.getEdge(edgeIds[i]);
         }
-        final PathMappingDescription mappingDescription = describer.describe(graph, nodes, edges);
-        if (mappingDescription != null) {
-            final String mappedLabel = mappingDescription.getType();
+        final PathMappingDescription description = describer.describe(graph, nodes, edges);
+        if (description != null) {
+            final String mappedLabel = description.getType();
+            final Map<String, Object> additionalProperties = description.getAdditionalProperties();
             if (!mappedEdgeTypes.containsKey(mappedLabel)) {
                 mappedEdgeTypes.put(mappedLabel, true);
                 graph.beginEdgeIndicesDelay(mappedLabel);
@@ -333,10 +335,16 @@ public final class GraphMapper {
             final Long[] mappedFromNodeIds = graph.getAdjacentNodeIdsForEdgeLabel(pathIds[0], MAPPED_TO_EDGE_LABEL);
             final Long[] mappedToNodeIds = graph.getAdjacentNodeIdsForEdgeLabel(pathIds[pathIds.length - 1],
                                                                                 MAPPED_TO_EDGE_LABEL);
+            final var builder = graph.buildEdge().withLabel(mappedLabel);
+            builder.withProperty("source", describer.getDataSourceId());
+            builder.withProperty("path_edge_ids", edgeIds);
+            if (additionalProperties != null)
+                for (final String key : additionalProperties.keySet())
+                    builder.withPropertyIfNotNull(key, additionalProperties.get(key));
+            // Reuse builder for all from/to node combinations
             for (final Long fromNodeId : mappedFromNodeIds)
                 for (final Long toNodeId : mappedToNodeIds)
-                    graph.addEdge(fromNodeId, toNodeId, mappedLabel, "source", describer.getDataSourceId(),
-                                  "path_edge_ids", edgeIds);
+                    builder.fromNode(fromNodeId).toNode(toNodeId).build();
         }
     }
 

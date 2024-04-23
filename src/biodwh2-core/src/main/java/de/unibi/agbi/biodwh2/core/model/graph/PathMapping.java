@@ -74,4 +74,20 @@ public final class PathMapping {
         }
         return builder.toString();
     }
+
+    public String toString(final String labelPrefix) {
+        final StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < segments.size(); i++) {
+            final PathMapping.Segment segment = segments.get(i);
+            if (i == 0)
+                builder.append("(:").append(labelPrefix).append(segment.fromNodeLabel).append(')');
+            if (segment.direction == EdgeDirection.BACKWARD)
+                builder.append('<');
+            builder.append("-[:").append(labelPrefix).append(segment.edgeLabel).append("]-");
+            if (segment.direction == EdgeDirection.FORWARD)
+                builder.append('>');
+            builder.append("(:").append(labelPrefix).append(segment.toNodeLabel).append(')');
+        }
+        return builder.toString();
+    }
 }
