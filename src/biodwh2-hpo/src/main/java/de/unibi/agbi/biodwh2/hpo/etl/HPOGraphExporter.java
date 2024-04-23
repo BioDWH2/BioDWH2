@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.hpo.etl;
 
-import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.OntologyGraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
@@ -22,7 +21,8 @@ import java.util.*;
 public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource> {
     static final String GENE_LABEL = "Gene";
     static final String DISEASE_LABEL = "Disease";
-    private static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
+    static final String ASSOCIATION_LABEL = "Association";
+    static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
 
     private boolean omimLicensed = false;
 
@@ -49,21 +49,18 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
     }
 
     private boolean exportAnnotations(final Workspace workspace, final Graph graph) throws ExporterException {
-        try (final MappingIterator<PhenotypeAnnotation> entries = FileUtils.openTsvWithHeader(workspace, dataSource,
-                                                                                              HPOUpdater.ANNOTATIONS_FILE_NAME,
-                                                                                              PhenotypeAnnotation.class)) {
-            while (entries.hasNext())
-                exportPhenotypeAnnotation(graph, entries.next());
+        try {
+            FileUtils.openTsvWithHeader(workspace, dataSource, HPOUpdater.ANNOTATIONS_FILE_NAME,
+                                        PhenotypeAnnotation.class, (entry) -> exportPhenotypeAnnotation(graph, entry));
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export HPO annotations", e);
         }
         final Map<Long, Map<Long, Long>> associationNodeMap = new HashMap<>();
         graph.beginEdgeIndicesDelay(ASSOCIATED_WITH_LABEL);
-        try (final MappingIterator<PhenotypeToGenesEntry> entries = FileUtils.openTsvWithHeader(workspace, dataSource,
-                                                                                                HPOUpdater.PHENOTYPE_TO_GENES_FILE_NAME,
-                                                                                                PhenotypeToGenesEntry.class)) {
-            while (entries.hasNext())
-                exportPhenotypeGeneAssociation(graph, entries.next(), associationNodeMap);
+        try {
+            FileUtils.openTsvWithHeader(workspace, dataSource, HPOUpdater.PHENOTYPE_TO_GENES_FILE_NAME,
+                                        PhenotypeToGenesEntry.class,
+                                        (entry) -> exportPhenotypeGeneAssociation(graph, entry, associationNodeMap));
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export HPO annotations", e);
         }
@@ -124,7 +121,7 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
         final Node geneNode = getOrCreateGeneNode(graph, entry.ncbiGeneId, entry.geneSymbol);
         Long associationNodeId = geneAssociationNodeMap.get(geneNode.getId());
         if (associationNodeId == null) {
-            associationNodeId = graph.addNode("Association").getId();
+            associationNodeId = graph.addNode(ASSOCIATION_LABEL).getId();
             geneAssociationNodeMap.put(geneNode.getId(), associationNodeId);
             graph.addEdge(termNode, associationNodeId, ASSOCIATED_WITH_LABEL);
             graph.addEdge(geneNode, associationNodeId, ASSOCIATED_WITH_LABEL);

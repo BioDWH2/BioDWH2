@@ -17,7 +17,7 @@ public class DiseasesUpdater extends Updater<DiseasesDataSource> {
     static final String KNOWLEDGE_FILTERED_FILE_NAME = "human_disease_knowledge_filtered.tsv";
     //static final String EXPERIMENTS_FULL_FILE_NAME = "human_disease_experiments_full.tsv";
     static final String EXPERIMENTS_FILTERED_FILE_NAME = "human_disease_experiments_filtered.tsv";
-    static final String INTEGRATED_FULL_FILE_NAME = "human_disease_integrated_full.tsv";
+    //static final String INTEGRATED_FULL_FILE_NAME = "human_disease_integrated_full.tsv";
 
     public DiseasesUpdater(final DiseasesDataSource dataSource) {
         super(dataSource);
@@ -44,7 +44,7 @@ public class DiseasesUpdater extends Updater<DiseasesDataSource> {
     protected String[] expectedFileNames() {
         return new String[]{
                 TEXT_MINING_FILTERED_FILE_NAME, KNOWLEDGE_FILTERED_FILE_NAME, EXPERIMENTS_FILTERED_FILE_NAME,
-                INTEGRATED_FULL_FILE_NAME
+                //INTEGRATED_FULL_FILE_NAME
         };
     }
 }

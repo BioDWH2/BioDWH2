@@ -7,6 +7,7 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DataSourceLoader;
 import de.unibi.agbi.biodwh2.core.OntologyDataSource;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
+import de.unibi.agbi.biodwh2.core.net.UrlUtils;
 import io.javalin.Javalin;
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.http.Context;

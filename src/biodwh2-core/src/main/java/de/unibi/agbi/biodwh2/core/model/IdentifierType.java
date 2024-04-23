@@ -23,6 +23,7 @@ public enum IdentifierType {
      * Digital Object Identifier (DOI) https://www.doi.org
      */
     DOI("DOI", CharSequence.class, "doi", "^10.\\d{2,9}/.*$", true),
+    DOID("DOID", Integer.class, null, "^\\d+$"),
     DRUG_BANK("DrugBank", CharSequence.class, null, null, true),
     DRUG_CENTRAL("DrugCentral", Integer.class, null, null),
     /**

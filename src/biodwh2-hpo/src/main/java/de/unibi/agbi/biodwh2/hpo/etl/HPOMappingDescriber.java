@@ -55,11 +55,18 @@ public final class HPOMappingDescriber extends MappingDescriber {
 
     @Override
     public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
+        if (edges.length == 2)
+            return new PathMappingDescription(PathMappingDescription.EdgeType.ASSOCIATED_WITH);
         return null;
     }
 
     @Override
     protected PathMapping[] getEdgePathMappings() {
-        return new PathMapping[0];
+        return new PathMapping[]{
+                new PathMapping().add(HPOGraphExporter.GENE_LABEL, HPOGraphExporter.ASSOCIATED_WITH_LABEL,
+                                      HPOGraphExporter.ASSOCIATION_LABEL, EdgeDirection.FORWARD).add(
+                        HPOGraphExporter.ASSOCIATION_LABEL, HPOGraphExporter.ASSOCIATED_WITH_LABEL,
+                        HPOGraphExporter.DISEASE_LABEL, EdgeDirection.BACKWARD)
+        };
     }
 }

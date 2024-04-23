@@ -91,7 +91,7 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
             // TODO: evidence
             for (final Keyword keyword : entry.keyword)
                 if (keyword.evidence != null && !keyword.evidence.isEmpty())
-                    LOGGER.warn("Evidence for keyword '" + keyword.value + "' (" + keyword.id + ") not exported");
+                    LOGGER.warn("Evidence for keyword '{}' ({}) not exported", keyword.value, keyword.id);
         }
         final Node node = builder.build();
         if (entry.gene != null) {
@@ -105,7 +105,17 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
                 // LOGGER.info(location.type + ", " + location.evidence + ", " + location.name);
             }
         }
-        // TODO: Protein entry.protein
+        if (entry.protein != null) {
+            // TODO: Protein.RecommendedName recommendedName
+            // TODO: List<Protein.AlternativeName> alternativeName
+            // TODO: List<Protein.SubmittedName> submittedName
+            // TODO: EvidencedString allergenName
+            // TODO: EvidencedString biotechName
+            // TODO: List<EvidencedString> cdAntigenName
+            // TODO: List<EvidencedString> innName
+            // TODO: List<Protein.Domain> domain
+            // TODO: List<Protein.Component> component
+        }
         // TODO: List<Organism> entry.organismHost
         // TODO: List<Comment> entry.comment
         // TODO: List<DbReference> entry.dbReference
@@ -183,8 +193,8 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
         for (final String reference : dbReferences) {
             final Long existingNodeId = dbReferenceCitationNodeIdMap.get(reference);
             if (existingNodeId != null && existingNodeId != nodeId) {
-                LOGGER.warn("DBReference '" + reference + "' already exists for node id " + existingNodeId +
-                            ", now found in node id " + nodeId);
+                LOGGER.warn("DBReference '{}' already exists for node id {}, now found in node id {}", reference,
+                            existingNodeId, nodeId);
             }
             dbReferenceCitationNodeIdMap.put(reference, nodeId);
         }
