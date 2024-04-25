@@ -7,9 +7,9 @@ BioDWH2 is developed and distributed with the following third party dependencies
 
 ## Dependency tree
   * **[1]** ```org.apache.commons.commons-lang3``` version ```3.14.0``` licensed under ```Apache License, Version 2.0```
-  * **[2]** ```commons-io.commons-io``` version ```2.15.1``` licensed under ```Apache License, Version 2.0```
+  * **[2]** ```commons-io.commons-io``` version ```2.16.1``` licensed under ```Apache License, Version 2.0```
   * **[3]** ```commons-net.commons-net``` version ```3.10.0``` licensed under ```Apache License, Version 2.0```
-  * **[4]** ```org.apache.commons.commons-compress``` version ```1.25.0``` licensed under ```Apache License, Version 2.0```
+  * **[4]** ```org.apache.commons.commons-compress``` version ```1.26.1``` licensed under ```Apache License, Version 2.0```
   * **[5]** ```org.jsoup.jsoup``` version ```1.17.2``` licensed under ```MIT License```
   * **[6]** ```com.univocity.univocity-parsers``` version ```2.9.1 ``` licensed under ```Apache License, Version 2.0```
   * **[7]** ```org.apache.logging.log4j.log4j-core``` version ```2.22.1``` licensed under ```Apache License, Version 2.0```
