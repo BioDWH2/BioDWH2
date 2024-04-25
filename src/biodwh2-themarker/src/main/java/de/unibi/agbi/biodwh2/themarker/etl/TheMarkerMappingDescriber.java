@@ -11,6 +11,27 @@ public class TheMarkerMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
+        if (TheMarkerGraphExporter.DISEASE_LABEL.equals(localMappingLabel))
+            return describeDisease(node);
+        if (TheMarkerGraphExporter.DRUG_LABEL.equals(localMappingLabel))
+            return describeDrug(node);
+        if (TheMarkerGraphExporter.MARKER_LABEL.equals(localMappingLabel))
+            return describeMarker(node);
+        return null;
+    }
+
+    private NodeMappingDescription[] describeDisease(final Node node) {
+        // TODO
+        return null;
+    }
+
+    private NodeMappingDescription[] describeDrug(final Node node) {
+        // TODO
+        return null;
+    }
+
+    private NodeMappingDescription[] describeMarker(final Node node) {
+        // TODO
         return null;
     }
 
@@ -21,7 +42,10 @@ public class TheMarkerMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[0];
+        return new String[]{
+                TheMarkerGraphExporter.DISEASE_LABEL, TheMarkerGraphExporter.DRUG_LABEL,
+                TheMarkerGraphExporter.MARKER_LABEL
+        };
     }
 
     @Override
