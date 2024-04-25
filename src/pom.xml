@@ -84,6 +84,8 @@
         <module>biodwh2-chebi</module>
         <module>biodwh2-drugmap</module>
         <module>biodwh2-iig</module>
+        <module>biodwh2-themarker</module>
+        <module>biodwh2-markerdb</module>
         <module>biodwh2-bionda</module>
     </modules>
 

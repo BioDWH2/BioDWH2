@@ -33,4 +33,9 @@ public class BIONDAUpdater extends Updater<BIONDADataSource> {
         downloadFileAsBrowser(workspace, DOWNLOAD_URL, FILE_NAME);
         return true;
     }
+
+    @Override
+    protected String[] expectedFileNames() {
+        return new String[]{FILE_NAME};
+    }
 }
