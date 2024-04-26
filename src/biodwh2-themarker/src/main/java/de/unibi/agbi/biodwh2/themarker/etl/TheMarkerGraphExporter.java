@@ -100,7 +100,7 @@ public class TheMarkerGraphExporter extends GraphExporter<TheMarkerDataSource> {
     }
 
     private void exportMarker(final Graph graph, final Marker entry) {
-        graph.addNodeFromModel(entry);
+        graph.addNodeFromModel(entry); // TODO
     }
 
     private void exportAssociations(final Workspace workspace, final Graph graph) {

@@ -5,7 +5,11 @@ import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.markerdb.MarkerDBDataSource;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,16 +56,30 @@ public class MarkerDBUpdater extends Updater<MarkerDBDataSource> {
 
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
-        downloadFileAsBrowser(workspace, PROTEINS_URL, PROTEINS_FILE_NAME);
-        downloadFileAsBrowser(workspace, CHEMICALS_URL, CHEMICALS_FILE_NAME);
-        downloadFileAsBrowser(workspace, SEQUENCE_VARIANTS_URL, SEQUENCE_VARIANTS_FILE_NAME);
-        downloadFileAsBrowser(workspace, KARYOTYPES_URL, KARYOTYPES_FILE_NAME);
-        downloadFileAsBrowser(workspace, DIAGNOSTIC_CHEMICALS_URL, DIAGNOSTIC_CHEMICALS_FILE_NAME);
-        downloadFileAsBrowser(workspace, DIAGNOSTIC_PROTEIN_URL, DIAGNOSTIC_PROTEIN_FILE_NAME);
-        downloadFileAsBrowser(workspace, DIAGNOSTIC_KARYOTYPES_URL, DIAGNOSTIC_KARYOTYPES_FILE_NAME);
-        downloadFileAsBrowser(workspace, PREDICTIVE_GENETICS_URL, PREDICTIVE_GENETICS_FILE_NAME);
-        downloadFileAsBrowser(workspace, EXPOSURE_CHEMICALS_URL, EXPOSURE_CHEMICALS_FILE_NAME);
+        downloadAndFixXml(workspace, PROTEINS_URL, PROTEINS_FILE_NAME);
+        downloadAndFixXml(workspace, CHEMICALS_URL, CHEMICALS_FILE_NAME);
+        downloadAndFixXml(workspace, SEQUENCE_VARIANTS_URL, SEQUENCE_VARIANTS_FILE_NAME);
+        downloadAndFixXml(workspace, KARYOTYPES_URL, KARYOTYPES_FILE_NAME);
+        downloadAndFixXml(workspace, DIAGNOSTIC_CHEMICALS_URL, DIAGNOSTIC_CHEMICALS_FILE_NAME);
+        downloadAndFixXml(workspace, DIAGNOSTIC_PROTEIN_URL, DIAGNOSTIC_PROTEIN_FILE_NAME);
+        downloadAndFixXml(workspace, DIAGNOSTIC_KARYOTYPES_URL, DIAGNOSTIC_KARYOTYPES_FILE_NAME);
+        downloadAndFixXml(workspace, PREDICTIVE_GENETICS_URL, PREDICTIVE_GENETICS_FILE_NAME);
+        downloadAndFixXml(workspace, EXPOSURE_CHEMICALS_URL, EXPOSURE_CHEMICALS_FILE_NAME);
         return true;
+    }
+
+    private void downloadAndFixXml(final Workspace workspace, final String url,
+                                   final String fileName) throws UpdaterException {
+        downloadFileAsBrowser(workspace, url, fileName);
+        try {
+            // The XML files of MarkerDB are malformed in that they don't have a root node, so we inject one.
+            final var file = dataSource.resolveSourceFilePath(workspace, fileName).toFile();
+            String text = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+            text = StringUtils.replace(text, "?>", "?>\n<root>") + "\n</root>";
+            FileUtils.writeStringToFile(file, text, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UpdaterException("Failed to fix XML file structure", e);
+        }
     }
 
     @Override
