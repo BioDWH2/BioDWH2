@@ -13,18 +13,18 @@ public class Protein {
     @GraphProperty(GraphExporter.ID_KEY)
     public Integer id;
     @JsonProperty("creation_date")
-    @GraphProperty("creation_date")
+    @GraphProperty(value = "creation_date", ignoreEmpty = true)
     public String creationDate;
     @JsonProperty("update_date")
-    @GraphProperty("update_date")
+    @GraphProperty(value = "update_date", ignoreEmpty = true)
     public String updateDate;
     @GraphProperty("name")
     public String name;
     @JsonProperty("gene_name")
-    @GraphProperty("gene_name")
+    @GraphProperty(value = "gene_name", ignoreEmpty = true)
     public String geneName;
     @JsonProperty("uniprot_id")
-    @GraphProperty("uniprot_id")
+    @GraphProperty(value = "uniprot_id", ignoreEmpty = true)
     public String uniprotId;
     public List<Condition> conditions;
 }

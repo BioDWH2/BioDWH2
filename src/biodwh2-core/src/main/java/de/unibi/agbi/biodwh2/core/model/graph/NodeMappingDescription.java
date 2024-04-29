@@ -35,8 +35,7 @@ public class NodeMappingDescription {
         RNA,
         SYMPTOM,
         TAXON,
-        UNKNOWN,
-        VARIANT
+        UNKNOWN
     }
 
     private static final Logger LOGGER = LogManager.getLogger(GraphMapper.class);

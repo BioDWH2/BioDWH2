@@ -51,6 +51,7 @@ public enum IdentifierType {
     GEN_ATLAS("GenAtlas", null, null, null),
     HGNC_SYMBOL("HGNC_Symbol", CharSequence.class, "hgnc.symbol", "^[A-Za-z-0-9_]+(\\@)?$", true),
     HGNC_ID("HGNC", Integer.class, "hgnc", "^\\d{1,5}$"),
+    HMDB("HMDB", CharSequence.class, null, "^HMDB\\d+$"),
     ICD10("ICD10", null, null, null),
     ICD11("ICD11", null, null, null),
     /**

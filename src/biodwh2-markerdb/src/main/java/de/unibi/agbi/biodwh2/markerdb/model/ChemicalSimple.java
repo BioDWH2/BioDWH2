@@ -8,22 +8,12 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.markerdb.etl.MarkerDBGraphExporter;
 
 @GraphNodeLabel(MarkerDBGraphExporter.CHEMICAL_LABEL)
-public class ChemicalSimple {
-    @JsonProperty("biomarker_type")
-    public String biomarkerType;
+public class ChemicalSimple extends ConditionSimple {
     @GraphNumberProperty(GraphExporter.ID_KEY)
     public String id;
     @GraphProperty("name")
     public String name;
     @JsonProperty("hmdb_id")
-    @GraphProperty("hmdb_id")
+    @GraphProperty(value = "hmdb_id", ignoreEmpty = true)
     public String hmdbId;
-    public String conditions;
-    @JsonProperty("indication_types")
-    public String indicationTypes;
-    public String concentration;
-    public String age;
-    public String sex;
-    public String biofluid;
-    public String citation;
 }

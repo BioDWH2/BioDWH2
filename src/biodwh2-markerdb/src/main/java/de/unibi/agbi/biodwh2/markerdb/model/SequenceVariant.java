@@ -12,14 +12,14 @@ import java.util.List;
 public class SequenceVariant {
     @GraphProperty(GraphExporter.ID_KEY)
     public Integer id;
-    @GraphProperty("variation")
+    @GraphProperty(value = "variation", ignoreEmpty = true)
     public String variation;
-    @GraphProperty("position")
+    @GraphProperty(value = "position", ignoreEmpty = true)
     public String position;
     @JsonProperty("external_link")
-    @GraphProperty("external_link")
+    @GraphProperty(value = "external_link", ignoreEmpty = true)
     public String externalLink;
-    @GraphProperty("reference")
+    @GraphProperty(value = "reference", ignoreEmpty = true)
     public Integer reference;
     @JsonProperty("sequence_variant_measurements")
     public List<SequenceVariantMeasurement> sequenceVariantMeasurements;

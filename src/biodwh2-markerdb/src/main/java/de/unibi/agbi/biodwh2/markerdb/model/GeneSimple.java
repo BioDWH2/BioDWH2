@@ -8,25 +8,20 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 import de.unibi.agbi.biodwh2.markerdb.etl.MarkerDBGraphExporter;
 
 @GraphNodeLabel(MarkerDBGraphExporter.GENE_LABEL)
-public class GeneSimple {
-    @JsonProperty("biomarker_type")
-    public String biomarkerType;
+public class GeneSimple extends ConditionSimple {
     @GraphNumberProperty(GraphExporter.ID_KEY)
     public String id;
-    @GraphProperty("variation")
+    @GraphProperty(value = "variation", ignoreEmpty = true)
     public String variation;
-    @GraphProperty("position")
+    @GraphProperty(value = "position", ignoreEmpty = true)
     public String position;
     @JsonProperty("external_link")
-    @GraphProperty("external_link")
+    @GraphProperty(value = "external_link", ignoreEmpty = true)
     public String externalLink;
     @JsonProperty("gene_symbol")
-    @GraphProperty("gene_symbol")
+    @GraphProperty(value = "gene_symbol", ignoreEmpty = true)
     public String geneSymbol;
     @JsonProperty("entrez_gene_id")
-    @GraphProperty("entrez_gene_id")
+    @GraphProperty(value = "entrez_gene_id", ignoreEmpty = true)
     public String entrezGeneId;
-    public String conditions;
-    @JsonProperty("indication_types")
-    public String indicationTypes;
 }

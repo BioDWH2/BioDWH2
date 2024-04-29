@@ -13,15 +13,15 @@ public class Chemical {
     @GraphProperty(GraphExporter.ID_KEY)
     public Integer id;
     @JsonProperty("creation_date")
-    @GraphProperty("creation_date")
+    @GraphProperty(value = "creation_date", ignoreEmpty = true)
     public String creationDate;
     @JsonProperty("update_date")
-    @GraphProperty("update_date")
+    @GraphProperty(value = "update_date", ignoreEmpty = true)
     public String updateDate;
     @GraphProperty("name")
     public String name;
     @JsonProperty("hmdb_id")
-    @GraphProperty("hmdb_id")
+    @GraphProperty(value = "hmdb_id", ignoreEmpty = true)
     public String hmdbId;
     public List<Condition> conditions;
 }
