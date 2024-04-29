@@ -154,7 +154,8 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeVariant(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.VARIANT);
+        final NodeMappingDescription description = new NodeMappingDescription(
+                NodeMappingDescription.NodeType.GENE_VARIANT);
         final String pharmGKBId = node.getProperty("id");
         final String name = node.getProperty("name");
         if (pharmGKBId != null)
