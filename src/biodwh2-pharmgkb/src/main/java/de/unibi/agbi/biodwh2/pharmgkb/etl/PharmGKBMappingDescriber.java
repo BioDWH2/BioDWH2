@@ -43,7 +43,7 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeChemical(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
         description.addName(node.getProperty("name"));
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         final String[] crossReferences = getCrossReferences(node);
@@ -58,11 +58,11 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
                 description.addIdentifier(IdentifierType.KEGG, getIdFromPrefixIdPair(reference));
             else if (reference.startsWith("KEGG Drug"))
                 description.addIdentifier(IdentifierType.KEGG, getIdFromPrefixIdPair(reference));
-            /*
-            "Drugs Product Database (DPD)", "FDA Drug Label at DailyMed", "National Drug Code Directory", "HMDB",
-            "PubChem Substance", "Therapeutic Targets Database", "URL", "BindingDB", "HET", "PDB", "UniProtKB", "ATCC",
-            "IUPHAR Ligand", "ClinicalTrials.gov", "DrugBank Metabolite", "GenBank"
-             */
+            else if (reference.startsWith("HMDB"))
+                description.addIdentifier(IdentifierType.HMDB, getIdFromPrefixIdPair(reference));
+        // "Drugs Product Database (DPD)", "FDA Drug Label at DailyMed", "National Drug Code Directory",
+        // "PubChem Substance", "Therapeutic Targets Database", "URL", "BindingDB", "HET", "PDB", "UniProtKB",
+        // "ATCC", "IUPHAR Ligand", "ClinicalTrials.gov", "DrugBank Metabolite", "GenBank"
         for (final String rxNormIdentifier : getRxNormIdentifiers(node))
             description.addIdentifier(IdentifierType.RX_NORM_CUI, rxNormIdentifier);
         if (isChemicalADrug(node))
@@ -84,7 +84,7 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription describeDrug(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.DRUG);
         description.addName(node.getProperty("name"));
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         for (final String reference : getCrossReferences(node)) {
@@ -100,13 +100,12 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
                 description.addIdentifier(IdentifierType.CHEBI,
                                           Integer.parseInt(reference.substring(reference.lastIndexOf(':') + 1)));
             else if (reference.startsWith("ChemSpider"))
-                description.addIdentifier(IdentifierType.CHEMSPIDER,
-                                          Integer.parseInt(getIdFromPrefixIdPair(reference)));
-            /*
-            "PubChem Compound", "PubChem Substance", "URL", "IUPHAR Ligand", "PDB", "Drugs Product Database (DPD)",
-            "Therapeutic Targets Database", "ClinicalTrials.gov", "FDA Drug Label at DailyMed", "UniProtKB", "ATCC",
-            "National Drug Code Directory", "BindingDB", "HET", "HMDB", "GenBank"
-             */
+                description.addIdentifier(IdentifierType.CHEMSPIDER, getIntIdFromPrefixIdPair(reference));
+            else if (reference.startsWith("HMDB"))
+                description.addIdentifier(IdentifierType.HMDB, getIdFromPrefixIdPair(reference));
+            // "PubChem Compound", "PubChem Substance", "URL", "IUPHAR Ligand", "PDB", "Drugs Product Database (DPD)",
+            // "Therapeutic Targets Database", "ClinicalTrials.gov", "FDA Drug Label at DailyMed", "UniProtKB", "ATCC",
+            // "National Drug Code Directory", "BindingDB", "HET", "GenBank"
         }
         for (final String rxNormIdentifier : getRxNormIdentifiers(node))
             description.addIdentifier(IdentifierType.RX_NORM_CUI, rxNormIdentifier);
@@ -114,14 +113,13 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeHaplotype(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(
-                NodeMappingDescription.NodeType.HAPLOTYPE);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.HAPLOTYPE);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describeGene(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         final String geneSymbol = node.getProperty("symbol");
         if (geneSymbol != null)
@@ -145,17 +143,14 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
                 //    description.addIdentifier(IdentifierType.ENSEMBL_GENE_ID, getIdFromPrefixIdPair(reference));
             else if (reference.startsWith("NCBI Gene"))
                 description.addIdentifier(IdentifierType.NCBI_GENE, getIntIdFromPrefixIdPair(reference));
-            /*
-            "ALFRED", "Comparative Toxicogenomics Database", "GO", "HumanCyc Gene", "ModBase", "MutDB",
-            "OMIM", "RefSeq DNA", "RefSeq Protein", "RefSeq RNA", "UCSC Genome Browser", "UniProtKB", "IUPHAR Receptor",
-            "URL", "PharmVar Gene", "GenBank"
-             */
+        // "ALFRED", "Comparative Toxicogenomics Database", "GO", "HumanCyc Gene", "ModBase", "MutDB",
+        // "OMIM", "RefSeq DNA", "RefSeq Protein", "RefSeq RNA", "UCSC Genome Browser", "UniProtKB",
+        // "IUPHAR Receptor", "URL", "PharmVar Gene", "GenBank"
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describeVariant(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(
-                NodeMappingDescription.NodeType.GENE_VARIANT);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE_VARIANT);
         final String pharmGKBId = node.getProperty("id");
         final String name = node.getProperty("name");
         if (pharmGKBId != null)
@@ -166,13 +161,13 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describePathway(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PATHWAY);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.PATHWAY);
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describeLiterature(final Node node) {
-        final PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
+        final var description = new PublicationNodeMappingDescription();
         description.doi = node.getProperty("doi");
         description.pubmedId = node.getProperty("pmid");
         description.pmcId = node.getProperty("pmcid");

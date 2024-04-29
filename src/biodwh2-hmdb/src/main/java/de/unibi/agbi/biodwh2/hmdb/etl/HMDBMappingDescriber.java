@@ -34,7 +34,7 @@ public class HMDBMappingDescriber extends MappingDescriber {
         final Integer pubmedId = node.getProperty("pubmed_id");
         if (pubmedId == null)
             return null;
-        final PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
+        final var description = new PublicationNodeMappingDescription();
         description.pubmedId = pubmedId;
         description.addIdentifier(IdentifierType.PUBMED_ID, pubmedId);
         final String citation = node.getProperty("text");
@@ -56,7 +56,7 @@ public class HMDBMappingDescriber extends MappingDescriber {
         final Integer omimId = node.getProperty("omim_id");
         if (omimId == null)
             return null;
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
         description.addIdentifier(IdentifierType.OMIM, omimId);
         description.addName(node.getProperty("name"));
         return new NodeMappingDescription[]{description};
@@ -67,7 +67,7 @@ public class HMDBMappingDescriber extends MappingDescriber {
         final String smpdbId = node.getProperty("smpdb_id");
         if (keggMapId == null && smpdbId == null)
             return null;
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PATHWAY);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.PATHWAY);
         description.addIdentifier(IdentifierType.KEGG, keggMapId);
         description.addIdentifier(IdentifierType.SMPDB, smpdbId);
         description.addName(node.getProperty("name"));
@@ -80,7 +80,7 @@ public class HMDBMappingDescriber extends MappingDescriber {
         final String genbankProteinId = node.getProperty("genbank_protein_id");
         if (accession == null && uniprotId == null && genbankProteinId == null)
             return null;
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PROTEIN);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.PROTEIN);
         // description.addIdentifier("HMDB", accession);
         description.addIdentifier(IdentifierType.UNIPROT_KB, uniprotId);
         // description.addIdentifier(IdentifierType.GENBANK, genbankProteinId);
@@ -90,9 +90,8 @@ public class HMDBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeMetaboliteNode(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(
-                NodeMappingDescription.NodeType.METABOLITE);
-        // description.addIdentifier("HMDB", accession);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.METABOLITE);
+        // description.addIdentifier(IdentifierType.HMDB, node.<String>getProperty("accession"));
         description.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
         description.addIdentifier(IdentifierType.KEGG, node.<String>getProperty("kegg_id"));
         description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, node.<Integer>getProperty("pubchem_compound_id"));
@@ -107,7 +106,7 @@ public class HMDBMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeGeneNode(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
         final String hgncId = node.getProperty("hgnc_id");
         if (StringUtils.isNotEmpty(hgncId)) {
             description.addIdentifier(IdentifierType.HGNC_ID,
