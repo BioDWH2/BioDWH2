@@ -126,6 +126,19 @@ class ClassMappingTest {
         assertArrayEquals(new String[]{"a", "bcd", "d", "x"}, node.getProperty("array"));
     }
 
+    @Test
+    void arrayWithType() {
+        final ClassMapping mapping = new ClassMapping(TestClassArrayType.class);
+        final TestClassArrayType instance = new TestClassArrayType();
+        instance.intArray = "5";
+        final Node node = Node.newNode("test");
+        mapping.setModelProperties(node, instance);
+        assertArrayEquals(new Integer[]{5}, node.getProperty("int_array"));
+        instance.intArray = "1;10;04969048";
+        mapping.setModelProperties(node, instance);
+        assertArrayEquals(new Integer[]{1, 10, 4969048}, node.getProperty("int_array"));
+    }
+
     @GraphNodeLabel("A")
     private static class TestClass {
         @GraphProperty("id")
@@ -149,5 +162,10 @@ class ClassMappingTest {
     private static class TestClassMultiSeparator {
         @GraphArrayProperty(value = "array", arrayDelimiter = {"; ", "|"})
         public String array;
+    }
+
+    private static class TestClassArrayType {
+        @GraphArrayProperty(value = "int_array", type = GraphArrayProperty.Type.Int)
+        public String intArray;
     }
 }

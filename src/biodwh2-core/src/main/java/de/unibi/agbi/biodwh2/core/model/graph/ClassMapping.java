@@ -31,10 +31,13 @@ final class ClassMapping {
         final Pattern quotedArrayDelimiter;
         final boolean quotedArrayElements;
         final String[] emptyPlaceholder;
+        final GraphArrayProperty.Type type;
 
         ClassMappingArrayField(final Field field, final String propertyName, final String[] arrayDelimiter,
-                               final boolean quotedArrayElements, final String[] emptyPlaceholder) {
+                               final boolean quotedArrayElements, final String[] emptyPlaceholder,
+                               final GraphArrayProperty.Type type) {
             super(field, propertyName, false, new String[0], ValueTransformation.NONE);
+            this.type = type;
             final var arrayDelimiterBuilder = new StringBuilder();
             final var quotedArrayDelimiterBuilder = new StringBuilder();
             for (int i = 0; i < arrayDelimiter.length; i++) {
@@ -127,7 +130,8 @@ final class ClassMapping {
         field.setAccessible(true);
         final GraphArrayProperty annotation = field.getAnnotation(GraphArrayProperty.class);
         return new ClassMappingArrayField(field, annotation.value(), annotation.arrayDelimiter(),
-                                          annotation.quotedArrayElements(), annotation.emptyPlaceholder());
+                                          annotation.quotedArrayElements(), annotation.emptyPlaceholder(),
+                                          annotation.type());
     }
 
     private ClassMappingBooleanField[] loadClassMappingBooleanFields(final Class<?> type) {
@@ -239,8 +243,16 @@ final class ClassMapping {
     private void setModelPropertyFromArrayField(final MVStoreModel model, final Object obj,
                                                 final ClassMappingArrayField field) throws IllegalAccessException {
         final String[] elements = getArrayFieldValue(obj, field);
-        if (elements != null)
-            model.setProperty(field.propertyName, elements);
+        if (elements != null) {
+            if (field.type == GraphArrayProperty.Type.Int) {
+                final Integer[] intElements = new Integer[elements.length];
+                for (int i = 0; i < intElements.length; i++)
+                    intElements[i] = Integer.parseInt(elements[i].strip());
+                model.setProperty(field.propertyName, intElements);
+            } else {
+                model.setProperty(field.propertyName, elements);
+            }
+        }
     }
 
     private String[] getArrayFieldValue(final Object obj,
@@ -327,8 +339,16 @@ final class ClassMapping {
     private void setModelBuilderPropertyFromArrayField(final ModelBuilder<?> builder, final Object obj,
                                                        final ClassMappingArrayField field) throws IllegalAccessException {
         final String[] elements = getArrayFieldValue(obj, field);
-        if (elements != null)
-            builder.withProperty(field.propertyName, elements);
+        if (elements != null) {
+            if (field.type == GraphArrayProperty.Type.Int) {
+                final Integer[] intElements = new Integer[elements.length];
+                for (int i = 0; i < intElements.length; i++)
+                    intElements[i] = Integer.parseInt(elements[i]);
+                builder.withProperty(field.propertyName, intElements);
+            } else {
+                builder.withProperty(field.propertyName, elements);
+            }
+        }
     }
 
     private void setModelBuilderPropertiesFromBooleanFields(final ModelBuilder<?> builder,

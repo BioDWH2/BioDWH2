@@ -15,4 +15,11 @@ public @interface GraphArrayProperty {
     boolean quotedArrayElements() default false;
 
     String[] emptyPlaceholder() default {};
+
+    Type type() default Type.String;
+
+    enum Type {
+        String,
+        Int
+    }
 }

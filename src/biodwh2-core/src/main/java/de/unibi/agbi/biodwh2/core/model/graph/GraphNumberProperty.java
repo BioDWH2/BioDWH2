@@ -16,7 +16,7 @@ public @interface GraphNumberProperty {
 
     Type type() default Type.Int;
 
-    public enum Type {
+    enum Type {
         Int,
         Long
     }
