@@ -242,7 +242,7 @@ public abstract class DataSource {
     }
 
     public final Boolean getBooleanProperty(final Workspace workspace, final String key) {
-        return getBooleanProperty(workspace, key, null);
+        return getBooleanProperty(workspace, key, false);
     }
 
     public final Boolean getBooleanProperty(final Workspace workspace, final String key, final Boolean fallback) {
