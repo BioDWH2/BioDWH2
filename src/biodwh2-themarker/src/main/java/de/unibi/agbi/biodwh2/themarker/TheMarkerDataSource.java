@@ -17,7 +17,7 @@ public class TheMarkerDataSource extends DataSource {
 
     @Override
     public DevelopmentState getDevelopmentState() {
-        return DevelopmentState.InDevelopment;
+        return DevelopmentState.Usable;
     }
 
     @Override

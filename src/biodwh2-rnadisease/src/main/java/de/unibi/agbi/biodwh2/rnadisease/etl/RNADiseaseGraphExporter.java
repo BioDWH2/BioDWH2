@@ -16,6 +16,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.rnadisease.RNADiseaseDataSource;
 import de.unibi.agbi.biodwh2.rnadisease.model.ExperimentalEntry;
 import de.unibi.agbi.biodwh2.rnadisease.model.PredictedEntry;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -32,6 +33,7 @@ public class RNADiseaseGraphExporter extends GraphExporter<RNADiseaseDataSource>
     static final String DO_ID_KEY = "do_id";
     static final String KEGG_ID_KEY = "kegg_id";
     static final String MESH_ID_KEY = "mesh_id";
+    private static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
 
     public RNADiseaseGraphExporter(final RNADiseaseDataSource dataSource) {
         super(dataSource);
@@ -49,20 +51,20 @@ public class RNADiseaseGraphExporter extends GraphExporter<RNADiseaseDataSource>
         graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, KEGG_ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, MESH_ID_KEY, IndexDescription.Type.UNIQUE));
         final Map<String, Long> diseaseNameNodeIdMap = new HashMap<>();
-        graph.beginEdgeIndicesDelay("ASSOCIATED_WITH");
+        graph.beginEdgeIndicesDelay(ASSOCIATED_WITH_LABEL);
         exportExperimentalEntries(workspace, graph, diseaseNameNodeIdMap);
         exportPredictedEntries(workspace, graph, RNADiseaseUpdater.MIRNA_PREDICTED_FILE_NAME, diseaseNameNodeIdMap);
         exportPredictedEntries(workspace, graph, RNADiseaseUpdater.LNCRNA_PREDICTED_FILE_NAME, diseaseNameNodeIdMap);
         exportPredictedEntries(workspace, graph, RNADiseaseUpdater.CIRCRNA_PREDICTED_FILE_NAME, diseaseNameNodeIdMap);
         exportPredictedEntries(workspace, graph, RNADiseaseUpdater.PIRNA_PREDICTED_FILE_NAME, diseaseNameNodeIdMap);
-        graph.endEdgeIndicesDelay("ASSOCIATED_WITH");
+        graph.endEdgeIndicesDelay(ASSOCIATED_WITH_LABEL);
         return true;
     }
 
     private void exportExperimentalEntries(final Workspace workspace, final Graph graph,
                                            final Map<String, Long> diseaseNameNodeIdMap) {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Exporting '" + RNADiseaseUpdater.ALL_EXPERIMENTAL_FILE_NAME + "'...");
+            LOGGER.info("Exporting '{}'...", RNADiseaseUpdater.ALL_EXPERIMENTAL_FILE_NAME);
         try (final XlsxMappingIterator<ExperimentalEntry> iterator = openExperimentalZipXlsx(workspace)) {
             while (iterator.hasNext())
                 exportExperimentalEntry(graph, diseaseNameNodeIdMap, iterator.next());
@@ -94,7 +96,7 @@ public class RNADiseaseGraphExporter extends GraphExporter<RNADiseaseDataSource>
         final Node rnaNode = getOrCreateRNANode(graph, entry.rnaSymbol, entry.rnaType, entry.species);
         final Node diseaseNode = getOrCreateDiseaseNode(graph, entry.diseaseName, entry.doId, entry.keggDiseaseId,
                                                         entry.meshId, diseaseNameNodeIdMap);
-        graph.addEdge(rnaNode, diseaseNode, "ASSOCIATED_WITH", ID_KEY, entry.rdId, "pmid", entry.pmid, "score",
+        graph.addEdge(rnaNode, diseaseNode, ASSOCIATED_WITH_LABEL, ID_KEY, entry.rdId, "pmid", entry.pmid, "score",
                       entry.score);
     }
 
@@ -111,9 +113,12 @@ public class RNADiseaseGraphExporter extends GraphExporter<RNADiseaseDataSource>
 
     private Node getOrCreateDiseaseNode(final Graph graph, final String name, final String doId, final String keggId,
                                         final String meshId, final Map<String, Long> diseaseNameNodeIdMap) {
+        Integer doIdNumber = null;
+        if (StringUtils.isNotEmpty(doId))
+            doIdNumber = Integer.parseInt(StringUtils.replace(doId, "DOID:", "").strip());
         Node node = null;
-        if (doId != null)
-            node = graph.findNode(DISEASE_LABEL, "do_id", doId);
+        if (doIdNumber != null)
+            node = graph.findNode(DISEASE_LABEL, DO_ID_KEY, doIdNumber);
         if (node == null && keggId != null)
             node = graph.findNode(DISEASE_LABEL, KEGG_ID_KEY, keggId);
         if (node == null && meshId != null)
@@ -126,7 +131,7 @@ public class RNADiseaseGraphExporter extends GraphExporter<RNADiseaseDataSource>
         if (node == null) {
             final NodeBuilder builder = graph.buildNode().withLabel(DISEASE_LABEL);
             builder.withPropertyIfNotNull("name", name);
-            builder.withPropertyIfNotNull(DO_ID_KEY, doId);
+            builder.withPropertyIfNotNull(DO_ID_KEY, doIdNumber);
             builder.withPropertyIfNotNull(KEGG_ID_KEY, keggId);
             builder.withPropertyIfNotNull(MESH_ID_KEY, meshId);
             node = builder.build();
@@ -138,7 +143,7 @@ public class RNADiseaseGraphExporter extends GraphExporter<RNADiseaseDataSource>
     private void exportPredictedEntries(final Workspace workspace, final Graph graph, final String fileName,
                                         final Map<String, Long> diseaseNameNodeIdMap) {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Exporting '" + fileName + "'...");
+            LOGGER.info("Exporting '{}'...", fileName);
         int ignoredLinesCount = 0;
         try (final MappingIterator<PredictedEntry> iterator = openPredictedZipCsv(workspace, fileName)) {
             while (iterator.hasNext()) {
@@ -155,7 +160,7 @@ public class RNADiseaseGraphExporter extends GraphExporter<RNADiseaseDataSource>
             throw new ExporterFormatException(e);
         }
         if (ignoredLinesCount > 0 && LOGGER.isWarnEnabled())
-            LOGGER.warn("Ignored " + ignoredLinesCount + " malformed csv lines");
+            LOGGER.warn("Ignored {} malformed csv lines", ignoredLinesCount);
     }
 
     private MappingIterator<PredictedEntry> openPredictedZipCsv(final Workspace workspace, final String fileName) {
@@ -178,7 +183,7 @@ public class RNADiseaseGraphExporter extends GraphExporter<RNADiseaseDataSource>
         final Node rnaNode = getOrCreateRNANode(graph, entry.rnaSymbol, entry.rnaType, null);
         final Node diseaseNode = getOrCreateDiseaseNode(graph, entry.diseaseName, null, null, null,
                                                         diseaseNameNodeIdMap);
-        graph.addEdge(rnaNode, diseaseNode, "ASSOCIATED_WITH", ID_KEY, entry.rdId, "rd_score", entry.rdScore, "method",
-                      entry.methodName, "algorithm_score", entry.algorithmScore);
+        graph.addEdge(rnaNode, diseaseNode, ASSOCIATED_WITH_LABEL, ID_KEY, entry.rdId, "rd_score", entry.rdScore,
+                      "method", entry.methodName, "algorithm_score", entry.algorithmScore);
     }
 }

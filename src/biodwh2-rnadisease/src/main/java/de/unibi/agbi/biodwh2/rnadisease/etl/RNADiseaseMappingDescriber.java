@@ -2,8 +2,10 @@ package de.unibi.agbi.biodwh2.rnadisease.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.core.model.graph.mapping.RNANodeMappingDescription;
+import org.apache.commons.lang3.StringUtils;
 
 public class RNADiseaseMappingDescriber extends MappingDescriber {
     public RNADiseaseMappingDescriber(final DataSource dataSource) {
@@ -19,7 +21,7 @@ public class RNADiseaseMappingDescriber extends MappingDescriber {
         return null;
     }
 
-    private NodeMappingDescription[] describeRNA(Node node) {
+    private NodeMappingDescription[] describeRNA(final Node node) {
         final String type = node.getProperty("type");
         if (type != null) {
             switch (type) {
@@ -61,13 +63,29 @@ public class RNADiseaseMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] populateRNANode(final Node node, final RNANodeMappingDescription.RNAType rnaType) {
         final RNANodeMappingDescription description = new RNANodeMappingDescription(rnaType);
-        // TODO: description.addIdentifier();
+        final String symbol = node.getProperty("symbol");
+        if (symbol != null) {
+            if (symbol.contains("-let-") || symbol.contains("-mir-") || symbol.contains("-miR-"))
+                description.addIdentifier(IdentifierType.MIRNA, symbol);
+            // TODO
+        }
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describeDisease(final Node node) {
-        // TODO
-        return null;
+        final String name = node.getProperty("name");
+        final Integer doId = node.getProperty(RNADiseaseGraphExporter.DO_ID_KEY);
+        final String keggId = node.getProperty(RNADiseaseGraphExporter.KEGG_ID_KEY);
+        final String meshId = node.getProperty(RNADiseaseGraphExporter.MESH_ID_KEY);
+        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
+        description.addName(name);
+        if (doId != null)
+            description.addIdentifier(IdentifierType.DOID, doId);
+        if (StringUtils.isNotEmpty(keggId))
+            description.addIdentifier(IdentifierType.KEGG, keggId);
+        if (StringUtils.isNotEmpty(meshId))
+            description.addIdentifier(IdentifierType.MESH, meshId);
+        return new NodeMappingDescription[]{description};
     }
 
     @Override

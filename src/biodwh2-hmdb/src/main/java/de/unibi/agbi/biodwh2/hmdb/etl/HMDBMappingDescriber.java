@@ -65,7 +65,7 @@ public class HMDBMappingDescriber extends MappingDescriber {
     private NodeMappingDescription[] describePathwayNode(final Node node) {
         final String keggMapId = node.getProperty("kegg_map_id");
         final String smpdbId = node.getProperty("smpdb_id");
-        if (keggMapId == null && smpdbId == null)
+        if (StringUtils.isEmpty(keggMapId) && StringUtils.isEmpty(smpdbId))
             return null;
         final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.PATHWAY);
         description.addIdentifier(IdentifierType.KEGG, keggMapId);
@@ -78,10 +78,10 @@ public class HMDBMappingDescriber extends MappingDescriber {
         final String accession = node.getProperty("accession");
         final String uniprotId = node.getProperty("uniprot_id");
         final String genbankProteinId = node.getProperty("genbank_protein_id");
-        if (accession == null && uniprotId == null && genbankProteinId == null)
+        if (StringUtils.isEmpty(accession) && StringUtils.isEmpty(uniprotId) && StringUtils.isEmpty(genbankProteinId))
             return null;
         final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.PROTEIN);
-        // description.addIdentifier("HMDB", accession);
+        description.addIdentifier("HMDB", accession);
         description.addIdentifier(IdentifierType.UNIPROT_KB, uniprotId);
         // description.addIdentifier(IdentifierType.GENBANK, genbankProteinId);
         description.addName(node.getProperty("name"));
@@ -91,7 +91,7 @@ public class HMDBMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeMetaboliteNode(final Node node) {
         final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.METABOLITE);
-        // description.addIdentifier(IdentifierType.HMDB, node.<String>getProperty("accession"));
+        description.addIdentifier(IdentifierType.HMDB, node.<String>getProperty("accession"));
         description.addIdentifier(IdentifierType.DRUG_BANK, node.<String>getProperty("drugbank_id"));
         description.addIdentifier(IdentifierType.KEGG, node.<String>getProperty("kegg_id"));
         description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, node.<Integer>getProperty("pubchem_compound_id"));
