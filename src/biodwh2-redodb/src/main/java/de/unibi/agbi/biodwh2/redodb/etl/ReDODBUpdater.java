@@ -14,7 +14,7 @@ public final class ReDODBUpdater extends Updater<ReDODBDataSource> {
     private static final Pattern VERSION_PATTERN = Pattern.compile(
             "Database build date:\\s+([0-9]{2}/[0-9]{2}/[0-9]{2})", Pattern.CASE_INSENSITIVE);
     static final String FILE_NAME = "redo_db.txt";
-    private static final String DOWNLOAD_URL = "https://acfdata.coworks.be/" + FILE_NAME;
+    private static final String DOWNLOAD_URL = "https://sciencedata.anticancerfund.org/pages/" + FILE_NAME;
 
     public ReDODBUpdater(final ReDODBDataSource dataSource) {
         super(dataSource);
