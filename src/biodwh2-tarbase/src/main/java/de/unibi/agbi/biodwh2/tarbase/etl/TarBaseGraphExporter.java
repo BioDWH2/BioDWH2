@@ -13,7 +13,6 @@ import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.tarbase.TarBaseDataSource;
 import de.unibi.agbi.biodwh2.tarbase.model.Entry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -31,31 +30,32 @@ public class TarBaseGraphExporter extends GraphExporter<TarBaseDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 3;
+        return 4;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode(GENE_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(TRANSCRIPT_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(MI_RNA_LABEL, ID_KEY, false, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(GENE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(TRANSCRIPT_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(MI_RNA_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.beginEdgeIndicesDelay(TARGETS_LABEL);
+        graph.beginEdgeIndicesDelay(TRANSCRIBES_TO_LABEL);
         for (final String fileName : TarBaseUpdater.FILE_NAMES)
             exportFile(workspace, graph, fileName);
+        graph.endEdgeIndicesDelay(TRANSCRIBES_TO_LABEL);
+        graph.endEdgeIndicesDelay(TARGETS_LABEL);
         return true;
     }
 
     private void exportFile(final Workspace workspace, final Graph graph, final String fileName) {
-        try (TarArchiveInputStream stream = FileUtils.openTarGzip(workspace, dataSource, fileName)) {
-            while (stream.getNextEntry() != null)
-                exportEntries(graph, FileUtils.openSeparatedValuesFile(stream, Entry.class, '\t', true, false));
+        try (final var stream = FileUtils.openGzip(workspace, dataSource, fileName)) {
+            exportEntries(graph, FileUtils.openSeparatedValuesFile(stream, Entry.class, '\t', true, false));
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export '" + fileName + "'", e);
         }
     }
 
     private void exportEntries(final Graph graph, final MappingIterator<Entry> entries) {
-        graph.beginEdgeIndicesDelay(TARGETS_LABEL);
-        graph.beginEdgeIndicesDelay(TRANSCRIBES_TO_LABEL);
         while (entries.hasNext()) {
             final Entry entry = entries.next();
             final Integer speciesTaxonomyId = getSpeciesTaxonomyId(entry.species);
@@ -84,8 +84,6 @@ public class TarBaseGraphExporter extends GraphExporter<TarBaseDataSource> {
             setEdgeBuilderPropertyIfNotNullAndNotNA(builder, "comment", entry.comment);
             builder.build();
         }
-        graph.endEdgeIndicesDelay(TRANSCRIBES_TO_LABEL);
-        graph.endEdgeIndicesDelay(TARGETS_LABEL);
     }
 
     private Integer getSpeciesTaxonomyId(final String species) {

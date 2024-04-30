@@ -9,8 +9,8 @@ import de.unibi.agbi.biodwh2.tarbase.TarBaseDataSource;
 public class TarBaseUpdater extends Updater<TarBaseDataSource> {
     private static final String DOWNLOAD_URL_PREFIX = "https://dianalab.e-ce.uth.gr/tarbasev9/data/";
     static final String[] FILE_NAMES = new String[]{
-            "Homo_sapiens_TarBase_v9.tsv.gz", "Mus_musculus_TarBase_v9.tsv.gz", "Viral_species_TarBase-v9.tsv.gz",
-            "Other_species_TarBase_v9.tsv.gz"
+            "Homo_sapiens_TarBase-v9.tsv.gz", "Mus_musculus_TarBase-v9.tsv.gz", "Viral_species_TarBase-v9.tsv.gz",
+            "Other_species_TarBase-v9.tsv.gz"
     };
 
     public TarBaseUpdater(final TarBaseDataSource dataSource) {
