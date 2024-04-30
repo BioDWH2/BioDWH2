@@ -9,6 +9,7 @@ import de.unibi.agbi.biodwh2.core.io.sdf.SdfEntry;
 import de.unibi.agbi.biodwh2.core.io.sdf.SdfReader;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
+import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.themarker.TheMarkerDataSource;
 import de.unibi.agbi.biodwh2.themarker.model.Association;
 import de.unibi.agbi.biodwh2.themarker.model.Disease;
@@ -24,7 +25,8 @@ public class TheMarkerGraphExporter extends GraphExporter<TheMarkerDataSource> {
     public static final String DRUG_LABEL = "Drug";
     static final String DISEASE_LABEL = "Disease";
     public static final String MARKER_LABEL = "Marker";
-    static final String ASSOCIATION_LABEL = "Association";
+    public static final String ASSOCIATION_LABEL = "Association";
+    static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
 
     public TheMarkerGraphExporter(final TheMarkerDataSource dataSource) {
         super(dataSource);
@@ -61,8 +63,7 @@ public class TheMarkerGraphExporter extends GraphExporter<TheMarkerDataSource> {
         if (StringUtils.isEmpty(icd11) || "N.A.".equalsIgnoreCase(icd11))
             graph.addNode(DISEASE_LABEL, ID_KEY, entry.id, "name", entry.name, "class", entry._class);
         else
-            graph.addNode(DISEASE_LABEL, ID_KEY, entry.id, "name", entry.name, "icd11", entry.icd11, "class",
-                          entry._class);
+            graph.addNode(DISEASE_LABEL, ID_KEY, entry.id, "name", entry.name, "icd11", icd11, "class", entry._class);
     }
 
     private void exportDrugs(final Workspace workspace, final Graph graph) {
@@ -93,24 +94,31 @@ public class TheMarkerGraphExporter extends GraphExporter<TheMarkerDataSource> {
     private void exportMarker(final Workspace workspace, final Graph graph) {
         try {
             FileUtils.openTsvWithHeader(workspace, dataSource, TheMarkerUpdater.MARKER_FILE_NAME, Marker.class,
-                                        (entry) -> exportMarker(graph, entry));
+                                        graph::addNodeFromModel);
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export '" + TheMarkerUpdater.MARKER_FILE_NAME + "'", e);
         }
     }
 
-    private void exportMarker(final Graph graph, final Marker entry) {
-        graph.addNodeFromModel(entry); // TODO
-    }
-
     private void exportAssociations(final Workspace workspace, final Graph graph) {
         try {
             FileUtils.openTsvWithHeader(workspace, dataSource, TheMarkerUpdater.ASSOCIATIONS_FILE_NAME,
-                                        Association.class, (entry) -> {
-                        // TODO
-                    });
+                                        Association.class, (entry) -> exportAssociation(graph, entry));
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export '" + TheMarkerUpdater.ASSOCIATIONS_FILE_NAME + "'", e);
         }
+    }
+
+    private void exportAssociation(final Graph graph, final Association association) {
+        final Node node = graph.addNodeFromModel(association);
+        if (association.drugId != null && !".".equals(association.drugId.strip())) {
+            final String[] drugIds = StringUtils.splitByWholeSeparator(association.drugId, "; ");
+            for (final String drugId : drugIds)
+                graph.addEdge(graph.findNode(DRUG_LABEL, ID_KEY, drugId), node, ASSOCIATED_WITH_LABEL);
+        }
+        if (association.diseaseId != null && !".".equals(association.diseaseId.strip()))
+            graph.addEdge(graph.findNode(DISEASE_LABEL, ID_KEY, association.diseaseId), node, ASSOCIATED_WITH_LABEL);
+        if (association.biomarkerId != null && !".".equals(association.biomarkerId.strip()))
+            graph.addEdge(graph.findNode(MARKER_LABEL, ID_KEY, association.biomarkerId), node, ASSOCIATED_WITH_LABEL);
     }
 }

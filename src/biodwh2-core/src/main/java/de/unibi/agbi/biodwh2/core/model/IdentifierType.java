@@ -127,6 +127,8 @@ public enum IdentifierType {
      * Brazilian Registry of Clinical Trials (ReBEC) https://ensaiosclinicos.gov.br
      */
     REBEC_TRIAL("ReBEC", null, null, null),
+    REFSEQ("RefSeq", CharSequence.class, "refseq",
+           "^(((WP|AC|AP|NC|NG|NM|NP|NR|NT|NW|XM|XP|XR|YP|ZP)_\\d+)|(NZ\\_[A-Z]{2,4}\\d+))(\\.\\d+)?$"),
     /**
      * Cuban Public Registry of Clinical Trials (RPCEC) https://rpcec.sld.cu
      */
