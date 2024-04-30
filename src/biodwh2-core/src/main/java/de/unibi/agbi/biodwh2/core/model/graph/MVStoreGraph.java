@@ -566,37 +566,37 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
             for (final MVStoreIndex index : databaseToMerge.edgeRepositories.get(sourceLabel).getIndices())
                 getOrCreateEdgeRepository(targetLabel).getIndex(index.getKey(), index.isArrayIndex(), index.getType());
         }
-        long nodeCounter = 0;
+        final long[] counter = new long[]{0};
         final Map<Long, Long> mapping = new HashMap<>();
         for (final String sourceLabel : databaseToMerge.nodeRepositories.keySet()) {
             final String targetLabel = dataSourcePrefix + sourceLabel;
             final MVStoreCollection<Node> targetNodes = getOrCreateNodeRepository(targetLabel);
-            for (final Node n : databaseToMerge.nodeRepositories.get(sourceLabel)) {
-                nodeCounter++;
-                if (nodeProgressCallback != null && nodeCounter % 100_000 == 0)
-                    nodeProgressCallback.accept(nodeCounter);
+            databaseToMerge.nodeRepositories.get(sourceLabel).fastUnsafeIteration((n) -> {
+                counter[0]++;
+                if (nodeProgressCallback != null && counter[0] % 100_000 == 0)
+                    nodeProgressCallback.accept(counter[0]);
                 final Long oldId = n.getId();
                 n.resetId();
                 n.setLabel(targetLabel);
                 targetNodes.put(n);
                 mapping.put(oldId, n.getId());
-            }
+            });
         }
-        long edgeCounter = 0;
+        counter[0] = 0;
         for (final String sourceLabel : databaseToMerge.edgeRepositories.keySet()) {
             final String targetLabel = dataSourcePrefix + sourceLabel;
             beginEdgeIndicesDelay(targetLabel);
             final MVStoreCollection<Edge> targetEdges = getOrCreateEdgeRepository(targetLabel);
-            for (final Edge e : databaseToMerge.edgeRepositories.get(sourceLabel)) {
-                edgeCounter++;
-                if (edgeProgressCallback != null && edgeCounter % 100_000 == 0)
-                    edgeProgressCallback.accept(edgeCounter);
+            databaseToMerge.edgeRepositories.get(sourceLabel).fastUnsafeIteration((e) -> {
+                counter[0]++;
+                if (edgeProgressCallback != null && counter[0] % 100_000 == 0)
+                    edgeProgressCallback.accept(counter[0]);
                 e.resetId();
                 e.setLabel(targetLabel);
                 e.setFromId(mapping.get(e.getFromId()));
                 e.setToId(mapping.get(e.getToId()));
                 targetEdges.put(e);
-            }
+            });
             endEdgeIndicesDelay(targetLabel);
         }
     }

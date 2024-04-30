@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.core.io.mvstore;
 
 import org.apache.commons.lang3.ClassUtils;
+import org.h2.mvstore.Cursor;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 
@@ -237,5 +238,9 @@ public final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
         } finally {
             unlock();
         }
+    }
+
+    public Cursor<K, V> getCursor() {
+        return new Cursor<>(mvMap.getRootPage(), null);
     }
 }

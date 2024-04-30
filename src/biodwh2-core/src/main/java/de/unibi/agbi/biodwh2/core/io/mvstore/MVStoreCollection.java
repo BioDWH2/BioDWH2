@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.lang.Type;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public final class MVStoreCollection<T extends MVStoreModel> implements Iterable<T> {
     private static final String INDEX_KEYS = "index_keys";
@@ -373,5 +374,11 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     public void endIndicesDelay() {
         for (final MVStoreIndex index : indices.values())
             index.endDelay();
+    }
+
+    public void fastUnsafeIteration(final Consumer<T> consumer) {
+        final var cursor = map.getCursor();
+        while (cursor.hasNext())
+            consumer.accept(map.unsafeGet(cursor.next()));
     }
 }

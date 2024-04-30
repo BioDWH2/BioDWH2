@@ -46,7 +46,7 @@ public final class GraphMerger {
             mergeFromScratch(workspace, dataSources);
         }
         final long stop = System.currentTimeMillis();
-        LOGGER.info("Merging finished within " + DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
+        LOGGER.info("Merging finished within {}", DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
     }
 
     private Map<String, DataSourceMetadata> getRequestedMergeStatus(final DataSource[] dataSources) {
@@ -114,14 +114,14 @@ public final class GraphMerger {
             final long numberOfNodes = databaseToMerge.getNumberOfNodes();
             final long numberOfEdges = databaseToMerge.getNumberOfEdges();
             if (LOGGER.isInfoEnabled())
-                LOGGER.info("Merging data source '" + dataSource.getId() + "' [" + numberOfNodes + " nodes, " +
-                            numberOfEdges + " edges]");
+                LOGGER.info("Merging data source '{}' [{} nodes, {} edges]", dataSource.getId(), numberOfNodes,
+                            numberOfEdges);
             mergedGraph.mergeDatabase(dataSource.getId(), databaseToMerge, (nodeCounter) -> {
                 if (LOGGER.isInfoEnabled())
-                    LOGGER.info("\tNode progress: " + TextUtils.getProgressText(nodeCounter, numberOfNodes));
+                    LOGGER.info("\tNode progress: {}", TextUtils.getProgressText(nodeCounter, numberOfNodes));
             }, (edgeCounter) -> {
                 if (LOGGER.isInfoEnabled())
-                    LOGGER.info("\tEdge progress: " + TextUtils.getProgressText(edgeCounter, numberOfEdges));
+                    LOGGER.info("\tEdge progress: {}", TextUtils.getProgressText(edgeCounter, numberOfEdges));
             });
         } catch (GraphCacheException e) {
             throw new MergerException("Failed to merge data source " + dataSource.getId(), e);
@@ -178,7 +178,7 @@ public final class GraphMerger {
         final String statistics = new MetaGraphStatisticsWriter(metaGraph).write();
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(statistics);
-            LOGGER.info("Exporting merged meta graph image to " + metaGraphImageFilePath);
+            LOGGER.info("Exporting merged meta graph image to {}", metaGraphImageFilePath);
         }
         final MetaGraphImage image = new MetaGraphImage(metaGraph, 2048, 2048);
         image.drawAndSaveImage(metaGraphImageFilePath);
@@ -222,7 +222,7 @@ public final class GraphMerger {
 
     private void removePreviousDataSourceVersion(final Graph mergedGraph, final String dataSourceId) {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Removing previously merged version of data source '" + dataSourceId + "'");
+            LOGGER.info("Removing previously merged version of data source '{}'", dataSourceId);
         for (final String label : mergedGraph.getNodeLabels())
             if (label.startsWith(dataSourceId + Graph.LABEL_PREFIX_SEPARATOR))
                 mergedGraph.removeNodeLabel(label);
