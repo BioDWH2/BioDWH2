@@ -300,23 +300,45 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             if (pathway.from != null) {
                 for (final String from : StringUtils.split(pathway.from, ',')) {
                     final Occurrence fromOccurrence = findOccurrenceFromReactionName(occurrences, from);
-                    if (fromOccurrence != null)
-                        graph.addEdge(stepNode, accessionNodeIdMap.get(fromOccurrence.objectId), "HAS_INPUT");
+                    if (fromOccurrence != null) {
+                        final Long fromNodeId = accessionNodeIdMap.get(fromOccurrence.objectId);
+                        if (fromNodeId != null) {
+                            graph.addEdge(stepNode, fromNodeId, "HAS_INPUT");
+                        } else {
+                            LOGGER.warn("Failed to add pathway input for missing source object '{}' ({}) of type '{}'",
+                                        fromOccurrence.objectName, fromOccurrence.objectId, fromOccurrence.objectType);
+                        }
+                    }
                 }
             }
             if (pathway.to != null) {
                 for (final String to : StringUtils.split(pathway.to, ',')) {
                     final Occurrence toOccurrence = findOccurrenceFromReactionName(occurrences, to);
-                    if (toOccurrence != null)
-                        graph.addEdge(stepNode, accessionNodeIdMap.get(toOccurrence.objectId), "HAS_OUTPUT");
+                    if (toOccurrence != null) {
+                        final Long toNodeId = accessionNodeIdMap.get(toOccurrence.objectId);
+                        if (toNodeId != null) {
+                            graph.addEdge(stepNode, toNodeId, "HAS_OUTPUT");
+                        } else {
+                            LOGGER.warn("Failed to add pathway output for missing source object '{}' ({}) of type '{}'",
+                                        toOccurrence.objectName, toOccurrence.objectId, toOccurrence.objectType);
+                        }
+                    }
                 }
             }
             if (pathway.controller != null) {
                 for (final String controller : StringUtils.split(pathway.controller, ',')) {
                     final Occurrence controllerOccurrence = findOccurrenceFromReactionName(occurrences, controller);
-                    if (controllerOccurrence != null)
-                        graph.addEdge(stepNode, accessionNodeIdMap.get(controllerOccurrence.objectId),
-                                      "HAS_CONTROLLER");
+                    if (controllerOccurrence != null) {
+                        final Long controllerNodeId = accessionNodeIdMap.get(controllerOccurrence.objectId);
+                        if (controllerNodeId != null) {
+                            graph.addEdge(stepNode, controllerNodeId, "HAS_CONTROLLER");
+                        } else {
+                            LOGGER.warn(
+                                    "Failed to add pathway controller for missing source object '{}' ({}) of type '{}'",
+                                    controllerOccurrence.objectName, controllerOccurrence.objectId,
+                                    controllerOccurrence.objectType);
+                        }
+                    }
                 }
             }
             if (pathway.pmids != null) {
@@ -376,9 +398,8 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                     if (objectNodeId != null)
                         graph.addEdge(objectNodeId, nodeId, HAS_OCCURRENCE_LABEL);
                     else if (LOGGER.isWarnEnabled())
-                        LOGGER.warn(
-                                "Failed to add occurrence for missing source object '" + occurrence.objectName + "' (" +
-                                occurrence.objectId + ") of type '" + occurrence.objectType + "'");
+                        LOGGER.warn("Failed to add occurrence for missing source object '{}' ({}) of type '{}'",
+                                    occurrence.objectName, occurrence.objectId, occurrence.objectType);
                     break;
             }
         }
