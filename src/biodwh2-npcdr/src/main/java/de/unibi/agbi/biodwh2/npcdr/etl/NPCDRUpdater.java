@@ -27,7 +27,7 @@ public class NPCDRUpdater extends Updater<NPCDRDataSource> {
     static final String DRUG_TARGET_FILE_NAME = "Drug_Target.txt";
     static final String DRUG_CLINICAL_ICD_FILE_NAME = "Clinical_and_ICD_of_Drug.txt";
 
-    private final Pattern versionPattern = Pattern.compile(
+    private static final Pattern VERSION_PATTERN = Pattern.compile(
             "\\s(" + String.join("|", TextUtils.MONTH_NAMES) + ") ([1-2]?[0-9])(?:st|nd|rd|th), ([0-9]{4})",
             Pattern.CASE_INSENSITIVE);
 
@@ -38,7 +38,7 @@ public class NPCDRUpdater extends Updater<NPCDRDataSource> {
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         final String source = getWebsiteSource(VERSION_URL);
-        final Matcher matcher = versionPattern.matcher(source);
+        final Matcher matcher = VERSION_PATTERN.matcher(source);
         if (matcher.find()) {
             return new Version(Integer.parseInt(matcher.group(3)),
                                TextUtils.monthNameToInt(matcher.group(1).toLowerCase()),
