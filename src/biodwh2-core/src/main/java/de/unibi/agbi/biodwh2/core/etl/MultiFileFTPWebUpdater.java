@@ -5,7 +5,6 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
-import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import de.unibi.agbi.biodwh2.core.net.HTTPFTPClient;
 import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -72,22 +71,18 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         for (final String fileName : getFilePaths(workspace)) {
             final String localFileName = Paths.get(fileName).getFileName().toString();
-            if (LOGGER.isInfoEnabled())
-                LOGGER.info("Downloading '" + fileName + "'...");
             int tries = 1;
             while (tries < 6) {
-                final String resolvedFilePath = dataSource.resolveSourceFilePath(workspace, localFileName).toString();
                 try {
-                    HTTPClient.downloadFileAsBrowser(getFTPIndexUrl() + fileName, resolvedFilePath);
+                    downloadFileAsBrowser(workspace, getFTPIndexUrl() + fileName, localFileName);
                     break;
-                } catch (IOException e) {
+                } catch (UpdaterConnectionException e) {
                     tries++;
-                    if (tries == 6) {
-                        throw new UpdaterConnectionException(e);
-                    }
+                    if (tries == 6)
+                        throw e;
                     if (LOGGER.isInfoEnabled())
-                        LOGGER.info("\tDownloading '" + fileName + "' failed (try " + (tries - 1) +
-                                    "/5), retrying in 5 seconds...");
+                        LOGGER.info("\tDownloading '{}' failed (try {}/5), retrying in 5 seconds...", fileName,
+                                    tries - 1);
                     try {
                         // Small wait to not overpower the server
                         Thread.sleep(5000);
