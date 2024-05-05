@@ -62,7 +62,7 @@ public class RNADiseaseMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] populateRNANode(final Node node, final RNANodeMappingDescription.RNAType rnaType) {
-        final RNANodeMappingDescription description = new RNANodeMappingDescription(rnaType);
+        final var description = new RNANodeMappingDescription(rnaType);
         final String symbol = node.getProperty("symbol");
         if (symbol != null) {
             if (symbol.contains("-let-") || symbol.contains("-mir-") || symbol.contains("-miR-"))
@@ -74,13 +74,25 @@ public class RNADiseaseMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeDisease(final Node node) {
         final String name = node.getProperty("name");
-        final Integer doId = node.getProperty(RNADiseaseGraphExporter.DO_ID_KEY);
+        final String id = node.getProperty(RNADiseaseGraphExporter.ID_KEY);
         final String keggId = node.getProperty(RNADiseaseGraphExporter.KEGG_ID_KEY);
         final String meshId = node.getProperty(RNADiseaseGraphExporter.MESH_ID_KEY);
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
         description.addName(name);
-        if (doId != null)
-            description.addIdentifier(IdentifierType.DOID, doId);
+        if (id != null) {
+            final String[] parts = StringUtils.split(id, ":", 2);
+            switch (parts[0]) {
+                case "DOID":
+                    description.addIdentifier(IdentifierType.DOID, Integer.parseInt(parts[1]));
+                    break;
+                case "SYMP":
+                    description.addIdentifier(IdentifierType.SYMP, Integer.parseInt(parts[1]));
+                    break;
+                case "HP":
+                    // TODO
+                    break;
+            }
+        }
         if (StringUtils.isNotEmpty(keggId))
             description.addIdentifier(IdentifierType.KEGG, keggId);
         if (StringUtils.isNotEmpty(meshId))

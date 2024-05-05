@@ -16,7 +16,6 @@ import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.rnadisease.RNADiseaseDataSource;
 import de.unibi.agbi.biodwh2.rnadisease.model.ExperimentalEntry;
 import de.unibi.agbi.biodwh2.rnadisease.model.PredictedEntry;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,7 +29,6 @@ public class RNADiseaseGraphExporter extends GraphExporter<RNADiseaseDataSource>
     private static final Logger LOGGER = LogManager.getLogger(RNADiseaseGraphExporter.class);
     static final String RNA_LABEL = "RNA";
     static final String DISEASE_LABEL = "Disease";
-    static final String DO_ID_KEY = "do_id";
     static final String KEGG_ID_KEY = "kegg_id";
     static final String MESH_ID_KEY = "mesh_id";
     private static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
@@ -41,13 +39,13 @@ public class RNADiseaseGraphExporter extends GraphExporter<RNADiseaseDataSource>
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         graph.addIndex(IndexDescription.forNode(RNA_LABEL, "symbol", IndexDescription.Type.UNIQUE));
-        graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, DO_ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, KEGG_ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, MESH_ID_KEY, IndexDescription.Type.UNIQUE));
         final Map<String, Long> diseaseNameNodeIdMap = new HashMap<>();
@@ -113,12 +111,9 @@ public class RNADiseaseGraphExporter extends GraphExporter<RNADiseaseDataSource>
 
     private Node getOrCreateDiseaseNode(final Graph graph, final String name, final String doId, final String keggId,
                                         final String meshId, final Map<String, Long> diseaseNameNodeIdMap) {
-        Integer doIdNumber = null;
-        if (StringUtils.isNotEmpty(doId))
-            doIdNumber = Integer.parseInt(StringUtils.replace(doId, "DOID:", "").strip());
         Node node = null;
-        if (doIdNumber != null)
-            node = graph.findNode(DISEASE_LABEL, DO_ID_KEY, doIdNumber);
+        if (doId != null)
+            node = graph.findNode(DISEASE_LABEL, ID_KEY, doId);
         if (node == null && keggId != null)
             node = graph.findNode(DISEASE_LABEL, KEGG_ID_KEY, keggId);
         if (node == null && meshId != null)
@@ -131,7 +126,7 @@ public class RNADiseaseGraphExporter extends GraphExporter<RNADiseaseDataSource>
         if (node == null) {
             final NodeBuilder builder = graph.buildNode().withLabel(DISEASE_LABEL);
             builder.withPropertyIfNotNull("name", name);
-            builder.withPropertyIfNotNull(DO_ID_KEY, doIdNumber);
+            builder.withPropertyIfNotNull(ID_KEY, doId);
             builder.withPropertyIfNotNull(KEGG_ID_KEY, keggId);
             builder.withPropertyIfNotNull(MESH_ID_KEY, meshId);
             node = builder.build();
