@@ -136,6 +136,7 @@ public enum IdentifierType {
     RX_NORM_CUI("RxNorm_CUI", null, null, null),
     SMPDB("SMPDB", null, null, null),
     SNOMED_CT("SNOMED_CT", null, null, null),
+    SYMP("SYMP", Integer.class, null, "^\\d+$"),
     /**
      * Thai Clinical Trials Registry (TCTR) https://www.thaiclinicaltrials.org
      */

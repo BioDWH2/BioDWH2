@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.hpo.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
@@ -23,15 +24,15 @@ public final class HPOMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeGene(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
-        description.addIdentifier(IdentifierType.NCBI_GENE, node.<Integer>getProperty("id"));
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.GENE);
+        description.addIdentifier(IdentifierType.NCBI_GENE, node.<Integer>getProperty(GraphExporter.ID_KEY));
         description.addName(node.getProperty("symbol"));
         return new NodeMappingDescription[]{description};
     }
 
     private NodeMappingDescription[] describeDisease(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
-        final String id = node.getProperty("id");
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
+        final String id = node.getProperty(GraphExporter.ID_KEY);
         final String[] idParts = StringUtils.split(id, ":", 2);
         if (idParts != null && idParts.length == 2) {
             if ("OMIM".equals(idParts[0]))

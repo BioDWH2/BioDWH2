@@ -14,6 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -60,9 +61,11 @@ public abstract class Updater<D extends DataSource> {
 
     public final UpdateState update(final Workspace workspace) throws UpdaterException {
         final Version newestVersion = tryGetNewestVersion(workspace);
-        final Version workspaceVersion = dataSource.getMetadata().version;
+        final var metadata = dataSource.getMetadata();
+        final Version workspaceVersion = metadata.version;
         final boolean expectedFilesPresent = areExpectedFilesPresent(workspace);
-        final boolean isUpToDate = isDataSourceUpToDate(newestVersion, workspaceVersion);
+        final var localUpdateDateTime = metadata.getLocalUpdateDateTime();
+        final boolean isUpToDate = isDataSourceUpToDate(newestVersion, workspaceVersion, localUpdateDateTime);
         if (isUpToDate && expectedFilesPresent) {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
@@ -98,10 +101,15 @@ public abstract class Updater<D extends DataSource> {
         return new String[0];
     }
 
-    private boolean isDataSourceUpToDate(final Version newestVersion, final Version workspaceVersion) {
-        if (versionNotAvailable())
-            return false;
-        return workspaceVersion != null && newestVersion.compareTo(workspaceVersion) == 0;
+    private boolean isDataSourceUpToDate(final Version newestVersion, final Version workspaceVersion,
+                                         LocalDateTime localUpdateDateTime) {
+        if (versionNotAvailable()) {
+            if (localUpdateDateTime == null)
+                return false;
+            // If we have no version but already updated, only update again after 24 hours have passed
+            return Duration.between(LocalDateTime.now(), localUpdateDateTime).toDays() < 1;
+        }
+        return workspaceVersion != null && (newestVersion == null || newestVersion.compareTo(workspaceVersion) == 0);
     }
 
     protected boolean versionNotAvailable() {
@@ -120,8 +128,10 @@ public abstract class Updater<D extends DataSource> {
 
     public final boolean isDataSourceUpToDate(final Workspace workspace) {
         final Version newestVersion = tryGetNewestVersion(workspace);
-        final Version workspaceVersion = dataSource.getMetadata().version;
-        return isDataSourceUpToDate(newestVersion, workspaceVersion);
+        final var metadata = dataSource.getMetadata();
+        final Version workspaceVersion = metadata.version;
+        final var localUpdateDateTime = metadata.getLocalUpdateDateTime();
+        return isDataSourceUpToDate(newestVersion, workspaceVersion, localUpdateDateTime);
     }
 
     protected static Version convertDateTimeToVersion(final LocalDateTime dateTime) {
