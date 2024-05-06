@@ -25,6 +25,7 @@ public class NPCDRGraphExporter extends GraphExporter<NPCDRDataSource> {
     public static final String TAXON_LABEL = "Taxon";
     public static final String COMBINATION_LABEL = "Combination";
     public static final String DISEASE_LABEL = "Disease";
+    public static final String MOLECULE_LABEL = "Molecule";
     static final String NCBI_TAX_ID_KEY = "ncbi_taxid";
 
     private final Map<String, Long> diseaseNameNodeIdMap = new HashMap<>();
@@ -45,6 +46,8 @@ public class NPCDRGraphExporter extends GraphExporter<NPCDRDataSource> {
         graph.addIndex(IndexDescription.forNode(TARGET_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(CELL_LINE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(COMBINATION_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(MOLECULE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(TAXON_LABEL, NCBI_TAX_ID_KEY, IndexDescription.Type.UNIQUE));
         exportNaturalProducts(workspace, graph);
         exportDrugs(workspace, graph);
@@ -57,7 +60,7 @@ public class NPCDRGraphExporter extends GraphExporter<NPCDRDataSource> {
         exportDrugClinical(workspace, graph);
         exportNaturalProductClinical(workspace, graph);
         exportCombinationEffectAndExperimentModel(workspace, graph);
-        exportMoleculeRegulatedByCombination(workspace, graph);
+        exportMolecules(workspace, graph);
         exportMoleculeRegulationTypeAndInfo(workspace, graph);
         diseaseNameNodeIdMap.clear();
         return false;
@@ -344,15 +347,28 @@ public class NPCDRGraphExporter extends GraphExporter<NPCDRDataSource> {
         }
     }
 
-    private void exportMoleculeRegulatedByCombination(final Workspace workspace, final Graph graph) {
+    private void exportMolecules(final Workspace workspace, final Graph graph) {
         try {
             FileUtils.openTsvWithHeader(workspace, dataSource, NPCDRUpdater.MOLECULE_REGULATED_FILE_NAME,
-                                        MoleculeRegulatedByCombination.class, (entry) -> {
-                        // TODO
-                    });
+                                        Molecule.class, (entry) -> exportMolecule(graph, entry));
         } catch (IOException e) {
             throw new ExporterException("Failed to export '" + NPCDRUpdater.MOLECULE_REGULATED_FILE_NAME + "'", e);
         }
+    }
+
+    private void exportMolecule(final Graph graph, final Molecule entry) {
+        if (graph.findNode(MOLECULE_LABEL, ID_KEY, entry.proteinId) != null)
+            return;
+        final Integer[] geneIds = parseGeneIds(entry.geneId);
+        final String[] keggIds = parseKeggIds(entry.keggId);
+        if (geneIds != null && keggIds != null)
+            graph.addNodeFromModel(entry, "gene_ids", geneIds, "kegg_ids", keggIds);
+        else if (geneIds != null)
+            graph.addNodeFromModel(entry, "gene_ids", geneIds);
+        else if (keggIds != null)
+            graph.addNodeFromModel(entry, "kegg_ids", keggIds);
+        else
+            graph.addNodeFromModel(entry);
     }
 
     private void exportMoleculeRegulationTypeAndInfo(final Workspace workspace, final Graph graph) {
