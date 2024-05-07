@@ -26,7 +26,12 @@ public class NPCDRGraphExporter extends GraphExporter<NPCDRDataSource> {
     public static final String COMBINATION_LABEL = "Combination";
     public static final String DISEASE_LABEL = "Disease";
     public static final String MOLECULE_LABEL = "Molecule";
+    public static final String MECHANISM_LABEL = "Mechanism";
+    public static final String ASSOCIATED_WITH_LABEL = "ASSOCIATED_WITH";
+    public static final String REGULATES_LABEL = "REGULATES";
+    public static final String IN_VITRO_MODEL_FOR_LABEL = "IN_VITRO_MODEL_FOR";
     static final String NCBI_TAX_ID_KEY = "ncbi_taxid";
+    static final String ICD_11_KEY = "icd11";
 
     private final Map<String, Long> diseaseNameNodeIdMap = new HashMap<>();
 
@@ -47,7 +52,9 @@ public class NPCDRGraphExporter extends GraphExporter<NPCDRDataSource> {
         graph.addIndex(IndexDescription.forNode(CELL_LINE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(COMBINATION_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, ICD_11_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(MOLECULE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+        graph.addIndex(IndexDescription.forNode(MECHANISM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(TAXON_LABEL, NCBI_TAX_ID_KEY, IndexDescription.Type.UNIQUE));
         exportNaturalProducts(workspace, graph);
         exportDrugs(workspace, graph);
@@ -63,7 +70,7 @@ public class NPCDRGraphExporter extends GraphExporter<NPCDRDataSource> {
         exportMolecules(workspace, graph);
         exportMoleculeRegulationTypeAndInfo(workspace, graph);
         diseaseNameNodeIdMap.clear();
-        return false;
+        return true;
     }
 
     private void exportNaturalProducts(final Workspace workspace, final Graph graph) {
@@ -297,9 +304,9 @@ public class NPCDRGraphExporter extends GraphExporter<NPCDRDataSource> {
             return nodeId;
         }
         final String icdCodeWithoutPrefix = icdCode.replace("ICD-11:", "").strip();
-        var node = graph.findNode(DISEASE_LABEL, ID_KEY, icdCodeWithoutPrefix);
+        var node = graph.findNode(DISEASE_LABEL, ICD_11_KEY, icdCodeWithoutPrefix);
         if (node == null) {
-            node = graph.addNode(DISEASE_LABEL, ID_KEY, icdCodeWithoutPrefix, "name", name);
+            node = graph.addNode(DISEASE_LABEL, ICD_11_KEY, icdCodeWithoutPrefix, "name", name);
             diseaseNameNodeIdMap.put(name, node.getId());
         }
         return node.getId();
@@ -339,12 +346,39 @@ public class NPCDRGraphExporter extends GraphExporter<NPCDRDataSource> {
     private void exportCombinationEffectAndExperimentModel(final Workspace workspace, final Graph graph) {
         try {
             FileUtils.openTsvWithHeader(workspace, dataSource, NPCDRUpdater.EFFECT_EXPERIMENT_FILE_NAME,
-                                        CombinationEffectAndExperimentModel.class, (entry) -> {
-                        // TODO
-                    });
+                                        CombinationEffectAndExperimentModel.class,
+                                        (entry) -> exportMechanism(graph, entry));
         } catch (IOException e) {
             throw new ExporterException("Failed to export '" + NPCDRUpdater.EFFECT_EXPERIMENT_FILE_NAME + "'", e);
         }
+    }
+
+    private void exportMechanism(final Graph graph, final CombinationEffectAndExperimentModel entry) {
+        final Node mechanismNode = graph.addNodeFromModel(entry);
+        if (StringUtils.isNotEmpty(entry.cellLineId) && !".".equals(entry.cellLineId)) {
+            final String[] parts = StringUtils.split(entry.cellLineId, "; ");
+            for (final String cellLineId : parts) {
+                final var cellLineNode = graph.findNode(CELL_LINE_LABEL, ID_KEY, cellLineId);
+                if (cellLineNode != null)
+                    graph.addEdge(cellLineNode, mechanismNode, IN_VITRO_MODEL_FOR_LABEL);
+            }
+        }
+        if (StringUtils.isNotEmpty(entry.diseaseId) && !".".equals(entry.diseaseId)) {
+            final String[] parts = StringUtils.split(entry.diseaseId, "; ");
+            for (final String diseaseId : parts)
+                graph.addEdge(getOrCreateDiseaseNode(graph, diseaseId), mechanismNode, ASSOCIATED_WITH_LABEL);
+        }
+        if (StringUtils.isNotEmpty(entry.combinationId) && !".".equals(entry.combinationId)) {
+            graph.addEdge(graph.findNode(COMBINATION_LABEL, ID_KEY, entry.combinationId), mechanismNode,
+                          ASSOCIATED_WITH_LABEL);
+        }
+    }
+
+    private Node getOrCreateDiseaseNode(final Graph graph, final String diseaseId) {
+        var node = graph.findNode(DISEASE_LABEL, ID_KEY, diseaseId);
+        if (node == null)
+            node = graph.addNode(DISEASE_LABEL, ID_KEY, diseaseId);
+        return node;
     }
 
     private void exportMolecules(final Workspace workspace, final Graph graph) {
@@ -374,12 +408,19 @@ public class NPCDRGraphExporter extends GraphExporter<NPCDRDataSource> {
     private void exportMoleculeRegulationTypeAndInfo(final Workspace workspace, final Graph graph) {
         try {
             FileUtils.openTsvWithHeader(workspace, dataSource, NPCDRUpdater.MOLECULE_REGULATION_TYPE_FILE_NAME,
-                                        MoleculeRegulationTypeAndInfo.class, (entry) -> {
-                        // TODO
-                    });
+                                        MoleculeRegulationTypeAndInfo.class,
+                                        (entry) -> exportMolecularRegulation(graph, entry));
         } catch (IOException e) {
             throw new ExporterException("Failed to export '" + NPCDRUpdater.MOLECULE_REGULATION_TYPE_FILE_NAME + "'",
                                         e);
+        }
+    }
+
+    private void exportMolecularRegulation(final Graph graph, final MoleculeRegulationTypeAndInfo entry) {
+        final var mechanismNode = graph.findNode(MECHANISM_LABEL, ID_KEY, entry.mechanismId);
+        if (StringUtils.isNotEmpty(entry.moleculeId) && !".".equals(entry.moleculeId)) {
+            final var moleculeNode = graph.findNode(MOLECULE_LABEL, ID_KEY, entry.moleculeId);
+            graph.buildEdge(REGULATES_LABEL).fromNode(mechanismNode).toNode(moleculeNode).withModel(entry).build();
         }
     }
 }
