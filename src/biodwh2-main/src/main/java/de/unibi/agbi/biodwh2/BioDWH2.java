@@ -14,6 +14,7 @@ import picocli.CommandLine;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 public final class BioDWH2 {
@@ -64,7 +65,9 @@ public final class BioDWH2 {
         final String[] dataSourceIds = Arrays.stream(loader.getDataSourceIds()).filter(id -> !id.startsWith("Mock"))
                                              .sorted().toArray(String[]::new);
         if (commandLine.verbose) {
-            final DataSource[] dataSources = loader.getDataSources(dataSourceIds);
+            DataSource[] dataSources = loader.getDataSources(dataSourceIds);
+            dataSources = Arrays.stream(dataSources).sorted(
+                    Comparator.comparing(DataSource::getId, String::compareToIgnoreCase)).toArray(DataSource[]::new);
             final List<List<String>> rows = new ArrayList<>();
             for (final DataSource dataSource : dataSources) {
                 final String availableProperties = String.join(", ", dataSource.getAvailableProperties().keySet()
@@ -95,11 +98,11 @@ public final class BioDWH2 {
             try {
                 workspace.saveConfiguration();
             } catch (IOException e) {
-                LOGGER.error("Failed to add data source with id '" + dataSourceId + "'", e);
+                LOGGER.error("Failed to add data source with id '{}'", dataSourceId, e);
             }
-            LOGGER.info("Successfully added data source with id '" + dataSourceId + "'");
+            LOGGER.info("Successfully added data source with id '{}'", dataSourceId);
         } else {
-            LOGGER.error("Could not find data source with id '" + dataSourceId + "'");
+            LOGGER.error("Could not find data source with id '{}'", dataSourceId);
             listDataSources(commandLine);
         }
     }
@@ -116,11 +119,11 @@ public final class BioDWH2 {
             try {
                 workspace.saveConfiguration();
             } catch (IOException e) {
-                LOGGER.error("Failed to remove data source with id '" + dataSourceId + "'", e);
+                LOGGER.error("Failed to remove data source with id '{}'", dataSourceId, e);
             }
-            LOGGER.info("Successfully removed data source with id '" + dataSourceId + "'");
+            LOGGER.info("Successfully removed data source with id '{}'", dataSourceId);
         } else {
-            LOGGER.error("Could not find data source with id '" + dataSourceId + "'");
+            LOGGER.error("Could not find data source with id '{}'", dataSourceId);
             listDataSources(commandLine);
         }
     }

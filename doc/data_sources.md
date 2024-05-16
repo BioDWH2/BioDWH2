@@ -12,6 +12,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | BasicFormalOntology           | Basic Formal Ontology (BFO)                                                                                                                             | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://basic-formal-ontology.org)                               |
 | BiologicalSpatialOntology     | Biological Spatial Ontology (BSPO)                                                                                                                      | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)             | [Link](https://github.com/obophenotype/biological-spatial-ontology)     |
 | BioM2MetDisease               | BioM2MetDisease                                                                                                                                         |                                                                       | [Link](http://bio-bigdata.hrbmu.edu.cn/BioM2MetDisease/)                |
+| BIONDA                        | BIONDA                                                                                                                                                  | BSD-3-Clause                                                          | [Link](http://bionda.mpc.ruhr-uni-bochum.de)                            |
 | BRENDA                        | BRENDA                                                                                                                                                  | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://www.brenda-enzymes.org)                                  |
 | BRENDATissueOntology          | BRENDA Tissue Ontology                                                                                                                                  | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://www.brenda-enzymes.org/ontology.php?ontology_id=3)       |
 | CancerDrugsDB                 | A curated listing of licensed cancer drugs by the Anticancer Fund                                                                                       |                                                                       | [Link](https://www.anticancerfund.org/en/cancerdrugs-db)                |
@@ -20,12 +21,13 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | CMAUP                         | Collective Molecular Activities of Useful Plants                                                                                                        |                                                                       | [Link](http://bidd.group/CMAUP/)                                        |
 | DGIdb                         | The Drug Gene Interaction Database                                                                                                                      |                                                                       | [Link](http://dgidb.org)                                                |
 | DiseaseOntology               | Human Disease Ontology (DO)                                                                                                                             | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)         | [Link](https://disease-ontology.org)                                    |
+| DISEASES                      | Gene-Disease association database                                                                                                                       | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://diseases.jensenlab.org)                                  |
 | DrugBank                      | DrugBank                                                                                                                                                | [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)       | [Link](http://drugbank.ca)                                              |
 | DrugCentral                   | DrugCentral                                                                                                                                             | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)       | [Link](http://drugcentral.org)                                          |
 | DrugMap                       | DrugMap                                                                                                                                                 |                                                                       | [Link](http://drugmap.idrblab.net)                                      |
-| ExperimentalFactorOntology    | Experimental Factor Ontology (EFO)                                                                                                                      | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)             | [Link](https://www.ebi.ac.uk/efo/)                                      |
 | EMA                           | European Medicines Agency's (EMA) medicine-related data [EPAR and HMPC]                                                                                 |                                                                       | [Link](https://www.ema.europa.eu/en/medicines/download-medicine-data)   |
 | ENZYME                        | Expasy ENZYME                                                                                                                                           | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://enzyme.expasy.org)                                       |
+| ExperimentalFactorOntology    | Experimental Factor Ontology (EFO)                                                                                                                      | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)             | [Link](https://www.ebi.ac.uk/efo/)                                      |
 | GenCC                         | GenCC                                                                                                                                                   | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)         | [Link](https://thegencc.org)                                            |
 | Gene2Phenotype                | Datasets for use in diagnostic variant filtering                                                                                                        |                                                                       | [Link](https://www.ebi.ac.uk/gene2phenotype)                            |
 | GeneOntology                  | Gene Ontology (GO)                                                                                                                                      | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](http://geneontology.org)                                         |
@@ -38,6 +40,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | IIG                           | Inactive Ingredients Database (IIG)                                                                                                                     |                                                                       | [Link](https://www.accessdata.fda.gov/scripts/cder/iig/)                |
 | InterPro                      | InterPro                                                                                                                                                |                                                                       | [Link](https://www.ebi.ac.uk/interpro/)                                 |
 | MammalianPhenotypeOntology    | Mammalian Phenotype Ontology (MP)                                                                                                                       | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/mgijax/mammalian-phenotype-ontology)          |
+| MarkerDB                      | MarkerDB                                                                                                                                                | [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)       | [Link](https://markerdb.ca)                                             |
 | MassSpectrometryOntology      | Mass Spectrometry Ontology                                                                                                                              | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/HUPO-PSI/psi-ms-CV)                           |
 | MED-RT                        | Medication Reference Terminology (MED-RT™)                                                                                                              | UMLS license                                                          | [Link](https://evs.nci.nih.gov/ftp1/MED-RT/)                            |
 | miR2Disease                   | miR2Disease                                                                                                                                             |                                                                       | [Link](http://www.mir2disease.org)                                      |
@@ -56,6 +59,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | PlantOntology                 | Plant Ontology (PO)                                                                                                                                     | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/Planteome/plant-ontology)                     |
 | PlantStressOntology           | Plant Stress Ontology (PSO)                                                                                                                             | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/Planteome/plant-stress-ontology)              |
 | PlantTraitOntology            | Plant Trait Ontology (TO)                                                                                                                               | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/Planteome/plant-trait-ontology)               |
+| ProteinModificationOntology   | Protein Modification Ontology (PSI-MOD)                                                                                                                 | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://github.com/HUPO-PSI/psi-mod-CV)                          |
 | ReDO-DB                       | A curated listing of non-cancer drugs which have shown some evidence of anticancer activity by the Anticancer Fund                                      |                                                                       | [Link](https://www.anticancerfund.org/en/redo-db)                       |
 | ReDOTrialsDB                  | A curated database, produced by the Anticancer Fund, of active clinical trials investigating the use of non-cancer drugs as potential cancer treatments |                                                                       | [Link](https://www.anticancerfund.org/en/redo-trials-db)                |
 | RNAInter                      | RNAInter                                                                                                                                                | non-commercial with attribution                                       | [Link](http://www.rnainter.org)                                         |
@@ -63,6 +67,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | SequenceOntology              | Sequence Ontology                                                                                                                                       | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)       | [Link](http://www.sequenceontology.org)                                 |
 | SIDER                         | SIDER: Side Effect Resource                                                                                                                             | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) | [Link](http://sideeffects.embl.de)                                      |
 | SymptomOntology               | Symptom Ontology                                                                                                                                        | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)         | [Link](https://github.com/DiseaseOntology/SymptomOntology)              |
+| TheMarker                     |                                                                                                                                                         |                                                                       | [Link](http://themarker.idrblab.cn)                                     |
 | TRRUST                        | TRRUST                                                                                                                                                  | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)       | [Link](https://www.grnpedia.org/trrust/)                                |
 | UberonOntology                | Uberon Ontology                                                                                                                                         | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)             | [Link](https://github.com/obophenotype/uberon)                          |
 | UNII                          | FDA Substance Registration System - Unique Ingredient Identifier                                                                                        |                                                                       | [Link](https://fdasis.nlm.nih.gov/srs/)                                 |
@@ -71,30 +76,31 @@ This page lists all data source modules officially supported by BioDWH2. Details
 
 ## Work in Progress
 
-| ID                   | Name                                                                               | License                                                               | Website                                                                                                  |
-|----------------------|------------------------------------------------------------------------------------|-----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| CanadianNutrientFile | CanadianNutrientFile                                                               |                                                                       | [Link](https://www.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/nutrient-data.html) |
-| ClinicalTrials       | ClinicalTrials.gov Clinical Trials Database                                        |                                                                       | [Link](https://ClinicalTrials.gov)                                                                       |
-| CPDB                 |                                                                                    |                                                                       | [Link](http://cpdb.molgen.mpg.de)                                                                        |
-| DISEASES             | Gene-Disease association database                                                  | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://diseases.jensenlab.org)                                                                   |
-| GuideToPharmacology  | IUPHAR - GuideToPharmacology                                                       | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)       | [Link](https://www.guidetopharmacology.org)                                                              |
-| GWASCatalog          | GWAS Catalog                                                                       |                                                                       | [Link](https://www.ebi.ac.uk/gwas/home)                                                                  |
-| HAMAP                | Expasy HAMAP                                                                       |                                                                       | [Link](https://hamap.expasy.org)                                                                         |
-| IntAct               | IntAct                                                                             | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://www.ebi.ac.uk/intact/)                                                                    |
-| ITIS                 | Integrated Taxonomic Information System                                            | CC0 with attribution                                                  | [Link](https://www.itis.gov)                                                                             |
-| KEGG                 | Kyoto Encyclopedia of Genes and Genomes                                            |                                                                       | [Link](https://www.kegg.jp)                                                                              |
-| PathwayCommons       | Data warehouse of different pathway databases                                      |                                                                       | [Link](http://www.pathwaycommons.org)                                                                    |
-| PROSITE              | Expasy PROSITE & ProRule                                                           | [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) | [Link](https://prosite.expasy.org)                                                                       |
-| RefSeq               | RefSeq                                                                             |                                                                       | [Link](https://www.ncbi.nlm.nih.gov/refseq/)                                                             |
-| RNADisease           | RNADisease                                                                         | non-commercial with attribution                                       | [Link](http://www.rnadisease.org)                                                                        |
-| STITCH               | STITCH Chemical-Protein Interaction Networks                                       |                                                                       | [Link](http://stitch.embl.de)                                                                            |
-| STRING               | STRING Protein-Protein Interaction Networks                                        |                                                                       | [Link](https://string-db.org)                                                                            |
-| T3DB                 | T3DB                                                                               |                                                                       | [Link](http://www.t3db.ca)                                                                               |
-| TarBase              | TarBase                                                                            |                                                                       | [Link](http://microrna.gr/tarbase)                                                                       |
-| TISSUES              | Tissue expression database                                                         | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://tissues.jensenlab.org)                                                                    |
-| TTD                  | Therapeutic Target Database (TTD)                                                  |                                                                       | [Link](http://db.idrblab.net/ttd/)                                                                       |
-| UniProt              | Functional information on proteins, with accurate, consistent and rich annotation. | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://www.uniprot.org)                                                                          |
-| OpenTargets          | Systematic drug target identification and prioritisation.                          |                                                                       | [Link](https://www.opentargets.org)                                                                      |
+| ID                   | Name                                                                                 | License                                                               | Website                                                                                                  |
+|----------------------|--------------------------------------------------------------------------------------|-----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| CanadianNutrientFile | CanadianNutrientFile                                                                 |                                                                       | [Link](https://www.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/nutrient-data.html) |
+| ClinicalTrials       | ClinicalTrials.gov Clinical Trials Database                                          |                                                                       | [Link](https://ClinicalTrials.gov)                                                                       |
+| CPDB                 |                                                                                      |                                                                       | [Link](http://cpdb.molgen.mpg.de)                                                                        |
+| GuideToPharmacology  | IUPHAR - GuideToPharmacology                                                         | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)       | [Link](https://www.guidetopharmacology.org)                                                              |
+| GWASCatalog          | GWAS Catalog                                                                         |                                                                       | [Link](https://www.ebi.ac.uk/gwas/home)                                                                  |
+| HAMAP                | Expasy HAMAP                                                                         |                                                                       | [Link](https://hamap.expasy.org)                                                                         |
+| IntAct               | IntAct                                                                               | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://www.ebi.ac.uk/intact/)                                                                    |
+| ITIS                 | Integrated Taxonomic Information System                                              | CC0 with attribution                                                  | [Link](https://www.itis.gov)                                                                             |
+| KEGG                 | Kyoto Encyclopedia of Genes and Genomes                                              |                                                                       | [Link](https://www.kegg.jp)                                                                              |
+| NPCDR                | Natural product-based drug combination and its disease-specific molecular regulation |                                                                       | [Link](http://npcdr.idrblab.net)                                                                         |
+| OpenTargets          | Systematic drug target identification and prioritisation.                            |                                                                       | [Link](https://www.opentargets.org)                                                                      |
+| PathwayCommons       | Data warehouse of different pathway databases                                        |                                                                       | [Link](http://www.pathwaycommons.org)                                                                    |
+| PROSITE              | Expasy PROSITE & ProRule                                                             | [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) | [Link](https://prosite.expasy.org)                                                                       |
+| Reactome             |                                                                                      | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://reactome.org)                                                                             |
+| RefSeq               | RefSeq                                                                               |                                                                       | [Link](https://www.ncbi.nlm.nih.gov/refseq/)                                                             |
+| RNADisease           | RNADisease                                                                           | non-commercial with attribution                                       | [Link](http://www.rnadisease.org)                                                                        |
+| STITCH               | STITCH Chemical-Protein Interaction Networks                                         |                                                                       | [Link](http://stitch.embl.de)                                                                            |
+| STRING               | STRING Protein-Protein Interaction Networks                                          |                                                                       | [Link](https://string-db.org)                                                                            |
+| T3DB                 | T3DB                                                                                 |                                                                       | [Link](http://www.t3db.ca)                                                                               |
+| TarBase              | TarBase                                                                              |                                                                       | [Link](http://microrna.gr/tarbase)                                                                       |
+| TISSUES              | Tissue expression database                                                           | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://tissues.jensenlab.org)                                                                    |
+| TTD                  | Therapeutic Target Database (TTD)                                                    |                                                                       | [Link](http://db.idrblab.net/ttd/)                                                                       |
+| UniProt              | Functional information on proteins, with accurate, consistent and rich annotation.   | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)             | [Link](https://www.uniprot.org)                                                                          |
 
 ## Data Source Details
 
@@ -127,7 +133,7 @@ The Basic Formal Ontology (BFO)
 - **License**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - **Citation**:
 - **Files used**:
-  - At the moment, the ontology is downloaded in OBO format (```bfo.obo```).
+  - `bfo.obo`
 
 **Configuration properties**:
 
@@ -145,7 +151,7 @@ The Basic Formal Ontology (BFO)
 - **License**: [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
 - **Citation**:
 - **Files used**:
-  - At the moment, the ontology is downloaded in OBO format (```bspo-full.obo```).
+  - `bspo-full.obo`
 
 **Configuration properties**:
 
@@ -163,7 +169,7 @@ The Basic Formal Ontology (BFO)
 - **License**:
 - **Citation**:
 - **Files used**:
-  - ```BioM2MetDiseaseData.txt```
+  - `BioM2MetDiseaseData.txt`
 
 **Configuration properties**:
 
@@ -171,6 +177,23 @@ The Basic Formal Ontology (BFO)
 |---------------|------------|--------------------------------------------|
 | forceExport   | true/false | Force graph export even if nothing changed |
 | speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
+
+----
+
+### BIONDA
+
+- **Website**: [http://bionda.mpc.ruhr-uni-bochum.de](http://bionda.mpc.ruhr-uni-bochum.de)
+- **License**: BSD-3-Clause
+- **Citation**: ```Turewicz M, Frericks-Zipper A, Stepath M, et al. BIONDA: a free database for a fast information on published biomarkers. Zhang Z, ed. Bioinformatics Advances. 2021;1(1). doi:``` [10.1093/bioadv/vbab015](http://doi.org/10.1093/bioadv/vbab015)
+- **Files used**:
+  - `Bionda_complete.tsv`
+
+**Configuration properties**:
+
+| Property        | Values     | Description                                                      |
+|-----------------|------------|------------------------------------------------------------------|
+| forceExport     | true/false | Force graph export even if nothing changed                       |
+| speciesFilter   | int[]      | Filter export with NCBI taxonomy ids                             |
 
 ----
 
@@ -201,7 +224,7 @@ cell lines, cell types and cell cultures.
 - **License**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - **Citation**:
 - **Files used**:
-  - At the moment, the ontology is downloaded in OBO format (```bto.obo```).
+  - `bto.obo`
 
 **Configuration properties**:
 
@@ -260,7 +283,7 @@ CancerDrugs_DB is a curated listing of licensed cancer drugs produced by the Ant
 - **License**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - **Citation**:
 - **Files used**:
-  - At the moment, the ontology is downloaded in OBO format (```cl-full.obo```).
+  - `cl-full.obo`
 
 **Configuration properties**:
 
@@ -343,6 +366,16 @@ CMAUP is a database of molecular activities of useful plants.
 - **License**:
 - **Citation**:
 - **Files used**:
+  - `ConsensusPathDB_human_PPI.gz`
+  - `ConsensusPathDB_human_PPI.psi25.gz`
+  - `CPDB_pathways_metabolites.tab`
+  - `CPDB_pathways_genes_entrez.tab`
+  - `CPDB_pathways_genes_ensembl.tab`
+  - `CPDB_pathways_genes_hgnc-symbol.tab`
+  - `CPDB_pathways_genes_hgnc-id.tab`
+  - `CPDB_pathways_genes_refseq.tab`
+  - `CPDB_pathways_genes_unigene.tab`
+  - `CPDB_pathways_genes_uniprot.tab`
 
 **Configuration properties**:
 
@@ -359,6 +392,10 @@ CMAUP is a database of molecular activities of useful plants.
 - **License**: The source code for DGIdb is open-source and made available under the MIT license. The license is distributed with the source code (DGIdb license). The data used in DGIdb is all open access and where possible made available as raw data dumps in the downloads section.
 - **Citation**: ```DGIdb 3.0: a redesign and expansion of the drug–gene interaction database. Cotto KC, Wagner AH, Feng Y, Kiwala S, Coffman AC, Spies G, Wollam A, Spies NC, Griffith OL, Griffith M. Nucleic Acids Research. 2017 Nov 17. doi:``` [10.1093/nar/gkx1143](https://doi.org/10.1093/nar/gkx1143)
 - **Files used**:
+  - `interactions.tsv`
+  - `drugs.tsv`
+  - `genes.tsv`
+  - `categories.tsv`
 
 **Configuration properties**:
 
@@ -375,7 +412,7 @@ CMAUP is a database of molecular activities of useful plants.
 - **License**: [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 - **Citation**: ```Schriml LM, Munro JB, Schor M, et al. The human disease ontology 2022 update. Nucleic Acids Research. 2022;50(D1):D1255-D1261. doi:``` [10.1093/nar/gkab1063](https://doi.org/10.1093/nar/gkab1063)
 - **Files used**:
-  - At the moment, the ontology is downloaded in OBO format (```doid.obo```).
+  - `doid.obo`
 
 **Configuration properties**:
 
@@ -462,13 +499,13 @@ DrugCentral is an online drug information resource created and maintained by the
 - **License**:
 - **Citation**: ```Li F, Yin J, Lu M, et al. DrugMAP: molecular atlas and pharma-information of all drugs. Nucleic Acids Res. 2023;51(D1):D1288-D1299. doi:``` [10.1093/nar/gkac813](https://doi.org/10.1093/nar/gkac813)
 - **Files used**:
-  - ```01-General-Information-of-Drug.txt```
-  - ```02-General-Information-of-Drug-Therapeutic-Target.txt```
-  - ```03-General-Information-of-Drug-Transporter.txt```
-  - ```04-General-Information-of-Drug-Metabolizing-Enzyme.txt```
-  - ```06-Drug-to-DTT-Mapping-Information.txt```
-  - ```07-Drug-to-DTP-Mapping-Information.txt```
-  - ```08-Drug-to-DME-Mapping-Information.txt```
+  - `01-General-Information-of-Drug.txt`
+  - `02-General-Information-of-Drug-Therapeutic-Target.txt`
+  - `03-General-Information-of-Drug-Transporter.txt`
+  - `04-General-Information-of-Drug-Metabolizing-Enzyme.txt`
+  - `06-Drug-to-DTT-Mapping-Information.txt`
+  - `07-Drug-to-DTP-Mapping-Information.txt`
+  - `08-Drug-to-DME-Mapping-Information.txt`
 
 **Configuration properties**:
 
@@ -487,7 +524,7 @@ The Experimental Factor Ontology (EFO) provides a systematic description of many
 - **License**: [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 - **Citation**: ```Malone J, Holloway E, Adamusiak T, Kapushesky M, Zheng J, Kolesnikov N, Zhukova A, Brazma A, Parkinson H: Modeling Sample Variables with an Experimental Factor Ontology. Bioinformatics 2010, 26(8):1112-1118. doi:``` [10.1093/bioinformatics/btq099](https://doi.org/10.1093/bioinformatics/btq099)
 - **Files used**:
-  - At the moment, the ontology is downloaded in OBO format (```efo.obo```).
+  - `efo.obo`
 
 **Configuration properties**:
 
@@ -718,6 +755,9 @@ The HGNC is responsible for approving unique symbols and names for human loci, i
 - **License**: ```HMDB is offered to the public as a freely available resource. Use and re-distribution of the data, in whole or in part, for commercial purposes requires explicit permission of the authors and explicit acknowledgment of the source material (HMDB) and the original publication (see below). We ask that users who download significant portions of the database cite the HMDB paper in any resulting publications.```
 - **Citation**: ```Wishart DS, Guo AC, Oler E, et al., HMDB 5.0: the Human Metabolome Database for 2022. Nucleic Acids Res. 2022. Jan 7;50(D1):D622–31. PMID: 34986597.```
 - **Files used**:
+  - `hmdb_metabolites.zip`
+  - `hmdb_proteins.zip`
+  - `structures.zip`
 
 **Configuration properties**:
 
@@ -736,7 +776,7 @@ The Human Phenotype Ontology (HPO) provides a standardized vocabulary of phenoty
 - **License**: License information for HPO can be found at [https://hpo.jax.org/app/license](https://hpo.jax.org/app/license).
 - **Citation**: ```Sebastian Köhler, Michael Gargano, Nicolas Matentzoglu, Leigh C Carmody, David Lewis-Smith, Nicole A Vasilevsky, Daniel Danis, Ganna Balagura, Gareth Baynam, Amy M Brower, Tiffany J Callahan, Christopher G Chute, Johanna L Est, Peter D Galer, Shiva Ganesan, Matthias Griese, Matthias Haimel, Julia Pazmandi, Marc Hanauer, Nomi L Harris, Michael J Hartnett, Maximilian Hastreiter, Fabian Hauck, Yongqun He, Tim Jeske, Hugh Kearney, Gerhard Kindle, Christoph Klein, Katrin Knoflach, Roland Krause, David Lagorce, Julie A McMurry, Jillian A Miller, Monica C Munoz-Torres, Rebecca L Peters, Christina K Rapp, Ana M Rath, Shahmir A Rind, Avi Z Rosenberg, Michael M Segal, Markus G Seidel, Damian Smedley, Tomer Talmy, Yarlalu Thomas, Samuel A Wiafe, Julie Xian, Zafer Yüksel, Ingo Helbig, Christopher J Mungall, Melissa A Haendel, Peter N Robinson, The Human Phenotype Ontology in 2021, Nucleic Acids Research, Volume 49, Issue D1, 8 January 2021, Pages D1207–D1217. doi:``` [10.1093/nar/gkaa1043](https://doi.org/10.1093/nar/gkaa1043)
 - **Files used**:
-  - At the moment, the ontology is downloaded in OBO format (```hp.obo```).
+  - `hp.obo`
   - Please note that the HPO OBO version lacks some of the logical reasoning which is present in the OWL format version ([info](https://hpo.jax.org/app/download/ontology)). Once a suitable OWL parser is implemented, the ontology file will likely be switched!
   - For annotations, the files ```phenotype.hpoa``` and ```phenotype_to_genes.txt``` are parsed and used in the graph exporter.
   - The file ```genes_to_phenotype.txt``` is stated to be analogous to ```phenotype_to_genes.txt``` although the file size differs dramatically. Therefore, this file is currently ignored.
@@ -872,6 +912,7 @@ Integrated Taxonomic Information System
   - Retrieved [month, day, year], from the Integrated Taxonomic Information System (ITIS) on-line database, www.itis.gov. doi: [10.5066/F7KH0KBK](https://doi.org/10.5066/F7KH0KBK)
   - Citations can be formatted to the style needed for your publication as long as there is sufficient information included to return the reader to the referenced information.
 - **Files used**:
+  - `itisMySQLTables.tar.gz`
 
 **Configuration properties**:
 
@@ -898,6 +939,35 @@ Integrated Taxonomic Information System
 
 ----
 
+### NPCDR
+
+- **Website**: [http://npcdr.idrblab.net](http://npcdr.idrblab.net)
+- **License**: 
+- **Citation**:
+- **Files used**:
+  - `Pair_information.txt`
+  - `Effect_and_Experiment_Model_of_Combination.txt`
+  - `Molecule_Regulation_Type_and_Infomation.txt`
+  - `Cell_Line.txt`
+  - `Molecule_Regulated_by_Combination.txt`
+  - `Clinical_and_ICD_of_Combination.txt`
+  - `NP_Information.txt`
+  - `Natural_Product_Source.txt`
+  - `NP_Target.txt`
+  - `Clinical_and_ICD_of_NP.txt`
+  - `Drug_Information.txt`
+  - `Drug_Target.txt`
+  - `Clinical_and_ICD_of_Drug.txt`
+
+**Configuration properties**:
+
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
+
+----
+
 ### MammalianPhenotypeOntology
 
 - **Website**: [https://github.com/mgijax/mammalian-phenotype-ontology](https://github.com/mgijax/mammalian-phenotype-ontology)
@@ -913,6 +983,31 @@ Integrated Taxonomic Information System
 | forceExport    | true/false | Force graph export even if nothing changed               |
 | speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 | ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
+
+----
+
+### MarkerDB
+
+- **Website**: [https://markerdb.ca](https://markerdb.ca)
+- **License**: [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
+- **Citation**: ```Wishart DS, Bartok B, Oler E, et al. MarkerDB: an online database of molecular biomarkers. Nucleic Acids Research. 2020;49(D1):D1259-D1267. doi:``` [10.1093/nar/gkaa1067](http://doi.org/10.1093/nar/gkaa1067)
+- **Files used**:
+  - `all_proteins.xml`
+  - `all_chemicals.xml`
+  - `all_sequence_variants.xml`
+  - `all_karyotypes.xml`
+  - `all_diagnostic_chemicals.xml`
+  - `all_diagnostic_proteins.xml`
+  - `all_diagnostic_karyotypes.xml`
+  - `all_predictive_genetics.xml`
+  - `all_exposure_chemicals.xml`
+
+**Configuration properties**:
+
+| Property       | Values     | Description                                              |
+|----------------|------------|----------------------------------------------------------|
+| forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
 
 ----
 
@@ -942,6 +1037,7 @@ Integrated Taxonomic Information System
   - MED-RT has no copyright acknowledgement required. However, users must adhere to the UMLS license.
 - **Citation**:
 - **Files used**:
+  - `Core_MEDRT_XML.zip`
 
 **Configuration properties**:
 
@@ -958,9 +1054,9 @@ Integrated Taxonomic Information System
 - **License**:
 - **Citation**:
 - **Files used**:
-  - ```miRtar.txt```
-  - ```diseaseList.txt```
-  - ```AllEntries.txt```
+  - `miRtar.txt`
+  - `diseaseList.txt`
+  - `AllEntries.txt`
 
 **Configuration properties**:
 
@@ -1087,6 +1183,7 @@ Integrated Taxonomic Information System
   - NDF-RT is made available via the UMLS. Users of all UMLS ontologies must abide by the terms of the UMLS license, available at https://uts.nlm.nih.gov/license.html
 - **Citation**:
 - **Files used**:
+  - `NDFRT_Public_All 2018-02-05.zip`
 
 **Configuration properties**:
 
@@ -1130,7 +1227,7 @@ The Negatome is a collection of protein and domain pairs which are unlikely enga
 - **License**: 
 - **Citation**:
 - **Files used**:
-  - At the moment, the ontology is downloaded in OBO format (```nbo-full.obo```).
+  - `nbo-full.obo`
 
 **Configuration properties**:
 
@@ -1201,6 +1298,24 @@ Pathway Commons is an integrated resource of publicly available information abou
 |---------------|------------|--------------------------------------------|
 | forceExport   | true/false | Force graph export even if nothing changed |
 | speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
+
+----
+
+### PathogenTransmissionOntology
+
+- **Website**: [https://github.com/DiseaseOntology/PathogenTransmissionOntology](https://github.com/DiseaseOntology/PathogenTransmissionOntology)
+- **License**: [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)
+- **Citation**:
+- **Files used**:
+  - `trans.obo`
+
+**Configuration properties**:
+
+| Property       | Values     | Description                                              |
+|----------------|------------|----------------------------------------------------------|
+| forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
+| ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
 
 ----
 
@@ -1292,6 +1407,24 @@ Pathway Commons is an integrated resource of publicly available information abou
 
 ----
 
+### ProteinModificationOntology
+
+- **Website**: [https://github.com/HUPO-PSI/psi-mod-CV](https://github.com/HUPO-PSI/psi-mod-CV)
+- **License**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Citation**:
+- **Files used**:
+  - `psi-mod.obo`
+
+**Configuration properties**:
+
+| Property       | Values     | Description                                              |
+|----------------|------------|----------------------------------------------------------|
+| forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
+| ignoreObsolete | true/false | Ignore OBO ontology entries if they are flagged obsolete |
+
+----
+
 ### PROSITE
 
 Expasy PROSITE and PRORULE
@@ -1305,6 +1438,23 @@ Expasy PROSITE and PRORULE
   - `prosite.dat`
   - `prorule.dat`
   - `prosite.doc`
+
+**Configuration properties**:
+
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
+
+----
+
+### Reactome
+
+- **Website**: [https://reactome.org](https://reactome.org)
+- **License**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Citation**:
+- **Files used**:
+  - `gk_current.sql.gz`
 
 **Configuration properties**:
 
@@ -1486,6 +1636,44 @@ SIDER contains information on marketed medicines and their recorded adverse drug
 
 ----
 
+### SymptomOntology
+
+- **Website**: [https://github.com/DiseaseOntology/SymptomOntology](https://github.com/DiseaseOntology/SymptomOntology)
+- **License**: [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)
+- **Citation**: 
+- **Files used**:
+  - `symp.obo`
+
+**Configuration properties**:
+
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
+
+----
+
+### TheMarker
+
+- **Website**: [http://themarker.idrblab.cn](http://themarker.idrblab.cn)
+- **License**: 
+- **Citation**: 
+- **Files used**:
+  - `drug_all.txt`
+  - `drug_SDF_all.sdf`
+  - `disease_all.txt`
+  - `marker_all.txt`
+  - `association_all.txt`
+
+**Configuration properties**:
+
+| Property      | Values     | Description                                |
+|---------------|------------|--------------------------------------------|
+| forceExport   | true/false | Force graph export even if nothing changed |
+| speciesFilter | int[]      | Filter export with NCBI taxonomy ids       |
+
+----
+
 ### STITCH
 
 STITCH Chemical-Protein Interaction Networks
@@ -1645,7 +1833,7 @@ Transcriptional Regulatory Relationships Unraveled by Sentence-based Text mining
 - **License**: [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
 - **Citation**:
 - **Files used**:
-  - At the moment, the ontology is downloaded in OBO format (```uberon-full.obo```).
+  - `uberon-full.obo`
 
 **Configuration properties**:
 
