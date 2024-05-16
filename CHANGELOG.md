@@ -1,8 +1,50 @@
 # Changelog
 
-## 📦 Version v0.5.0
+## 📦 Version [v0.5.0](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.5.0)
 
-Released: upcoming
+Released: 16.05.2024
+
+* ```[Mondo]``` Mondo data source ID is now MondoDiseaseOntology
+* ```[EFO]``` EFO data source ID is now ExperimentalFactorOntology and marked as usable
+* ```[GenCC]``` Mark GenCC as usable
+* ```[HMDB]``` Mark HMDB as usable
+* ```[RNAInter]``` Mark RNAInter as usable
+* ```[HERB]``` Mark HERB as usable
+* ```[CMAUP]``` Mark CMAUP as usable
+* ```[IID]``` Mark IID as usable
+* ```[CancerDrugsDB]``` Fix download URLs
+* ```[ReDO-DB]``` Fix download URLs
+* ```[ReDOTrialsDB]``` Fix download URLs
+* ```[InterPro]``` Fix data model
+* ```[PharmGKB]``` Fix PharmGKB exporter with newly missing data
+* ```[Negatome]``` Switch updater to internet archive as database is no longer online
+* ```[HPRD]``` Switch updater to internet archive as database is no longer online
+* ```[DGIdb]``` Fix updater and data model and mark as usable
+* ```[Mir2disease]``` Fix Mir2disease parser
+* ```[PlantTraitOntology]``` Add PlantTraitOntology data source module
+* ```[PlantOntology]``` Add PlantOntology data source module
+* ```[PlantStressOntology]``` Add PlantStressOntology data source module
+* ```[BIONDA]``` Add BIONDA data source module
+* ```[TheMarker]``` Add TheMarker data source module
+* ```[MarkerDB]``` Add MarkerDB data source module
+* ```[ChEBI]``` Add ChEBI data source module
+* ```[DrugMap]``` Add DrugMap data source module
+
+### 🔧 Bug fixes and other changes
+
+* ```[feature]``` Gzip GraphML exports to save disk space
+* ```[feature]``` Species filters can now be configured per data source
+* ```[feature]``` Add download progress reporting for all updaters
+* ```[feature]``` Allow additional properties in path mapping descriptions
+* ```[feature]``` Add addEdgeFromModel to graph
+* ```[feature]``` Add MySQL parser and converter to TSV
+* ```[feature]``` Update data sources without version only once per day
+* ```[fix]``` Fix graph exporter re-runs despite nothing changed
+* ```[fix]``` Improve graph merge speed
+* ```[fix]``` Fix updater not reporting a new version error
+* ```[chore]``` Switch to Java 11
+* ```[chore]``` Update dependencies
+* ```[chore]``` Update docs
 
 ## 📦 Version [v0.4.15](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.4.15)
 
