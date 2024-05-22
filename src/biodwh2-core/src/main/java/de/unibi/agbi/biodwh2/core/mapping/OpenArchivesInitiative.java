@@ -1,5 +1,7 @@
 package de.unibi.agbi.biodwh2.core.mapping;
 
+import de.unibi.agbi.biodwh2.core.collections.Tuple2;
+
 import java.util.regex.Pattern;
 
 public final class OpenArchivesInitiative {
@@ -8,9 +10,17 @@ public final class OpenArchivesInitiative {
      */
     private static final Pattern IDENTIFIER_PATTERN = Pattern.compile(
             "oai:([A-Za-z][A-Za-z0-9\\-]*(?:\\.[A-Za-z][A-Za-z0-9\\-]*)+):((?:[;/?:@&=+$,A-Za-z0-9\\-_.!~*'()]|%[0-9ABCDEF]{2})+)");
+    public static final String BIODWH2_NAMESPACE = "biodwh2.github.io";
 
     public static boolean isValidIdentifier(final String id) {
         return id != null && IDENTIFIER_PATTERN.matcher(id).matches();
+    }
+
+    public static Tuple2<String, String> parseIdentifier(final String id) {
+        if (id == null)
+            return null;
+        final var matcher = IDENTIFIER_PATTERN.matcher(id);
+        return matcher.matches() ? new Tuple2<>(matcher.group(1), matcher.group(2)) : null;
     }
 
     public static String buildIdentifier(final String namespace, final String localIdentifier) {

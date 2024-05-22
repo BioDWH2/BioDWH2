@@ -1,5 +1,7 @@
 package de.unibi.agbi.biodwh2.core.collections;
 
+import java.util.Objects;
+
 public final class Tuple2<K, V> {
     private final K first;
     private final V second;
@@ -15,6 +17,21 @@ public final class Tuple2<K, V> {
 
     public V getSecond() {
         return second;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        final var tuple2 = (Tuple2<?, ?>) o;
+        return Objects.equals(first, tuple2.first) && Objects.equals(second, tuple2.second);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(first, second);
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.core.exceptions.*;
+import de.unibi.agbi.biodwh2.core.mapping.OpenArchivesInitiative;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
@@ -30,6 +31,11 @@ public abstract class DataSource {
     }
 
     public abstract String getId();
+
+    public final String getOAIId() {
+        return OpenArchivesInitiative.buildIdentifier(OpenArchivesInitiative.BIODWH2_NAMESPACE,
+                                                      "datasource/" + getId());
+    }
 
     public String getFullName() {
         return "";

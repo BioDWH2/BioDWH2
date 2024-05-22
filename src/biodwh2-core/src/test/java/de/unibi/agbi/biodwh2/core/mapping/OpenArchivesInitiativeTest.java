@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.core.mapping;
 
+import de.unibi.agbi.biodwh2.core.collections.Tuple2;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,5 +45,16 @@ class OpenArchivesInitiativeTest {
         assertEquals("test", OpenArchivesInitiative.escape("test"));
         assertEquals("ab%20cd", OpenArchivesInitiative.escape("ab cd"));
         assertEquals("ab%20%2Fc%3Fd", OpenArchivesInitiative.escape("ab /c?d"));
+    }
+
+    @Test
+    public void parseIdentifier() {
+        assertNull(OpenArchivesInitiative.parseIdentifier(null));
+        assertNull(OpenArchivesInitiative.parseIdentifier("test"));
+        assertEquals(new Tuple2<>("arXiv.org", "hep-th/9901001"),
+                     OpenArchivesInitiative.parseIdentifier("oai:arXiv.org:hep-th/9901001"));
+        assertEquals(new Tuple2<>("wibble.org", "ab?cd"),
+                     OpenArchivesInitiative.parseIdentifier("oai:wibble.org:ab?cd"));
+
     }
 }

@@ -54,8 +54,8 @@ public final class GraphMerger {
         for (final DataSource dataSource : dataSources) {
             final de.unibi.agbi.biodwh2.core.model.DataSourceMetadata metadata = dataSource.getMetadata();
             result.put(dataSource.getId(),
-                       new DataSourceMetadata(dataSource.getId(), metadata.version, metadata.exportVersion,
-                                              metadata.exportPropertiesHash));
+                       new DataSourceMetadata(dataSource.getId(), dataSource.getOAIId(), metadata.version,
+                                              metadata.exportVersion, metadata.exportPropertiesHash));
         }
         return result;
     }
@@ -70,7 +70,8 @@ public final class GraphMerger {
                     final String id = node.getProperty("datasource_id");
                     final Long exportVersion = node.getProperty("export_version");
                     final Integer exportPropertiesHash = node.getProperty("export_properties_hash");
-                    result.put(id, new DataSourceMetadata(id, Version.tryParse(node.getProperty("version")),
+                    result.put(id, new DataSourceMetadata(id, node.getProperty("datasource_oai_id"),
+                                                          Version.tryParse(node.getProperty("version")),
                                                           exportVersion != null ? exportVersion : -1,
                                                           exportPropertiesHash));
                 }
@@ -134,6 +135,7 @@ public final class GraphMerger {
         final NodeBuilder builder = graph.buildNode().withLabel("metadata");
         builder.withProperty("type", "datasource");
         builder.withProperty("datasource_id", dataSource.getId());
+        builder.withProperty("datasource_oai_id", dataSource.getOAIId());
         builder.withProperty("version", metadata.version != null ? metadata.version.toString() : "");
         builder.withProperty("export_version", metadata.exportVersion);
         builder.withProperty("export_properties_hash", metadata.exportPropertiesHash);
@@ -236,13 +238,15 @@ public final class GraphMerger {
 
     private static class DataSourceMetadata {
         public final String id;
+        public final String oaiId;
         public final Version version;
         public final Long exportVersion;
         public final Integer exportPropertiesHash;
 
-        private DataSourceMetadata(final String id, final Version version, final Long exportVersion,
+        private DataSourceMetadata(final String id, String oaiId, final Version version, final Long exportVersion,
                                    final Integer exportPropertiesHash) {
             this.id = id;
+            this.oaiId = oaiId;
             this.version = version;
             this.exportVersion = exportVersion;
             this.exportPropertiesHash = exportPropertiesHash;
