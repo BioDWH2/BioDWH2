@@ -74,7 +74,7 @@
         <module>biodwh2-hprd</module>
         <module>biodwh2-hmdb</module>
         <module>biodwh2-cpdb</module>
-        <module>biodwh2-tatonetti2012</module>
+        <module>biodwh2-nsides</module>
         <module>biodwh2-mir2disease</module>
         <module>biodwh2-biom2metdisease</module>
         <module>biodwh2-ontologies</module>

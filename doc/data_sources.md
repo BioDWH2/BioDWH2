@@ -52,6 +52,7 @@ This page lists all data source modules officially supported by BioDWH2. Details
 | NDF-RT                        | National Drug File – Reference Terminology (NDF-RT™)                                                                                                    | UMLS license                                                          | [Link](https://evs.nci.nih.gov/ftp1/NDF-RT/)                            |
 | Negatome                      | Negatome                                                                                                                                                |                                                                       | [Link](http://mips.helmholtz-muenchen.de/proj/ppi/negatome/)            |
 | NeuroBehaviourOntology        | Neuro Behaviour Ontology                                                                                                                                |                                                                       | [Link](https://github.com/obo-behavior/behavior-ontology)               |
+| nSIDES                        | OFFSIDES/TWOSIDES databases                                                                                                                             |                                                                       | [Link](https://nsides.io)                                               |
 | OMIM                          | Online Mendelian Inheritance in Man®                                                                                                                    | OMIM license                                                          | [Link](https://www.omim.org)                                            |
 | PathogenTransmissionOntology  | Pathogen Transmission Ontology                                                                                                                          | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)         | [Link](https://github.com/DiseaseOntology/PathogenTransmissionOntology) |
 | PharmGKB                      | PharmGKB                                                                                                                                                | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)       | [Link](https://www.pharmgkb.org)                                        |
@@ -1239,6 +1240,24 @@ The Negatome is a collection of protein and domain pairs which are unlikely enga
 
 ----
 
+### nSIDES
+
+- **Website**: [https://nsides.io](https://nsides.io)
+- **License**:
+- **Citation**: `Tatonetti, Nicholas P., P. Ye Patrick, Roxana Daneshjou, and Russ B. Altman. "Data-driven prediction of drug effects and interactions." Science translational medicine 4, no. 125 (2012): 125ra31-125ra31. doi: ` [10.1126/scitranslmed.3003377](https://doi.org/10.1126/scitranslmed.3003377).
+- **Files used**:
+  - `OFFSIDES.csv.gz`
+  - `TWOSIDES.csv.gz`
+
+**Configuration properties**:
+
+| Property       | Values     | Description                                              |
+|----------------|------------|----------------------------------------------------------|
+| forceExport    | true/false | Force graph export even if nothing changed               |
+| speciesFilter  | int[]      | Filter export with NCBI taxonomy ids                     |
+
+----
+
 ### OMIM
 
 Online Mendelian Inheritance in Man® - An Online Catalog of Human Genes and Genetic Disorders
@@ -1247,7 +1266,7 @@ Online Mendelian Inheritance in Man® - An Online Catalog of Human Genes and Gen
 - **License**: Research and educational use of OMIM is encouraged, and single-user academic, non-profit, and governmental agencies can register for access to the files without a license.
   - Johns Hopkins University holds the copyright to OMIM including the collective data therein. I hereby declare that I will not use or share the data contained in OMIM for any commercial purposes, will not develop a derivative database, nor distribute the data to a third party without first obtaining a license from Johns Hopkins University to do so. If OMIM data are used in research, I will notify OMIM and send a copy of the reference.
 - **Citation**:
-  - ```Amberger JS, Bocchini CA, Scott AF, Hamosh A. OMIM.org: leveraging knowledge across phenotype-gene relationships. Nucleic Acids Res. 2019 Jan 8;47(D1):D1038-D1043. doi: [10.1093/nar/gky1151](https://doi.org/10.1093/nar/gky1151). PMID: 30445645.```
+  - `Amberger JS, Bocchini CA, Scott AF, Hamosh A. OMIM.org: leveraging knowledge across phenotype-gene relationships. Nucleic Acids Res. 2019 Jan 8;47(D1):D1038-D1043. PMID: 30445645. doi: ` [10.1093/nar/gky1151](https://doi.org/10.1093/nar/gky1151).
   - ```Amberger JS, Bocchini CA, Schiettecatte FJM, Scott AF, Hamosh A. OMIM.org: Online Mendelian Inheritance in Man (OMIM®), an online catalog of human genes and genetic disorders. Nucleic Acids Res. 2015 Jan;43(Database issue):D789-98. PMID: 25428349. doi:``` [10.1093/nar/gku1205](https://doi.org/10.1093/nar/gku1205).
   - ```Online Mendelian Inheritance in Man, OMIM®. McKusick-Nathans Institute of Genetic Medicine, Johns Hopkins University (Baltimore, MD), {date}. World Wide Web URL: https://omim.org/```
 - **Files used**:

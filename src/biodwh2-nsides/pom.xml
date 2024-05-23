@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>biodwh2-tatonetti2012</artifactId>
+    <artifactId>biodwh2-nsides</artifactId>
     <version>0.1</version>
 
     <dependencies>

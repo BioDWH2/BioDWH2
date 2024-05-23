@@ -1,11 +1,11 @@
-package de.unibi.agbi.biodwh2.tatonetti2012.etl;
+package de.unibi.agbi.biodwh2.nsides.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
-public class Tatonetti2012MappingDescriber extends MappingDescriber {
-    public Tatonetti2012MappingDescriber(final DataSource dataSource) {
+public class NSIDESMappingDescriber extends MappingDescriber {
+    public NSIDESMappingDescriber(final DataSource dataSource) {
         super(dataSource);
     }
 
