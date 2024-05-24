@@ -1,5 +1,20 @@
 # Changelog
 
+## 📦 Version [v0.5.1](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.5.1)
+
+Released: 24.05.2024
+
+### 📚 Data Sources
+
+* ```[TarBase]``` Mark TarBase as usable
+* ```[USDA-PLANTS]``` Implement new version number for USDA-PLANTS
+* ```[nSIDES]``` Rename Tatonetti2012 data source module to nSIDES and update OFFSIDES/TWOSIDES data
+
+### 🔧 Bug fixes and other changes
+
+* ```[feature]``` Expose unsafe iterators in MVStoreCollection
+* ```[feature]``` Export OAI datasource identifiers in mapped graph metadata nodes
+
 ## 📦 Version [v0.5.0](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.5.0)
 
 Released: 16.05.2024
