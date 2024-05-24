@@ -109,7 +109,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         if (node == null)
             throw new GraphCacheException("Failed to update node because it is null");
         final String label = node.getLabel();
-        if (label == null || label.length() == 0)
+        if (label == null || label.isEmpty())
             throw new GraphCacheException("Failed to add or update node because the label is null or empty");
         getOrCreateNodeRepository(label).put(node);
     }
@@ -127,7 +127,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         if (edge == null)
             throw new GraphCacheException("Failed to update edge because it is null");
         final String label = edge.getLabel();
-        if (label == null || label.length() == 0)
+        if (label == null || label.isEmpty())
             throw new GraphCacheException("Failed to add or update edge because the label is null or empty");
         getOrCreateEdgeRepository(label).put(edge);
     }
@@ -329,7 +329,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
 
     @Override
     public Iterable<Node> findNodes(final String label, final Map<String, Comparable<?>> properties) {
-        if (properties == null || properties.size() == 0)
+        if (properties == null || properties.isEmpty())
             return findNodes(label);
         final String[] keys = new String[properties.size()];
         final Comparable<?>[] values = new Comparable<?>[properties.size()];
@@ -388,7 +388,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
 
     @Override
     public Iterable<Node> findNodes(final Map<String, Comparable<?>> properties) {
-        if (properties == null || properties.size() == 0)
+        if (properties == null || properties.isEmpty())
             return getNodes();
         final String[] keys = new String[properties.size()];
         final Comparable<?>[] values = new Comparable<?>[properties.size()];
@@ -446,7 +446,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
 
     @Override
     public Iterable<Edge> findEdges(final String label, final Map<String, Comparable<?>> properties) {
-        if (properties.size() == 0)
+        if (properties.isEmpty())
             return getEdges();
         final String[] keys = new String[properties.size()];
         final Comparable<?>[] values = new Comparable<?>[properties.size()];
@@ -505,7 +505,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
 
     @Override
     public Iterable<Edge> findEdges(final Map<String, Comparable<?>> properties) {
-        if (properties == null || properties.size() == 0)
+        if (properties == null || properties.isEmpty())
             return getEdges();
         final String[] keys = new String[properties.size()];
         final Comparable<?>[] values = new Comparable<?>[properties.size()];
