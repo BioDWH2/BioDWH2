@@ -114,6 +114,11 @@ public final class FileUtils {
             consumer.accept(iterator.next());
     }
 
+    public static <T> MappingIterator<T> openCsvWithHeader(final InputStream stream,
+                                                           final Class<T> typeClass) throws IOException {
+        return openSeparatedValuesFile(stream, typeClass, ',', true);
+    }
+
     public static <T> MappingIterator<T> openSeparatedValuesFile(final InputStream stream, final Class<T> typeClass,
                                                                  final char separator,
                                                                  final boolean withHeader) throws IOException {

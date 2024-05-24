@@ -21,13 +21,13 @@ public class TwosidesEntry {
     @JsonProperty("condition_concept_name")
     public String conditionConceptName;
     @JsonProperty("A")
-    public Integer a;
+    public String a;
     @JsonProperty("B")
-    public Integer b;
+    public String b;
     @JsonProperty("C")
-    public Integer c;
+    public String c;
     @JsonProperty("D")
-    public Integer d;
+    public String d;
     @JsonProperty("PRR")
     public String prr;
     @JsonProperty("PRR_error")

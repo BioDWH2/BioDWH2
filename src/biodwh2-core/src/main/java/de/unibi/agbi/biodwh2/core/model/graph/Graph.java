@@ -84,6 +84,39 @@ public final class Graph extends MVStoreGraph {
         return n;
     }
 
+    public Node addNode(final String label, final String propertyKey1, final Object propertyValue1,
+                        final String propertyKey2, final Object propertyValue2, final String propertyKey3,
+                        final Object propertyValue3, final String propertyKey4, final Object propertyValue4,
+                        final String propertyKey5, final Object propertyValue5, final String propertyKey6,
+                        final Object propertyValue6) {
+        final Node n = Node.newNode(label);
+        n.setProperty(propertyKey1, propertyValue1);
+        n.setProperty(propertyKey2, propertyValue2);
+        n.setProperty(propertyKey3, propertyValue3);
+        n.setProperty(propertyKey4, propertyValue4);
+        n.setProperty(propertyKey5, propertyValue5);
+        n.setProperty(propertyKey6, propertyValue6);
+        update(n);
+        return n;
+    }
+
+    public Node addNode(final String label, final String propertyKey1, final Object propertyValue1,
+                        final String propertyKey2, final Object propertyValue2, final String propertyKey3,
+                        final Object propertyValue3, final String propertyKey4, final Object propertyValue4,
+                        final String propertyKey5, final Object propertyValue5, final String propertyKey6,
+                        final Object propertyValue6, final String propertyKey7, final Object propertyValue7) {
+        final Node n = Node.newNode(label);
+        n.setProperty(propertyKey1, propertyValue1);
+        n.setProperty(propertyKey2, propertyValue2);
+        n.setProperty(propertyKey3, propertyValue3);
+        n.setProperty(propertyKey4, propertyValue4);
+        n.setProperty(propertyKey5, propertyValue5);
+        n.setProperty(propertyKey6, propertyValue6);
+        n.setProperty(propertyKey7, propertyValue7);
+        update(n);
+        return n;
+    }
+
     public Node addNode(final String label, final Map<String, Object> properties) {
         final Node n = Node.newNode(label);
         for (final Map.Entry<String, Object> entry : properties.entrySet())
