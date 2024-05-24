@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.core.io.mvstore;
 
+import de.unibi.agbi.biodwh2.core.collections.BatchIterable;
 import de.unibi.agbi.biodwh2.core.lang.Type;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 
@@ -322,7 +323,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     @Override
     public Iterator<T> iterator() {
         final Set<Long> keys = map.keySet();
-        return new Iterator<T>() {
+        return new Iterator<>() {
             final Iterator<Long> entries = keys.iterator();
 
             @Override
@@ -335,6 +336,31 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
                 return get(entries.next());
             }
         };
+    }
+
+    public Iterator<T> unsafeIterator() {
+        final Set<Long> keys = map.unsafeKeySet();
+        return new Iterator<>() {
+            final Iterator<Long> entries = keys.iterator();
+
+            @Override
+            public boolean hasNext() {
+                return entries.hasNext();
+            }
+
+            @Override
+            public T next() {
+                return map.unsafeGetOrDefault(entries.next(), null);
+            }
+        };
+    }
+
+    public BatchIterable<T> batchIterable() {
+        return new BatchIterable<>(iterator());
+    }
+
+    public BatchIterable<T> unsafeBatchIterable() {
+        return new BatchIterable<>(unsafeIterator());
     }
 
     public long size() {

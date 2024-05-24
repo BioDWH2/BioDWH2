@@ -71,6 +71,11 @@ public final class MVMapWrapper<K, V> implements ConcurrentMap<K, V> {
         return mvMap.get(key);
     }
 
+    V unsafeGetOrDefault(final Object key, final V defaultValue) {
+        //noinspection SuspiciousMethodCalls
+        return mvMap.getOrDefault(key, defaultValue);
+    }
+
     @Override
     public V get(final Object key) {
         lock();
