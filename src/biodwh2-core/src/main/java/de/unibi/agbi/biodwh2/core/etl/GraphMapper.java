@@ -15,6 +15,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -293,10 +294,13 @@ public final class GraphMapper {
             for (final Edge edge : graph.findEdges(edgeLabel, Edge.FROM_ID_FIELD, fromNodeId)) {
                 final String nextNodeLabel = graph.getNodeLabel(edge.getToId());
                 if (toNodeLabel.equals(nextNodeLabel)) {
-                    final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
-                    nextPathIds[currentEdgePathIndex] = edge.getId();
-                    nextPathIds[currentEdgePathIndex + 1] = edge.getToId();
-                    buildPathRecursively(graph, describer, path, segmentIndex + 1, nextPathIds, mappedEdgeTypes);
+                    // Don't walk back edges already traversed
+                    if (ArrayUtils.indexOf(currentPathIds, edge.getId()) == ArrayUtils.INDEX_NOT_FOUND) {
+                        final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
+                        nextPathIds[currentEdgePathIndex] = edge.getId();
+                        nextPathIds[currentEdgePathIndex + 1] = edge.getToId();
+                        buildPathRecursively(graph, describer, path, segmentIndex + 1, nextPathIds, mappedEdgeTypes);
+                    }
                 }
             }
         }
@@ -304,10 +308,13 @@ public final class GraphMapper {
             for (final Edge edge : graph.findEdges(edgeLabel, Edge.TO_ID_FIELD, fromNodeId)) {
                 final String nextNodeLabel = graph.getNodeLabel(edge.getFromId());
                 if (toNodeLabel.equals(nextNodeLabel)) {
-                    final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
-                    nextPathIds[currentEdgePathIndex] = edge.getId();
-                    nextPathIds[currentEdgePathIndex + 1] = edge.getFromId();
-                    buildPathRecursively(graph, describer, path, segmentIndex + 1, nextPathIds, mappedEdgeTypes);
+                    // Don't walk back edges already traversed
+                    if (ArrayUtils.indexOf(currentPathIds, edge.getId()) == ArrayUtils.INDEX_NOT_FOUND) {
+                        final long[] nextPathIds = Arrays.copyOf(currentPathIds, currentPathIds.length);
+                        nextPathIds[currentEdgePathIndex] = edge.getId();
+                        nextPathIds[currentEdgePathIndex + 1] = edge.getFromId();
+                        buildPathRecursively(graph, describer, path, segmentIndex + 1, nextPathIds, mappedEdgeTypes);
+                    }
                 }
             }
         }
