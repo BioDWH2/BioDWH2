@@ -16,7 +16,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * <p>
  * All the columns are mandatory.
  */
-@SuppressWarnings("unused")
 @JsonPropertyOrder({
         "interactorIdentifierA", "interactorIdentifierB", "interactorAlternativeIdentifierA",
         "interactorAlternativeIdentifierB", "interactorAliasesA", "interactorAliasesB", "interactionDetectionMethods",

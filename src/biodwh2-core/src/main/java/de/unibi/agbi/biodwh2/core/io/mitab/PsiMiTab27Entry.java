@@ -16,7 +16,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * <p>
  * Empty columns should be represented with '-' to keep track of the columns.
  */
-@SuppressWarnings("unused")
 @JsonPropertyOrder({
         "interactorIdentifierA", "interactorIdentifierB", "interactorAlternativeIdentifierA",
         "interactorAlternativeIdentifierB", "interactorAliasesA", "interactorAliasesB", "interactionDetectionMethods",

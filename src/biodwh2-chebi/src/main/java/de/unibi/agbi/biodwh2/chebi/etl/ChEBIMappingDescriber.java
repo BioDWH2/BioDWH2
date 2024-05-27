@@ -20,7 +20,7 @@ public class ChEBIMappingDescriber extends MappingDescriber {
     }
 
     private NodeMappingDescription[] describeCompound(final Node node) {
-        final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
+        final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
         description.addIdentifier(IdentifierType.CHEBI, node.<Integer>getProperty(GraphExporter.ID_KEY));
         final String[] xrefs = node.getProperty("xrefs");
         if (xrefs != null) {

@@ -13,6 +13,7 @@ public final class PathMappingDescription {
         CONTRAINDICATES,
         INDUCES,
         INTERACTS,
+        INTERACTS_NOT,
         TRANSCRIBES_TO,
         TRANSLATES_TO,
         INVESTIGATES,
