@@ -29,6 +29,7 @@ import java.util.Set;
 
 public final class GraphMerger {
     private static final Logger LOGGER = LogManager.getLogger(GraphMerger.class);
+    private static final int META_GRAPH_IMAGE_SIZE = 2048;
 
     public void merge(final Workspace workspace, final DataSource[] dataSources) throws MergerException {
         final long start = System.currentTimeMillis();
@@ -182,7 +183,7 @@ public final class GraphMerger {
             LOGGER.info(statistics);
             LOGGER.info("Exporting merged meta graph image to {}", metaGraphImageFilePath);
         }
-        final MetaGraphImage image = new MetaGraphImage(metaGraph, 2048, 2048);
+        final MetaGraphImage image = new MetaGraphImage(metaGraph, META_GRAPH_IMAGE_SIZE, META_GRAPH_IMAGE_SIZE);
         image.drawAndSaveImage(metaGraphImageFilePath);
         FileUtils.writeTextToUTF8File(metaGraphStatsFilePath, statistics);
         final MetaGraphDynamicVisWriter visWriter = new MetaGraphDynamicVisWriter(metaGraph);

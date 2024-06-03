@@ -246,6 +246,13 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         return null;
     }
 
+    public final boolean nodeExists(final long nodeId) {
+        for (final MVStoreCollection<Node> nodes : nodeRepositories.values())
+            if (nodes.keySet().contains(nodeId))
+                return true;
+        return false;
+    }
+
     @Override
     public String getNodeLabel(final long nodeId) {
         for (final String label : nodeRepositories.keySet())
@@ -262,6 +269,13 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
                 return edge;
         }
         return null;
+    }
+
+    public final boolean edgeExists(final long edgeId) {
+        for (final MVStoreCollection<Edge> edges : edgeRepositories.values())
+            if (edges.keySet().contains(edgeId))
+                return true;
+        return false;
     }
 
     @Override
@@ -343,7 +357,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
 
     @Override
     public Iterable<Node> findNodes(final String propertyKey, final Comparable<?> value) {
-        return () -> new RepositoriesIterator<Node>(nodeRepositories.values()) {
+        return () -> new RepositoriesIterator<>(nodeRepositories.values()) {
             @Override
             protected Iterator<Node> filterNextRepository(MVStoreCollection<Node> next) {
                 return next.find(propertyKey, value).iterator();
@@ -354,7 +368,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
     @Override
     public Iterable<Node> findNodes(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2) {
-        return () -> new RepositoriesIterator<Node>(nodeRepositories.values()) {
+        return () -> new RepositoriesIterator<>(nodeRepositories.values()) {
             @Override
             protected Iterator<Node> filterNextRepository(MVStoreCollection<Node> next) {
                 return next.find(propertyKey1, value1, propertyKey2, value2).iterator();
@@ -365,7 +379,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
     @Override
     public Iterable<Node> findNodes(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3) {
-        return () -> new RepositoriesIterator<Node>(nodeRepositories.values()) {
+        return () -> new RepositoriesIterator<>(nodeRepositories.values()) {
             @Override
             protected Iterator<Node> filterNextRepository(MVStoreCollection<Node> next) {
                 return next.find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3).iterator();
@@ -377,7 +391,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
     public Iterable<Node> findNodes(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3,
                                     final String propertyKey4, final Comparable<?> value4) {
-        return () -> new RepositoriesIterator<Node>(nodeRepositories.values()) {
+        return () -> new RepositoriesIterator<>(nodeRepositories.values()) {
             @Override
             protected Iterator<Node> filterNextRepository(MVStoreCollection<Node> next) {
                 return next.find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3, propertyKey4, value4)
@@ -397,7 +411,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
             keys[index] = propertyKey;
             values[index++] = properties.get(propertyKey);
         }
-        return () -> new RepositoriesIterator<Node>(nodeRepositories.values()) {
+        return () -> new RepositoriesIterator<>(nodeRepositories.values()) {
             @Override
             protected Iterator<Node> filterNextRepository(MVStoreCollection<Node> next) {
                 return next.find(keys, values).iterator();
@@ -460,7 +474,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
 
     @Override
     public Iterable<Edge> findEdges(final String propertyKey, final Comparable<?> value) {
-        return () -> new RepositoriesIterator<Edge>(edgeRepositories.values()) {
+        return () -> new RepositoriesIterator<>(edgeRepositories.values()) {
             @Override
             protected Iterator<Edge> filterNextRepository(MVStoreCollection<Edge> next) {
                 return next.find(propertyKey, value).iterator();
@@ -471,7 +485,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
     @Override
     public Iterable<Edge> findEdges(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2) {
-        return () -> new RepositoriesIterator<Edge>(edgeRepositories.values()) {
+        return () -> new RepositoriesIterator<>(edgeRepositories.values()) {
             @Override
             protected Iterator<Edge> filterNextRepository(MVStoreCollection<Edge> next) {
                 return next.find(propertyKey1, value1, propertyKey2, value2).iterator();
@@ -482,7 +496,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
     @Override
     public Iterable<Edge> findEdges(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3) {
-        return () -> new RepositoriesIterator<Edge>(edgeRepositories.values()) {
+        return () -> new RepositoriesIterator<>(edgeRepositories.values()) {
             @Override
             protected Iterator<Edge> filterNextRepository(MVStoreCollection<Edge> next) {
                 return next.find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3).iterator();
@@ -494,7 +508,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
     public Iterable<Edge> findEdges(final String propertyKey1, final Comparable<?> value1, final String propertyKey2,
                                     final Comparable<?> value2, final String propertyKey3, final Comparable<?> value3,
                                     final String propertyKey4, final Comparable<?> value4) {
-        return () -> new RepositoriesIterator<Edge>(edgeRepositories.values()) {
+        return () -> new RepositoriesIterator<>(edgeRepositories.values()) {
             @Override
             protected Iterator<Edge> filterNextRepository(MVStoreCollection<Edge> next) {
                 return next.find(propertyKey1, value1, propertyKey2, value2, propertyKey3, value3, propertyKey4, value4)
@@ -514,7 +528,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
             keys[index] = propertyKey;
             values[index++] = properties.get(propertyKey);
         }
-        return () -> new RepositoriesIterator<Edge>(edgeRepositories.values()) {
+        return () -> new RepositoriesIterator<>(edgeRepositories.values()) {
             @Override
             protected Iterator<Edge> filterNextRepository(MVStoreCollection<Edge> next) {
                 return next.find(keys, values).iterator();

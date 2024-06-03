@@ -23,6 +23,7 @@ import java.util.List;
 public abstract class GraphExporter<D extends DataSource> {
     private static final Logger LOGGER = LogManager.getLogger(GraphExporter.class);
     public static final String ID_KEY = "id";
+    private static final int META_GRAPH_IMAGE_SIZE = 1024;
 
     protected final D dataSource;
     protected SpeciesFilter speciesFilter;
@@ -61,12 +62,12 @@ public abstract class GraphExporter<D extends DataSource> {
         final GraphMLGraphWriter writer = new GraphMLGraphWriter();
         if (workspace.getConfiguration().shouldSkipGraphMLExport()) {
             if (LOGGER.isInfoEnabled())
-                LOGGER.info("Skipping '" + dataSource.getId() + "' GraphML export as per configuration");
+                LOGGER.info("Skipping '{}' GraphML export as per configuration", dataSource.getId());
             writer.removeOldExport(workspace, dataSource);
             return true;
         }
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Save '" + dataSource.getId() + "' data source graph to GraphML");
+            LOGGER.info("Save '{}' data source graph to GraphML", dataSource.getId());
         return writer.write(workspace, dataSource, g);
     }
 
@@ -77,14 +78,14 @@ public abstract class GraphExporter<D extends DataSource> {
                                                                         DataSourceFileType.META_GRAPH_DYNAMIC_VIS);
         if (workspace.getConfiguration().shouldSkipMetaGraphGeneration()) {
             if (LOGGER.isInfoEnabled())
-                LOGGER.info("Skipping '" + dataSource.getId() + "' meta graph generation as per configuration");
+                LOGGER.info("Skipping '{}' meta graph generation as per configuration", dataSource.getId());
             FileUtils.safeDelete(metaGraphImageFilePath);
             FileUtils.safeDelete(metaGraphStatsFilePath);
             FileUtils.safeDelete(metaGraphDynamicVisFilePath);
             return;
         }
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Generating '" + dataSource.getId() + "' data source meta graph");
+            LOGGER.info("Generating '{}' data source meta graph", dataSource.getId());
         final MetaGraph metaGraph = new MetaGraph(g);
         if (metaGraph.getNodeLabelCount() == 0 && metaGraph.getEdgeLabelCount() == 0) {
             if (LOGGER.isWarnEnabled())
@@ -94,9 +95,9 @@ public abstract class GraphExporter<D extends DataSource> {
         final String statistics = new MetaGraphStatisticsWriter(metaGraph).write();
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(statistics);
-            LOGGER.info("Exporting meta graph image to " + metaGraphImageFilePath);
+            LOGGER.info("Exporting meta graph image to {}", metaGraphImageFilePath);
         }
-        final MetaGraphImage image = new MetaGraphImage(metaGraph, 1024, 1024);
+        final MetaGraphImage image = new MetaGraphImage(metaGraph, META_GRAPH_IMAGE_SIZE, META_GRAPH_IMAGE_SIZE);
         image.drawAndSaveImage(metaGraphImageFilePath);
         FileUtils.writeTextToUTF8File(metaGraphStatsFilePath, statistics);
         final MetaGraphDynamicVisWriter visWriter = new MetaGraphDynamicVisWriter(metaGraph);

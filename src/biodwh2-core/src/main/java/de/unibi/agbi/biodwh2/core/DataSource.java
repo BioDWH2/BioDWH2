@@ -101,6 +101,10 @@ public abstract class DataSource {
         return workspace.getDataSourceDirectory(getId()).resolve(type.getName());
     }
 
+    public static Path getFilePath(final BaseWorkspace workspace, final String id, final DataSourceFileType type) {
+        return workspace.getDataSourceDirectory(id).resolve(type.getName());
+    }
+
     public DataSourceMetadata loadMetadata(final Path filePath) {
         final ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -110,7 +114,7 @@ public abstract class DataSource {
                 LOGGER.warn(e.getMessage());
         } catch (IOException e) {
             if (LOGGER.isWarnEnabled())
-                LOGGER.warn("Failed to load data source '" + getId() + "' metadata. Creating a new one.", e);
+                LOGGER.warn("Failed to load data source '{}' metadata. Creating a new one.", getId(), e);
         }
         return null;
     }
@@ -138,13 +142,14 @@ public abstract class DataSource {
 
     private void logUpdaterOnlyManuallyException() {
         if (LOGGER.isErrorEnabled())
-            LOGGER.error("Data source '" + getId() + "' can only be updated manually. For help visit " +
-                         "https://github.com/BioDWH2/BioDWH2/blob/master/doc/usage.md");
+            LOGGER.error(
+                    "Data source '{}' can only be updated manually. For help visit https://github.com/BioDWH2/BioDWH2/blob/master/doc/usage.md",
+                    getId());
     }
 
     private void handleUpdateAutomaticFailed(final UpdaterException e) {
         if (LOGGER.isErrorEnabled())
-            LOGGER.error("Failed to update data source '" + getId() + "'", e);
+            LOGGER.error("Failed to update data source '{}'", getId(), e);
         metadata.updateSuccessful = false;
     }
 
@@ -153,7 +158,7 @@ public abstract class DataSource {
             saveMetadata(workspace);
         } catch (IOException e) {
             if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to save metadata for data source '" + getId() + "'", e);
+                LOGGER.error("Failed to save metadata for data source '{}'", getId(), e);
         }
     }
 
@@ -162,7 +167,7 @@ public abstract class DataSource {
             metadata.parseSuccessful = getParser().parse(workspace);
         } catch (ParserException e) {
             if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to parse data source '" + getId() + "'", e);
+                LOGGER.error("Failed to parse data source '{}'", getId(), e);
             metadata.parseSuccessful = false;
         }
         trySaveMetadata(workspace);
@@ -181,16 +186,16 @@ public abstract class DataSource {
             metadata.exportSuccessful = graphExporter.export(workspace);
             if (!metadata.exportSuccessful) {
                 if (LOGGER.isErrorEnabled())
-                    LOGGER.error("Failed to export data source '" + getId() + "'");
+                    LOGGER.error("Failed to export data source '{}'", getId());
             } else {
                 metadata.exportVersion = graphExporter.getExportVersion();
                 metadata.exportPropertiesHash = workspace.getConfiguration().getDataSourcePropertiesHash(getId());
                 if (LOGGER.isInfoEnabled())
-                    LOGGER.info("Successfully exported data source '" + getId() + "'");
+                    LOGGER.info("Successfully exported data source '{}'", getId());
             }
         } catch (ExporterException e) {
             if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to export data source '" + getId() + "'", e);
+                LOGGER.error("Failed to export data source '{}'", getId(), e);
             metadata.exportSuccessful = false;
         }
     }
@@ -204,12 +209,12 @@ public abstract class DataSource {
 
     public final String[] listSourceFiles(final Workspace workspace) {
         final Path sourcePath = getSourceFolderPath(workspace);
-        try {
-            return Files.walk(sourcePath).filter(Files::isRegularFile).map(sourcePath::relativize).map(Path::toString)
-                        .toArray(String[]::new);
+        try (final var stream = Files.walk(sourcePath)) {
+            return stream.filter(Files::isRegularFile).map(sourcePath::relativize).map(Path::toString).toArray(
+                    String[]::new);
         } catch (IOException e) {
             if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to list files of data source '" + getId() + "'", e);
+                LOGGER.error("Failed to list files of data source '{}'", getId(), e);
         }
         return new String[0];
     }

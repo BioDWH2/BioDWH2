@@ -38,7 +38,7 @@ public final class DataSourceLoader {
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
                  InvocationTargetException e) {
             if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to instantiate data source '" + dataSourceClass.getName() + "'", e);
+                LOGGER.error("Failed to instantiate data source '{}'", dataSourceClass.getName(), e);
         }
         return null;
     }
@@ -85,7 +85,7 @@ public final class DataSourceLoader {
             if (dataSource.getId().equals(id))
                 return dataSource;
         if (LOGGER.isWarnEnabled())
-            LOGGER.warn("Failed to retrieve data source with id '" + id + "'");
+            LOGGER.warn("Failed to retrieve data source with id '{}'", id);
         return null;
     }
 
