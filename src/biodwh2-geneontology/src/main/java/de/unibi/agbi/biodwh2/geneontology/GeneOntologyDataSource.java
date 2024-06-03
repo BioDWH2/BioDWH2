@@ -1,14 +1,12 @@
 package de.unibi.agbi.biodwh2.geneontology;
 
-import de.unibi.agbi.biodwh2.core.DevelopmentState;
-import de.unibi.agbi.biodwh2.core.OntologyDataSource;
-import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
+import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.text.License;
-import de.unibi.agbi.biodwh2.geneontology.etl.GeneOntologyGraphExporter;
-import de.unibi.agbi.biodwh2.geneontology.etl.GeneOntologyMappingDescriber;
-import de.unibi.agbi.biodwh2.geneontology.etl.GeneOntologyUpdater;
 
-public class GeneOntologyDataSource extends OntologyDataSource {
+public class GeneOntologyDataSource extends SingleOBOOntologyDataSource {
+    private static final String OBO_FILE_NAME = "go.obo";
+
     @Override
     public String getId() {
         return "GeneOntology";
@@ -30,27 +28,18 @@ public class GeneOntologyDataSource extends OntologyDataSource {
     }
 
     @Override
-    public DevelopmentState getDevelopmentState() {
-        return DevelopmentState.Usable;
+    protected String getDownloadUrl() {
+        return "http://current.geneontology.org/ontology/" + OBO_FILE_NAME;
     }
 
     @Override
-    public Updater<GeneOntologyDataSource> getUpdater() {
-        return new GeneOntologyUpdater(this);
+    protected String getTargetFileName() {
+        return OBO_FILE_NAME;
     }
 
-    @Override
-    protected Parser<GeneOntologyDataSource> getParser() {
-        return new PassThroughParser<>(this);
-    }
-
-    @Override
-    protected GraphExporter<GeneOntologyDataSource> getGraphExporter() {
-        return new GeneOntologyGraphExporter(this);
-    }
-
-    @Override
-    public MappingDescriber getMappingDescriber() {
-        return new GeneOntologyMappingDescriber(this);
+    protected Version getVersionFromDataVersionLine(final String dataVersion) {
+        final String[] versionParts = dataVersion.split("releases/")[1].split("-");
+        return new Version(Integer.parseInt(versionParts[0]), Integer.parseInt(versionParts[1]),
+                           Integer.parseInt(versionParts[2]));
     }
 }

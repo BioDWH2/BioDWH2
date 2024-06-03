@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.core.etl;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.OntologyDataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
 import de.unibi.agbi.biodwh2.core.exceptions.MergerException;
@@ -23,9 +24,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Consumer;
 
 public final class GraphMerger {
     private static final Logger LOGGER = LogManager.getLogger(GraphMerger.class);
@@ -87,18 +87,21 @@ public final class GraphMerger {
 
     private boolean isPreviousMergeStatusUsable(final Map<String, DataSourceMetadata> requestedStatus,
                                                 final Map<String, DataSourceMetadata> previousStatus) {
-        final Set<String> intersection = new HashSet<>(requestedStatus.keySet());
-        intersection.retainAll(previousStatus.keySet());
-        // If we have a previous state and any intersection between old and newly requested data sources, it's usable
-        return !(previousStatus.isEmpty() || intersection.isEmpty());
+        // TODO: currently not usable due to dependencies
+        return false;
+        // final Set<String> intersection = new HashSet<>(requestedStatus.keySet());
+        // intersection.retainAll(previousStatus.keySet());
+        // // If we have a previous state and any intersection between old and newly requested data sources, it's usable
+        // return !previousStatus.isEmpty() && !intersection.isEmpty();
     }
 
     private void mergeFromScratch(final Workspace workspace, final DataSource[] dataSources) throws MergerException {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Creating new merged graph from scratch");
         try (Graph mergedGraph = new Graph(workspace.getFilePath(WorkspaceFileType.MERGED_PERSISTENT_GRAPH))) {
+            final Map<Long, Long> dependencyNodeIdMap = new HashMap<>();
             for (final DataSource dataSource : dataSources)
-                mergeDataSource(workspace, dataSource, mergedGraph);
+                mergeDataSource(workspace, dataSource, mergedGraph, dependencyNodeIdMap);
             saveMergedGraph(workspace, mergedGraph);
             generateMetaGraphStatistics(mergedGraph, workspace);
         } catch (final Exception ex) {
@@ -106,8 +109,8 @@ public final class GraphMerger {
         }
     }
 
-    private void mergeDataSource(final Workspace workspace, final DataSource dataSource,
-                                 final Graph mergedGraph) throws MergerException {
+    private void mergeDataSource(final Workspace workspace, final DataSource dataSource, final Graph mergedGraph,
+                                 final Map<Long, Long> dependencyNodeIdMap) throws MergerException {
         final Path intermediateGraphFilePath = dataSource.getFilePath(workspace, DataSourceFileType.PERSISTENT_GRAPH);
         if (!intermediateGraphFilePath.toFile().exists())
             throw new MergerException(
@@ -118,17 +121,35 @@ public final class GraphMerger {
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Merging data source '{}' [{} nodes, {} edges]", dataSource.getId(), numberOfNodes,
                             numberOfEdges);
-            mergedGraph.mergeDatabase(dataSource.getId(), databaseToMerge, (nodeCounter) -> {
-                if (LOGGER.isInfoEnabled())
-                    LOGGER.info("\tNode progress: {}", TextUtils.getProgressText(nodeCounter, numberOfNodes));
-            }, (edgeCounter) -> {
-                if (LOGGER.isInfoEnabled())
-                    LOGGER.info("\tEdge progress: {}", TextUtils.getProgressText(edgeCounter, numberOfEdges));
-            });
+            if (dataSource instanceof OntologyDataSource) {
+                final var mapping = mergedGraph.mergeDatabase(dataSource.getId(), databaseToMerge,
+                                                              getNodeProgressLogger(numberOfNodes),
+                                                              getEdgeProgressLogger(numberOfEdges));
+                dependencyNodeIdMap.putAll(mapping);
+            } else {
+                mergedGraph.mergeDatabaseComplex(dataSource.getId(), databaseToMerge,
+                                                 getNodeProgressLogger(numberOfNodes),
+                                                 getEdgeProgressLogger(numberOfEdges),
+                                                 GraphExporter.DEPENDENCY_NODE_PROPERTY, dependencyNodeIdMap);
+            }
         } catch (GraphCacheException e) {
             throw new MergerException("Failed to merge data source " + dataSource.getId(), e);
         }
         addDataSourceMetadataNode(dataSource, mergedGraph);
+    }
+
+    private static Consumer<Long> getNodeProgressLogger(final long total) {
+        return (progress) -> {
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("\tNode progress: {}", TextUtils.getProgressText(progress, total));
+        };
+    }
+
+    private static Consumer<Long> getEdgeProgressLogger(final long total) {
+        return (progress) -> {
+            if (LOGGER.isInfoEnabled())
+                LOGGER.info("\tEdge progress: {}", TextUtils.getProgressText(progress, total));
+        };
     }
 
     private void addDataSourceMetadataNode(final DataSource dataSource, final Graph graph) {
@@ -196,6 +217,8 @@ public final class GraphMerger {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Creating merged graph from previous status");
         try (Graph mergedGraph = new Graph(workspace.getFilePath(WorkspaceFileType.MERGED_PERSISTENT_GRAPH), true)) {
+            final Map<Long, Long> dependencyNodeIdMap = new HashMap<>();
+            // TODO: re-merge dependencies
             // First, remove all previous states which are not requested anymore
             for (final String id : previousStatus.keySet())
                 if (!requestedStatus.containsKey(id))
@@ -203,7 +226,7 @@ public final class GraphMerger {
             for (final DataSource dataSource : dataSources) {
                 // Only add newly requested data sources or remove and re-add outdated ones
                 if (!previousStatus.containsKey(dataSource.getId()))
-                    mergeDataSource(workspace, dataSource, mergedGraph);
+                    mergeDataSource(workspace, dataSource, mergedGraph, dependencyNodeIdMap);
                 else {
                     final DataSourceMetadata metadata = previousStatus.get(dataSource.getId());
                     final DataSourceMetadata requestedMetadata = requestedStatus.get(metadata.id);
@@ -212,7 +235,7 @@ public final class GraphMerger {
                         requestedMetadata.exportVersion > metadata.exportVersion || requestedMetadata.version.compareTo(
                             metadata.version) > 0 || workspace.isDataSourceExportForced(dataSource)) {
                         removePreviousDataSourceVersion(mergedGraph, dataSource.getId());
-                        mergeDataSource(workspace, dataSource, mergedGraph);
+                        mergeDataSource(workspace, dataSource, mergedGraph, dependencyNodeIdMap);
                     }
                 }
             }

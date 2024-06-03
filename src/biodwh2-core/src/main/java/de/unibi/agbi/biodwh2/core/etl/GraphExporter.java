@@ -12,17 +12,17 @@ import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
+import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public abstract class GraphExporter<D extends DataSource> {
     private static final Logger LOGGER = LogManager.getLogger(GraphExporter.class);
     public static final String ID_KEY = "id";
+    static final String DEPENDENCY_NODE_PROPERTY = "__dependency";
     private static final int META_GRAPH_IMAGE_SIZE = 1024;
 
     protected final D dataSource;
@@ -46,14 +46,43 @@ public abstract class GraphExporter<D extends DataSource> {
         speciesFilter = new SpeciesFilter(speciesFilterIds);
         boolean exportSuccessful;
         try (Graph g = new Graph(dataSource.getFilePath(workspace, DataSourceFileType.PERSISTENT_GRAPH))) {
-            exportSuccessful = exportGraph(workspace, g);
+            exportSuccessful = mergeDependencies(workspace, g);
             if (exportSuccessful) {
-                exportSuccessful = trySaveGraphToFile(workspace, g);
-                if (exportSuccessful)
-                    generateMetaGraphStatistics(workspace, g);
+                exportSuccessful = exportGraph(workspace, g);
+                if (exportSuccessful) {
+                    exportSuccessful = trySaveGraphToFile(workspace, g);
+                    if (exportSuccessful)
+                        generateMetaGraphStatistics(workspace, g);
+                }
             }
         }
         return exportSuccessful;
+    }
+
+    private boolean mergeDependencies(final Workspace workspace, final Graph graph) {
+        final String[] dependencyIds = dataSource.getDependencies();
+        if (dependencyIds == null || dependencyIds.length == 0)
+            return true;
+        final Map<String, Object> dependencyProperty = new HashMap<>();
+        dependencyProperty.put(DEPENDENCY_NODE_PROPERTY, true);
+        for (final String dependencyId : dependencyIds) {
+            try (Graph dependencyGraph = new Graph(
+                    DataSource.getFilePath(workspace, dependencyId, DataSourceFileType.PERSISTENT_GRAPH), true, true)) {
+                final long numberOfNodes = dependencyGraph.getNumberOfNodes();
+                final long numberOfEdges = dependencyGraph.getNumberOfEdges();
+                if (LOGGER.isInfoEnabled())
+                    LOGGER.info("Adding data source dependency '{}' [{} nodes, {} edges]", dependencyId, numberOfNodes,
+                                numberOfEdges);
+                graph.mergeDatabase("", dependencyGraph, (nodeCounter) -> {
+                    if (LOGGER.isInfoEnabled())
+                        LOGGER.info("\tNode progress: {}", TextUtils.getProgressText(nodeCounter, numberOfNodes));
+                }, (edgeCounter) -> {
+                    if (LOGGER.isInfoEnabled())
+                        LOGGER.info("\tEdge progress: {}", TextUtils.getProgressText(edgeCounter, numberOfEdges));
+                }, false, dependencyProperty);
+            }
+        }
+        return true;
     }
 
     protected abstract boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException;
