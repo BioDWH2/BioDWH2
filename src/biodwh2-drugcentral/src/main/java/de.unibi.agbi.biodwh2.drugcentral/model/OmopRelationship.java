@@ -19,7 +19,7 @@ public final class OmopRelationship {
     public Long structId;
     @JsonProperty("concept_id")
     @GraphProperty("concept_id")
-    public String conceptId;
+    public Long conceptId;
     @JsonProperty("relationship_name")
     public String relationshipName;
     @JsonProperty("concept_name")
@@ -36,5 +36,5 @@ public final class OmopRelationship {
     public String cuiSemanticType;
     @JsonProperty("snomed_conceptid")
     @GraphProperty("snomed_concept_id")
-    public String snomedConceptId;
+    public Long snomedConceptId;
 }

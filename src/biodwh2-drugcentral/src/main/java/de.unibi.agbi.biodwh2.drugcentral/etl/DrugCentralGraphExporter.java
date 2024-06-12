@@ -30,7 +30,6 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     static final String ORANGE_BOOK_EXCLUSIVITY_LABEL = "OrangeBookExclusivity";
     public static final String ORANGE_BOOK_PRODUCT_LABEL = "OrangeBookProduct";
     static final String STRUCTURE_LABEL = "Structure";
-    static final String GO_TERM_LABEL = "GOTerm";
     static final String TARGET_KEYWORD_LABEL = "TargetKeyword";
     static final String ACTION_TYPE_LABEL = "ActionType";
     public static final String PDB_LABEL = "PDB";
@@ -45,7 +44,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
 
     @Override
     public long getExportVersion() {
-        return 4;
+        return 5;
     }
 
     @Override
@@ -61,14 +60,12 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         g.addIndex(IndexDescription.forNode(ORANGE_BOOK_EXCLUSIVITY_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         g.addIndex(IndexDescription.forNode(ORANGE_BOOK_PRODUCT_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         g.addIndex(IndexDescription.forNode(STRUCTURE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
-        g.addIndex(IndexDescription.forNode(GO_TERM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         g.addIndex(IndexDescription.forNode(TARGET_KEYWORD_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         g.addIndex(IndexDescription.forNode(INN_STEM_LABEL, "stem", IndexDescription.Type.UNIQUE));
         g.addIndex(IndexDescription.forNode(VET_PROD_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         g.addIndex(IndexDescription.forNode(VET_OMOP_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
-        // "ddi_risk.tsv", "approval_type.tsv", "target_class.tsv", "ref_type.tsv", "protein_type.tsv",
-        // "ijc_connect_items.tsv", "ijc_connect_structures.tsv", "struct_type_def.tsv" are ignored because no necessary
-        // additional info is included
+        // "ddi_risk", "approval_type", "target_class", "ref_type", "protein_type", "ijc_connect_items",
+        // "ijc_connect_structures", "struct_type_def", "doid" are ignored because no necessary additional info is included
         createNodesFromTsvFile(workspace, g, DataSource.class, "data_source.tsv");
         createNodesFromTsvFile(workspace, g, DbVersion.class, "dbversion.tsv");
         createNodesFromTsvFile(workspace, g, AttributeType.class, "attr_type.tsv");
@@ -76,6 +73,23 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         createNodesFromTsvFile(workspace, g, IdType.class, "id_type.tsv");
         createNodesFromTsvFile(workspace, g, ActionType.class, "action_type.tsv");
         createNodesFromTsvFile(workspace, g, Reference.class, "reference.tsv");
+        /*
+        omop_relationship
+            LEFT JOIN (
+                    SELECT doid_xref.xref, string_agg((doid_xref.doid)::text, ','::text) AS doid
+                    FROM public.doid_xref
+                    WHERE ((doid_xref.source)::text ~~ 'SNOMED%'::text)
+                    GROUP BY doid_xref.xref) d
+            ON ((omop_relationship.snomed_conceptid = (d.xref)::bigint)))
+         */
+        final var snomedConceptIdToDOIdMap = new HashMap<Long, List<String>>();
+        for (final DoidXref xref : parseTsvFile(workspace, DoidXref.class, "doid_xref.tsv")) {
+            if (!xref.source.startsWith("SNOMED"))
+                continue;
+            final var snomedConceptId = Long.parseLong(xref.xref);
+            var doidList = snomedConceptIdToDOIdMap.computeIfAbsent(snomedConceptId, k -> new ArrayList<>());
+            doidList.add(xref.doid);
+        }
         final Map<Long, Long> structureIdNodeIdMap = addStructuresWithType(workspace, g);
         for (final Approval approval : parseTsvFile(workspace, Approval.class, "approval.tsv")) {
             final Node approvalNode = g.addNodeFromModel(approval);
@@ -89,13 +103,12 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         addStructureProperties(workspace, g, structureIdNodeIdMap);
         addStructurePharmaClasses(workspace, g, structureIdNodeIdMap);
         addOrangeBookPatentProducts(workspace, g, structureIdNodeIdMap);
-        addOMOPRelationships(workspace, g, structureIdNodeIdMap);
+        addOMOPRelationships(workspace, g, structureIdNodeIdMap, snomedConceptIdToDOIdMap);
         addDrugClassesAndDrugInteractions(workspace, g, structureIdNodeIdMap);
         addPDBEntries(workspace, g, structureIdNodeIdMap);
         addParentDrugMoleculesAndSynonyms(workspace, g, structureIdNodeIdMap);
         addProductsWithLabelsAndIngredients(workspace, g, structureIdNodeIdMap, skipDrugLabelFullTexts);
         addTargets(workspace, g, structureIdNodeIdMap);
-        addDiseaseOntology(workspace, g);
         addVetProducts(workspace, g, structureIdNodeIdMap);
         if (!skipFAERSReports)
             addFAERSEntries(workspace, g, structureIdNodeIdMap);
@@ -284,15 +297,28 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     }
 
     private void addOMOPRelationships(final Workspace workspace, final Graph g,
-                                      final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
+                                      final Map<Long, Long> structureIdNodeIdMap,
+                                      final Map<Long, List<String>> snomedConceptIdToDOIdMap) throws ExporterException {
         final Map<String, Long> conceptKeyNodeIdMap = new HashMap<>();
         for (final OmopRelationship relationship : parseTsvFile(workspace, OmopRelationship.class,
                                                                 "omop_relationship.tsv")) {
             final String key =
                     relationship.conceptId + "_" + relationship.umlsCui + "_" + relationship.cuiSemanticType + "_" +
                     relationship.snomedConceptId;
-            if (!conceptKeyNodeIdMap.containsKey(key))
-                conceptKeyNodeIdMap.put(key, g.addNodeFromModel(relationship).getId());
+            if (!conceptKeyNodeIdMap.containsKey(key)) {
+                final var conceptNode = g.addNodeFromModel(relationship);
+                if (relationship.snomedConceptId != null) {
+                    final var doids = snomedConceptIdToDOIdMap.get(relationship.snomedConceptId);
+                    if (doids != null) {
+                        for (final var doid : doids) {
+                            final var termNode = g.findNode("Term", ID_KEY, doid);
+                            if (termNode != null)
+                                g.addEdge(conceptNode, termNode, "HAS_DO_TERM");
+                        }
+                    }
+                }
+                conceptKeyNodeIdMap.put(key, conceptNode.getId());
+            }
             final String edgeLabel = relationship.relationshipName.replaceAll("[- ]", "_").toUpperCase(Locale.US);
             g.addEdge(structureIdNodeIdMap.get(relationship.structId), conceptKeyNodeIdMap.get(key), edgeLabel);
         }
@@ -384,17 +410,17 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
 
     private void addTargets(final Workspace workspace, final Graph g,
                             final Map<Long, Long> structureIdNodeIdMap) throws ExporterException {
-        final Map<String, Long> goIdNodeIdMap = new HashMap<>();
-        for (final TargetGo goTerm : parseTsvFile(workspace, TargetGo.class, "target_go.tsv"))
-            goIdNodeIdMap.put(goTerm.id, g.addNodeFromModel(goTerm).getId());
         final Map<String, Long> keywordIdNodeIdMap = new HashMap<>();
         for (final TargetKeyword keyword : parseTsvFile(workspace, TargetKeyword.class, "target_keyword.tsv"))
             keywordIdNodeIdMap.put(keyword.id, g.addNodeFromModel(keyword).getId());
         final Map<Integer, Long> componentIdNodeIdMap = new HashMap<>();
         for (final TargetComponent component : parseTsvFile(workspace, TargetComponent.class, "target_component.tsv"))
             componentIdNodeIdMap.put(component.id, g.addNodeFromModel(component).getId());
-        for (final Tdgo2Tc link : parseTsvFile(workspace, Tdgo2Tc.class, "tdgo2tc.tsv"))
-            g.addEdge(componentIdNodeIdMap.get(link.componentId), goIdNodeIdMap.get(link.goId), "HAS_GO_TERM");
+        for (final Tdgo2Tc link : parseTsvFile(workspace, Tdgo2Tc.class, "tdgo2tc.tsv")) {
+            final Node goTermNode = g.findNode("Term", ID_KEY, link.goId);
+            if (goTermNode != null)
+                g.addEdge(componentIdNodeIdMap.get(link.componentId), goTermNode, "HAS_GO_TERM");
+        }
         for (final Tdkey2Tc link : parseTsvFile(workspace, Tdkey2Tc.class, "tdkey2tc.tsv"))
             g.addEdge(componentIdNodeIdMap.get(link.componentId), keywordIdNodeIdMap.get(link.tdKeyId), "HAS_KEYWORD");
         final Map<Integer, Long> targetIdNodeIdMap = new HashMap<>();
@@ -412,16 +438,6 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
                 g.addEdge(node, g.findNode(REFERENCE_LABEL, ID_KEY, bioactivity.moaRefId), "HAS_MOA_REFERENCE");
             if (bioactivity.actRefId != null)
                 g.addEdge(node, g.findNode(REFERENCE_LABEL, ID_KEY, bioactivity.actRefId), "HAS_REFERENCE");
-        }
-    }
-
-    private void addDiseaseOntology(final Workspace workspace, final Graph g) throws ExporterException {
-        final Map<String, Long> doIdNodeIdMap = new HashMap<>();
-        for (final Doid doTerm : parseTsvFile(workspace, Doid.class, "doid.tsv"))
-            doIdNodeIdMap.put(doTerm.doId, g.addNodeFromModel(doTerm).getId());
-        for (final DoidXref xref : parseTsvFile(workspace, DoidXref.class, "doid_xref.tsv")) {
-            final Node node = g.addNodeFromModel(xref);
-            g.addEdge(doIdNodeIdMap.get(xref.doid), node, "HAS_XREF");
         }
     }
 

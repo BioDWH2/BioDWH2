@@ -132,7 +132,7 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
                 case "T048": // Mental or Behavioral Dysfunction
                     description = new NodeMappingDescription(NodeMappingDescription.NodeType.DISEASE);
                     description.addNames(node.getProperty("concept_name"), node.getProperty("snomed_full_name"));
-                    description.addIdentifier(IdentifierType.SNOMED_CT, node.<String>getProperty("snomed_concept_id"));
+                    description.addIdentifier(IdentifierType.SNOMED_CT, node.<Long>getProperty("snomed_concept_id"));
                     description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("umls_cui"));
                     return new NodeMappingDescription[]{description};
             }
