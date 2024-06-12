@@ -9,6 +9,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Set;
 
+import static de.unibi.agbi.biodwh2.hpo.etl.HPOGraphExporter.*;
+
 public final class HPOMappingDescriber extends MappingDescriber {
     public HPOMappingDescriber(final DataSource dataSource) {
         super(dataSource);
@@ -16,9 +18,9 @@ public final class HPOMappingDescriber extends MappingDescriber {
 
     @Override
     public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
-        if (HPOGraphExporter.GENE_LABEL.equals(localMappingLabel))
+        if (GENE_LABEL.equals(localMappingLabel))
             return describeGene(node);
-        if (HPOGraphExporter.DISEASE_LABEL.equals(localMappingLabel))
+        if (DISEASE_LABEL.equals(localMappingLabel))
             return describeDisease(node);
         return null;
     }
@@ -51,7 +53,7 @@ public final class HPOMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{HPOGraphExporter.GENE_LABEL, HPOGraphExporter.DISEASE_LABEL};
+        return new String[]{GENE_LABEL, DISEASE_LABEL};
     }
 
     @Override
@@ -63,11 +65,9 @@ public final class HPOMappingDescriber extends MappingDescriber {
 
     @Override
     protected PathMapping[] getEdgePathMappings() {
-        return new PathMapping[]{
-                new PathMapping().add(HPOGraphExporter.GENE_LABEL, HPOGraphExporter.ASSOCIATED_WITH_LABEL,
-                                      HPOGraphExporter.ASSOCIATION_LABEL, EdgeDirection.FORWARD).add(
-                        HPOGraphExporter.ASSOCIATION_LABEL, HPOGraphExporter.ASSOCIATED_WITH_LABEL,
-                        HPOGraphExporter.DISEASE_LABEL, EdgeDirection.BACKWARD)
-        };
+        final var geneDiseaseAssociationPath = new PathMapping();
+        geneDiseaseAssociationPath.add(GENE_LABEL, ASSOCIATED_WITH_LABEL, ASSOCIATION_LABEL, EdgeDirection.FORWARD);
+        geneDiseaseAssociationPath.add(ASSOCIATION_LABEL, ASSOCIATED_WITH_LABEL, DISEASE_LABEL, EdgeDirection.BACKWARD);
+        return new PathMapping[]{geneDiseaseAssociationPath};
     }
 }

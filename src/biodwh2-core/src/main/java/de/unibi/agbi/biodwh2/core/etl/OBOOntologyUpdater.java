@@ -9,6 +9,7 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 
 import java.io.IOException;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,10 +30,15 @@ public abstract class OBOOntologyUpdater<D extends DataSource> extends Updater<D
     }
 
     private Version getVersionFromDownloadFile() throws IOException {
+        return getVersionFromOBOUrl(getDownloadUrl(), this::getVersionFromDataVersionLine);
+    }
+
+    public static Version getVersionFromOBOUrl(final String url,
+                                               final Function<String, Version> dataVersionParser) throws IOException {
         String dateLine = null;
         String dataVersionLine = null;
         String line;
-        try (final var stream = HTTPClient.getUrlInputStream(getDownloadUrl());
+        try (final var stream = HTTPClient.getUrlInputStream(url);
              final var bufferedReader = FileUtils.createBufferedReaderFromStream(stream.stream)) {
             while ((line = bufferedReader.readLine()) != null) {
                 final String trimmedLine = line.trim();
@@ -45,7 +51,7 @@ public abstract class OBOOntologyUpdater<D extends DataSource> extends Updater<D
             }
         }
         if (dataVersionLine != null)
-            return getVersionFromDataVersionLine(dataVersionLine);
+            return dataVersionParser.apply(dataVersionLine);
         if (dateLine != null)
             return getVersionFromDate(dateLine);
         return null;
@@ -55,7 +61,7 @@ public abstract class OBOOntologyUpdater<D extends DataSource> extends Updater<D
 
     protected abstract Version getVersionFromDataVersionLine(final String dataVersion);
 
-    private Version getVersionFromDate(final String date) {
+    private static Version getVersionFromDate(final String date) {
         final Matcher matcher = DATE_PATTERN.matcher(date);
         if (matcher.find())
             return new Version(Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(2)),

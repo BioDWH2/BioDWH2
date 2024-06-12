@@ -47,11 +47,11 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
                 directoryPath.toString().replace("\\", "/"));
         for (final HTTPFTPClient.Entry entry : entries)
             if (entry.name.equals(filePath.getFileName().toString()))
-                return getVersionForFileName(entry);
+                return getVersionForEntry(entry);
         return null;
     }
 
-    private static Version getVersionForFileName(final HTTPFTPClient.Entry entry) {
+    public static Version getVersionForEntry(final HTTPFTPClient.Entry entry) {
         final String date = StringUtils.split(entry.modificationDate, " ", 2)[0];
         if (date.contains("-")) {
             final String[] dateParts = StringUtils.split(date, "-", 3);

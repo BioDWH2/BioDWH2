@@ -1,16 +1,13 @@
 package de.unibi.agbi.biodwh2.hpo;
 
-import de.unibi.agbi.biodwh2.core.DataSourcePropertyType;
-import de.unibi.agbi.biodwh2.core.DevelopmentState;
-import de.unibi.agbi.biodwh2.core.OntologyDataSource;
-import de.unibi.agbi.biodwh2.core.etl.*;
-import de.unibi.agbi.biodwh2.hpo.etl.HPOGraphExporter;
-import de.unibi.agbi.biodwh2.hpo.etl.HPOMappingDescriber;
-import de.unibi.agbi.biodwh2.hpo.etl.HPOUpdater;
+import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
+import de.unibi.agbi.biodwh2.core.model.Version;
 
-import java.util.Map;
+public class HPODataSource extends SingleOBOOntologyDataSource {
+    static final String OBO_FILE_NAME = "hp.obo";
+    public static final String DOWNLOAD_URL =
+            "https://raw.githubusercontent.com/obophenotype/human-phenotype-ontology/master/" + OBO_FILE_NAME;
 
-public class HPODataSource extends OntologyDataSource {
     @Override
     public String getId() {
         return "HPO";
@@ -27,34 +24,23 @@ public class HPODataSource extends OntologyDataSource {
     }
 
     @Override
-    public DevelopmentState getDevelopmentState() {
-        return DevelopmentState.Usable;
+    protected String getDownloadUrl() {
+        return DOWNLOAD_URL;
     }
 
     @Override
-    public Updater<HPODataSource> getUpdater() {
-        return new HPOUpdater(this);
+    protected String getTargetFileName() {
+        return OBO_FILE_NAME;
     }
 
     @Override
-    protected Parser<HPODataSource> getParser() {
-        return new PassThroughParser<>(this);
+    protected Version getVersionFromDataVersionLine(final String dataVersion) {
+        return versionFromDataVersionLine(dataVersion);
     }
 
-    @Override
-    protected GraphExporter<HPODataSource> getGraphExporter() {
-        return new HPOGraphExporter(this);
-    }
-
-    @Override
-    public MappingDescriber getMappingDescriber() {
-        return new HPOMappingDescriber(this);
-    }
-
-    @Override
-    public Map<String, DataSourcePropertyType> getAvailableProperties() {
-        final Map<String, DataSourcePropertyType> result = super.getAvailableProperties();
-        result.put("omimLicensed", DataSourcePropertyType.BOOLEAN);
-        return result;
+    public static Version versionFromDataVersionLine(final String dataVersion) {
+        final String[] versionParts = dataVersion.split("hp/releases/")[1].split("-");
+        return new Version(Integer.parseInt(versionParts[0]), Integer.parseInt(versionParts[1]),
+                           Integer.parseInt(versionParts[2]));
     }
 }

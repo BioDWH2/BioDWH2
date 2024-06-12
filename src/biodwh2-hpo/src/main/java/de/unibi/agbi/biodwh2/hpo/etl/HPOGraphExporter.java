@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.hpo.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.OntologyGraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
@@ -9,7 +10,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.EdgeBuilder;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
-import de.unibi.agbi.biodwh2.hpo.HPODataSource;
+import de.unibi.agbi.biodwh2.hpo.HPOAnnotationsDataSource;
 import de.unibi.agbi.biodwh2.hpo.model.EvidenceCode;
 import de.unibi.agbi.biodwh2.hpo.model.PhenotypeAnnotation;
 import de.unibi.agbi.biodwh2.hpo.model.PhenotypeToGenesEntry;
@@ -18,7 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.util.*;
 
-public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource> {
+public final class HPOGraphExporter extends GraphExporter<HPOAnnotationsDataSource> {
     static final String GENE_LABEL = "Gene";
     static final String DISEASE_LABEL = "Disease";
     static final String ASSOCIATION_LABEL = "Association";
@@ -26,18 +27,13 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
 
     private boolean omimLicensed = false;
 
-    public HPOGraphExporter(final HPODataSource dataSource) {
+    public HPOGraphExporter(final HPOAnnotationsDataSource dataSource) {
         super(dataSource);
     }
 
     @Override
     public long getExportVersion() {
-        return 5 + super.getExportVersion();
-    }
-
-    @Override
-    protected String getOntologyFileName() {
-        return HPOUpdater.PHENOTYPES_FILE_NAME;
+        return 1;
     }
 
     @Override
@@ -45,10 +41,11 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
         graph.addIndex(IndexDescription.forNode(GENE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(DISEASE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         omimLicensed = dataSource.getBooleanProperty(workspace, "omimLicensed");
-        return super.exportGraph(workspace, graph) && exportAnnotations(workspace, graph);
+        exportAnnotations(workspace, graph);
+        return true;
     }
 
-    private boolean exportAnnotations(final Workspace workspace, final Graph graph) throws ExporterException {
+    private void exportAnnotations(final Workspace workspace, final Graph graph) throws ExporterException {
         try {
             FileUtils.openTsvWithHeader(workspace, dataSource, HPOUpdater.ANNOTATIONS_FILE_NAME,
                                         PhenotypeAnnotation.class, (entry) -> exportPhenotypeAnnotation(graph, entry));
@@ -65,11 +62,10 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
             throw new ExporterFormatException("Failed to export HPO annotations", e);
         }
         graph.endEdgeIndicesDelay(ASSOCIATED_WITH_LABEL);
-        return true;
     }
 
     private void exportPhenotypeAnnotation(final Graph graph, final PhenotypeAnnotation entry) {
-        final Node termNode = graph.findNode(TERM_LABEL, ID_KEY, entry.hpoId);
+        final Node termNode = graph.findNode(OntologyGraphExporter.TERM_LABEL, ID_KEY, entry.hpoId);
         // If referencing an obsolete term excluded via config file, just skip this annotation
         if (termNode == null || !isPhenotypeAnnotationAllowed(entry))
             return;
@@ -112,7 +108,7 @@ public final class HPOGraphExporter extends OntologyGraphExporter<HPODataSource>
 
     private void exportPhenotypeGeneAssociation(final Graph graph, final PhenotypeToGenesEntry entry,
                                                 final Map<Long, Map<Long, Long>> associationNodeMap) {
-        final Node termNode = graph.findNode(TERM_LABEL, ID_KEY, entry.hpoId);
+        final Node termNode = graph.findNode(OntologyGraphExporter.TERM_LABEL, ID_KEY, entry.hpoId);
         // If referencing an obsolete term excluded via config file, just skip this annotation
         if (termNode == null)
             return;

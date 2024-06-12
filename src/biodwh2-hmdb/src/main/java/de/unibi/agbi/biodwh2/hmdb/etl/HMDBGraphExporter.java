@@ -95,7 +95,7 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
                 while ((token = parser.nextToken()) != null)
                     if (token.isStructStart()) {
                         if (counter[0] % 1_000 == 0 && LOGGER.isInfoEnabled())
-                            LOGGER.info("Exporting proteins progress " + counter[0]);
+                            LOGGER.info("Exporting proteins progress {}", counter[0]);
                         counter[0]++;
                         exportProtein(graph, xmlMapper.readValue(parser, Protein.class));
                     }
@@ -244,7 +244,7 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
                 while ((token = parser.nextToken()) != null)
                     if (token.isStructStart()) {
                         if (counter[0] % 10_000 == 0 && LOGGER.isInfoEnabled())
-                            LOGGER.info("Exporting metabolites progress " + counter[0]);
+                            LOGGER.info("Exporting metabolites progress {}", counter[0]);
                         counter[0]++;
                         exportMetabolite(graph, xmlMapper.readValue(parser, Metabolite.class));
                     }
