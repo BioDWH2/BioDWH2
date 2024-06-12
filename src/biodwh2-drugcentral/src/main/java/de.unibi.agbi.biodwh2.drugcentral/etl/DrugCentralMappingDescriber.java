@@ -114,7 +114,7 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
                 case "T007": // Bacterium
                     description = new NodeMappingDescription(NodeMappingDescription.NodeType.TAXON);
                     description.addNames(node.getProperty("concept_name"), node.getProperty("snomed_full_name"));
-                    description.addIdentifier(IdentifierType.SNOMED_CT, node.<String>getProperty("snomed_concept_id"));
+                    description.addIdentifier(IdentifierType.SNOMED_CT, node.<Long>getProperty("snomed_concept_id"));
                     description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("umls_cui"));
                     return new NodeMappingDescription[]{description};
                 case "T167": // Substance
@@ -124,7 +124,7 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
                 case "T130": // Indicator, Reagent, or Diagnostic Aid
                     description = new NodeMappingDescription(NodeMappingDescription.NodeType.COMPOUND);
                     description.addNames(node.getProperty("concept_name"), node.getProperty("snomed_full_name"));
-                    description.addIdentifier(IdentifierType.SNOMED_CT, node.<String>getProperty("snomed_concept_id"));
+                    description.addIdentifier(IdentifierType.SNOMED_CT, node.<Long>getProperty("snomed_concept_id"));
                     description.addIdentifier(IdentifierType.UMLS_CUI, node.<String>getProperty("umls_cui"));
                     return new NodeMappingDescription[]{description};
                 case "T047": // Disease or Syndrome
