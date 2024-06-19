@@ -38,6 +38,11 @@ public class HPODataSource extends SingleOBOOntologyDataSource {
         return versionFromDataVersionLine(dataVersion);
     }
 
+    @Override
+    public String getIdPrefix() {
+        return "HP";
+    }
+
     public static Version versionFromDataVersionLine(final String dataVersion) {
         final String[] versionParts = dataVersion.split("hp/releases/")[1].split("-");
         return new Version(Integer.parseInt(versionParts[0]), Integer.parseInt(versionParts[1]),

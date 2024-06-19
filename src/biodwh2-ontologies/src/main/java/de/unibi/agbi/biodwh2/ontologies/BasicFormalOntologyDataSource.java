@@ -23,4 +23,9 @@ public class BasicFormalOntologyDataSource extends OBOFoundryOntologyDataSource 
                                Integer.parseInt(matcher.group(3)));
         return null;
     }
+
+    @Override
+    public String getIdPrefix() {
+        return "BFO";
+    }
 }

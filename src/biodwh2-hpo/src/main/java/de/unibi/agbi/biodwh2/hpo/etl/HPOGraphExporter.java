@@ -2,7 +2,6 @@ package de.unibi.agbi.biodwh2.hpo.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
-import de.unibi.agbi.biodwh2.core.etl.OntologyGraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
@@ -65,12 +64,11 @@ public final class HPOGraphExporter extends GraphExporter<HPOAnnotationsDataSour
     }
 
     private void exportPhenotypeAnnotation(final Graph graph, final PhenotypeAnnotation entry) {
-        final Node termNode = graph.findNode(OntologyGraphExporter.TERM_LABEL, ID_KEY, entry.hpoId);
-        // If referencing an obsolete term excluded via config file, just skip this annotation
-        if (termNode == null || !isPhenotypeAnnotationAllowed(entry))
+        final Long termNodeId = getOrCreateOntologyProxyTerm(graph, entry.hpoId);
+        if (termNodeId == null || !isPhenotypeAnnotationAllowed(entry))
             return;
         final Node diseaseNode = getOrCreateDiseaseNode(graph, entry.databaseId, entry.diseaseName);
-        final EdgeBuilder builder = graph.buildEdge().fromNode(termNode).toNode(diseaseNode);
+        final EdgeBuilder builder = graph.buildEdge().fromNode(termNodeId).toNode(diseaseNode);
         builder.withLabel("NOT".equalsIgnoreCase(entry.qualifier) ? "NOT_ASSOCIATED_WITH" : ASSOCIATED_WITH_LABEL);
         builder.withPropertyIfNotNull("reference", entry.reference);
         builder.withPropertyIfNotNull("evidence", entry.evidence.name());
@@ -108,18 +106,17 @@ public final class HPOGraphExporter extends GraphExporter<HPOAnnotationsDataSour
 
     private void exportPhenotypeGeneAssociation(final Graph graph, final PhenotypeToGenesEntry entry,
                                                 final Map<Long, Map<Long, Long>> associationNodeMap) {
-        final Node termNode = graph.findNode(OntologyGraphExporter.TERM_LABEL, ID_KEY, entry.hpoId);
-        // If referencing an obsolete term excluded via config file, just skip this annotation
-        if (termNode == null)
+        final Long termNodeId = getOrCreateOntologyProxyTerm(graph, entry.hpoId);
+        if (termNodeId == null)
             return;
-        final Map<Long, Long> geneAssociationNodeMap = associationNodeMap.computeIfAbsent(termNode.getId(),
+        final Map<Long, Long> geneAssociationNodeMap = associationNodeMap.computeIfAbsent(termNodeId,
                                                                                           (hpoId) -> new HashMap<>());
         final Node geneNode = getOrCreateGeneNode(graph, entry.ncbiGeneId, entry.geneSymbol);
         Long associationNodeId = geneAssociationNodeMap.get(geneNode.getId());
         if (associationNodeId == null) {
             associationNodeId = graph.addNode(ASSOCIATION_LABEL).getId();
             geneAssociationNodeMap.put(geneNode.getId(), associationNodeId);
-            graph.addEdge(termNode, associationNodeId, ASSOCIATED_WITH_LABEL);
+            graph.addEdge(termNodeId, associationNodeId, ASSOCIATED_WITH_LABEL);
             graph.addEdge(geneNode, associationNodeId, ASSOCIATED_WITH_LABEL);
         }
         if (StringUtils.isNotEmpty(entry.diseaseId)) {

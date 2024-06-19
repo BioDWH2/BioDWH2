@@ -33,4 +33,9 @@ public class MolecularInteractionsOntologyDataSource extends SingleOBOOntologyDa
         // Currently, there is no data-version line in the mi.obo
         return null;
     }
+
+    @Override
+    public String getIdPrefix() {
+        return "MI";
+    }
 }

@@ -57,7 +57,7 @@ public class ChEBIGraphExporter extends GraphExporter<ChEBIDataSource> {
             LOGGER.info("Collecting compound InChI...");
         final Map<Integer, String> result = new HashMap<>();
         try {
-            FileUtils.openTsvWithHeader(workspace, dataSource, ChEBIUpdater.INCHI_FILE_NAME, ChEBIIdIchi.class,
+            FileUtils.openTsvWithHeader(workspace, dataSource, ChEBIUpdater.INCHI_FILE_NAME, ChEBIIdInchi.class,
                                         (entry) -> result.put(entry.chebiId, entry.inchi));
         } catch (IOException e) {
             throw new ExporterException("Failed to export '" + ChEBIUpdater.INCHI_FILE_NAME + "'", e);

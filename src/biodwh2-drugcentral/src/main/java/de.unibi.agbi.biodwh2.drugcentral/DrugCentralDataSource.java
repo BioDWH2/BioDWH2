@@ -44,11 +44,6 @@ public class DrugCentralDataSource extends DataSource {
     }
 
     @Override
-    public String[] getDependencies() {
-        return new String[]{"GeneOntology", "DiseaseOntology"};
-    }
-
-    @Override
     public Updater<DrugCentralDataSource> getUpdater() {
         return new DrugCentralUpdater(this);
     }

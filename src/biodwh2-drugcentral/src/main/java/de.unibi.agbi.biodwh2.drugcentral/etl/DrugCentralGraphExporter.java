@@ -311,9 +311,9 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
                     final var doids = snomedConceptIdToDOIdMap.get(relationship.snomedConceptId);
                     if (doids != null) {
                         for (final var doid : doids) {
-                            final var termNode = g.findNode("Term", ID_KEY, doid);
-                            if (termNode != null)
-                                g.addEdge(conceptNode, termNode, "HAS_DO_TERM");
+                            final Long termNodeId = getOrCreateOntologyProxyTerm(g, doid);
+                            if (termNodeId != null)
+                                g.addEdge(conceptNode, termNodeId, "HAS_DO_TERM");
                         }
                     }
                 }
@@ -417,9 +417,9 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
         for (final TargetComponent component : parseTsvFile(workspace, TargetComponent.class, "target_component.tsv"))
             componentIdNodeIdMap.put(component.id, g.addNodeFromModel(component).getId());
         for (final Tdgo2Tc link : parseTsvFile(workspace, Tdgo2Tc.class, "tdgo2tc.tsv")) {
-            final Node goTermNode = g.findNode("Term", ID_KEY, link.goId);
-            if (goTermNode != null)
-                g.addEdge(componentIdNodeIdMap.get(link.componentId), goTermNode, "HAS_GO_TERM");
+            final Long termNodeId = getOrCreateOntologyProxyTerm(g, link.goId);
+            if (termNodeId != null)
+                g.addEdge(componentIdNodeIdMap.get(link.componentId), termNodeId, "HAS_GO_TERM");
         }
         for (final Tdkey2Tc link : parseTsvFile(workspace, Tdkey2Tc.class, "tdkey2tc.tsv"))
             g.addEdge(componentIdNodeIdMap.get(link.componentId), keywordIdNodeIdMap.get(link.tdKeyId), "HAS_KEYWORD");

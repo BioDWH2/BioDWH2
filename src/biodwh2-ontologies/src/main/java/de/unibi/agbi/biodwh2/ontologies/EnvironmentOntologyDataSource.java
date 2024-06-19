@@ -8,28 +8,28 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
-public class PlantStressOntologyDataSource extends SingleOBOOntologyDataSource {
+public class EnvironmentOntologyDataSource extends SingleOBOOntologyDataSource {
     private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})");
-    private static final String FILE_NAME = "pso-full.obo";
+    private static final String FILE_NAME = "envo.obo";
 
     @Override
     public String getId() {
-        return "PlantStressOntology";
+        return "EnvironmentOntology";
     }
 
     @Override
     public String getFullName() {
-        return "Plant Stress Ontology (PSO)";
+        return "Environment Ontology (ENVO)";
     }
 
     @Override
     public String getLicense() {
-        return License.CC_BY_4_0.getName();
+        return License.CC0_1_0.getName();
     }
 
     @Override
     protected String getDownloadUrl() {
-        return "https://raw.githubusercontent.com/Planteome/plant-stress-ontology/master/" + FILE_NAME;
+        return "https://purl.obolibrary.org/obo/" + FILE_NAME;
     }
 
     @Override
@@ -48,6 +48,6 @@ public class PlantStressOntologyDataSource extends SingleOBOOntologyDataSource {
 
     @Override
     public String getIdPrefix() {
-        return "PSO";
+        return "ENVO";
     }
 }

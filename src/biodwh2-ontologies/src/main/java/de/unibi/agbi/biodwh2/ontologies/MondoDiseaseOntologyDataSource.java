@@ -53,4 +53,9 @@ public class MondoDiseaseOntologyDataSource extends SingleOBOOntologyDataSource 
                                Integer.parseInt(matcher.group(3)));
         return null;
     }
+
+    @Override
+    public String getIdPrefix() {
+        return "MONDO";
+    }
 }

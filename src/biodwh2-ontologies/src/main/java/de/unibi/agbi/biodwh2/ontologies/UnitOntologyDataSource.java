@@ -40,4 +40,9 @@ public class UnitOntologyDataSource extends SingleOBOOntologyDataSource {
                                Integer.parseInt(matcher.group(3)));
         return null;
     }
+
+    @Override
+    public String getIdPrefix() {
+        return "UO";
+    }
 }

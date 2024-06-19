@@ -9,4 +9,6 @@ public abstract class OntologyDataSource extends DataSource {
         result.put("ignoreObsolete", DataSourcePropertyType.BOOLEAN);
         return result;
     }
+
+    public abstract String getIdPrefix();
 }

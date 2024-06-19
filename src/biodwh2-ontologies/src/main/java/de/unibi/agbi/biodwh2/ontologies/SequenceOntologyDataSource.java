@@ -32,6 +32,11 @@ public class SequenceOntologyDataSource extends SingleOBOOntologyDataSource {
     }
 
     @Override
+    public String getIdPrefix() {
+        return "SO";
+    }
+
+    @Override
     protected String getTargetFileName() {
         return FILE_NAME;
     }

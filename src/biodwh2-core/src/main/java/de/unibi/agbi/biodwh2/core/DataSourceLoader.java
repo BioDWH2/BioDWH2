@@ -56,19 +56,10 @@ public final class DataSourceLoader {
         while (!remainingIds.isEmpty()) {
             for (final String id : remainingIds) {
                 final DataSource dataSource = getDataSourceById(id);
-                if (dataSource != null) {
+                if (dataSource != null)
                     result.put(id, dataSource);
-                    final String[] dependencyIds = dataSource.getDependencies();
-                    if (dependencyIds != null) {
-                        for (final String dependencyId : dependencyIds) {
-                            if (!result.containsKey(dependencyId)) {
-                                result.put(dependencyId, null);
-                            }
-                        }
-                    }
-                } else {
+                else
                     failedDataSourceIds.add(id);
-                }
             }
             remainingIds.clear();
             remainingIds.addAll(

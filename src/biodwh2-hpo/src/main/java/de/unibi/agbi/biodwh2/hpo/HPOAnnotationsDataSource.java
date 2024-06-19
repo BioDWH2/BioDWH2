@@ -32,11 +32,6 @@ public class HPOAnnotationsDataSource extends DataSource {
     }
 
     @Override
-    public String[] getDependencies() {
-        return new String[]{"HPO"};
-    }
-
-    @Override
     public Updater<HPOAnnotationsDataSource> getUpdater() {
         return new HPOUpdater(this);
     }

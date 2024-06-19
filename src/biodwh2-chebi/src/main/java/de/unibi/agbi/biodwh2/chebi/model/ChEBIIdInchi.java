@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({"CHEBI_ID", "InChI"})
-public class ChEBIIdIchi {
+public class ChEBIIdInchi {
     @JsonProperty("CHEBI_ID")
     public Integer chebiId;
     @JsonProperty("InChI")

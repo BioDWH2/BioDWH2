@@ -50,7 +50,7 @@ public class GeneOntologyGraphExporter extends GraphExporter<GeneOntologyAnnotat
     private void exportAnnotationsFile(final Workspace workspace, final Graph graph,
                                        final String fileName) throws IOException {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Exporting annotations file '" + fileName + "'...");
+            LOGGER.info("Exporting annotations file '{}'...", fileName);
         try (final MappingIterator<GAFEntry> entries = FileUtils.openGzipTsv(workspace, dataSource, fileName,
                                                                              GAFEntry.class)) {
             while (entries.hasNext()) {
@@ -62,9 +62,9 @@ public class GeneOntologyGraphExporter extends GraphExporter<GeneOntologyAnnotat
     }
 
     private void exportAnnotation(final Graph graph, final GAFEntry entry) {
-        final Node termNode = graph.findNode("Term", ID_KEY, entry.goId);
+        final Long termNodeId = getOrCreateOntologyProxyTerm(graph, entry.goId);
         // If referencing an obsolete term excluded via config file, just skip this annotation
-        if (termNode == null)
+        if (termNodeId == null)
             return;
         final Node databaseObject = getOrCreateDatabaseObject(graph, entry);
         final String[] qualifierParts = StringUtils.split(entry.qualifier, '|');
@@ -73,7 +73,7 @@ public class GeneOntologyGraphExporter extends GraphExporter<GeneOntologyAnnotat
             qualifier = qualifierParts[0].toUpperCase(Locale.US) + "_" + qualifierParts[1].toUpperCase(Locale.US);
         else
             qualifier = qualifierParts[0].toUpperCase(Locale.US);
-        final EdgeBuilder builder = graph.buildEdge().fromNode(databaseObject).toNode(termNode).withLabel(qualifier);
+        final EdgeBuilder builder = graph.buildEdge().fromNode(databaseObject).toNode(termNodeId).withLabel(qualifier);
         builder.withProperty("references", StringUtils.split(entry.dbReference, '|'));
         final String[] taxa = StringUtils.split(entry.taxon, '|');
         builder.withProperty("taxon", taxa[0]);

@@ -11,6 +11,7 @@ import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.model.WorkspaceFileType;
+import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
@@ -18,13 +19,16 @@ import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
 import de.unibi.agbi.biodwh2.core.text.TextUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public final class GraphMerger {
@@ -33,6 +37,7 @@ public final class GraphMerger {
 
     public void merge(final Workspace workspace, final DataSource[] dataSources) throws MergerException {
         final long start = System.currentTimeMillis();
+        final Map<String, String> termIdPrefixOntologyIdMap = getAvailableOntologyPrefixes(dataSources);
         final Map<String, DataSourceMetadata> requestedStatus = getRequestedMergeStatus(dataSources);
         final Map<String, DataSourceMetadata> previousStatus = getPreviousMergeStatus(workspace);
         if (isPreviousMergeStatusUsable(requestedStatus, previousStatus)) {
@@ -46,8 +51,28 @@ public final class GraphMerger {
         } else {
             mergeFromScratch(workspace, dataSources);
         }
+        try (final Graph mergedGraph = new Graph(workspace.getFilePath(WorkspaceFileType.MERGED_PERSISTENT_GRAPH),
+                                                 true)) {
+            resolveOntologyProxyTerms(mergedGraph, termIdPrefixOntologyIdMap);
+            saveMergedGraph(workspace, mergedGraph);
+            generateMetaGraphStatistics(mergedGraph, workspace);
+        } catch (final Exception ex) {
+            throw new MergerException(ex);
+        }
         final long stop = System.currentTimeMillis();
         LOGGER.info("Merging finished within {}", DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
+    }
+
+    private Map<String, String> getAvailableOntologyPrefixes(DataSource[] dataSources) {
+        final Map<String, String> result = new HashMap<>();
+        for (final DataSource dataSource : dataSources) {
+            if (dataSource instanceof OntologyDataSource) {
+                final var idPrefix = ((OntologyDataSource) dataSource).getIdPrefix();
+                if (idPrefix != null)
+                    result.put(idPrefix, dataSource.getId());
+            }
+        }
+        return result;
     }
 
     private Map<String, DataSourceMetadata> getRequestedMergeStatus(final DataSource[] dataSources) {
@@ -87,51 +112,37 @@ public final class GraphMerger {
 
     private boolean isPreviousMergeStatusUsable(final Map<String, DataSourceMetadata> requestedStatus,
                                                 final Map<String, DataSourceMetadata> previousStatus) {
-        // TODO: currently not usable due to dependencies
-        return false;
-        // final Set<String> intersection = new HashSet<>(requestedStatus.keySet());
-        // intersection.retainAll(previousStatus.keySet());
-        // // If we have a previous state and any intersection between old and newly requested data sources, it's usable
-        // return !previousStatus.isEmpty() && !intersection.isEmpty();
+        final Set<String> intersection = new HashSet<>(requestedStatus.keySet());
+        intersection.retainAll(previousStatus.keySet());
+        // If we have a previous state and any intersection between old and newly requested data sources, it's usable
+        return !previousStatus.isEmpty() && !intersection.isEmpty();
     }
 
     private void mergeFromScratch(final Workspace workspace, final DataSource[] dataSources) throws MergerException {
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Creating new merged graph from scratch");
-        try (Graph mergedGraph = new Graph(workspace.getFilePath(WorkspaceFileType.MERGED_PERSISTENT_GRAPH))) {
-            final Map<Long, Long> dependencyNodeIdMap = new HashMap<>();
+        try (final Graph mergedGraph = new Graph(workspace.getFilePath(WorkspaceFileType.MERGED_PERSISTENT_GRAPH))) {
             for (final DataSource dataSource : dataSources)
-                mergeDataSource(workspace, dataSource, mergedGraph, dependencyNodeIdMap);
-            saveMergedGraph(workspace, mergedGraph);
-            generateMetaGraphStatistics(mergedGraph, workspace);
+                mergeDataSource(workspace, dataSource, mergedGraph);
         } catch (final Exception ex) {
             throw new MergerException(ex);
         }
     }
 
-    private void mergeDataSource(final Workspace workspace, final DataSource dataSource, final Graph mergedGraph,
-                                 final Map<Long, Long> dependencyNodeIdMap) throws MergerException {
+    private void mergeDataSource(final Workspace workspace, final DataSource dataSource,
+                                 final Graph mergedGraph) throws MergerException {
         final Path intermediateGraphFilePath = dataSource.getFilePath(workspace, DataSourceFileType.PERSISTENT_GRAPH);
         if (!intermediateGraphFilePath.toFile().exists())
             throw new MergerException(
                     "Failed to merge data source " + dataSource.getId() + " because the exported graph is missing");
-        try (Graph databaseToMerge = new Graph(intermediateGraphFilePath, true, true)) {
+        try (final Graph databaseToMerge = new Graph(intermediateGraphFilePath, true, true)) {
             final long numberOfNodes = databaseToMerge.getNumberOfNodes();
             final long numberOfEdges = databaseToMerge.getNumberOfEdges();
             if (LOGGER.isInfoEnabled())
                 LOGGER.info("Merging data source '{}' [{} nodes, {} edges]", dataSource.getId(), numberOfNodes,
                             numberOfEdges);
-            if (dataSource instanceof OntologyDataSource) {
-                final var mapping = mergedGraph.mergeDatabase(dataSource.getId(), databaseToMerge,
-                                                              getNodeProgressLogger(numberOfNodes),
-                                                              getEdgeProgressLogger(numberOfEdges));
-                dependencyNodeIdMap.putAll(mapping);
-            } else {
-                mergedGraph.mergeDatabaseComplex(dataSource.getId(), databaseToMerge,
-                                                 getNodeProgressLogger(numberOfNodes),
-                                                 getEdgeProgressLogger(numberOfEdges),
-                                                 GraphExporter.DEPENDENCY_NODE_PROPERTY, dependencyNodeIdMap);
-            }
+            mergedGraph.mergeDatabase(dataSource.getId(), databaseToMerge, getNodeProgressLogger(numberOfNodes),
+                                      getEdgeProgressLogger(numberOfEdges), true);
         } catch (GraphCacheException e) {
             throw new MergerException("Failed to merge data source " + dataSource.getId(), e);
         }
@@ -164,6 +175,41 @@ public final class GraphMerger {
         builder.withPropertyIfNotNull("license", dataSource.getLicense());
         builder.withPropertyIfNotNull("license_url", dataSource.getLicenseUrl());
         builder.build();
+    }
+
+    private void resolveOntologyProxyTerms(final Graph graph, final Map<String, String> termIdPrefixOntologyIdMap) {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Resolving ontology proxy terms");
+        for (final var nodeLabel : graph.getNodeLabels()) {
+            final var nodeProperties = graph.getPropertyKeyTypesForNodeLabel(nodeLabel);
+            if (nodeProperties.containsKey(OntologyGraphExporter.IS_PROXY_KEY)) {
+                for (final var node : graph.getNodes(nodeLabel)) {
+                    if (node.hasProperty(OntologyGraphExporter.IS_PROXY_KEY)) {
+                        final String id = node.getProperty(GraphExporter.ID_KEY);
+                        final String idPrefix = StringUtils.split(id, ":", 2)[0];
+                        if (termIdPrefixOntologyIdMap.containsKey(idPrefix)) {
+                            final String resolvedTermLabel = termIdPrefixOntologyIdMap.get(idPrefix) +
+                                                             Graph.LABEL_PREFIX_SEPARATOR +
+                                                             OntologyGraphExporter.TERM_LABEL;
+                            final Node resolvedTermNode = graph.findNode(resolvedTermLabel, GraphExporter.ID_KEY, id);
+                            if (resolvedTermNode != null) {
+                                // TODO: remove edges between two proxy nodes
+                                for (final var edge : graph.findEdges(Edge.FROM_ID_FIELD, node.getId())) {
+                                    edge.setProperty(Edge.FROM_ID_FIELD, resolvedTermNode.getId());
+                                    graph.update(edge);
+                                }
+                                for (final var edge : graph.findEdges(Edge.TO_ID_FIELD, node.getId())) {
+                                    edge.setProperty(Edge.TO_ID_FIELD, resolvedTermNode.getId());
+                                    graph.update(edge);
+                                }
+                                graph.removeNode(node);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // TODO: remove index if was only proxy terms
     }
 
     private void saveMergedGraph(final Workspace workspace, final Graph mergedGraph) {
@@ -218,7 +264,7 @@ public final class GraphMerger {
             LOGGER.info("Creating merged graph from previous status");
         try (Graph mergedGraph = new Graph(workspace.getFilePath(WorkspaceFileType.MERGED_PERSISTENT_GRAPH), true)) {
             final Map<Long, Long> dependencyNodeIdMap = new HashMap<>();
-            // TODO: re-merge dependencies
+            // TODO: validate with ontology proxy term resolution
             // First, remove all previous states which are not requested anymore
             for (final String id : previousStatus.keySet())
                 if (!requestedStatus.containsKey(id))
@@ -226,7 +272,7 @@ public final class GraphMerger {
             for (final DataSource dataSource : dataSources) {
                 // Only add newly requested data sources or remove and re-add outdated ones
                 if (!previousStatus.containsKey(dataSource.getId()))
-                    mergeDataSource(workspace, dataSource, mergedGraph, dependencyNodeIdMap);
+                    mergeDataSource(workspace, dataSource, mergedGraph);
                 else {
                     final DataSourceMetadata metadata = previousStatus.get(dataSource.getId());
                     final DataSourceMetadata requestedMetadata = requestedStatus.get(metadata.id);
@@ -235,12 +281,10 @@ public final class GraphMerger {
                         requestedMetadata.exportVersion > metadata.exportVersion || requestedMetadata.version.compareTo(
                             metadata.version) > 0 || workspace.isDataSourceExportForced(dataSource)) {
                         removePreviousDataSourceVersion(mergedGraph, dataSource.getId());
-                        mergeDataSource(workspace, dataSource, mergedGraph, dependencyNodeIdMap);
+                        mergeDataSource(workspace, dataSource, mergedGraph);
                     }
                 }
             }
-            saveMergedGraph(workspace, mergedGraph);
-            generateMetaGraphStatistics(mergedGraph, workspace);
         } catch (final Exception ex) {
             throw new MergerException(ex);
         }

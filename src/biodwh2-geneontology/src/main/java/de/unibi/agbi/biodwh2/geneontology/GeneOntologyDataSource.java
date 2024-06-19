@@ -4,6 +4,7 @@ import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.text.License;
 
+@SuppressWarnings("unused")
 public class GeneOntologyDataSource extends SingleOBOOntologyDataSource {
     private static final String OBO_FILE_NAME = "go.obo";
 
@@ -41,5 +42,10 @@ public class GeneOntologyDataSource extends SingleOBOOntologyDataSource {
         final String[] versionParts = dataVersion.split("releases/")[1].split("-");
         return new Version(Integer.parseInt(versionParts[0]), Integer.parseInt(versionParts[1]),
                            Integer.parseInt(versionParts[2]));
+    }
+
+    @Override
+    public String getIdPrefix() {
+        return "GO";
     }
 }

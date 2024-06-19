@@ -564,28 +564,16 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
             edges.remove(edge);
     }
 
-    public Map<Long, Long> mergeDatabase(final String labelPrefix, final MVStoreGraph databaseToMerge,
-                                         final Consumer<Long> nodeProgressCallback,
-                                         final Consumer<Long> edgeProgressCallback) {
-        return mergeDatabase(labelPrefix, databaseToMerge, nodeProgressCallback, edgeProgressCallback, true, null);
-    }
-
-    public Map<Long, Long> mergeDatabase(final String labelPrefix, final MVStoreGraph databaseToMerge,
-                                         final Consumer<Long> nodeProgressCallback,
-                                         final Consumer<Long> edgeProgressCallback, final boolean resetIds,
-                                         final Map<String, Object> injectedProperties) {
+    public void mergeDatabase(final String labelPrefix, final MVStoreGraph databaseToMerge,
+                              final Consumer<Long> nodeProgressCallback, final Consumer<Long> edgeProgressCallback,
+                              final boolean resetIds) {
         final String dataSourcePrefix = StringUtils.isNotEmpty(labelPrefix) ? labelPrefix + LABEL_PREFIX_SEPARATOR : "";
-        final var mapping = mergeDatabaseNodes(dataSourcePrefix, databaseToMerge, nodeProgressCallback, resetIds,
-                                               injectedProperties, null);
-        mergeDatabaseEdges(dataSourcePrefix, databaseToMerge, edgeProgressCallback, resetIds, injectedProperties,
-                           mapping);
-        return mapping;
+        final var mapping = mergeDatabaseNodes(dataSourcePrefix, databaseToMerge, nodeProgressCallback, resetIds);
+        mergeDatabaseEdges(dataSourcePrefix, databaseToMerge, edgeProgressCallback, resetIds, mapping);
     }
 
     private Map<Long, Long> mergeDatabaseNodes(final String dataSourcePrefix, final MVStoreGraph databaseToMerge,
-                                               final Consumer<Long> nodeProgressCallback, final boolean resetIds,
-                                               final Map<String, Object> injectedProperties,
-                                               final String discardPropertyKey) {
+                                               final Consumer<Long> nodeProgressCallback, final boolean resetIds) {
         for (final String sourceLabel : databaseToMerge.nodeRepositories.keySet()) {
             final String targetLabel = dataSourcePrefix + sourceLabel;
             for (final MVStoreIndex index : databaseToMerge.nodeRepositories.get(sourceLabel).getIndices())
@@ -600,15 +588,10 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
                 counter[0]++;
                 if (nodeProgressCallback != null && counter[0] % 100_000 == 0)
                     nodeProgressCallback.accept(counter[0]);
-                if (discardPropertyKey != null && n.hasProperty(discardPropertyKey))
-                    return;
                 final Long oldId = n.getId();
                 if (resetIds)
                     n.resetId();
                 n.setLabel(targetLabel);
-                if (injectedProperties != null)
-                    for (final var entry : injectedProperties.entrySet())
-                        n.setProperty(entry.getKey(), entry.getValue());
                 targetNodes.put(n);
                 if (resetIds)
                     mapping.put(oldId, n.getId());
@@ -623,7 +606,7 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
 
     private void mergeDatabaseEdges(final String dataSourcePrefix, final MVStoreGraph databaseToMerge,
                                     final Consumer<Long> edgeProgressCallback, final boolean resetIds,
-                                    final Map<String, Object> injectedProperties, final Map<Long, Long> mapping) {
+                                    final Map<Long, Long> mapping) {
         for (final String sourceLabel : databaseToMerge.edgeRepositories.keySet()) {
             final String targetLabel = dataSourcePrefix + sourceLabel;
             for (final MVStoreIndex index : databaseToMerge.edgeRepositories.get(sourceLabel).getIndices())
@@ -643,69 +626,6 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
                     e.setFromId(mapping.get(e.getFromId()));
                     e.setToId(mapping.get(e.getToId()));
                 }
-                e.setLabel(targetLabel);
-                if (injectedProperties != null)
-                    for (final var entry : injectedProperties.entrySet())
-                        e.setProperty(entry.getKey(), entry.getValue());
-                targetEdges.put(e);
-            });
-            endEdgeIndicesDelay(targetLabel);
-        }
-        // Cleanup edge repositories without edges such as remnants of merged dependencies
-        for (final String label : getEdgeLabels())
-            if (getNumberOfEdges(label) == 0)
-                removeEdgeLabel(label);
-    }
-
-    public void mergeDatabaseComplex(final String labelPrefix, final MVStoreGraph databaseToMerge,
-                                     final Consumer<Long> nodeProgressCallback,
-                                     final Consumer<Long> edgeProgressCallback, final String discardPropertyKey,
-                                     final Map<Long, Long> discardedNodeIdMap) {
-        final String dataSourcePrefix = StringUtils.isNotEmpty(labelPrefix) ? labelPrefix + LABEL_PREFIX_SEPARATOR : "";
-        final var mapping = mergeDatabaseNodes(dataSourcePrefix, databaseToMerge, nodeProgressCallback, true, null,
-                                               discardPropertyKey);
-        if (discardedNodeIdMap != null) {
-            final var intersection = new HashSet<>(mapping.entrySet());
-            intersection.retainAll(discardedNodeIdMap.entrySet());
-            if (!intersection.isEmpty()) {
-                System.out.println("ERROR: overlapping node id mappings");
-            }
-        }
-        for (final String sourceLabel : databaseToMerge.edgeRepositories.keySet()) {
-            final String targetLabel = dataSourcePrefix + sourceLabel;
-            for (final MVStoreIndex index : databaseToMerge.edgeRepositories.get(sourceLabel).getIndices())
-                getOrCreateEdgeRepository(targetLabel).getIndex(index.getKey(), index.isArrayIndex(), index.getType());
-        }
-        final long[] counter = new long[]{0};
-        for (final String sourceLabel : databaseToMerge.edgeRepositories.keySet()) {
-            final String targetLabel = dataSourcePrefix + sourceLabel;
-            beginEdgeIndicesDelay(targetLabel);
-            final MVStoreCollection<Edge> targetEdges = getOrCreateEdgeRepository(targetLabel);
-            databaseToMerge.edgeRepositories.get(sourceLabel).fastUnsafeIteration((e) -> {
-                counter[0]++;
-                if (edgeProgressCallback != null && counter[0] % 100_000 == 0)
-                    edgeProgressCallback.accept(counter[0]);
-                if (discardPropertyKey != null && e.hasProperty(discardPropertyKey))
-                    return;
-                e.resetId();
-                Long fromId = mapping.get(e.getFromId());
-                if (fromId == null && discardedNodeIdMap != null)
-                    fromId = discardedNodeIdMap.get(e.getFromId());
-                if (fromId == null) {
-                    // TODO: error
-                    System.out.println("TODO: error edge fromId");
-                    return;
-                }
-                e.setFromId(fromId);
-                Long toId = mapping.get(e.getToId());
-                if (toId == null && discardedNodeIdMap != null)
-                    toId = discardedNodeIdMap.get(e.getToId());
-                if (toId == null) {
-                    // TODO: error
-                    System.out.println("TODO: error edge toId");
-                    return;
-                }
-                e.setToId(toId);
                 e.setLabel(targetLabel);
                 targetEdges.put(e);
             });

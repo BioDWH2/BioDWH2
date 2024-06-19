@@ -58,6 +58,11 @@ public class ExperimentalFactorOntologyDataSource extends SingleOBOOntologyDataS
     }
 
     @Override
+    public String getIdPrefix() {
+        return "EFO";
+    }
+
+    @Override
     protected String getTargetFileName() {
         return FILE_NAME;
     }

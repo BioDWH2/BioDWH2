@@ -35,10 +35,20 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
     }
 
     private static final Logger LOGGER = LogManager.getLogger(OntologyGraphExporter.class);
+    public static final String IS_PROXY_KEY = "__is_proxy";
     public static final String TERM_LABEL = "Term";
+    public static final String HEADER_LABEL = "Header";
+    public static final String SUBSET_LABEL = "Subset";
+    public static final String SYNONYM_TYPE_LABEL = "SynonymType";
+    public static final String IDSPACE_LABEL = "Idspace";
+    public static final String TYPEDEF_LABEL = "Typedef";
+    public static final String INSTANCE_LABEL = "Instance";
+
+    private final OntologyDataSource ontologyDataSource;
 
     public OntologyGraphExporter(final D dataSource) {
         super(dataSource);
+        ontologyDataSource = dataSource;
     }
 
     @Override
@@ -79,7 +89,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
     }
 
     private void exportHeader(final Graph graph, final OboHeader header) {
-        final NodeBuilder builder = graph.buildNode().withLabel("Header");
+        final NodeBuilder builder = graph.buildNode().withLabel(HEADER_LABEL);
         builder.withPropertyIfNotNull("format_version", header.getFormatVersion());
         builder.withPropertyIfNotNull("data_version", header.getDataVersions());
         builder.withPropertyIfNotNull("date", header.getDate());
@@ -111,7 +121,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
     private void exportHeaderSubsetDefinitions(final Graph graph, final OboHeader header, final Node headerNode) {
         final String[] subsetDefs = header.getSubsetDefs();
         if (subsetDefs != null && subsetDefs.length > 0) {
-            graph.addIndex(IndexDescription.forNode("Subset", ID_KEY, IndexDescription.Type.UNIQUE));
+            graph.addIndex(IndexDescription.forNode(SUBSET_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
             final Map<String, String> definitions = new HashMap<>();
             for (final String subsetDef : subsetDefs) {
                 final String[] parts = StringUtils.split(subsetDef, " ", 2);
@@ -130,14 +140,14 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
 
     private void exportHeaderSubsetDefinition(final Graph graph, final Node headerNode, final String id,
                                               final String description) {
-        final Node subsetDefNode = graph.addNode("Subset", ID_KEY, id, "description", description);
+        final Node subsetDefNode = graph.addNode(SUBSET_LABEL, ID_KEY, id, "description", description);
         graph.addEdge(headerNode, subsetDefNode, "HAS_SUBSET");
     }
 
     private void exportHeaderSynonymTypeDefinitions(final Graph graph, final OboHeader header, final Node headerNode) {
         final String[] synonymTypeDefs = header.getSynonymTypeDefs();
         if (synonymTypeDefs != null && synonymTypeDefs.length > 0) {
-            graph.addIndex(IndexDescription.forNode("SynonymType", ID_KEY, IndexDescription.Type.UNIQUE));
+            graph.addIndex(IndexDescription.forNode(SYNONYM_TYPE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
             final Map<String, SynonymTypeDef> definitions = new HashMap<>();
             for (final String synonymTypeDef : synonymTypeDefs) {
                 final int idSplitIndex = synonymTypeDef.indexOf(' ');
@@ -172,10 +182,10 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
                                                    final SynonymTypeDef synonymTypeDef) {
         final Node subsetDefNode;
         if (synonymTypeDef.scope != null)
-            subsetDefNode = graph.addNode("SynonymType", ID_KEY, synonymTypeDef.id, "description",
+            subsetDefNode = graph.addNode(SYNONYM_TYPE_LABEL, ID_KEY, synonymTypeDef.id, "description",
                                           synonymTypeDef.description, "scope", synonymTypeDef.scope.toString());
         else
-            subsetDefNode = graph.addNode("SynonymType", ID_KEY, synonymTypeDef.id, "description",
+            subsetDefNode = graph.addNode(SYNONYM_TYPE_LABEL, ID_KEY, synonymTypeDef.id, "description",
                                           synonymTypeDef.description);
         graph.addEdge(headerNode, subsetDefNode, "HAS_SYNONYM_TYPE");
     }
@@ -183,7 +193,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
     private void exportHeaderIdspaces(final Graph graph, final OboHeader header, final Node headerNode) {
         final String[] idspaces = header.getIdspaces();
         if (idspaces != null && idspaces.length > 0) {
-            graph.addIndex(IndexDescription.forNode("Idspace", ID_KEY, IndexDescription.Type.UNIQUE));
+            graph.addIndex(IndexDescription.forNode(IDSPACE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
             for (final String idspace : idspaces)
                 exportHeaderIdspace(graph, headerNode, idspace);
         }
@@ -194,9 +204,9 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
         final Node idspaceNode;
         if (parts.length == 3) {
             final String name = StringUtils.strip(parts[2].trim(), "\"");
-            idspaceNode = graph.addNode("Idspace", ID_KEY, parts[0], "iri", parts[1], "name", name);
+            idspaceNode = graph.addNode(IDSPACE_LABEL, ID_KEY, parts[0], "iri", parts[1], "name", name);
         } else
-            idspaceNode = graph.addNode("Idspace", ID_KEY, parts[0], "iri", parts[1]);
+            idspaceNode = graph.addNode(IDSPACE_LABEL, ID_KEY, parts[0], "iri", parts[1]);
         graph.addEdge(headerNode, idspaceNode, "HAS_IDSPACE");
     }
 
@@ -217,19 +227,19 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
             } else if (entry instanceof OboTypedef) {
                 if (!createdTypedefIndex) {
                     createdTypedefIndex = true;
-                    graph.addIndex(IndexDescription.forNode("Typedef", ID_KEY, IndexDescription.Type.UNIQUE));
+                    graph.addIndex(IndexDescription.forNode(TYPEDEF_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
                 }
                 exportTypedef(graph, (OboTypedef) entry, relationCache);
             } else if (entry instanceof OboInstance) {
                 if (!createdInstanceIndex) {
                     createdInstanceIndex = true;
-                    graph.addIndex(IndexDescription.forNode("Instance", ID_KEY, IndexDescription.Type.UNIQUE));
+                    graph.addIndex(IndexDescription.forNode(INSTANCE_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
                 }
                 exportInstance(graph, (OboInstance) entry, relationCache);
             }
         }
         if (!relationCache.isEmpty() && LOGGER.isWarnEnabled())
-            LOGGER.warn("Not all relationships could be added between ontology entries (" + relationCache.size() + ")");
+            LOGGER.warn("Not all relationships could be added between ontology entries ({})", relationCache.size());
     }
 
     private void exportTerm(final Graph graph, final OboTerm term,
@@ -237,6 +247,9 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
         final NodeBuilder builder = graph.buildNode().withLabel(term.getType());
         populateBuilderWithEntry(builder, term);
         builder.withPropertyIfNotNull("builtin", term.builtin());
+        final String termIdPrefix = StringUtils.split(term.getId(), ":", 2)[0];
+        if (!termIdPrefix.equals(ontologyDataSource.getIdPrefix()))
+            builder.withProperty(IS_PROXY_KEY, true);
         final Node node = builder.build();
         handleRelationshipsWithRelId(graph, term.getRelationships(), node, relationCache);
         handleRelationships(graph, term.isA(), "IS_A", node, relationCache);

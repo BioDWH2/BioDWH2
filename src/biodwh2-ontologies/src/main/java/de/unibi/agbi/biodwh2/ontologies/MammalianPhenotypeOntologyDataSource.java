@@ -53,4 +53,9 @@ public class MammalianPhenotypeOntologyDataSource extends SingleOBOOntologyDataS
                                Integer.parseInt(matcher.group(3)));
         return null;
     }
+
+    @Override
+    public String getIdPrefix() {
+        return "MP";
+    }
 }

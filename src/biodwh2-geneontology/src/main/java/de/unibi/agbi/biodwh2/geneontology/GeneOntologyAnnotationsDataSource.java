@@ -35,11 +35,6 @@ public class GeneOntologyAnnotationsDataSource extends DataSource {
     }
 
     @Override
-    public String[] getDependencies() {
-        return new String[]{"GeneOntology"};
-    }
-
-    @Override
     public Updater<GeneOntologyAnnotationsDataSource> getUpdater() {
         return new GeneOntologyUpdater(this);
     }
@@ -57,9 +52,5 @@ public class GeneOntologyAnnotationsDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new GeneOntologyMappingDescriber(this);
-    }
-
-    @Override
-    protected void unloadData() {
     }
 }

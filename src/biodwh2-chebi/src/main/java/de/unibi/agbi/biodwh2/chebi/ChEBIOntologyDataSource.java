@@ -1,17 +1,23 @@
-package de.unibi.agbi.biodwh2.ontologies;
+package de.unibi.agbi.biodwh2.chebi;
 
 import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.text.License;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 @SuppressWarnings("unused")
-public class ProteinModificationOntologyDataSource extends SingleOBOOntologyDataSource {
-    static final String FILE_NAME = "psi-mod.obo";
+public class ChEBIOntologyDataSource extends SingleOBOOntologyDataSource {
+    private static final String FILE_NAME = "chebi.obo";
 
     @Override
     public String getId() {
-        return "ProteinModificationOntology";
+        return "ChEBIOntology";
+    }
+
+    @Override
+    public String getFullName() {
+        return "ChEBI Ontology";
     }
 
     @Override
@@ -21,7 +27,7 @@ public class ProteinModificationOntologyDataSource extends SingleOBOOntologyData
 
     @Override
     protected String getDownloadUrl() {
-        return "https://raw.githubusercontent.com/HUPO-PSI/psi-mod-CV/master/PSI-MOD.obo";
+        return "https://purl.obolibrary.org/obo/" + FILE_NAME;
     }
 
     @Override
@@ -31,13 +37,12 @@ public class ProteinModificationOntologyDataSource extends SingleOBOOntologyData
 
     @Override
     protected Version getVersionFromDataVersionLine(final String dataVersion) {
-        final String[] versionParts = StringUtils.split(StringUtils.split(dataVersion, ' ')[1], '.');
-        return new Version(Integer.parseInt(versionParts[0]), Integer.parseInt(versionParts[1]),
-                           Integer.parseInt(versionParts[2]));
+        final String version = StringUtils.split(dataVersion, ":", 2)[1].strip();
+        return NumberUtils.isDigits(version) ? new Version(Integer.parseInt(version), 0) : null;
     }
 
     @Override
     public String getIdPrefix() {
-        return "MOD";
+        return "CHEBI";
     }
 }

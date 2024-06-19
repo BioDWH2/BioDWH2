@@ -35,4 +35,9 @@ public class MassSpectrometryOntologyDataSource extends SingleOBOOntologyDataSou
         return new Version(Integer.parseInt(versionParts[0]), Integer.parseInt(versionParts[1]),
                            Integer.parseInt(versionParts[2]));
     }
+
+    @Override
+    public String getIdPrefix() {
+        return "MS";
+    }
 }
