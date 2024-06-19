@@ -183,6 +183,8 @@ public final class GraphMerger {
         for (final var nodeLabel : graph.getNodeLabels()) {
             final var nodeProperties = graph.getPropertyKeyTypesForNodeLabel(nodeLabel);
             if (nodeProperties.containsKey(OntologyGraphExporter.IS_PROXY_KEY)) {
+                if (LOGGER.isInfoEnabled())
+                    LOGGER.info("\tResolving nodes with label {}", nodeLabel);
                 for (final var node : graph.getNodes(nodeLabel)) {
                     if (node.hasProperty(OntologyGraphExporter.IS_PROXY_KEY)) {
                         final String id = node.getProperty(GraphExporter.ID_KEY);
@@ -193,14 +195,23 @@ public final class GraphMerger {
                                                              OntologyGraphExporter.TERM_LABEL;
                             final Node resolvedTermNode = graph.findNode(resolvedTermLabel, GraphExporter.ID_KEY, id);
                             if (resolvedTermNode != null) {
-                                // TODO: remove edges between two proxy nodes
                                 for (final var edge : graph.findEdges(Edge.FROM_ID_FIELD, node.getId())) {
-                                    edge.setProperty(Edge.FROM_ID_FIELD, resolvedTermNode.getId());
-                                    graph.update(edge);
+                                    final var toNode = graph.getNode(edge.getToId());
+                                    if (toNode != null && toNode.hasProperty(OntologyGraphExporter.IS_PROXY_KEY)) {
+                                        graph.removeEdge(edge);
+                                    } else {
+                                        edge.setProperty(Edge.FROM_ID_FIELD, resolvedTermNode.getId());
+                                        graph.update(edge);
+                                    }
                                 }
                                 for (final var edge : graph.findEdges(Edge.TO_ID_FIELD, node.getId())) {
-                                    edge.setProperty(Edge.TO_ID_FIELD, resolvedTermNode.getId());
-                                    graph.update(edge);
+                                    final var fromNode = graph.getNode(edge.getFromId());
+                                    if (fromNode != null && fromNode.hasProperty(OntologyGraphExporter.IS_PROXY_KEY)) {
+                                        graph.removeEdge(edge);
+                                    } else {
+                                        edge.setProperty(Edge.TO_ID_FIELD, resolvedTermNode.getId());
+                                        graph.update(edge);
+                                    }
                                 }
                                 graph.removeNode(node);
                             }
@@ -209,7 +220,13 @@ public final class GraphMerger {
                 }
             }
         }
-        // TODO: remove index if was only proxy terms
+
+        for (final var nodeLabel : graph.getNodeLabels())
+            if (graph.getNumberOfNodes(nodeLabel) == 0)
+                graph.removeNodeLabel(nodeLabel);
+        for (final var edgeLabel : graph.getEdgeLabels())
+            if (graph.getNumberOfEdges(edgeLabel) == 0)
+                graph.removeEdgeLabel(edgeLabel);
     }
 
     private void saveMergedGraph(final Workspace workspace, final Graph mergedGraph) {

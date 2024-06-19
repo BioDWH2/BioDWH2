@@ -53,7 +53,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
