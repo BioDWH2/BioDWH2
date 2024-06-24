@@ -5,11 +5,9 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.text.License;
 
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
 public class BRENDATissueOntologyDataSource extends SingleOBOOntologyDataSource {
-    private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})");
     private static final String FILE_NAME = "bto.obo";
 
     @Override
@@ -34,7 +32,7 @@ public class BRENDATissueOntologyDataSource extends SingleOBOOntologyDataSource 
 
     @Override
     protected Version getVersionFromDataVersionLine(final String dataVersion) {
-        final Matcher matcher = DATE_PATTERN.matcher(dataVersion);
+        final Matcher matcher = DASHED_YYYY_MM_DD_VERSION_PATTERN.matcher(dataVersion);
         if (matcher.find())
             return new Version(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)),
                                Integer.parseInt(matcher.group(3)));

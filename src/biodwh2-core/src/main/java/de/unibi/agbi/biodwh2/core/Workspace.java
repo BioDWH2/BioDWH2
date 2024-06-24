@@ -74,7 +74,7 @@ public final class Workspace extends BaseWorkspace {
     private DataSource[] getUsedDataSources() {
         final List<String> dataSourceIds = Arrays.asList(configuration.getDataSourceIds());
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Using data sources: " + StringUtils.join(dataSourceIds, ", "));
+            LOGGER.info("Using data sources: {}", StringUtils.join(dataSourceIds, ", "));
         final DataSource[] result = DataSourceLoader.getInstance().getDataSources(configuration.getDataSourceIds());
         if (result.length < configuration.getNumberOfDataSources()) {
             throw new WorkspaceException("Failed to load all data sources. Please ensure the configured data source " +

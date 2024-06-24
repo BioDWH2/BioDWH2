@@ -4,15 +4,12 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.text.License;
 
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public abstract class OBOFoundryOntologyDataSource extends SingleOBOOntologyDataSource {
     public enum DataVersionFormat {
         UNKNOWN,
         DASHED_YYYY_MM_DD
     }
-
-    private static final Pattern DASHED_YYYY_MM_DD_VERSION_PATTERN = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})");
 
     private final String id;
     private final String fileName;

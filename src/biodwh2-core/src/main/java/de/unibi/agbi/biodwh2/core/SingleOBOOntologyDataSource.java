@@ -4,7 +4,11 @@ import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 
+import java.util.regex.Pattern;
+
 public abstract class SingleOBOOntologyDataSource extends OntologyDataSource {
+    protected static final Pattern DASHED_YYYY_MM_DD_VERSION_PATTERN = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})");
+
     @Override
     public DevelopmentState getDevelopmentState() {
         return DevelopmentState.Usable;

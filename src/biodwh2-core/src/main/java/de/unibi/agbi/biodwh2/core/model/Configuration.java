@@ -42,7 +42,7 @@ public final class Configuration {
 
     @JsonIgnore
     public int getNumberOfDataSources() {
-        return dataSourceIds.size();
+        return new HashSet<>(dataSourceIds).size();
     }
 
     public void addDataSource(final String dataSourceId) {

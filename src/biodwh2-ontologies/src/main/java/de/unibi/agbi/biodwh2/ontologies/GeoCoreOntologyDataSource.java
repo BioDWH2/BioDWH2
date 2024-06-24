@@ -7,22 +7,22 @@ import de.unibi.agbi.biodwh2.core.text.License;
 import java.util.regex.Matcher;
 
 @SuppressWarnings("unused")
-public class NeuroBehaviourOntologyDataSource extends SingleOBOOntologyDataSource {
-    static final String FILE_NAME = "nbo-full.obo";
+public class GeoCoreOntologyDataSource extends SingleOBOOntologyDataSource {
+    static final String FILE_NAME = "geocore-full.obo";
 
     @Override
     public String getId() {
-        return "NeuroBehaviourOntology";
+        return "GeoCoreOntology";
     }
 
     @Override
     protected String getDownloadUrl() {
-        return "https://raw.githubusercontent.com/obo-behavior/behavior-ontology/master/nbo-full.obo";
+        return "https://raw.githubusercontent.com/BDI-UFRGS/GeoCoreOntology/master/" + FILE_NAME;
     }
 
     @Override
     public String getLicense() {
-        return License.CC_BY_3_0.getName();
+        return License.CC_BY_NC_4_0.getName();
     }
 
     @Override
@@ -41,6 +41,6 @@ public class NeuroBehaviourOntologyDataSource extends SingleOBOOntologyDataSourc
 
     @Override
     public String getIdPrefix() {
-        return "NBO";
+        return "GEOCORE";
     }
 }

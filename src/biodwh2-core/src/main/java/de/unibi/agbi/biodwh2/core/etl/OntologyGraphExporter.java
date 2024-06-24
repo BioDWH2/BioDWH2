@@ -12,12 +12,11 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -34,7 +33,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
         public SynonymScope scope;
     }
 
-    private static final Logger LOGGER = LogManager.getLogger(OntologyGraphExporter.class);
+    private static final Pattern RELATION_PROPERTY_PATTERN = Pattern.compile("([a-z_]+)\\s*=\\s*\"(.*?)\"");
     public static final String IS_PROXY_KEY = "__is_proxy";
     public static final String TERM_LABEL = "Term";
     public static final String HEADER_LABEL = "Header";
@@ -238,8 +237,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
                 exportInstance(graph, (OboInstance) entry, relationCache);
             }
         }
-        if (!relationCache.isEmpty() && LOGGER.isWarnEnabled())
-            LOGGER.warn("Not all relationships could be added between ontology entries ({})", relationCache.size());
+        createProxiesForRemainingRelationCache(graph, relationCache);
     }
 
     private void exportTerm(final Graph graph, final OboTerm term,
@@ -397,6 +395,29 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
         handleRelationships(graph, instance.consider(), "CONSIDER", node, relationCache);
         handleRelationships(graph, new String[]{instance.instanceOf()}, "INSTANCE_IF", node, relationCache);
         handleRelationships(graph, instance.replacedBy(), "REPLACED_BY", node, relationCache);
+    }
+
+    private void createProxiesForRemainingRelationCache(final Graph graph,
+                                                        final Map<String, Map<String, List<EdgeCacheEntry>>> relationCache) {
+        for (final var entry : relationCache.entrySet()) {
+            final String[] idParts = StringUtils.split(entry.getKey(), " ", 2);
+            final String id = idParts[0];
+            final Node termNode = graph.findNode(TERM_LABEL, ID_KEY, id);
+            final var termNodeId = termNode != null ? termNode.getId() : getOrCreateOntologyProxyTerm(graph, id);
+            final Map<String, Object> additionalProperties = new HashMap<>();
+            if (idParts.length == 2) {
+                final var matcher = RELATION_PROPERTY_PATTERN.matcher(idParts[1]);
+                while (matcher.find())
+                    additionalProperties.put(matcher.group(1), matcher.group(2));
+            }
+            for (final var relation : entry.getValue().entrySet()) {
+                for (final EdgeCacheEntry cacheEntry : relation.getValue()) {
+                    if (cacheEntry.propertyKey != null && cacheEntry.propertyValue != null)
+                        additionalProperties.put(cacheEntry.propertyKey, cacheEntry.propertyValue);
+                    graph.addEdge(cacheEntry.sourceNodeId, termNodeId, relation.getKey(), additionalProperties);
+                }
+            }
+        }
     }
 
     protected abstract String getOntologyFileName();
