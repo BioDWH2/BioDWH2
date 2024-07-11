@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.unibi.agbi.biodwh2.core.Workspace;
-import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
+import de.unibi.agbi.biodwh2.core.io.graph.GraphMLOutputFormatWriter;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -32,7 +32,7 @@ public final class Configuration {
         creationDateTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         dataSourceIds = new ArrayList<>();
         outputFormatIds = new ArrayList<>();
-        outputFormatIds.add(GraphMLGraphWriter.ID);
+        outputFormatIds.add(GraphMLOutputFormatWriter.ID);
         globalProperties = new GlobalProperties();
         dataSourceProperties = new HashMap<>();
         skipMetaGraphGeneration = false;
