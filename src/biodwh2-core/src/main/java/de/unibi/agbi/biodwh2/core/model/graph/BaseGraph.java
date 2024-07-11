@@ -74,6 +74,10 @@ public abstract class BaseGraph {
 
     public abstract Iterable<Node> findNodes(final Map<String, Comparable<?>> properties);
 
+    public boolean containsEdge(final String label, final Node fromId, final Node toId) {
+        return containsEdge(label, fromId.getId(), toId.getId());
+    }
+
     public abstract boolean containsEdge(final String label, final Long fromId, final Long toId);
 
     public abstract Iterable<Edge> findEdges(final String label);
@@ -106,13 +110,13 @@ public abstract class BaseGraph {
     public abstract Iterable<Edge> findEdges(final Map<String, Comparable<?>> properties);
 
     public Iterable<Node> getNodes(final String label) {
-        if (label == null || label.length() == 0)
+        if (label == null || label.isEmpty())
             return getNodes();
         return findNodes(label);
     }
 
     public Iterable<Edge> getEdges(final String label) {
-        if (label == null || label.length() == 0)
+        if (label == null || label.isEmpty())
             return getEdges();
         return findEdges(label);
     }

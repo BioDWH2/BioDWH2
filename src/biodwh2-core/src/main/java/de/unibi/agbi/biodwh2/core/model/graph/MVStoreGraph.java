@@ -420,14 +420,6 @@ abstract class MVStoreGraph extends BaseGraph implements AutoCloseable {
         };
     }
 
-    public boolean containsEdge(final String label, final Node from, final Node to) {
-        final MVStoreCollection<Edge> edges = edgeRepositories.get(label);
-        if (edges == null)
-            return false;
-        return edges.getIndex(Edge.FROM_ID_FIELD).contains(from.getId()) && edges.getIndex(Edge.TO_ID_FIELD).contains(
-                to.getId());
-    }
-
     @Override
     public boolean containsEdge(final String label, final Long fromId, final Long toId) {
         final MVStoreCollection<Edge> edges = edgeRepositories.get(label);
