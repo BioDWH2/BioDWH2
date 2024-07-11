@@ -192,6 +192,9 @@ public final class GraphMerger {
                             final String resolvedTermLabel = termIdPrefixOntologyIdMap.get(idPrefix) +
                                                              Graph.LABEL_PREFIX_SEPARATOR +
                                                              OntologyGraphExporter.TERM_LABEL;
+                            // Safety check a node was falsely marked as proxy
+                            if (resolvedTermLabel.equals(node.getLabel()))
+                                continue;
                             final Node resolvedTermNode = graph.findNode(resolvedTermLabel, GraphExporter.ID_KEY, id);
                             if (resolvedTermNode != null) {
                                 for (final var edge : graph.findEdges(Edge.FROM_ID_FIELD, node.getId())) {

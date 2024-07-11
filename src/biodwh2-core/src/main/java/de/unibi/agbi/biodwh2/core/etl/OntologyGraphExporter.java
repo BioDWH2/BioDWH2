@@ -402,8 +402,14 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
         for (final var entry : relationCache.entrySet()) {
             final String[] idParts = StringUtils.split(entry.getKey(), " ", 2);
             final String id = idParts[0];
-            final Node termNode = graph.findNode(TERM_LABEL, ID_KEY, id);
-            final var termNodeId = termNode != null ? termNode.getId() : getOrCreateOntologyProxyTerm(graph, id);
+            Node termNode = graph.findNode(TERM_LABEL, ID_KEY, id);
+            if (termNode == null) {
+                final String termIdPrefix = StringUtils.split(id, ":", 2)[0];
+                if (termIdPrefix.equals(ontologyDataSource.getIdPrefix()))
+                    termNode = graph.addNode(TERM_LABEL, ID_KEY, id);
+                else
+                    termNode = graph.addNode(TERM_LABEL, ID_KEY, id, OntologyGraphExporter.IS_PROXY_KEY, true);
+            }
             final Map<String, Object> additionalProperties = new HashMap<>();
             if (idParts.length == 2) {
                 final var matcher = RELATION_PROPERTY_PATTERN.matcher(idParts[1]);
@@ -414,7 +420,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
                 for (final EdgeCacheEntry cacheEntry : relation.getValue()) {
                     if (cacheEntry.propertyKey != null && cacheEntry.propertyValue != null)
                         additionalProperties.put(cacheEntry.propertyKey, cacheEntry.propertyValue);
-                    graph.addEdge(cacheEntry.sourceNodeId, termNodeId, relation.getKey(), additionalProperties);
+                    graph.addEdge(cacheEntry.sourceNodeId, termNode, relation.getKey(), additionalProperties);
                 }
             }
         }
