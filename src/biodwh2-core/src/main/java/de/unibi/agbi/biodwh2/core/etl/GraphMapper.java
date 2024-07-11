@@ -9,7 +9,6 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.graphics.MetaGraphImage;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.SerializableUtils;
-import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.WorkspaceFileType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
@@ -356,16 +355,12 @@ public final class GraphMapper {
     }
 
     private void saveGraph(final Graph graph, final Workspace workspace) {
-        final Path outputGraphFilePath = workspace.getFilePath(WorkspaceFileType.MAPPED_GRAPHML_GZ);
-        if (workspace.getConfiguration().shouldSkipGraphMLExport()) {
+        // TODO: remove old and unused
+        for (final var writer : workspace.getOutputFormatWriters()) {
             if (LOGGER.isInfoEnabled())
-                LOGGER.info("Skipping mapped graph GraphML export as per configuration");
-            FileUtils.safeDelete(outputGraphFilePath);
-            return;
+                LOGGER.info("Exporting mapped graph to {}", writer.getId());
+            writer.write(workspace, "mapped", graph);
         }
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Save mapped graph to GraphML");
-        new GraphMLGraphWriter().write(outputGraphFilePath, graph);
     }
 
     private void generateMetaGraphStatistics(final Graph graph, final Workspace workspace) {

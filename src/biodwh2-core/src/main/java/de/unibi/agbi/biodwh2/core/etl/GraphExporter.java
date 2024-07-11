@@ -5,7 +5,6 @@ import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.graphics.MetaGraphImage;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
-import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.SpeciesFilter;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
@@ -62,16 +61,15 @@ public abstract class GraphExporter<D extends DataSource> {
     protected abstract boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException;
 
     private boolean trySaveGraphToFile(final Workspace workspace, final Graph g) {
-        final GraphMLGraphWriter writer = new GraphMLGraphWriter();
-        if (workspace.getConfiguration().shouldSkipGraphMLExport()) {
+        // TODO: remove old and unused
+        boolean success = true;
+        for (final var writer : workspace.getOutputFormatWriters()) {
             if (LOGGER.isInfoEnabled())
-                LOGGER.info("Skipping '{}' GraphML export as per configuration", dataSource.getId());
-            writer.removeOldExport(workspace, dataSource);
-            return true;
+                LOGGER.info("Exporting '{}' data source graph to {}", dataSource.getId(), writer.getId());
+            if (!writer.write(workspace, dataSource, g))
+                success = false;
         }
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Save '{}' data source graph to GraphML", dataSource.getId());
-        return writer.write(workspace, dataSource, g);
+        return success;
     }
 
     private void generateMetaGraphStatistics(final Workspace workspace, final Graph g) {

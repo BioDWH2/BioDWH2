@@ -73,7 +73,7 @@ public class WebConfigurator {
                 final var status = new HashMap<String, Object>();
                 try {
                     final var configuration = activeWorkspace.loadConfiguration();
-                    status.put("skipGraphMLExport", configuration.shouldSkipGraphMLExport());
+                    // TODO: output formats
                     status.put("skipMetaGraphGeneration", configuration.shouldSkipMetaGraphGeneration());
                     status.put("globalProperties", configuration.getGlobalProperties());
                     final var activeDataSources = new ArrayList<Map<String, Object>>();

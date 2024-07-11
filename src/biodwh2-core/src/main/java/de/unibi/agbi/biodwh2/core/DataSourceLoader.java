@@ -12,13 +12,12 @@ public final class DataSourceLoader {
     private static final Logger LOGGER = LogManager.getLogger(DataSourceLoader.class);
     private static DataSourceLoader instance;
 
-    private final List<DataSource> dataSources;
+    private final List<DataSource> dataSources = new ArrayList<>();
 
     private DataSourceLoader() {
-        dataSources = new ArrayList<>();
-        final List<Class<DataSource>> allDataSourceClasses = Factory.getInstance().getImplementations(DataSource.class);
-        for (final Class<DataSource> dataSourceClass : allDataSourceClasses) {
-            final DataSource dataSource = tryInstantiateDataSource(dataSourceClass);
+        final var classes = Factory.getInstance().getImplementations(DataSource.class);
+        for (final Class<DataSource> _class : classes) {
+            final DataSource dataSource = tryInstantiateDataSource(_class);
             if (dataSource != null)
                 dataSources.add(dataSource);
         }
@@ -30,15 +29,15 @@ public final class DataSourceLoader {
         return instance;
     }
 
-    private static DataSource tryInstantiateDataSource(final Class<DataSource> dataSourceClass) {
-        if (Modifier.isAbstract(dataSourceClass.getModifiers()))
+    private static DataSource tryInstantiateDataSource(final Class<DataSource> _class) {
+        if (Modifier.isAbstract(_class.getModifiers()))
             return null;
         try {
-            return dataSourceClass.getDeclaredConstructor().newInstance();
+            return _class.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
                  InvocationTargetException e) {
             if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to instantiate data source '{}'", dataSourceClass.getName(), e);
+                LOGGER.error("Failed to instantiate data source '{}'", _class.getName(), e);
         }
         return null;
     }

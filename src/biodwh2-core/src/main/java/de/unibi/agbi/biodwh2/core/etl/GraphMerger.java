@@ -7,7 +7,6 @@ import de.unibi.agbi.biodwh2.core.exceptions.GraphCacheException;
 import de.unibi.agbi.biodwh2.core.exceptions.MergerException;
 import de.unibi.agbi.biodwh2.core.graphics.MetaGraphImage;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
-import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.model.WorkspaceFileType;
@@ -229,17 +228,13 @@ public final class GraphMerger {
                 graph.removeEdgeLabel(edgeLabel);
     }
 
-    private void saveMergedGraph(final Workspace workspace, final Graph mergedGraph) {
-        final Path outputGraphFilePath = workspace.getFilePath(WorkspaceFileType.MERGED_GRAPHML_GZ);
-        if (workspace.getConfiguration().shouldSkipGraphMLExport()) {
+    private void saveMergedGraph(final Workspace workspace, final Graph graph) {
+        // TODO: remove old and unused
+        for (final var writer : workspace.getOutputFormatWriters()) {
             if (LOGGER.isInfoEnabled())
-                LOGGER.info("Skipping merged graph GraphML export as per configuration");
-            FileUtils.safeDelete(outputGraphFilePath);
-            return;
+                LOGGER.info("Exporting merged graph to {}", writer.getId());
+            writer.write(workspace, "merged", graph);
         }
-        if (LOGGER.isInfoEnabled())
-            LOGGER.info("Save merged graph to GraphML");
-        new GraphMLGraphWriter().write(outputGraphFilePath, mergedGraph);
     }
 
     private void generateMetaGraphStatistics(final Graph graph, final Workspace workspace) {

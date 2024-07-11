@@ -8,6 +8,7 @@ import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.DataSourceException;
 import de.unibi.agbi.biodwh2.core.exceptions.MergerException;
 import de.unibi.agbi.biodwh2.core.exceptions.WorkspaceException;
+import de.unibi.agbi.biodwh2.core.io.graph.OutputFormatWriter;
 import de.unibi.agbi.biodwh2.core.model.Configuration;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
@@ -35,17 +36,19 @@ public final class Workspace extends BaseWorkspace {
 
     private final Configuration configuration;
     private final DataSource[] dataSources;
+    private final OutputFormatWriter[] outputFormatWriters;
 
     public Workspace(final String workingDirectory) {
         super(workingDirectory);
         createWorkingDirectoryIfNotExists();
         configuration = createOrLoadConfiguration();
         dataSources = getUsedDataSources();
+        outputFormatWriters = getUsedOutputFormatWriters();
     }
 
     private void createWorkingDirectoryIfNotExists() {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Using workspace directory '" + workingDirectory + "'");
+            LOGGER.info("Using workspace directory '{}'", workingDirectory);
         try {
             Files.createDirectories(workingDirectory);
             Files.createDirectories(getSourcesDirectory());
@@ -80,10 +83,19 @@ public final class Workspace extends BaseWorkspace {
             throw new WorkspaceException("Failed to load all data sources. Please ensure the configured data source " +
                                          "IDs are valid and all data source modules are available in the classpath.");
         }
-        final String[] addedDependencyIds = Arrays.stream(result).map(DataSource::getId).filter(
-                id -> !dataSourceIds.contains(id)).toArray(String[]::new);
-        if (addedDependencyIds.length > 0 && LOGGER.isInfoEnabled()) {
-            LOGGER.info("Using dependencies from data sources: " + StringUtils.join(addedDependencyIds, ", "));
+        return result;
+    }
+
+    private OutputFormatWriter[] getUsedOutputFormatWriters() {
+        final List<String> outputFormatIds = Arrays.asList(configuration.getOutputFormatIds());
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Using output formats: {}", StringUtils.join(outputFormatIds, ", "));
+        final OutputFormatWriter[] result = OutputFormatWriterLoader.getInstance().getOutputFormatWriters(
+                configuration.getOutputFormatIds());
+        if (result.length < configuration.getNumberOfOutputFormats()) {
+            throw new WorkspaceException(
+                    "Failed to load all output format writers. Please ensure the configured output format " +
+                    "IDs are valid and all output format modules are available in the classpath.");
         }
         return result;
     }
@@ -101,7 +113,7 @@ public final class Workspace extends BaseWorkspace {
             LOGGER.info((countUpToDate == dataSources.length) ? "All data sources are up-to-date." :
                         countUpToDate + "/" + dataSources.length + " data sources are up-to-date.");
             if (!notUpToDate.isEmpty())
-                LOGGER.info("Data sources to be updated: " + StringUtils.join(notUpToDate, ", "));
+                LOGGER.info("Data sources to be updated: {}", StringUtils.join(notUpToDate, ", "));
         }
     }
 
@@ -118,7 +130,7 @@ public final class Workspace extends BaseWorkspace {
             return true;
         } catch (DataSourceException e) {
             if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to prepare data source '" + dataSource.getId() + "'", e);
+                LOGGER.error("Failed to prepare data source '{}'", dataSource.getId(), e);
             return false;
         }
     }
@@ -162,7 +174,7 @@ public final class Workspace extends BaseWorkspace {
             for (final DataSource dataSource : dataSources)
                 processDataSource(dataSource, skipUpdate);
             final long stop = System.currentTimeMillis();
-            LOGGER.info("Finished processing data sources within " +
+            LOGGER.info("Finished processing data sources within {}",
                         DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
             mergeDataSources();
             mapDataSources(false, 1);
@@ -186,7 +198,7 @@ public final class Workspace extends BaseWorkspace {
                     processDataSource(dataSource, skipUpdate);
                 })).get();
                 final long stop = System.currentTimeMillis();
-                LOGGER.info("Finished processing data sources within " +
+                LOGGER.info("Finished processing data sources within {}",
                             DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
             } catch (InterruptedException | ExecutionException e) {
                 LOGGER.error("Failed to process data sources in parallel", e);
@@ -203,14 +215,14 @@ public final class Workspace extends BaseWorkspace {
 
     private void processDataSource(final DataSource dataSource, final boolean skipUpdate) {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Processing of data source '" + dataSource.getId() + "' started");
+            LOGGER.info("Processing of data source '{}' started", dataSource.getId());
         Updater.UpdateState updateState;
         if (skipUpdate) {
             updateState = Updater.UpdateState.ALREADY_UP_TO_DATE;
             if (dataSource.getMetadata().updateSuccessful == null) {
                 if (LOGGER.isErrorEnabled())
-                    LOGGER.error("Update was skipped for data source '" + dataSource.getId() +
-                                 "' without successful previous update.");
+                    LOGGER.error("Update was skipped for data source '{}' without successful previous update.",
+                                 dataSource.getId());
                 return;
             }
         } else {
@@ -227,9 +239,9 @@ public final class Workspace extends BaseWorkspace {
                 dataSource.export(this);
             }
         } else if (LOGGER.isInfoEnabled())
-            LOGGER.info("Skipping export of data source '" + dataSource.getId() + "' because nothing changed");
+            LOGGER.info("Skipping export of data source '{}' because nothing changed", dataSource.getId());
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Processing of data source '" + dataSource.getId() + "' finished");
+            LOGGER.info("Processing of data source '{}' finished", dataSource.getId());
     }
 
     private boolean isDataSourceExportNeeded(final Updater.UpdateState updateState, final DataSource dataSource) {
@@ -246,9 +258,8 @@ public final class Workspace extends BaseWorkspace {
     }
 
     private boolean areDataSourceExportsMissing(final DataSource dataSource) {
-        return Files.notExists(dataSource.getFilePath(this, DataSourceFileType.PERSISTENT_GRAPH)) ||
-               (!configuration.shouldSkipGraphMLExport() && Files.notExists(
-                       dataSource.getFilePath(this, DataSourceFileType.INTERMEDIATE_GRAPHML_GZ)));
+        return Files.notExists(dataSource.getFilePath(this, DataSourceFileType.PERSISTENT_GRAPH));
+        // TODO: check output format writers
     }
 
     /**
@@ -309,8 +320,9 @@ public final class Workspace extends BaseWorkspace {
         final Version version = Version.tryParse(dataSourceVersion);
         if (version == null) {
             if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to set data source '" + dataSourceId + "' version to '" + dataSourceVersion +
-                             "', as the provided version did not match the format 'w.x[.y[.z]]'.");
+                LOGGER.error(
+                        "Failed to set data source '{}' version to '{}', as the provided version did not match the format 'w.x[.y[.z]]'.",
+                        dataSourceId, dataSourceVersion);
             return;
         }
         final Optional<DataSource> dataSourceMatch = Arrays.stream(dataSources).filter(
@@ -318,17 +330,22 @@ public final class Workspace extends BaseWorkspace {
         if (dataSourceMatch.isPresent()) {
             final DataSource dataSource = dataSourceMatch.get();
             if (LOGGER.isInfoEnabled())
-                LOGGER.info("Setting data source '" + dataSource.getId() + "' version to '" + dataSourceVersion + "'.");
+                LOGGER.info("Setting data source '{}' version to '{}'.", dataSource.getId(), dataSourceVersion);
             prepareDataSource(dataSource);
             dataSource.setVersion(this, version);
         } else if (LOGGER.isErrorEnabled())
-            LOGGER.error("Failed to set data source '" + dataSourceId + "' version to '" + dataSourceVersion +
-                         "', as the data source module could not be found. Is the data source ID correct?");
+            LOGGER.error(
+                    "Failed to set data source '{}' version to '{}', as the data source module could not be found. Is the data source ID correct?",
+                    dataSourceId, dataSourceVersion);
     }
 
     public void saveConfiguration() throws IOException {
         final ObjectMapper objectMapper = new ObjectMapper();
         final Path path = getConfigurationFilePath();
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), configuration);
+    }
+
+    public OutputFormatWriter[] getOutputFormatWriters() {
+        return outputFormatWriters;
     }
 }

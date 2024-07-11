@@ -1,11 +1,7 @@
 package de.unibi.agbi.biodwh2.core.io.graph;
 
-import de.unibi.agbi.biodwh2.core.DataSource;
-import de.unibi.agbi.biodwh2.core.Workspace;
-import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.IndentingXMLStreamWriter;
 import de.unibi.agbi.biodwh2.core.lang.Type;
-import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
 import de.unibi.agbi.biodwh2.core.model.graph.Edge;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
@@ -25,7 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-public final class GraphMLGraphWriter implements GraphWriter {
+public final class GraphMLGraphWriter extends OutputFormatWriter {
     private static class Property {
         String id;
         String forType;
@@ -34,6 +30,7 @@ public final class GraphMLGraphWriter implements GraphWriter {
         String type;
     }
 
+    public static final String ID = "GRAPHML";
     private static final Logger LOGGER = LogManager.getLogger(GraphMLGraphWriter.class);
     private long labelKeyIdCounter;
     private final Map<String, String> labelKeyIdMap;
@@ -46,28 +43,35 @@ public final class GraphMLGraphWriter implements GraphWriter {
     }
 
     @Override
-    public boolean write(final Workspace workspace, final DataSource dataSource, final Graph graph) {
-        removeOldExport(workspace, dataSource);
-        return write(dataSource.getFilePath(workspace, DataSourceFileType.INTERMEDIATE_GRAPHML_GZ), graph);
+    public String getId() {
+        return ID;
     }
 
-    public void removeOldExport(final Workspace workspace, final DataSource dataSource) {
-        FileUtils.safeDelete(dataSource.getFilePath(workspace, DataSourceFileType.INTERMEDIATE_GRAPHML_GZ));
+    @Override
+    public String getExtension() {
+        return "graphml.gz";
     }
 
+    @Override
     public boolean write(final Path outputFilePath, final Graph graph) {
-        labelKeyIdCounter = 0;
-        labelKeyIdMap.clear();
-        properties.clear();
+        reset();
         generateProperties(graph);
+        boolean success = true;
         try (final var stream = new GzipCompressorOutputStream(Files.newOutputStream(outputFilePath))) {
             writeGraphFile(stream, graph);
         } catch (XMLStreamException | IOException e) {
             if (LOGGER.isErrorEnabled())
-                LOGGER.error("Failed to write graphml file", e);
-            return false;
+                LOGGER.error("Failed to write GraphML file", e);
+            success = false;
         }
-        return true;
+        reset();
+        return success;
+    }
+
+    private void reset() {
+        labelKeyIdCounter = 0;
+        labelKeyIdMap.clear();
+        properties.clear();
     }
 
     private void generateProperties(final Graph graph) {

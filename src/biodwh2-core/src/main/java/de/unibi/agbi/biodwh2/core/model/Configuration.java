@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.io.graph.GraphMLGraphWriter;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,12 +18,12 @@ public final class Configuration {
     private final String creationDateTime;
     @JsonProperty("dataSourceIds")
     private final List<String> dataSourceIds;
+    @JsonProperty("outputFormatIds")
+    private final List<String> outputFormatIds;
     @JsonProperty("globalProperties")
     private final GlobalProperties globalProperties;
     @JsonProperty("dataSourceProperties")
     private final Map<String, Map<String, Object>> dataSourceProperties;
-    @JsonProperty("skipGraphMLExport")
-    private final Boolean skipGraphMLExport;
     @JsonProperty("skipMetaGraphGeneration")
     private final Boolean skipMetaGraphGeneration;
 
@@ -30,14 +31,19 @@ public final class Configuration {
         version = Workspace.VERSION;
         creationDateTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         dataSourceIds = new ArrayList<>();
+        outputFormatIds = new ArrayList<>();
+        outputFormatIds.add(GraphMLGraphWriter.ID);
         globalProperties = new GlobalProperties();
         dataSourceProperties = new HashMap<>();
-        skipGraphMLExport = false;
         skipMetaGraphGeneration = false;
     }
 
     public String[] getDataSourceIds() {
         return dataSourceIds.toArray(new String[0]);
+    }
+
+    public String[] getOutputFormatIds() {
+        return outputFormatIds.toArray(new String[0]);
     }
 
     @JsonIgnore
@@ -52,6 +58,20 @@ public final class Configuration {
 
     public void removeDataSource(final String dataSourceId) {
         dataSourceIds.remove(dataSourceId);
+    }
+
+    @JsonIgnore
+    public int getNumberOfOutputFormats() {
+        return new HashSet<>(outputFormatIds).size();
+    }
+
+    public void addOutputFormat(final String outputFormatId) {
+        if (!outputFormatIds.contains(outputFormatId))
+            outputFormatIds.add(outputFormatId);
+    }
+
+    public void removeOutputFormat(final String outputFormatId) {
+        outputFormatIds.remove(outputFormatId);
     }
 
     public Map<String, Object> getDataSourceProperties(final String dataSourceId) {
@@ -70,10 +90,6 @@ public final class Configuration {
         final int dataSourcePropertiesHash = properties.keySet().stream().sorted().map((k) -> (k + properties.get(
                 k)).hashCode()).reduce(0, Integer::sum);
         return getGlobalProperties().hashCode() ^ dataSourcePropertiesHash;
-    }
-
-    public boolean shouldSkipGraphMLExport() {
-        return Boolean.TRUE.equals(skipGraphMLExport);
     }
 
     public boolean shouldSkipMetaGraphGeneration() {
