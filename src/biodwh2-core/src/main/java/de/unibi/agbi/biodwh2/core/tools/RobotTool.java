@@ -79,11 +79,12 @@ public final class RobotTool {
             return false;
         final var runtime = Runtime.getRuntime();
         try {
-            final var process = runtime.exec(new String[]{
-                    "java", "-jar", toolFilePath.toString(), "convert", "--input", dataSource.resolveSourceFilePath(
-                    workspace, sourceFileName).toString(), "--output", dataSource.resolveSourceFilePath(workspace,
-                                                                                                        targetFileName).toString()
-            });
+            final var args = new String[]{
+                    "java", "-jar", toolFilePath.get().toString(), "convert", "--input",
+                    dataSource.resolveSourceFilePath(workspace, sourceFileName).toString(), "--check", "false",
+                    "--output", dataSource.resolveSourceFilePath(workspace, targetFileName).toString()
+            };
+            final var process = runtime.exec(args);
             // TODO stderr, stdout
             process.waitFor();
             var exitCode = process.exitValue();
