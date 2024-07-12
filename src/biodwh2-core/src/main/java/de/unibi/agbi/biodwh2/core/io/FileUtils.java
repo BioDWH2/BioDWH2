@@ -107,6 +107,16 @@ public final class FileUtils {
         return openSeparatedValuesFile(stream, typeClass, ',', true);
     }
 
+    public static <T> void openCsvWithHeader(final Workspace workspace, final DataSource dataSource,
+                                             final String fileName, final Class<T> typeClass,
+                                             final IOConsumer<T> consumer) throws IOException {
+        try (final InputStream stream = openInput(workspace, dataSource, fileName)) {
+            final MappingIterator<T> iterator = openSeparatedValuesFile(stream, typeClass, ',', true);
+            while (iterator.hasNext())
+                consumer.accept(iterator.next());
+        }
+    }
+
     public static <T> void openCsvWithHeader(final InputStream stream, final Class<T> typeClass,
                                              final IOConsumer<T> consumer) throws IOException {
         final var iterator = openSeparatedValuesFile(stream, typeClass, ',', true);
@@ -443,6 +453,20 @@ public final class FileUtils {
         try (final FileInputStream inputStream = new FileInputStream(file);
              final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
              final ZipInputStream zipInputStream = new ZipInputStream(bufferedInputStream)) {
+            ZipEntry zipEntry;
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                if (suffix == null || zipEntry.getName().endsWith(suffix)) {
+                    consumer.accept(zipInputStream, zipEntry);
+                }
+            }
+        }
+    }
+
+    public static void forEachZipEntry(final Workspace workspace, final DataSource dataSource, final String fileName,
+                                       final String suffix,
+                                       final ZipEntryConsumer<ZipInputStream, ZipEntry> consumer) throws Exception {
+        try (final InputStream inputStream = openInput(workspace, dataSource, fileName);
+             final var zipInputStream = new ZipInputStream(inputStream)) {
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (suffix == null || zipEntry.getName().endsWith(suffix)) {
