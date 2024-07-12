@@ -16,6 +16,7 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.migration.GraphMigrator;
 import de.unibi.agbi.biodwh2.core.text.TableFormatter;
+import de.unibi.agbi.biodwh2.core.tools.RobotTool;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.logging.log4j.LogManager;
@@ -41,6 +42,7 @@ public final class Workspace extends BaseWorkspace {
     public Workspace(final String workingDirectory) {
         super(workingDirectory);
         createWorkingDirectoryIfNotExists();
+        updateToolsIfNecessary();
         configuration = createOrLoadConfiguration();
         dataSources = getUsedDataSources();
         outputFormatWriters = getUsedOutputFormatWriters();
@@ -55,6 +57,12 @@ public final class Workspace extends BaseWorkspace {
         } catch (IOException e) {
             throw new WorkspaceException("Failed to create workspace directories", e);
         }
+    }
+
+    private void updateToolsIfNecessary() {
+        if (LOGGER.isInfoEnabled())
+            LOGGER.info("Checking for tool updates");
+        RobotTool.updateIfNecessary(this);
     }
 
     private Configuration createOrLoadConfiguration() {

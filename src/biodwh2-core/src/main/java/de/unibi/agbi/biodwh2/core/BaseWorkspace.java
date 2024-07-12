@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 public class BaseWorkspace {
     public static final int VERSION = 1;
     public static final String SOURCES_DIRECTORY_NAME = "sources";
+    public static final String TOOLS_DIRECTORY_NAME = "tools";
     public static final String CONFIG_FILE_NAME = "config.json";
 
     protected final Path workingDirectory;
@@ -38,6 +39,14 @@ public class BaseWorkspace {
 
     public Path getFilePath(final WorkspaceFileType type) {
         return getSourcesDirectory().resolve(type.getName());
+    }
+
+    public Path getWorkingDirectory() {
+        return workingDirectory;
+    }
+
+    public Path getToolsDirectory() {
+        return workingDirectory.resolve(TOOLS_DIRECTORY_NAME);
     }
 
     public Configuration loadConfiguration() throws IOException {
