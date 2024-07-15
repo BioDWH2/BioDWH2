@@ -10,10 +10,12 @@ import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
+import org.apache.commons.io.file.PathUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -157,20 +159,20 @@ public abstract class Updater<D extends DataSource> {
 
     protected void downloadFileAsBrowser(final Workspace workspace, final String url,
                                          final String fileName) throws UpdaterException {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName).toString();
-        downloadFileAsBrowser(url, fileName,
+        final var filePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        downloadFileAsBrowser(url, fileName, filePath,
                               (progressReporter) -> HTTPClient.downloadFileAsBrowser(url, filePath, progressReporter));
     }
 
     protected void downloadFileAsBrowser(final Workspace workspace, final String url, final String fileName,
                                          final String username, final String password) throws UpdaterException {
-        final String filePath = dataSource.resolveSourceFilePath(workspace, fileName).toString();
-        downloadFileAsBrowser(url, fileName,
+        final var filePath = dataSource.resolveSourceFilePath(workspace, fileName);
+        downloadFileAsBrowser(url, fileName, filePath,
                               (progressReporter) -> HTTPClient.downloadFileAsBrowser(url, filePath, username, password,
                                                                                      progressReporter));
     }
 
-    protected void downloadFileAsBrowser(final String url, final String fileName,
+    protected void downloadFileAsBrowser(final String url, final String fileName, final Path filePath,
                                          final FileUtils.IOConsumer<BiConsumer<Long, Long>> ioConsumer) throws UpdaterException {
         final int[] rotateIndex = {0};
         final long[] lastTime = {System.currentTimeMillis()};
@@ -178,8 +180,11 @@ public abstract class Updater<D extends DataSource> {
         System.out.print(
                 " [INFO ] " + getClass().getName() + " - Downloading file '" + fileName + "' " + ROTATE_CHARS[0] +
                 " [  0%]");
+        var requestedFileSize = new Long[]{null};
         try {
             ioConsumer.accept((position, length) -> {
+                if (length != null && length > 0)
+                    requestedFileSize[0] = length;
                 long currentTime = System.currentTimeMillis();
                 if (currentTime - lastTime[0] > 500) {
                     rotateIndex[0] = (rotateIndex[0] + 1) % ROTATE_CHARS.length;
@@ -195,8 +200,18 @@ public abstract class Updater<D extends DataSource> {
                 }
             });
         } catch (IOException e) {
-            System.out.print("\b\b\b\b\b\b\b\bX [  ?%]");
+            System.out.println("\b\b\b\b\b\b\b\bX [  ?%]");
             throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
+        }
+        if (requestedFileSize[0] != null) {
+            try {
+                final var storedFileSize = PathUtils.sizeOf(filePath);
+                if (storedFileSize != requestedFileSize[0]) {
+                    System.out.println("\b\b\b\b\b\b\b\bX [  ?%]");
+                    throw new UpdaterConnectionException("Failed to download file '" + url + "' (size mismatch)");
+                }
+            } catch (IOException ignored) {
+            }
         }
         System.out.println("\b\b\b\b\b\b\b\b\u2713 [100%]");
     }

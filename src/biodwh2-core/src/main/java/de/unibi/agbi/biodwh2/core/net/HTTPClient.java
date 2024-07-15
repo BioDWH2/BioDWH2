@@ -80,6 +80,11 @@ public final class HTTPClient {
         downloadStream(getUrlInputStream(uri), filePath, null);
     }
 
+    public static void downloadFileAsBrowser(final String uri, final Path filePath,
+                                             final BiConsumer<Long, Long> progressReporter) throws IOException {
+        downloadStream(getUrlInputStream(uri), filePath, progressReporter);
+    }
+
     public static void downloadFileAsBrowser(final String uri, final String filePath,
                                              final BiConsumer<Long, Long> progressReporter) throws IOException {
         downloadStream(getUrlInputStream(uri), filePath, progressReporter);
@@ -88,6 +93,12 @@ public final class HTTPClient {
     public static void downloadFileAsBrowser(final String uri, final String filePath, final String username,
                                              final String password) throws IOException {
         downloadStream(getUrlInputStream(uri, username, password), filePath, null);
+    }
+
+    public static void downloadFileAsBrowser(final String uri, final Path filePath, final String username,
+                                             final String password,
+                                             final BiConsumer<Long, Long> progressReporter) throws IOException {
+        downloadStream(getUrlInputStream(uri, username, password), filePath, progressReporter);
     }
 
     public static void downloadFileAsBrowser(final String uri, final String filePath, final String username,
