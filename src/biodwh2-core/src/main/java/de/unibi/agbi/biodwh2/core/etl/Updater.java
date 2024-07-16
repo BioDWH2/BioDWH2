@@ -174,45 +174,71 @@ public abstract class Updater<D extends DataSource> {
 
     protected void downloadFileAsBrowser(final String url, final String fileName, final Path filePath,
                                          final FileUtils.IOConsumer<BiConsumer<Long, Long>> ioConsumer) throws UpdaterException {
+        downloadFileAsBrowser(url, fileName, filePath, ioConsumer, 5);
+    }
+
+    protected void downloadFileAsBrowser(final String url, final String fileName, final Path filePath,
+                                         final FileUtils.IOConsumer<BiConsumer<Long, Long>> ioConsumer,
+                                         final int retries) throws UpdaterException {
         final int[] rotateIndex = {0};
         final long[] lastTime = {System.currentTimeMillis()};
-        System.out.print(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
-        System.out.print(
-                " [INFO ] " + getClass().getName() + " - Downloading file '" + fileName + "' " + ROTATE_CHARS[0] +
-                " [  0%]");
         var requestedFileSize = new Long[]{null};
-        try {
-            ioConsumer.accept((position, length) -> {
-                if (length != null && length > 0)
-                    requestedFileSize[0] = length;
-                long currentTime = System.currentTimeMillis();
-                if (currentTime - lastTime[0] > 500) {
-                    rotateIndex[0] = (rotateIndex[0] + 1) % ROTATE_CHARS.length;
-                    lastTime[0] += 1000;
-                }
-                System.out.print("\b\b\b\b\b\b\b\b");
-                System.out.print(ROTATE_CHARS[rotateIndex[0]]);
-                if (length == null || length <= 0) {
-                    System.out.print(" [  ?%]");
-                } else {
-                    final String percentage = String.format("%1$3s", (int) (position * 100.0 / length));
-                    System.out.print(" [" + percentage + "%]");
-                }
-            });
-        } catch (IOException e) {
-            System.out.println("\b\b\b\b\b\b\b\bX [  ?%]");
-            throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
-        }
-        if (requestedFileSize[0] != null) {
+        var success = false;
+        var counter = 0;
+        while (counter < retries && !success) {
+            success = true;
+            counter++;
+            System.out.print(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
+            System.out.print(
+                    " [INFO ] " + getClass().getName() + " - Downloading file '" + fileName + "' " + ROTATE_CHARS[0] +
+                    " [  0%]");
             try {
-                final var storedFileSize = PathUtils.sizeOf(filePath);
-                if (storedFileSize != requestedFileSize[0]) {
-                    System.out.println("\b\b\b\b\b\b\b\bX [  ?%]");
-                    throw new UpdaterConnectionException("Failed to download file '" + url + "' (size mismatch)");
+                ioConsumer.accept((position, length) -> {
+                    if (length != null && length > 0)
+                        requestedFileSize[0] = length;
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - lastTime[0] > 500) {
+                        rotateIndex[0] = (rotateIndex[0] + 1) % ROTATE_CHARS.length;
+                        lastTime[0] += 1000;
+                    }
+                    System.out.print("\b\b\b\b\b\b\b\b");
+                    System.out.print(ROTATE_CHARS[rotateIndex[0]]);
+                    if (length == null || length <= 0) {
+                        System.out.print(" [  ?%]");
+                    } else {
+                        final String percentage = String.format("%1$3s", (int) (position * 100.0 / length));
+                        System.out.print(" [" + percentage + "%]");
+                    }
+                });
+            } catch (IOException e) {
+                System.out.println("\b\b\b\b\b\b\b\bX [  ?%]");
+                success = false;
+                if (counter == retries) {
+                    throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
+                } else {
+                    LOGGER.warn("Failed to download file '{}', try {}/{}", url, counter, retries);
+                    continue;
                 }
-            } catch (IOException ignored) {
             }
+            if (requestedFileSize[0] != null) {
+                try {
+                    final var storedFileSize = PathUtils.sizeOf(filePath);
+                    if (storedFileSize != requestedFileSize[0]) {
+                        System.out.println("\b\b\b\b\b\b\b\bX [  ?%]");
+                        success = false;
+                        if (counter == retries) {
+                            throw new UpdaterConnectionException(
+                                    "Failed to download file '" + url + "' (size mismatch)");
+                        } else {
+                            LOGGER.warn("Failed to download file '{}' (size mismatch), try {}/{}", url, counter,
+                                        retries);
+                            continue;
+                        }
+                    }
+                } catch (IOException ignored) {
+                }
+            }
+            System.out.println("\b\b\b\b\b\b\b\b\u2713 [100%]");
         }
-        System.out.println("\b\b\b\b\b\b\b\b\u2713 [100%]");
     }
 }
