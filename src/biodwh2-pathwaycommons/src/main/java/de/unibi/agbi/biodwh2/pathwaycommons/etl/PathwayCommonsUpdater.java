@@ -19,7 +19,7 @@ public class PathwayCommonsUpdater extends MultiFileFTPWebUpdater<PathwayCommons
 
     @Override
     protected String getFTPIndexUrl() {
-        return "https://www.pathwaycommons.org/archives/PC2/v12/";
+        return "https://download.baderlab.org/PathwayCommons/PC2/v12/";
     }
 
     @Override
