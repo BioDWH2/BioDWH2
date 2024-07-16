@@ -70,7 +70,7 @@ public class KeggMappingDescriber extends MappingDescriber {
     private NodeMappingDescription[] describeReference(final Node node) {
         final PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
         description.pubmedId = node.getProperty("pmid");
-        description.doi = node.getProperty("doi");
+        description.setDOI(node.getProperty("doi"));
         description.addIdentifier(IdentifierType.DOI, description.doi);
         description.addIdentifier(IdentifierType.PUBMED_ID, description.pubmedId);
         return new NodeMappingDescription[]{description};

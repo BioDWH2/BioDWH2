@@ -38,7 +38,7 @@ public class DrugCentralMappingDescriber extends MappingDescriber {
         if ("JOURNAL ARTICLE".equalsIgnoreCase(type)) {
             final PublicationNodeMappingDescription description = new PublicationNodeMappingDescription();
             description.pubmedId = node.getProperty("pmid");
-            description.doi = node.getProperty("doi");
+            description.setDOI(node.getProperty("doi"));
             description.addName(node.getProperty("title"));
             description.addName(generateAMACitation(node));
             description.addIdentifier(IdentifierType.PUBMED_ID, description.pubmedId);

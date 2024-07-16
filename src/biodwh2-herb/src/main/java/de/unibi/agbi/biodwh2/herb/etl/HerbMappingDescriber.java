@@ -74,7 +74,7 @@ public class HerbMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeReference(final Node node) {
         final var description = new PublicationNodeMappingDescription();
-        description.doi = node.getProperty("doi");
+        description.setDOI(node.getProperty("doi"));
         description.pubmedId = node.getProperty("pubmed_id");
         description.addIdentifier(IdentifierType.DOI, description.doi);
         description.addIdentifier(IdentifierType.PUBMED_ID, description.pubmedId);

@@ -176,8 +176,8 @@ public final class GraphMapper {
                             // TODO: equals for collections/arrays
                         else if (!matchedValue.equals(value)) {
                             // TODO: handle mismatch!
-                            LOGGER.warn("Mismatch in mapping additional property '" + key + "': '" + value + "' <> '" +
-                                        matchedValue + "'");
+                            LOGGER.warn("Mismatch in mapping additional property '{}': '{}' <> '{}'", key, value,
+                                        matchedValue);
                         }
                     }
                 }

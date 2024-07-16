@@ -168,9 +168,9 @@ public class PharmGKBMappingDescriber extends MappingDescriber {
 
     private NodeMappingDescription[] describeLiterature(final Node node) {
         final var description = new PublicationNodeMappingDescription();
-        description.doi = node.getProperty("doi");
+        description.setDOI(node.getProperty("doi"));
         description.pubmedId = node.getProperty("pmid");
-        description.pmcId = node.getProperty("pmcid");
+        description.setPMCID(node.getProperty("pmcid"));
         description.addIdentifier(IdentifierType.PHARM_GKB, node.<String>getProperty("id"));
         description.addIdentifier(IdentifierType.PUBMED_ID, description.pubmedId);
         description.addIdentifier(IdentifierType.PUBMED_CENTRAL_ID, description.pmcId);

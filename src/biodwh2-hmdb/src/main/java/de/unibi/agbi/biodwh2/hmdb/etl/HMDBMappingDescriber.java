@@ -42,7 +42,7 @@ public class HMDBMappingDescriber extends MappingDescriber {
             final String[] dois = IdentifierUtils.extractDOIs(citation);
             if (dois != null) {
                 if (dois.length == 1) {
-                    description.doi = dois[0];
+                    description.setDOI(dois[0]);
                 }
                 for (final String doi : dois)
                     description.addIdentifier(IdentifierType.DOI, doi);
