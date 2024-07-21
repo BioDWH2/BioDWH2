@@ -25,7 +25,7 @@ public final class Configuration {
     @JsonProperty("dataSourceProperties")
     private final Map<String, Map<String, Object>> dataSourceProperties;
     @JsonProperty("skipMetaGraphGeneration")
-    private final Boolean skipMetaGraphGeneration;
+    private Boolean skipMetaGraphGeneration;
 
     public Configuration() {
         version = Workspace.VERSION;
@@ -94,6 +94,10 @@ public final class Configuration {
 
     public boolean shouldSkipMetaGraphGeneration() {
         return Boolean.TRUE.equals(skipMetaGraphGeneration);
+    }
+
+    public void setSkipMetaGraphGeneration(boolean value) {
+        skipMetaGraphGeneration = value;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

@@ -54,4 +54,10 @@ public class BaseWorkspace {
         final Path path = getConfigurationFilePath();
         return Files.exists(path) ? objectMapper.readValue(path.toFile(), Configuration.class) : null;
     }
+
+    public void saveConfiguration(final Configuration configuration) throws IOException {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final Path path = getConfigurationFilePath();
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), configuration);
+    }
 }

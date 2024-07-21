@@ -47,7 +47,7 @@ public final class BioDWH2 {
         else if (commandLine.create != null)
             createWorkspace(commandLine.create);
         else if (commandLine.configure)
-            configureWorkspace();
+            configureWorkspace(commandLine.webConfiguratorPort);
         else if (commandLine.status != null)
             checkWorkspaceState(commandLine.status, commandLine.verbose);
         else if (commandLine.update != null)
@@ -83,7 +83,7 @@ public final class BioDWH2 {
                     formatter.format(Arrays.asList("ID", "License", "State", "Name", "Properties", "Description"),
                                      rows));
         } else if (LOGGER.isInfoEnabled())
-            LOGGER.info("Available data source IDs: " + StringUtils.join(dataSourceIds, ", "));
+            LOGGER.info("Available data source IDs: {}", StringUtils.join(dataSourceIds, ", "));
     }
 
     private void addDataSource(final CmdArgs commandLine) {
@@ -132,8 +132,8 @@ public final class BioDWH2 {
         new Workspace(workspacePath);
     }
 
-    private void configureWorkspace() {
-        new WebConfigurator().run();
+    private void configureWorkspace(Integer webConfiguratorPort) {
+        new WebConfigurator(webConfiguratorPort).run();
     }
 
     private void checkWorkspaceState(final String workspacePath, final boolean verbose) {

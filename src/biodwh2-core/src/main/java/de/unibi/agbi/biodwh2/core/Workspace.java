@@ -348,9 +348,7 @@ public final class Workspace extends BaseWorkspace {
     }
 
     public void saveConfiguration() throws IOException {
-        final ObjectMapper objectMapper = new ObjectMapper();
-        final Path path = getConfigurationFilePath();
-        objectMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), configuration);
+        saveConfiguration(configuration);
     }
 
     public OutputFormatWriter[] getOutputFormatWriters() {

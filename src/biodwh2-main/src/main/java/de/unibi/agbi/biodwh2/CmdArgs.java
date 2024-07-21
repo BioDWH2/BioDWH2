@@ -49,7 +49,6 @@ public class CmdArgs {
             "-v", "--verbose"
     }, description = "Output detailed information about the state of the workspace", order = 101)
     public boolean verbose;
-
     @CommandLine.Option(names = {
             "-p", "--parallel"
     }, description = "Run parallelizable pipeline steps in parallel", order = 102)
@@ -58,4 +57,8 @@ public class CmdArgs {
             "-t", "--threads"
     }, arity = "1", description = "Number of threads used for parallelism", order = 103)
     public int numThreads = Runtime.getRuntime().availableProcessors();
+    @CommandLine.Option(names = {
+            "-wcp", "--web-config-port"
+    }, defaultValue = "7070", paramLabel = "<boltPort>", description = "Specifies the web configurator port (default 7070)", order = 104)
+    public Integer webConfiguratorPort;
 }
