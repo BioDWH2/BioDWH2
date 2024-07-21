@@ -46,7 +46,7 @@ public final class GraphMapper {
             final long start = System.currentTimeMillis();
             mapGraph(graph, logGraph, dataSources, runsInParallel, numThreads);
             final long stop = System.currentTimeMillis();
-            LOGGER.info("Mapping finished within " + DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
+            LOGGER.info("Mapping finished within {}", DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
             saveGraph(graph, workspace);
             generateMetaGraphStatistics(graph, workspace);
             generateLogGraphClusters(logGraph, workspace);
@@ -72,7 +72,7 @@ public final class GraphMapper {
         mapNodes(graph, logGraph, map);
         if (LOGGER.isInfoEnabled())
             if (runsInParallel) {
-                LOGGER.info("Starting path mapping in parallel mode with " + numThreads + " threads");
+                LOGGER.info("Starting path mapping in parallel mode with {} threads", numThreads);
             } else {
                 LOGGER.info("Starting path mapping in serial mode");
             }
@@ -102,7 +102,7 @@ public final class GraphMapper {
                                    final MappingDescriber describer, final String localMappingLabel) {
         final String prefixedMappingLabel = describer.prefixLabel(localMappingLabel);
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Mapping nodes with label '" + prefixedMappingLabel + "'");
+            LOGGER.info("Mapping nodes with label '{}'", prefixedMappingLabel);
         for (final Node node : graph.getNodes(prefixedMappingLabel)) {
             final NodeMappingDescription[] mappingDescriptions = describer.describe(graph, node, localMappingLabel);
             if (mappingDescriptions != null)
@@ -386,7 +386,7 @@ public final class GraphMapper {
         final String statistics = new MetaGraphStatisticsWriter(metaGraph).write();
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(statistics);
-            LOGGER.info("Exporting mapped meta graph image to " + metaGraphImageFilePath);
+            LOGGER.info("Exporting mapped meta graph image to {}", metaGraphImageFilePath);
         }
         final MetaGraphImage image = new MetaGraphImage(metaGraph, 2048, 2048);
         image.drawAndSaveImage(metaGraphImageFilePath);
@@ -413,7 +413,7 @@ public final class GraphMapper {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Failed to export log graph clusters", e);
         }
     }
 

@@ -38,8 +38,7 @@ public class USDAPlantsGraphExporter extends GraphExporter<USDAPlantsDataSource>
                 if (parent != null)
                     graph.addEdge(parent, node, "HAS_SYNONYM");
                 else
-                    LOGGER.warn("Failed to link synonym plant '" + plant.synonymSymbol + "' to plant '" + plant.symbol +
-                                "'");
+                    LOGGER.warn("Failed to link synonym plant '{}' to plant '{}'", plant.synonymSymbol, plant.symbol);
             }
         }
         return true;

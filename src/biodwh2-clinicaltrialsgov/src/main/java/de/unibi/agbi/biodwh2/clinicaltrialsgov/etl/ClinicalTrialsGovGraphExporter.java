@@ -82,7 +82,7 @@ public class ClinicalTrialsGovGraphExporter extends GraphExporter<ClinicalTrials
                     exportClinicalTrial(graph, zipStream, xmlMapper);
                     counter++;
                     if (counter % 10000 == 0 && LOGGER.isInfoEnabled())
-                        LOGGER.info("Exporting trial progress " + counter + "/" + numberOfRecords);
+                        LOGGER.info("Exporting trial progress {}/{}", counter, numberOfRecords);
                 }
             }
         } catch (IOException e) {

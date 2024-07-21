@@ -21,7 +21,7 @@ public final class MVStoreUniqueIndex extends MVStoreIndex {
         super(name, key, false, readOnly);
         map = db.openMap(name);
         if (LOGGER.isDebugEnabled())
-            LOGGER.debug("Open MVStore unique index " + name + "[isArray=" + arrayIndex + "]");
+            LOGGER.debug("Open MVStore unique index {}[isArray={}]", name, arrayIndex);
     }
 
     @Override

@@ -70,19 +70,19 @@ public abstract class Updater<D extends DataSource> {
         final boolean isUpToDate = isDataSourceUpToDate(newestVersion, workspaceVersion, localUpdateDateTime);
         if (isUpToDate && expectedFilesPresent) {
             if (LOGGER.isInfoEnabled())
-                LOGGER.info("Data source '" + dataSource.getId() + "' is already up-to-date (" + newestVersion + ")");
+                LOGGER.info("Data source '{}' is already up-to-date ({})", dataSource.getId(), newestVersion);
             return UpdateState.ALREADY_UP_TO_DATE;
         }
         if (LOGGER.isInfoEnabled()) {
             if (isUpToDate) {
                 final String versionInfo =
                         versionNotAvailable() ? "" : (" (updating to version " + newestVersion + ")");
-                LOGGER.info("Some files of data source '" + dataSource.getId() + "' are missing" + versionInfo);
+                LOGGER.info("Some files of data source '{}' are missing{}", dataSource.getId(), versionInfo);
             } else {
                 final String versionInfo = versionNotAvailable() ? "" :
                                            (" (old: " + (workspaceVersion == null ? "none" : workspaceVersion) +
                                             ", new: " + newestVersion + ")");
-                LOGGER.info("New version of data source '" + dataSource.getId() + "' found" + versionInfo);
+                LOGGER.info("New version of data source '{}' found{}", dataSource.getId(), versionInfo);
             }
         }
         if (tryUpdateFiles(workspace)) {

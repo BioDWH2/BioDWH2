@@ -126,7 +126,7 @@ public class DrugCentralGraphExporter extends GraphExporter<DrugCentralDataSourc
     private <T> Iterable<T> parseTsvFile(final Workspace workspace, final Class<T> typeVariableClass,
                                          final String fileName) throws ExporterException {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Exporting " + fileName + "...");
+            LOGGER.info("Exporting {}...", fileName);
         try {
             MappingIterator<T> iterator = FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource, fileName,
                                                                                     typeVariableClass);

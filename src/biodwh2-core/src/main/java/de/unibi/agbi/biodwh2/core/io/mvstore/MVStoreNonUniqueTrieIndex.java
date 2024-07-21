@@ -24,7 +24,7 @@ public class MVStoreNonUniqueTrieIndex extends MVStoreIndex {
         super(name, key, arrayIndex, readOnly);
         map = db.openMap(name);
         if (LOGGER.isDebugEnabled())
-            LOGGER.debug("Open MVStore non-unique trie index " + name + "[isArray=" + arrayIndex + "]");
+            LOGGER.debug("Open MVStore non-unique trie index {}[isArray={}]", name, arrayIndex);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class MVStoreNonUniqueTrieIndex extends MVStoreIndex {
             try {
                 for (final Comparable<?> indexKey : delayCache.keySet()) {
                     final ConcurrentDoublyLinkedList<Long> ids = delayCache.get(indexKey);
-                    if (ids.size() == 0)
+                    if (ids.isEmpty())
                         continue;
                     LongTrie trie = map.unsafeGet(indexKey);
                     if (trie == null)

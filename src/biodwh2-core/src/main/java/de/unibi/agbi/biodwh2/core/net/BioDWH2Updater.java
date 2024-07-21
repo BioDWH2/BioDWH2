@@ -49,10 +49,10 @@ public final class BioDWH2Updater {
         if (currentVersion == null && latestVersion != null || currentVersion != null && currentVersion.compareTo(
                 latestVersion) < 0) {
             LOGGER.info("=======================================");
-            LOGGER.info("New version " + latestVersion + " of " + toolRepositoryName + " is available at:");
+            LOGGER.info("New version {} of {} is available at:", latestVersion, toolRepositoryName);
             LOGGER.info(latestDownloadUrl);
             if (latestRelease != null && StringUtils.isNotEmpty(latestRelease.body))
-                LOGGER.info("Description: " + StringUtils.replace(latestRelease.body, "```", ""));
+                LOGGER.info("Description: {}", StringUtils.replace(latestRelease.body, "```", ""));
             LOGGER.info("=======================================");
         }
     }

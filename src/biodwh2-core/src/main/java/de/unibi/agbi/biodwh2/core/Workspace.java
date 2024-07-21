@@ -198,7 +198,7 @@ public final class Workspace extends BaseWorkspace {
             ForkJoinPool threadPool = null;
             try {
                 // init new thread pool for processing
-                LOGGER.info("Processing data sources in parallel with " + numThreads + " threads");
+                LOGGER.info("Processing data sources in parallel with {} threads", numThreads);
                 threadPool = new ForkJoinPool(numThreads);
                 final long start = System.currentTimeMillis();
                 threadPool.submit(() -> Stream.of(dataSources).parallel().forEach(dataSource -> {

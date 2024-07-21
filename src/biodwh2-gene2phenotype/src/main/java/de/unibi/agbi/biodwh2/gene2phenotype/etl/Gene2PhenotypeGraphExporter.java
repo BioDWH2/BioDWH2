@@ -47,7 +47,7 @@ public class Gene2PhenotypeGraphExporter extends GraphExporter<Gene2PhenotypeDat
     private void exportGeneDiseasePairs(final Workspace workspace, final Graph graph) {
         for (final String fileName : Gene2PhenotypeUpdater.FILE_NAMES) {
             if (LOGGER.isInfoEnabled())
-                LOGGER.info("Exporting " + fileName + "...");
+                LOGGER.info("Exporting {}...", fileName);
             try (final MappingIterator<GeneDiseasePair> iterator = FileUtils.openGzipCsvWithHeader(workspace,
                                                                                                    dataSource, fileName,
                                                                                                    GeneDiseasePair.class)) {

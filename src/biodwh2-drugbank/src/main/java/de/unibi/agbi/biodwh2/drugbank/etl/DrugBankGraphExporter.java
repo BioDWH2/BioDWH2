@@ -229,7 +229,7 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
         exportDrugs(workspace, graph);
         graph.endEdgeIndicesDelay(INTERACTS_WITH_DRUG_LABEL);
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Export remaining " + pathwayEnzymeCache.size() + " pathway relationships...");
+            LOGGER.info("Export remaining {} pathway relationships...", pathwayEnzymeCache.size());
         for (final Long pathwayNodeId : pathwayEnzymeCache.keySet()) {
             for (final String enzymeId : pathwayEnzymeCache.get(pathwayNodeId)) {
                 Node polypeptideNode = graph.findNode(POLYPEPTIDE_LABEL, ID_KEY, enzymeId);
@@ -243,12 +243,12 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
                 if (drugLookUp.containsKey(drugbankId))
                     graph.addEdge(drugLookUp.get(drugbankId), pathwayNodeId, IS_IN_PATHWAY_LABEL);
                 else {
-                    LOGGER.warn("Drug id '" + drugbankId + "' not found for pathway '" + pathwayNodeId + "'");
+                    LOGGER.warn("Drug id '{}' not found for pathway '{}'", drugbankId, pathwayNodeId);
                 }
             }
         }
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Export " + reactionCache.size() + " reactions...");
+            LOGGER.info("Export {} reactions...", reactionCache.size());
         for (final Reaction reaction : reactionCache) {
             final Node reactionsNode;
             if (reaction.sequence != null)
@@ -270,11 +270,11 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
             if (leftNode != null)
                 graph.addEdge(leftNode, reactionsNode, SUBSTRATE_IN_LABEL);
             else
-                LOGGER.warn("Missing left reaction element with id " + reaction.rightElement.drugbankId);
+                LOGGER.warn("Missing left reaction element with id {}", reaction.rightElement.drugbankId);
             if (rightNode != null)
                 graph.addEdge(reactionsNode, rightNode, HAS_PRODUCT_LABEL);
             else
-                LOGGER.warn("Missing right reaction element with id " + reaction.rightElement.drugbankId);
+                LOGGER.warn("Missing right reaction element with id {}", reaction.rightElement.drugbankId);
             if (reaction.enzymes != null) {
                 for (final ReactionEnzyme enzyme : reaction.enzymes) {
                     Node enzymeNode = graph.findNode(ENZYME_LABEL, ID_KEY, enzyme.drugbankId);

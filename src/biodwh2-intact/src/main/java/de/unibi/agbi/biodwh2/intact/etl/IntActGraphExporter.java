@@ -31,7 +31,7 @@ public class IntActGraphExporter extends MIGraphExporter<IntActDataSource> {
         while ((zipEntry = stream.getNextEntry()) != null) {
             if (zipEntry.getName().startsWith("human_9606_") && zipEntry.getName().endsWith(".xml")) {
                 if (LOGGER.isInfoEnabled())
-                    LOGGER.info("Exporting '" + zipEntry.getName() + "'...");
+                    LOGGER.info("Exporting '{}'...", zipEntry.getName());
                 callback.accept(stream);
             }
         }
