@@ -1,8 +1,5 @@
 package de.unibi.agbi.biodwh2.drugbank.etl;
 
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
@@ -14,11 +11,7 @@ import de.unibi.agbi.biodwh2.drugbank.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.xml.stream.XMLStreamException;
-import java.io.*;
 import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
     private static class DrugInteractionTriple {
@@ -305,39 +298,20 @@ public class DrugBankGraphExporter extends GraphExporter<DrugBankDataSource> {
                                        .toFile();
         if (!filePath.exists())
             throw new ExporterException("Failed to find file '" + DrugBankUpdater.FULL_DATABASE_FILE_NAME + "'");
-        try (final ZipInputStream zipInputStream = openZipInputStream(filePath)) {
-            int counter = 1;
-            ZipEntry zipEntry;
-            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                if (isZipEntryCoreXml(zipEntry.getName())) {
-                    final XmlMapper xmlMapper = new XmlMapper();
-                    final FromXmlParser parser = FileUtils.createXmlParser(zipInputStream, xmlMapper);
-                    // Skip the first structure token which is the root DrugBank node
-                    //noinspection UnusedAssignment
-                    JsonToken token = parser.nextToken();
-                    while ((token = parser.nextToken()) != null)
-                        if (token.isStructStart()) {
-                            if (counter % 250 == 0 && LOGGER.isInfoEnabled())
-                                LOGGER.info("Exporting drug progress " + counter);
-                            counter++;
-                            exportDrug(graph, xmlMapper.readValue(parser, Drug.class), skipDrugInteractions);
-                        }
-                }
-            }
-        } catch (IOException | XMLStreamException e) {
+        try {
+            final int[] counter = new int[]{1};
+            FileUtils.forEachZipEntry(filePath, ".xml", (stream, entry) -> {
+                FileUtils.streamXmlList(stream, Drug.class, (protein -> {
+                    if (counter[0] % 250 == 0 && LOGGER.isInfoEnabled())
+                        LOGGER.info("Exporting drug progress {}", counter[0]);
+                    counter[0]++;
+                    exportDrug(graph, protein, skipDrugInteractions);
+                }));
+            });
+        } catch (Exception e) {
             throw new ExporterFormatException(
                     "Failed to parse the file '" + DrugBankUpdater.FULL_DATABASE_FILE_NAME + "'", e);
         }
-    }
-
-    private static ZipInputStream openZipInputStream(final File file) throws FileNotFoundException {
-        final FileInputStream inputStream = new FileInputStream(file);
-        final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-        return new ZipInputStream(bufferedInputStream);
-    }
-
-    private static boolean isZipEntryCoreXml(final String name) {
-        return name.startsWith("full") && name.endsWith(".xml");
     }
 
     private void exportDrug(final Graph graph, final Drug drug, final boolean skipDrugInteractions) {

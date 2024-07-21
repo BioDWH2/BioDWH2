@@ -1,6 +1,7 @@
 package de.unibi.agbi.biodwh2.core.io;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
@@ -23,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -492,5 +494,17 @@ public final class FileUtils {
         final XMLStreamReader streamReader = xmlInputFactory.createXMLStreamReader(stream,
                                                                                    StandardCharsets.UTF_8.name());
         return xmlMapper.getFactory().createParser(streamReader);
+    }
+
+    public static <T> void streamXmlList(final InputStream stream, Class<T> _class,
+                                         Consumer<T> consumer) throws XMLStreamException, IOException {
+        final XmlMapper xmlMapper = new XmlMapper();
+        final FromXmlParser parser = createXmlParser(stream, xmlMapper);
+        // Skip the first structure token which is the root node
+        //noinspection UnusedAssignment
+        JsonToken token = parser.nextToken();
+        while ((token = parser.nextToken()) != null)
+            if (token.isStructStart())
+                consumer.accept(xmlMapper.readValue(parser, _class));
     }
 }

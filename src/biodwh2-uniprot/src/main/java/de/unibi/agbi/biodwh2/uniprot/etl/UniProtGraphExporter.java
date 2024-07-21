@@ -1,8 +1,5 @@
 package de.unibi.agbi.biodwh2.uniprot.etl;
 
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
@@ -50,15 +47,8 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
                                         .toFile();
         if (!filePath.exists())
             throw new ExporterException("Failed to parse the file '" + UniProtUpdater.HUMAN_SPROT_FILE_NAME + "'");
-        try (final GZIPInputStream zipStream = FileUtils.openGzip(filePath.toString())) {
-            final XmlMapper xmlMapper = new XmlMapper();
-            final FromXmlParser parser = FileUtils.createXmlParser(zipStream, xmlMapper);
-            // Skip the first structure token which is the root UniProt node
-            //noinspection UnusedAssignment
-            JsonToken token = parser.nextToken();
-            while ((token = parser.nextToken()) != null)
-                if (token.isStructStart())
-                    exportEntry(graph, xmlMapper.readValue(parser, Entry.class));
+        try (final GZIPInputStream stream = FileUtils.openGzip(filePath.toString())) {
+            FileUtils.streamXmlList(stream, Entry.class, (protein -> exportEntry(graph, protein)));
         } catch (IOException | XMLStreamException e) {
             throw new ExporterFormatException(e);
         }

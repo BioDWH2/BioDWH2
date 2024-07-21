@@ -87,18 +87,12 @@ public class HMDBGraphExporter extends GraphExporter<HMDBDataSource> {
         try {
             final int[] counter = new int[]{1};
             FileUtils.forEachZipEntry(filePath, ".xml", (stream, entry) -> {
-                final XmlMapper xmlMapper = new XmlMapper();
-                final FromXmlParser parser = FileUtils.createXmlParser(stream, xmlMapper);
-                // Skip the first structure token which is the root HMDB node
-                //noinspection UnusedAssignment
-                JsonToken token = parser.nextToken();
-                while ((token = parser.nextToken()) != null)
-                    if (token.isStructStart()) {
-                        if (counter[0] % 1_000 == 0 && LOGGER.isInfoEnabled())
-                            LOGGER.info("Exporting proteins progress {}", counter[0]);
-                        counter[0]++;
-                        exportProtein(graph, xmlMapper.readValue(parser, Protein.class));
-                    }
+                FileUtils.streamXmlList(stream, Protein.class, (protein -> {
+                    if (counter[0] % 1_000 == 0 && LOGGER.isInfoEnabled())
+                        LOGGER.info("Exporting proteins progress {}", counter[0]);
+                    counter[0]++;
+                    exportProtein(graph, protein);
+                }));
             });
         } catch (Exception e) {
             throw new ExporterFormatException("Failed to parse the file '" + HMDBUpdater.PROTEINS_XML_FILE_NAME + "'",
