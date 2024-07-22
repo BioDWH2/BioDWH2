@@ -1,12 +1,15 @@
 package de.unibi.agbi.biodwh2.trrust;
 
 import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.DataSourcePropertyType;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.*;
 import de.unibi.agbi.biodwh2.core.text.License;
 import de.unibi.agbi.biodwh2.trrust.etl.TRRUSTGraphExporter;
 import de.unibi.agbi.biodwh2.trrust.etl.TRRUSTMappingDescriber;
 import de.unibi.agbi.biodwh2.trrust.etl.TRRUSTUpdater;
+
+import java.util.Map;
 
 public class TRRUSTDataSource extends DataSource {
     @Override
@@ -42,5 +45,12 @@ public class TRRUSTDataSource extends DataSource {
     @Override
     public MappingDescriber getMappingDescriber() {
         return new TRRUSTMappingDescriber(this);
+    }
+
+    @Override
+    public Map<String, DataSourcePropertyType> getAvailableProperties() {
+        final var result = super.getAvailableProperties();
+        result.put("speciesFilter", DataSourcePropertyType.INTEGER_LIST);
+        return result;
     }
 }

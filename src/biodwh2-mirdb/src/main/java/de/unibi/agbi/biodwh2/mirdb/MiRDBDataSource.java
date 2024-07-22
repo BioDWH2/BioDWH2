@@ -38,8 +38,9 @@ public class MiRDBDataSource extends DataSource {
 
     @Override
     public Map<String, DataSourcePropertyType> getAvailableProperties() {
-        final Map<String, DataSourcePropertyType> result = super.getAvailableProperties();
+        final var result = super.getAvailableProperties();
         result.put("scoreThreshold", DataSourcePropertyType.DECIMAL);
+        result.put("speciesFilter", DataSourcePropertyType.INTEGER_LIST);
         return result;
     }
 }

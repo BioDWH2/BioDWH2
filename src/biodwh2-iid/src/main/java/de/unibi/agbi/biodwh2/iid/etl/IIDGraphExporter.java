@@ -239,7 +239,7 @@ public class IIDGraphExporter extends GraphExporter<IIDDataSource> {
         if (!speciesFilter.isSpeciesAllowed(taxonId))
             return;
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Exporting file '" + fileName + "'...");
+            LOGGER.info("Exporting file '{}'...", fileName);
         try (final var iterator = FileUtils.openGzipTsv(workspace, dataSource, fileName, String[].class)) {
             final String[] headers = iterator.next();
             while (iterator.hasNext())

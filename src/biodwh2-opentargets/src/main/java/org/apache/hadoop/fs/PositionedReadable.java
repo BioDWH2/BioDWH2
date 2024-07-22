@@ -12,7 +12,6 @@
  */
 package org.apache.hadoop.fs;
 
-import java.io.EOFException;
 import java.io.IOException;
 
 public interface PositionedReadable {
