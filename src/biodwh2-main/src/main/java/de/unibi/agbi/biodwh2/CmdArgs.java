@@ -32,16 +32,20 @@ public class CmdArgs {
     }, arity = "2", paramLabel = "<workspacePath> <dataSourceId>", hideParamSyntax = true, description = "Remove a data source from the configuration", order = 13)
     public List<String> removeDataSource;
     @CommandLine.Option(names = {
+            "--set-config"
+    }, arity = "3", paramLabel = "<workspacePath> <configKey> <value>", hideParamSyntax = true, description = "Set a configuration key", order = 14)
+    public List<String> setConfig;
+    @CommandLine.Option(names = {
             "-u", "--update"
-    }, arity = "1", paramLabel = "<workspacePath>", hideParamSyntax = true, description = "Update all data sources of a workspace", order = 14)
+    }, arity = "1", paramLabel = "<workspacePath>", hideParamSyntax = true, description = "Update all data sources of a workspace", order = 15)
     public String update;
     @CommandLine.Option(names = {
             "-s", "--status"
-    }, arity = "1", paramLabel = "<workspacePath>", description = "Check and output the state of a workspace", order = 15)
+    }, arity = "1", paramLabel = "<workspacePath>", description = "Check and output the state of a workspace", order = 16)
     public String status;
     @CommandLine.Option(names = {
             "--set-data-source-version"
-    }, arity = "3", paramLabel = "<workspacePath> <dataSourceId> <version>", hideParamSyntax = true, description = "Set the data source to a specific version for manually updated modules", order = 16)
+    }, arity = "3", paramLabel = "<workspacePath> <dataSourceId> <version>", hideParamSyntax = true, description = "Set the data source to a specific version for manually updated modules", order = 17)
     public List<String> setDataSourceVersion;
     @CommandLine.Option(names = {"--skip-update"}, description = "Skip update, only parse and export", order = 100)
     public boolean skipUpdate;
@@ -59,6 +63,6 @@ public class CmdArgs {
     public int numThreads = Runtime.getRuntime().availableProcessors();
     @CommandLine.Option(names = {
             "-wcp", "--web-config-port"
-    }, defaultValue = "7070", paramLabel = "<boltPort>", description = "Specifies the web configurator port (default 7070)", order = 104)
+    }, arity = "1", defaultValue = "7070", paramLabel = "<boltPort>", description = "Specifies the web configurator port (default 7070)", order = 104)
     public Integer webConfiguratorPort;
 }

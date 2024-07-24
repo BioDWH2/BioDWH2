@@ -44,6 +44,8 @@ public final class BioDWH2 {
             addDataSource(commandLine);
         else if (commandLine.removeDataSource != null)
             removeDataSource(commandLine);
+        else if (commandLine.setConfig != null)
+            setConfig(commandLine);
         else if (commandLine.create != null)
             createWorkspace(commandLine.create);
         else if (commandLine.configure)
@@ -126,6 +128,94 @@ public final class BioDWH2 {
             LOGGER.error("Could not find data source with id '{}'", dataSourceId);
             listDataSources(commandLine);
         }
+    }
+
+    private void setConfig(final CmdArgs commandLine) {
+        final String workspacePath = commandLine.removeDataSource.get(0);
+        String configKey = commandLine.removeDataSource.get(1);
+        final String value = commandLine.removeDataSource.get(2);
+        final var workspace = new Workspace(workspacePath);
+        final var config = workspace.getConfiguration();
+        final var loader = DataSourceLoader.getInstance();
+        boolean success = true;
+        try {
+            if ("skipMetaGraphGeneration".equals(configKey)) {
+                config.setSkipMetaGraphGeneration(CmdConfigPropertyParser.parseBoolean(value));
+            } else if ("dataSourceIds".equals(configKey)) {
+                final var ids = CmdConfigPropertyParser.parseStringList(value);
+                if (ids != null) {
+                    for (final var id : config.getDataSourceIds())
+                        config.removeDataSource(id);
+                    for (final var id : ids)
+                        config.addDataSource(id);
+                } else {
+                    success = false;
+                }
+            } else if ("outputFormatIds".equals(configKey)) {
+                final var ids = CmdConfigPropertyParser.parseStringList(value);
+                if (ids != null) {
+                    for (final var id : config.getOutputFormatIds())
+                        config.removeOutputFormat(id);
+                    for (final var id : ids)
+                        config.addOutputFormat(id);
+                } else {
+                    success = false;
+                }
+            } else if (configKey.contains(".")) {
+                final var domainEndIndex = configKey.indexOf('.');
+                final var domain = configKey.substring(0, domainEndIndex);
+                configKey = configKey.substring(domainEndIndex + 1);
+                if ("globalProperties".equals(domain)) {
+                    if ("speciesFilter".equals(configKey)) {
+                        final var speciesFilter = CmdConfigPropertyParser.parseIntegerList(value);
+                        if (speciesFilter != null) {
+                            config.getGlobalProperties().speciesFilter = speciesFilter;
+                        } else {
+                            success = false;
+                        }
+                    } else {
+                        success = false;
+                    }
+                } else if ("dataSourceProperties".equals(domain)) {
+                    final var dataSourceEndIndex = configKey.indexOf('.');
+                    if (dataSourceEndIndex == -1) {
+                        success = false;
+                    } else {
+                        final var dataSourceId = configKey.substring(0, dataSourceEndIndex);
+                        configKey = configKey.substring(dataSourceEndIndex + 1);
+                        final var dataSource = loader.getDataSourceById(dataSourceId);
+                        if (dataSource != null) {
+                            final var propertyType = dataSource.getAvailableProperties().get(configKey);
+                            if (propertyType != null) {
+                                final var properties = config.getDataSourceProperties(dataSourceId);
+                                final var parsedValue = CmdConfigPropertyParser.parse(value, propertyType);
+                                if (parsedValue != null) {
+                                    properties.put(configKey, parsedValue);
+                                } else {
+                                    success = false;
+                                }
+                            } else {
+                                success = false;
+                            }
+                        } else {
+                            success = false;
+                        }
+                    }
+                } else {
+                    success = false;
+                }
+            } else {
+                success = false;
+            }
+            if (success) {
+                workspace.saveConfiguration();
+                LOGGER.info("Successfully set config key '{}' to '{}'", configKey, value);
+            }
+        } catch (IOException e) {
+            LOGGER.error("Failed to set config key '{}' to '{}'", configKey, value, e);
+        }
+        if (!success)
+            LOGGER.error("Failed to set config key '{}' to '{}'", configKey, value);
     }
 
     private void createWorkspace(final String workspacePath) {

@@ -75,8 +75,7 @@ public final class Configuration {
     }
 
     public Map<String, Object> getDataSourceProperties(final String dataSourceId) {
-        final Map<String, Object> properties = dataSourceProperties.get(dataSourceId);
-        return properties == null ? new HashMap<>() : properties;
+        return dataSourceProperties.computeIfAbsent(dataSourceId, k -> new HashMap<>());
     }
 
     public GlobalProperties getGlobalProperties() {
