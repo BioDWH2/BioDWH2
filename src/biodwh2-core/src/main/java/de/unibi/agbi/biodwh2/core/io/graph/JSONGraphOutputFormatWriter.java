@@ -61,29 +61,34 @@ public class JSONGraphOutputFormatWriter extends OutputFormatWriter {
                 writer.println(",");
             first = false;
             final Map<String, Object> properties = new HashMap<>();
-            properties.put("label", node.getLabel());
             for (final var key : node.keySet())
                 if (!Node.IGNORED_FIELDS.contains(key))
                     properties.put(key, node.get(key));
-            writer.print("      \"" + node.getId() + "\": " + mapper.writeValueAsString(properties));
+            writer.println("      \"" + node.getId() + "\": {");
+            writer.println("        \"label\": \"" + node.getLabel() + "\",");
+            writer.println("        \"metadata\": " + mapper.writeValueAsString(properties));
+            writer.print("      }");
         }
         if (!first)
             writer.println();
         writer.println("    },");
-        writer.println("    \"edges\": {");
+        writer.println("    \"edges\": [");
         first = true;
         for (final var edge : graph.getEdges()) {
             if (!first)
                 writer.println(",");
             first = false;
             final Map<String, Object> properties = new HashMap<>();
-            properties.put("label", edge.getLabel());
-            properties.put("source", edge.getFromId());
-            properties.put("target", edge.getToId());
             for (final var key : edge.keySet())
                 if (!Edge.IGNORED_FIELDS.contains(key))
                     properties.put(key, edge.get(key));
-            writer.print("      \"" + edge.getId() + "\": " + mapper.writeValueAsString(properties));
+            writer.println("      {");
+            writer.println("        \"id\": \"" + edge.getId() + "\",");
+            writer.println("        \"label\": \"" + edge.getLabel() + "\",");
+            writer.println("        \"source\": \"" + edge.getFromId() + "\",");
+            writer.println("        \"target\": \"" + edge.getToId() + "\",");
+            writer.println("        \"metadata\": " + mapper.writeValueAsString(properties));
+            writer.print("      }");
         }
         if (!first)
             writer.println();

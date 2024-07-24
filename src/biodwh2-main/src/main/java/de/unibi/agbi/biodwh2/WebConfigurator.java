@@ -272,7 +272,12 @@ public class WebConfigurator {
                         final var fields = propertiesNode.fields();
                         while (fields.hasNext()) {
                             final var field = fields.next();
-                            switch (dataSourcePropertyTypes.get(id).get(field.getKey())) {
+                            if (!dataSourcePropertyTypes.containsKey(id))
+                                continue;
+                            final var propertyTypes = dataSourcePropertyTypes.get(id);
+                            if (!propertyTypes.containsKey(field.getKey()))
+                                continue;
+                            switch (propertyTypes.get(field.getKey())) {
                                 case STRING:
                                     properties.put(field.getKey(), field.getValue().asText());
                                     break;

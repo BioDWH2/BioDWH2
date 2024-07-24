@@ -172,9 +172,9 @@ public class GEXFOutputFormatWriter extends OutputFormatWriter {
 
     private void writeGraph(final XMLStreamWriter writer, final Graph graph) throws XMLStreamException {
         writeMeta(writer);
-        writeProperties(writer);
         writer.writeStartElement("graph");
         writer.writeAttribute("defaultedgetype", "directed");
+        writeAttributes(writer);
         writer.writeStartElement("nodes");
         for (final Node node : graph.getNodes())
             writeNode(writer, node);
@@ -195,7 +195,7 @@ public class GEXFOutputFormatWriter extends OutputFormatWriter {
         writer.writeEndElement();
     }
 
-    private void writeProperties(final XMLStreamWriter writer) throws XMLStreamException {
+    private void writeAttributes(final XMLStreamWriter writer) throws XMLStreamException {
         writer.writeStartElement("attributes");
         writer.writeAttribute("class", "node");
         for (final Property p : nodeProperties) {
