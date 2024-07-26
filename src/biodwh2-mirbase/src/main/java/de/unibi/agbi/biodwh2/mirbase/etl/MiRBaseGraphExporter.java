@@ -1,6 +1,5 @@
 package de.unibi.agbi.biodwh2.mirbase.etl;
 
-import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
@@ -22,7 +21,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -76,28 +74,21 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
 
     private void logStep(final int step, final String name) {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("(" + step + "/8) Exporting " + name + "...");
+            LOGGER.info("({}/8) Exporting {}...", step, name);
     }
 
     private Map<Long, Long> exportSpecies(final Workspace workspace, final Graph graph) {
         final Map<Long, Long> idNodeIdMap = new HashMap<>();
-        for (final MirnaSpecies entry : parseGzipTsvFile(workspace, "mirna_species.txt.gz", MirnaSpecies.class)) {
-            if (speciesFilter.isSpeciesAllowed("\\N".equals(entry.taxonId) ? null : Integer.parseInt(entry.taxonId))) {
-                final Node node = graph.addNodeFromModel(entry);
-                idNodeIdMap.put(entry.autoId, node.getId());
-            }
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mirna_species.txt", MirnaSpecies.class, (entry) -> {
+                final var taxonId = "\\N".equals(entry.taxonId) ? null : Integer.parseInt(entry.taxonId);
+                if (speciesFilter.isSpeciesAllowed(taxonId))
+                    idNodeIdMap.put(entry.autoId, graph.addNodeFromModel(entry).getId());
+            });
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mirna_species.txt'", e);
         }
         return idNodeIdMap;
-    }
-
-    private <T> Iterable<T> parseGzipTsvFile(final Workspace workspace, final String fileName,
-                                             final Class<T> typeClass) throws ExporterException {
-        try {
-            final MappingIterator<T> iterator = FileUtils.openGzipTsv(workspace, dataSource, fileName, typeClass);
-            return () -> iterator;
-        } catch (IOException e) {
-            throw new ExporterFormatException("Failed to parse the file '" + fileName + "'", e);
-        }
     }
 
     private Map<Long, Long> exportMirnas(final Workspace workspace, final Graph graph,
@@ -108,46 +99,50 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
         final Map<Long, MirnaChromosomeBuild> chromosomeBuildMap = getMirnaChromosomeBuildMap(workspace);
         final Map<Long, Set<String>> xrefsMap = getMirnaXrefMap(workspace);
         final Map<Long, Long> idNodeIdMap = new HashMap<>();
-        for (final Mirna entry : parseGzipTsvFile(workspace, "mirna.txt.gz", Mirna.class)) {
-            if (entry.deadFlag != 0)
-                continue;
-            final Long speciesNodeId = speciesIdNodeIdMap.get(entry.autoSpecies);
-            if (speciesNodeId == null)
-                continue;
-            final NodeBuilder builder = graph.buildNode().withLabel(PRE_MI_RNA_LABEL).withModel(entry);
-            final Integer confidence = confidenceMap.get(entry.autoId);
-            if (confidence != null)
-                builder.withProperty("confidence", confidence > 0);
-            final MirnaChromosomeBuild build = chromosomeBuildMap.get(entry.autoId);
-            if (build != null) {
-                builder.withPropertyIfNotNull("xsome", build.xsome);
-                builder.withPropertyIfNotNull("contig_start", build.contigStart);
-                builder.withPropertyIfNotNull("contig_end", build.contigEnd);
-                builder.withPropertyIfNotNull("strand", build.strand);
-            }
-            final Set<String> xrefs = xrefsMap.get(entry.autoId);
-            if (xrefs != null)
-                builder.withProperty("xrefs", xrefs.toArray(new String[0]));
-            final String sequence = sequenceMap.get(entry.mirnaAcc);
-            if (sequence != null)
-                builder.withProperty("sequence", sequence);
-            final String alignment = alignmentMap.get(entry.mirnaId);
-            if (alignment != null) {
-                builder.withProperty("alignment", StringUtils.split(alignment, '\n'));
-                builder.withPropertyIfNotNull("fold", AlignmentUtils.getFoldStringFromHairpinAlignment(alignment));
-            }
-            final Node node = builder.build();
-            idNodeIdMap.put(entry.autoId, node.getId());
-            graph.addEdge(node, speciesNodeId, "BELONGS_TO");
-            exportMirnaGene(graph, xrefs, node);
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mirna.txt", Mirna.class, (entry) -> {
+                if (entry.deadFlag != 0)
+                    return;
+                final Long speciesNodeId = speciesIdNodeIdMap.get(entry.autoSpecies);
+                if (speciesNodeId == null)
+                    return;
+                final NodeBuilder builder = graph.buildNode().withLabel(PRE_MI_RNA_LABEL).withModel(entry);
+                final Integer confidence = confidenceMap.get(entry.autoId);
+                if (confidence != null)
+                    builder.withProperty("confidence", confidence > 0);
+                final MirnaChromosomeBuild build = chromosomeBuildMap.get(entry.autoId);
+                if (build != null) {
+                    builder.withPropertyIfNotNull("xsome", build.xsome);
+                    builder.withPropertyIfNotNull("contig_start", build.contigStart);
+                    builder.withPropertyIfNotNull("contig_end", build.contigEnd);
+                    builder.withPropertyIfNotNull("strand", build.strand);
+                }
+                final Set<String> xrefs = xrefsMap.get(entry.autoId);
+                if (xrefs != null)
+                    builder.withProperty("xrefs", xrefs.toArray(new String[0]));
+                final String sequence = sequenceMap.get(entry.mirnaAcc);
+                if (sequence != null)
+                    builder.withProperty("sequence", sequence);
+                final String alignment = alignmentMap.get(entry.mirnaId);
+                if (alignment != null) {
+                    builder.withProperty("alignment", StringUtils.split(alignment, '\n'));
+                    builder.withPropertyIfNotNull("fold", AlignmentUtils.getFoldStringFromHairpinAlignment(alignment));
+                }
+                final Node node = builder.build();
+                idNodeIdMap.put(entry.autoId, node.getId());
+                graph.addEdge(node, speciesNodeId, "BELONGS_TO");
+                exportMirnaGene(graph, xrefs, node);
+            });
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mirna.txt'", e);
         }
         return idNodeIdMap;
     }
 
     private Map<String, String> getMirnaSequenceMap(final Workspace workspace) {
         final Map<String, String> result = new HashMap<>();
-        try (final InputStream input = FileUtils.openGzip(workspace, dataSource, "hairpin.fa.gz");
-             final FastaReader reader = new FastaReader(input, StandardCharsets.UTF_8)) {
+        try (final var reader = new FastaReader(dataSource.resolveSourceFilePath(workspace, "hairpin.fa"),
+                                                StandardCharsets.UTF_8)) {
             for (final FastaEntry entry : reader) {
                 final Matcher idMatcher = MIRNA_ACCESSION_PATTERN.matcher(entry.getHeader());
                 if (idMatcher.find()) {
@@ -156,54 +151,63 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
                 }
             }
         } catch (Exception e) {
-            throw new ExporterFormatException("Failed to parse the file 'hairpin.fa.gz'", e);
+            throw new ExporterFormatException("Failed to parse the file 'hairpin.fa'", e);
         }
         return result;
     }
 
     private Map<String, String> getMirnaAlignmentMap(final Workspace workspace) {
         final Map<String, String> result = new HashMap<>();
-        try (final InputStream input = FileUtils.openGzip(workspace, dataSource, "miRNA.str.gz");
-             final FastaReader reader = new FastaReader(input, StandardCharsets.UTF_8, false)) {
+        try (final var reader = new FastaReader(dataSource.resolveSourceFilePath(workspace, "miRNA.str"),
+                                                StandardCharsets.UTF_8, false)) {
             for (final FastaEntry entry : reader) {
                 final String id = StringUtils.split(entry.getHeader(), " ")[0].substring(1);
                 result.put(id, entry.getSequence());
             }
         } catch (Exception e) {
-            throw new ExporterFormatException("Failed to parse the file 'hairpin.fa.gz'", e);
+            throw new ExporterFormatException("Failed to parse the file 'hairpin.fa'", e);
         }
         return result;
     }
 
     private Map<Long, Integer> getMirnaConfidenceScoreMap(final Workspace workspace) {
         final Map<Long, Integer> result = new HashMap<>();
-        for (final ConfidenceScore entry : parseGzipTsvFile(workspace, "confidence_score.txt.gz",
-                                                            ConfidenceScore.class)) {
-            result.put(entry.autoMirna, entry.confidence);
+        try {
+            FileUtils.openTsv(workspace, dataSource, "confidence_score.txt", ConfidenceScore.class,
+                              (entry) -> result.put(entry.autoMirna, entry.confidence));
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'confidence_score.txt'", e);
         }
         return result;
     }
 
     private Map<Long, MirnaChromosomeBuild> getMirnaChromosomeBuildMap(final Workspace workspace) {
         final Map<Long, MirnaChromosomeBuild> result = new HashMap<>();
-        for (final MirnaChromosomeBuild entry : parseGzipTsvFile(workspace, "mirna_chromosome_build.txt.gz",
-                                                                 MirnaChromosomeBuild.class)) {
-            result.put(entry.autoMirna, entry);
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mirna_chromosome_build.txt", MirnaChromosomeBuild.class,
+                              (entry) -> result.put(entry.autoMirna, entry));
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mirna_chromosome_build.txt'", e);
         }
         return result;
     }
 
     private Map<Long, Set<String>> getMirnaXrefMap(final Workspace workspace) {
         final Map<Long, String> dbIdPrefixMap = new HashMap<>();
-        for (final MirnaDatabaseUrl entry : parseGzipTsvFile(workspace, "mirna_database_url.txt.gz",
-                                                             MirnaDatabaseUrl.class)) {
-            dbIdPrefixMap.put(entry.autoDb, entry.displayName);
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mirna_database_url.txt", MirnaDatabaseUrl.class,
+                              (entry) -> dbIdPrefixMap.put(entry.autoDb, entry.displayName));
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mirna_database_url.txt'", e);
         }
         final Map<Long, Set<String>> result = new HashMap<>();
-        for (final MirnaDatabaseLink entry : parseGzipTsvFile(workspace, "mirna_database_links.txt.gz",
-                                                              MirnaDatabaseLink.class)) {
-            final Set<String> xrefs = result.computeIfAbsent(entry.autoMirna, k -> new HashSet<>());
-            xrefs.add(dbIdPrefixMap.get(entry.autoDb) + ':' + entry.link);
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mirna_database_links.txt", MirnaDatabaseLink.class, (entry) -> {
+                final Set<String> xrefs = result.computeIfAbsent(entry.autoMirna, k -> new HashSet<>());
+                xrefs.add(dbIdPrefixMap.get(entry.autoDb) + ':' + entry.link);
+            });
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mirna_database_links.txt'", e);
         }
         return result;
     }
@@ -237,37 +241,44 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
         final Map<String, String> sequenceMap = getMatureSequenceMap(workspace);
         final Map<Long, Set<String>> xrefsMap = getMatureXrefMap(workspace);
         final Map<Long, Long> idNodeIdMap = new HashMap<>();
-        for (final MirnaMature entry : parseGzipTsvFile(workspace, "mirna_mature.txt.gz", MirnaMature.class)) {
-            if (entry.deadFlag != 0 || !usedAutoMatures.contains(entry.autoId))
-                continue;
-            final NodeBuilder builder = graph.buildNode().withLabel(MI_RNA_LABEL).withModel(entry);
-            final Set<String> xrefs = xrefsMap.get(entry.autoId);
-            if (xrefs != null)
-                builder.withProperty("xrefs", xrefs.toArray(new String[0]));
-            final String sequence = sequenceMap.get(entry.matureAcc);
-            if (sequence != null)
-                builder.withProperty("sequence", sequence);
-            final Node node = builder.build();
-            idNodeIdMap.put(entry.autoId, node.getId());
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mirna_mature.txt", MirnaMature.class, (entry) -> {
+                if (entry.deadFlag != 0 || !usedAutoMatures.contains(entry.autoId))
+                    return;
+                final NodeBuilder builder = graph.buildNode().withLabel(MI_RNA_LABEL).withModel(entry);
+                final Set<String> xrefs = xrefsMap.get(entry.autoId);
+                if (xrefs != null)
+                    builder.withProperty("xrefs", xrefs.toArray(new String[0]));
+                final String sequence = sequenceMap.get(entry.matureAcc);
+                if (sequence != null)
+                    builder.withProperty("sequence", sequence);
+                final Node node = builder.build();
+                idNodeIdMap.put(entry.autoId, node.getId());
+            });
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mirna_mature.txt'", e);
         }
         return idNodeIdMap;
     }
 
     private Set<Long> getUsedAutoMatures(final Workspace workspace, final Map<Long, Long> mirnaIdNodeIdMap) {
         final Set<Long> usedAutoMature = new HashSet<>();
-        for (final MirnaPreMature entry : parseGzipTsvFile(workspace, "mirna_pre_mature.txt.gz",
-                                                           MirnaPreMature.class)) {
-            final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
-            if (mirnaNodeId != null)
-                usedAutoMature.add(entry.autoMature);
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mirna_pre_mature.txt", MirnaPreMature.class, (entry) -> {
+                final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
+                if (mirnaNodeId != null)
+                    usedAutoMature.add(entry.autoMature);
+            });
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mirna_pre_mature.txt'", e);
         }
         return usedAutoMature;
     }
 
     private Map<String, String> getMatureSequenceMap(final Workspace workspace) {
         final Map<String, String> result = new HashMap<>();
-        try (final InputStream input = FileUtils.openGzip(workspace, dataSource, "mature.fa.gz");
-             final FastaReader reader = new FastaReader(input, StandardCharsets.UTF_8)) {
+        try (final var reader = new FastaReader(dataSource.resolveSourceFilePath(workspace, "mature.fa"),
+                                                StandardCharsets.UTF_8)) {
             for (final FastaEntry entry : reader) {
                 final Matcher idMatcher = MATURE_ACCESSION_PATTERN.matcher(entry.getHeader());
                 if (idMatcher.find()) {
@@ -276,23 +287,29 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
                 }
             }
         } catch (Exception e) {
-            throw new ExporterFormatException("Failed to parse the file 'hairpin.fa.gz'", e);
+            throw new ExporterFormatException("Failed to parse the file 'mature.fa'", e);
         }
         return result;
     }
 
     private Map<Long, Set<String>> getMatureXrefMap(final Workspace workspace) {
         final Map<Long, String> dbIdPrefixMap = new HashMap<>();
-        for (final MatureDatabaseUrl entry : parseGzipTsvFile(workspace, "mature_database_url.txt.gz",
-                                                              MatureDatabaseUrl.class)) {
-            dbIdPrefixMap.put(entry.autoDb, entry.displayName);
-            // TODO: entry.type [0: Database links, 1: Predicted targets, 2: ?]
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mature_database_url.txt", MatureDatabaseUrl.class, (entry) -> {
+                dbIdPrefixMap.put(entry.autoDb, entry.displayName);
+                // TODO: entry.type [0: Database links, 1: Predicted targets, 2: ?]
+            });
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mature_database_url.txt'", e);
         }
         final Map<Long, Set<String>> result = new HashMap<>();
-        for (final MatureDatabaseLink entry : parseGzipTsvFile(workspace, "mature_database_links.txt.gz",
-                                                               MatureDatabaseLink.class)) {
-            final Set<String> xrefs = result.computeIfAbsent(entry.autoMature, k -> new HashSet<>());
-            xrefs.add(dbIdPrefixMap.get(entry.autoDb) + ':' + entry.link);
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mature_database_links.txt", MatureDatabaseLink.class, (entry) -> {
+                final Set<String> xrefs = result.computeIfAbsent(entry.autoMature, k -> new HashSet<>());
+                xrefs.add(dbIdPrefixMap.get(entry.autoDb) + ':' + entry.link);
+            });
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mature_database_links.txt'", e);
         }
         return result;
     }
@@ -300,41 +317,57 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
     private void exportMirnaMatureRelations(final Workspace workspace, final Graph graph,
                                             final Map<Long, Long> mirnaIdNodeIdMap,
                                             final Map<Long, Long> matureIdNodeIdMap) {
-        for (final MirnaPreMature entry : parseGzipTsvFile(workspace, "mirna_pre_mature.txt.gz",
-                                                           MirnaPreMature.class)) {
-            final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
-            final Long matureNodeId = matureIdNodeIdMap.get(entry.autoMature);
-            if (mirnaNodeId != null && matureNodeId != null)
-                graph.addEdge(mirnaNodeId, matureNodeId, "CLEAVES_TO", "from", entry.matureFrom, "to", entry.matureTo);
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mirna_pre_mature.txt", MirnaPreMature.class, (entry) -> {
+                final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
+                final Long matureNodeId = matureIdNodeIdMap.get(entry.autoMature);
+                if (mirnaNodeId != null && matureNodeId != null)
+                    graph.addEdge(mirnaNodeId, matureNodeId, "CLEAVES_TO", "from", entry.matureFrom, "to",
+                                  entry.matureTo);
+            });
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mirna_pre_mature.txt'", e);
         }
     }
 
     private void exportFamilies(final Workspace workspace, final Graph graph, final Map<Long, Long> mirnaIdNodeIdMap) {
         final Set<Long> usedAutoPrefam = new HashSet<>();
-        for (final Mirna2Prefam entry : parseGzipTsvFile(workspace, "mirna_2_prefam.txt.gz", Mirna2Prefam.class)) {
-            final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
-            if (mirnaNodeId != null)
-                usedAutoPrefam.add(entry.autoPrefam);
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mirna_2_prefam.txt", Mirna2Prefam.class, (entry) -> {
+                final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
+                if (mirnaNodeId != null)
+                    usedAutoPrefam.add(entry.autoPrefam);
+            });
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mirna_2_prefam.txt'", e);
         }
         final Map<Long, Long> prefamIdNodeIdMap = new HashMap<>();
-        for (final MirnaPrefam entry : parseGzipTsvFile(workspace, "mirna_prefam.txt.gz", MirnaPrefam.class)) {
-            if (usedAutoPrefam.contains(entry.autoPrefam)) {
-                final Node node = graph.addNodeFromModel(entry);
-                prefamIdNodeIdMap.put(entry.autoPrefam, node.getId());
-            }
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mirna_prefam.txt", MirnaPrefam.class, (entry) -> {
+                if (usedAutoPrefam.contains(entry.autoPrefam)) {
+                    final Node node = graph.addNodeFromModel(entry);
+                    prefamIdNodeIdMap.put(entry.autoPrefam, node.getId());
+                }
+            });
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mirna_prefam.txt'", e);
         }
-        for (final Mirna2Prefam entry : parseGzipTsvFile(workspace, "mirna_2_prefam.txt.gz", Mirna2Prefam.class)) {
-            final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
-            final Long familyNodeId = prefamIdNodeIdMap.get(entry.autoPrefam);
-            if (mirnaNodeId != null && familyNodeId != null)
-                graph.addEdge(mirnaNodeId, familyNodeId, "BELONGS_TO");
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mirna_2_prefam.txt", Mirna2Prefam.class, (entry) -> {
+                final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
+                final Long familyNodeId = prefamIdNodeIdMap.get(entry.autoPrefam);
+                if (mirnaNodeId != null && familyNodeId != null)
+                    graph.addEdge(mirnaNodeId, familyNodeId, "BELONGS_TO");
+            });
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mirna_2_prefam.txt'", e);
         }
     }
 
     private void exportReferences(final Workspace workspace, final Graph graph) {
         final Map<String, Long> referenceKeyNodeIdMap = new HashMap<>();
-        try (final InputStream input = FileUtils.openGzip(workspace, dataSource, "miRNA.dat.gz");
-             final FlatFileReader reader = new FlatFileReader(input, StandardCharsets.UTF_8)) {
+        try (final var reader = new FlatFileReader(dataSource.resolveSourceFilePath(workspace, "miRNA.dat"),
+                                                   StandardCharsets.UTF_8)) {
             for (final FlatFileEntry entry : reader) {
                 final String mirnaAccession = StringUtils.strip(entry.getProperty("AC").value, " ;");
                 final Node mirnaNode = graph.findNode(PRE_MI_RNA_LABEL, "accession", mirnaAccession);
@@ -387,28 +420,36 @@ public class MiRBaseGraphExporter extends GraphExporter<MiRBaseDataSource> {
                 }
             }
         } catch (Exception e) {
-            throw new ExporterFormatException("Failed to parse the file 'miRNA.dat.gz'", e);
+            throw new ExporterFormatException("Failed to parse the file 'miRNA.dat'", e);
         }
     }
 
     private void exportConfidences(final Workspace workspace, final Graph graph,
                                    final Map<Long, Long> mirnaIdNodeIdMap) {
-        for (final Confidence entry : parseGzipTsvFile(workspace, "confidence.txt.gz", Confidence.class)) {
-            final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
-            if (mirnaNodeId != null) {
-                final Node node = graph.addNodeFromModel(entry);
-                graph.addEdge(mirnaNodeId, node, "HAS_CONFIDENCE");
-            }
+        try {
+            FileUtils.openTsv(workspace, dataSource, "confidence.txt", Confidence.class, (entry) -> {
+                final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
+                if (mirnaNodeId != null) {
+                    final Node node = graph.addNodeFromModel(entry);
+                    graph.addEdge(mirnaNodeId, node, "HAS_CONFIDENCE");
+                }
+            });
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'confidence.txt'", e);
         }
     }
 
     private void exportContexts(final Workspace workspace, final Graph graph, final Map<Long, Long> mirnaIdNodeIdMap) {
-        for (final MirnaContext entry : parseGzipTsvFile(workspace, "mirna_context.txt.gz", MirnaContext.class)) {
-            final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
-            if (mirnaNodeId != null) {
-                final Node node = graph.addNodeFromModel(entry);
-                graph.addEdge(mirnaNodeId, node, "HAS_CONTEXT");
-            }
+        try {
+            FileUtils.openTsv(workspace, dataSource, "mirna_context.txt", MirnaContext.class, (entry) -> {
+                final Long mirnaNodeId = mirnaIdNodeIdMap.get(entry.autoMirna);
+                if (mirnaNodeId != null) {
+                    final Node node = graph.addNodeFromModel(entry);
+                    graph.addEdge(mirnaNodeId, node, "HAS_CONTEXT");
+                }
+            });
+        } catch (IOException e) {
+            throw new ExporterFormatException("Failed to parse the file 'mirna_context.txt'", e);
         }
     }
 }
