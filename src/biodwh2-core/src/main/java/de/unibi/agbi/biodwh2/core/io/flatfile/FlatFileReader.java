@@ -6,11 +6,16 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public final class FlatFileReader extends BaseReader<FlatFileEntry> {
-    @SuppressWarnings("unused")
+    public FlatFileReader(final Path filePath, final Charset charset) throws IOException {
+        super(filePath, charset);
+    }
+
     public FlatFileReader(final String filePath, final Charset charset) throws IOException {
         super(filePath, charset);
     }

@@ -216,7 +216,13 @@ public abstract class Updater<D extends DataSource> {
                 if (counter == retries) {
                     throw new UpdaterConnectionException("Failed to download file '" + url + "'", e);
                 } else {
-                    LOGGER.warn("Failed to download file '{}', try {}/{}", url, counter, retries);
+                    LOGGER.warn("Failed to download file '{}' (try {}/{}), retrying in 5 seconds...", url, counter,
+                                retries);
+                    try {
+                        // Small wait to not overpower the server
+                        Thread.sleep(5000);
+                    } catch (InterruptedException ignored) {
+                    }
                     continue;
                 }
             }

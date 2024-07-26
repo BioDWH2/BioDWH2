@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -11,6 +12,10 @@ import java.util.List;
 public abstract class BaseReader<T> implements Iterable<T>, AutoCloseable {
     protected final BufferedReader reader;
     protected T lastEntry;
+
+    public BaseReader(final Path filePath, final Charset charset) throws IOException {
+        this(FileUtils.openInputStream(filePath.toFile()), charset);
+    }
 
     public BaseReader(final String filePath, final Charset charset) throws IOException {
         this(FileUtils.openInputStream(new File(filePath)), charset);

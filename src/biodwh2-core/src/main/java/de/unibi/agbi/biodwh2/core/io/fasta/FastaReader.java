@@ -8,24 +8,33 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 
+@SuppressWarnings("unused")
 public final class FastaReader extends BaseReader<FastaEntry> {
     private final boolean sequenceAsSingleLine;
     private String nextHeader;
 
-    @SuppressWarnings("unused")
     public FastaReader(final String filePath, final Charset charset) throws IOException {
         this(FileUtils.openInputStream(new File(filePath)), charset, true);
+    }
+
+    public FastaReader(final Path filePath, final Charset charset) throws IOException {
+        this(FileUtils.openInputStream(filePath.toFile()), charset, true);
     }
 
     public FastaReader(final InputStream stream, final Charset charset) {
         this(stream, charset, true);
     }
 
-    @SuppressWarnings("unused")
     public FastaReader(final String filePath, final Charset charset,
                        final boolean sequenceAsSingleLine) throws IOException {
         this(FileUtils.openInputStream(new File(filePath)), charset, sequenceAsSingleLine);
+    }
+
+    public FastaReader(final Path filePath, final Charset charset,
+                       final boolean sequenceAsSingleLine) throws IOException {
+        this(FileUtils.openInputStream(filePath.toFile()), charset, sequenceAsSingleLine);
     }
 
     public FastaReader(final InputStream stream, final Charset charset, final boolean sequenceAsSingleLine) {

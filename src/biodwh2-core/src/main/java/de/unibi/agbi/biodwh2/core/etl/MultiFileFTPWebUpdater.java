@@ -8,8 +8,6 @@ import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPFTPClient;
 import de.unibi.agbi.biodwh2.core.text.TextUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -17,8 +15,6 @@ import java.nio.file.Paths;
 import java.util.Locale;
 
 public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updater<D> {
-    private static final Logger LOGGER = LogManager.getLogger(MultiFileFTPWebUpdater.class);
-
     protected final HTTPFTPClient client;
 
     public MultiFileFTPWebUpdater(final D dataSource) {
@@ -71,25 +67,7 @@ public abstract class MultiFileFTPWebUpdater<D extends DataSource> extends Updat
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         for (final String fileName : getFilePaths(workspace)) {
             final String localFileName = Paths.get(fileName).getFileName().toString();
-            int tries = 1;
-            while (tries < 6) {
-                try {
-                    downloadFileAsBrowser(workspace, getFTPIndexUrl() + fileName, localFileName);
-                    break;
-                } catch (UpdaterConnectionException e) {
-                    tries++;
-                    if (tries == 6)
-                        throw e;
-                    if (LOGGER.isInfoEnabled())
-                        LOGGER.info("\tDownloading '{}' failed (try {}/5), retrying in 5 seconds...", fileName,
-                                    tries - 1);
-                    try {
-                        // Small wait to not overpower the server
-                        Thread.sleep(5000);
-                    } catch (InterruptedException ignored) {
-                    }
-                }
-            }
+            downloadFileAsBrowser(workspace, getFTPIndexUrl() + fileName, localFileName);
         }
         return true;
     }
