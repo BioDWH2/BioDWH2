@@ -1,9 +1,9 @@
 package de.unibi.agbi.biodwh2.core.model;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import de.unibi.agbi.biodwh2.core.DataSource;
+import de.unibi.agbi.biodwh2.core.Workspace;
+
+import java.util.*;
 
 public class SpeciesFilter {
     private final Set<Integer> taxonIds;
@@ -20,5 +20,16 @@ public class SpeciesFilter {
 
     public boolean isSpeciesAllowed(final Integer taxonId) {
         return taxonIds == null || taxonIds.isEmpty() || taxonIds.contains(taxonId);
+    }
+
+    public static SpeciesFilter fromWorkspaceDataSource(final Workspace workspace, final DataSource dataSource) {
+        final List<Integer> speciesFilterIds = new ArrayList<>();
+        final var workspaceSpeciesFilter = workspace.getConfiguration().getGlobalProperties().speciesFilter;
+        if (workspaceSpeciesFilter != null)
+            Collections.addAll(speciesFilterIds, workspaceSpeciesFilter);
+        final var dataSourceSpeciesFilter = dataSource.<List<Integer>>getProperty(workspace, "speciesFilter");
+        if (dataSourceSpeciesFilter != null)
+            speciesFilterIds.addAll(dataSourceSpeciesFilter);
+        return new SpeciesFilter(speciesFilterIds);
     }
 }

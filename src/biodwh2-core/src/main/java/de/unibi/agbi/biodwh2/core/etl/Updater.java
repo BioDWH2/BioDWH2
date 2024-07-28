@@ -8,6 +8,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.DataSourceMetadata;
+import de.unibi.agbi.biodwh2.core.model.SpeciesFilter;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.core.net.HTTPClient;
 import org.apache.commons.io.file.PathUtils;
@@ -35,24 +36,29 @@ public abstract class Updater<D extends DataSource> {
     protected static final char[] ROTATE_CHARS = new char[]{'|', '/', '-', '\\'};
 
     protected final D dataSource;
+    protected SpeciesFilter speciesFilter;
 
     public Updater(final D dataSource) {
         this.dataSource = dataSource;
+        speciesFilter = new SpeciesFilter();
     }
 
     public final Version tryGetNewestVersion(final Workspace workspace) {
+        speciesFilter = SpeciesFilter.fromWorkspaceDataSource(workspace, dataSource);
         try {
             return getNewestVersion(workspace);
         } catch (UpdaterException e) {
             final DataSourceVersion latest = OnlineVersionCache.getInstance().getLatest(dataSource.getId());
             if (latest == null || latest.getVersion() == null) {
                 if (LOGGER.isWarnEnabled())
-                    LOGGER.warn("Failed to get newest version for data source '" + dataSource.getId() +
-                                "' directly or from online version cache.", e);
+                    LOGGER.warn(
+                            "Failed to get newest version for data source '{}' directly or from online version cache.",
+                            dataSource.getId(), e);
             } else {
                 if (LOGGER.isWarnEnabled())
-                    LOGGER.warn("Failed to get newest version for data source '" + dataSource.getId() +
-                                "' directly. Using online version cache instead.", e.getMessage());
+                    LOGGER.warn(
+                            "Failed to get newest version for data source '{}' directly. Using online version cache instead.",
+                            dataSource.getId(), e.getMessage());
                 return latest.getVersion();
             }
         }

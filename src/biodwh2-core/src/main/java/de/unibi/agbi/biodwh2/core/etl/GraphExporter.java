@@ -17,9 +17,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public abstract class GraphExporter<D extends DataSource> {
     private static final Logger LOGGER = LogManager.getLogger(GraphExporter.class);
@@ -38,14 +35,7 @@ public abstract class GraphExporter<D extends DataSource> {
     public abstract long getExportVersion();
 
     public final boolean export(final Workspace workspace) throws ExporterException {
-        final List<Integer> speciesFilterIds = new ArrayList<>();
-        final var workspaceSpeciesFilter = workspace.getConfiguration().getGlobalProperties().speciesFilter;
-        if (workspaceSpeciesFilter != null)
-            Collections.addAll(speciesFilterIds, workspaceSpeciesFilter);
-        final var dataSourceSpeciesFilter = dataSource.<List<Integer>>getProperty(workspace, "speciesFilter");
-        if (dataSourceSpeciesFilter != null)
-            speciesFilterIds.addAll(dataSourceSpeciesFilter);
-        speciesFilter = new SpeciesFilter(speciesFilterIds);
+        speciesFilter = SpeciesFilter.fromWorkspaceDataSource(workspace, dataSource);
         boolean exportSuccessful;
         try (Graph g = new Graph(dataSource.getFilePath(workspace, DataSourceFileType.PERSISTENT_GRAPH))) {
             exportSuccessful = exportGraph(workspace, g);
