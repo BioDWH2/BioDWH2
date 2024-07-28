@@ -85,7 +85,7 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
 
     private List<FastaEntry> collectRefSeqFastaEntries(final Workspace workspace, final String fileName) {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Exporting " + fileName + "...");
+            LOGGER.info("Exporting {}...", fileName);
         try (final TarArchiveInputStream inputStream = FileUtils.openTarGzip(workspace, dataSource,
                                                                              HPRDUpdater.FILE_NAME)) {
             TarArchiveEntry entry;
@@ -129,7 +129,7 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
     private <T> MappingIterator<T> openTsvFile(final Workspace workspace, final String fileName,
                                                Class<T> classType) throws IOException {
         if (LOGGER.isInfoEnabled())
-            LOGGER.info("Exporting " + fileName + "...");
+            LOGGER.info("Exporting {}...", fileName);
         final TarArchiveInputStream inputStream = FileUtils.openTarGzip(workspace, dataSource, HPRDUpdater.FILE_NAME);
         TarArchiveEntry entry;
         while ((entry = inputStream.getNextEntry()) != null)
@@ -147,7 +147,7 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
                 gene.symbol = gene.symbol != null ? gene.symbol : entry.geneSymbol;
                 gene.entrezGeneId = gene.entrezGeneId != null ? gene.entrezGeneId : getIntIdOrNull(entry.entrezGeneId);
                 gene.omimId = gene.omimId != null ? gene.omimId : getIntIdOrNull(entry.omimId);
-                gene.name = gene.name != null ? gene.name : ("-".equals(entry.mainName) ? null : entry.mainName);
+                gene.name = gene.name != null ? gene.name : (nullifyDashValue(entry.mainName));
                 gene.swissProtIds = "-".equals(entry.swissProtId) ? null : Arrays.stream(
                         StringUtils.split(entry.swissProtId, ',')).filter(StringUtils::isNotEmpty).toArray(
                         String[]::new);
@@ -155,6 +155,10 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
+    }
+
+    private String nullifyDashValue(final String value) {
+        return "-".equals(value) ? null : value;
     }
 
     private Integer getIntIdOrNull(final String value) {
@@ -165,7 +169,7 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
         for (final Gene gene : genes.values()) {
             final NodeBuilder geneBuilder = graph.buildNode().withLabel(GENE_LABEL);
             geneBuilder.withProperty(ID_KEY, gene.id);
-            geneBuilder.withPropertyIfNotNull("symbol", gene.symbol);
+            geneBuilder.withPropertyIfNotNull("symbol", nullifyDashValue(gene.symbol));
             geneBuilder.withPropertyIfNotNull("name", gene.name);
             geneBuilder.withPropertyIfNotNull("entrez_gene_id", gene.entrezGeneId);
             geneBuilder.withPropertyIfNotNull("omim_id", gene.omimId);
@@ -207,7 +211,7 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
     private void exportTissueExpression(final Graph graph, final TissueExpression entry,
                                         final Map<String, Long> tissueNodeIdMap) {
         if ("-".equals(entry.refSeqId)) {
-            LOGGER.warn("Skipping tissue expression entry with unknown RefSeq Id (" + entry.hprdId + ")");
+            LOGGER.warn("Skipping tissue expression entry with unknown RefSeq Id ({})", entry.hprdId);
             return;
         }
         final Node proteinNode = graph.findNode(PROTEIN_LABEL, REFSEQ_ID_KEY, entry.refSeqId);
@@ -245,7 +249,7 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
     private void exportGeneticDisease(final Graph graph, final GeneticDisease entry,
                                       final Map<String, Long> diseaseNodeIdMap) {
         if ("-".equals(entry.refSeqId)) {
-            LOGGER.warn("Skipping genetic disease entry with unknown RefSeq Id (" + entry.hprdId + ")");
+            LOGGER.warn("Skipping genetic disease entry with unknown RefSeq Id ({})", entry.hprdId);
             return;
         }
         final Node proteinNode = graph.findNode(PROTEIN_LABEL, REFSEQ_ID_KEY, entry.refSeqId);
@@ -271,16 +275,15 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
 
     private void exportPostTranslationalModification(final Graph graph, final PostTranslationalModification entry) {
         if ("-".equals(entry.substrateRefSeqId)) {
-            LOGGER.warn(
-                    "Skipping post translational modification entry with unknown RefSeq Id (" + entry.substrateHprdId +
-                    ")");
+            LOGGER.warn("Skipping post translational modification entry with unknown RefSeq Id ({})",
+                        entry.substrateHprdId);
             return;
         }
         final Node proteinNode = graph.findNode(PROTEIN_LABEL, REFSEQ_ID_KEY, entry.substrateRefSeqId);
         final NodeBuilder builder = graph.buildNode().withLabel("PostTranslationalModification");
-        builder.withPropertyIfNotNull("site", "-".equals(entry.site) ? null : entry.site);
-        builder.withPropertyIfNotNull("residue", "-".equals(entry.residue) ? null : entry.residue);
-        builder.withPropertyIfNotNull("type", "-".equals(entry.modificationType) ? null : entry.modificationType);
+        builder.withPropertyIfNotNull("site", nullifyDashValue(entry.site));
+        builder.withPropertyIfNotNull("residue", nullifyDashValue(entry.residue));
+        builder.withPropertyIfNotNull("type", nullifyDashValue(entry.modificationType));
         builder.withPropertyIfNotNull("experiment_types", "-".equals(entry.experimentType) ? null :
                                                           StringUtils.split(entry.experimentType, ";"));
         builder.withPropertyIfNotNull("pubmed_ids", convertPubmedIds(entry.referenceId));
@@ -306,15 +309,15 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
     private void exportProteinArchitecture(final Graph graph, final ProteinArchitecture entry,
                                            final Map<String, Map<String, Long>> typeNameNodeIdMap) {
         if ("-".equals(entry.refSeqId)) {
-            LOGGER.warn("Skipping protein architecture entry with unknown RefSeq Id (" + entry.hprdId + ")");
+            LOGGER.warn("Skipping protein architecture entry with unknown RefSeq Id ({})", entry.hprdId);
             return;
         }
         final Node proteinNode = graph.findNode(PROTEIN_LABEL, REFSEQ_ID_KEY, entry.refSeqId);
         final Map<String, Long> nameNodeIdMap = typeNameNodeIdMap.computeIfAbsent(entry.architectureType,
                                                                                   (k) -> new HashMap<>());
         if (StringUtils.isEmpty(entry.architectureType)) {
-            LOGGER.warn("Skipping protein architecture entry with unknown architecture type (" + entry.hprdId + ", " +
-                        entry.refSeqId + ")");
+            LOGGER.warn("Skipping protein architecture entry with unknown architecture type ({}, {})", entry.hprdId,
+                        entry.refSeqId);
             return;
         }
         Long architectureNodeId = nameNodeIdMap.get(entry.architectureName);
@@ -344,8 +347,8 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
             referenceId = overflowCandidates.get(2);
         }
         builder.withPropertyIfNotNull("end_site", endSite == null ? null : Integer.parseInt(endSite.trim()));
-        builder.withPropertyIfNotNull("reference_type", "-".equals(referenceType) ? null : referenceType);
-        builder.withPropertyIfNotNull("reference_id", "-".equals(referenceId) ? null : referenceId);
+        builder.withPropertyIfNotNull("reference_type", nullifyDashValue(referenceType));
+        builder.withPropertyIfNotNull("reference_id", nullifyDashValue(referenceId));
         builder.build();
     }
 
@@ -363,7 +366,7 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
         if ("None".equals(entry.interactorHprdId))
             return;
         if ("-".equals(entry.interactorRefSeqId)) {
-            LOGGER.warn("Skipping protein complex entry with unknown RefSeq Id (" + entry.interactorHprdId + ")");
+            LOGGER.warn("Skipping protein complex entry with unknown RefSeq Id ({})", entry.interactorHprdId);
             return;
         }
         final Node proteinNode = graph.findNode(PROTEIN_LABEL, REFSEQ_ID_KEY, entry.interactorRefSeqId);
@@ -387,9 +390,8 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
 
     private void exportProteinProteinInteraction(final Graph graph, final BinaryProteinProteinInteraction entry) {
         if ("-".equals(entry.interactor1RefSeqId) || "-".equals(entry.interactor2RefSeqId)) {
-            LOGGER.warn(
-                    "Skipping protein protein interaction entry with unknown RefSeq Id (" + entry.interactor1HprdId +
-                    ", " + entry.interactor2HprdId + ")");
+            LOGGER.warn("Skipping protein protein interaction entry with unknown RefSeq Id ({}, {})",
+                        entry.interactor1HprdId, entry.interactor2HprdId);
             return;
         }
         final Node protein1Node = graph.findNode(PROTEIN_LABEL, REFSEQ_ID_KEY, entry.interactor1RefSeqId);
@@ -413,9 +415,8 @@ public class HPRDGraphExporter extends GraphExporter<HPRDDataSource> {
     private void exportProteinNonProteinInteraction(final Graph graph, final BinaryProteinNonProteinInteraction entry,
                                                     final Map<String, Long> targetNodeIdMap) {
         if ("-".equals(entry.interactorRefSeqId)) {
-            LOGGER.warn(
-                    "Skipping protein non-protein interaction entry with unknown RefSeq Id (" + entry.interactorHprdId +
-                    ")");
+            LOGGER.warn("Skipping protein non-protein interaction entry with unknown RefSeq Id ({})",
+                        entry.interactorHprdId);
             return;
         }
         if (StringUtils.isBlank(entry.nonProteinInteractorName))
