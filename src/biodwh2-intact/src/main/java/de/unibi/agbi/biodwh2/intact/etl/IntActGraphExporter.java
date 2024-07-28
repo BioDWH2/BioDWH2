@@ -16,7 +16,7 @@ public class IntActGraphExporter extends MIGraphExporter<IntActDataSource> {
     private static final Logger LOGGER = LogManager.getLogger(IntActGraphExporter.class);
 
     public IntActGraphExporter(final IntActDataSource dataSource) {
-        super(dataSource, MIFormat.Xml);
+        super(dataSource, MIFormat.Xml30);
     }
 
     @Override

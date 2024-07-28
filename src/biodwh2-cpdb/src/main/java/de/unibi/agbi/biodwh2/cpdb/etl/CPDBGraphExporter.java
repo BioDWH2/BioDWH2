@@ -10,7 +10,7 @@ import java.io.InputStream;
 
 public class CPDBGraphExporter extends MIGraphExporter<CPDBDataSource> {
     public CPDBGraphExporter(final CPDBDataSource dataSource) {
-        super(dataSource, MIFormat.Xml);
+        super(dataSource, MIFormat.Xml25);
     }
 
     @Override
