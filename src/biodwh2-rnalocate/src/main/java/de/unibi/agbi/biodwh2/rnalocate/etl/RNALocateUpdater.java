@@ -10,12 +10,16 @@ import de.unibi.agbi.biodwh2.rnalocate.RNALocateDataSource;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RNALocateUpdater extends Updater<RNALocateDataSource> {
-    private static final String EXPERIMENTAL_FILE_URL = "http://www.rna-society.org/rnalocate/download/All%20experimental%20RNA%20subcellular%20localization%20data.zip";
-    private static final String DATABASE_FILE_URL = "http://www.rna-society.org/rnalocate/download/Other%20RNA%20subcellular%20localization%20data.zip";
-    static final String EXPERIMENTAL_FILE_NAME = "All experimental RNA subcellular localization data.zip";
-    static final String DATABASE_FILE_NAME = "Other RNA subcellular localization data.zip";
+    private static final String EXPERIMENTAL_FILE_URL = "https://www.rnalocate.org/static/download/All%20RNA%20subcellular%20localization%20information.zip";
+    private static final String PREDICTED_MRNA_FILE_URL = "https://www.rnalocate.org/static/download/Predicted%20mRNA%20subcellular%20localization%20information.zip";
+    private static final String PREDICTED_LNCRNA_FILE_URL = "https://www.rnalocate.org/static/download/Predicted%20lncRNA%20subcellular%20localization%20information.zip";
+    static final String EXPERIMENTAL_FILE_NAME = "All RNA subcellular localization information.zip";
+    static final String PREDICTED_MRNA_FILE_NAME = "Predicted mRNA subcellular localization information.zip";
+    static final String PREDICTED_LNCRNA_FILE_NAME = "Predicted lncRNA subcellular localization information.zip";
 
     public RNALocateUpdater(final RNALocateDataSource dataSource) {
         super(dataSource);
@@ -24,17 +28,24 @@ public class RNALocateUpdater extends Updater<RNALocateDataSource> {
     @Override
     protected Version getNewestVersion(final Workspace workspace) throws UpdaterException {
         try {
+            final List<LocalDateTime> dateTimes = new ArrayList<>();
             final LocalDateTime dateTimeExperimental = HTTPClient.peekZipModificationDateTime(EXPERIMENTAL_FILE_URL);
-            final LocalDateTime dateTimeDatabase = HTTPClient.peekZipModificationDateTime(DATABASE_FILE_URL);
-            if (dateTimeExperimental == null && dateTimeDatabase == null)
+            if (dateTimeExperimental != null)
+                dateTimes.add(dateTimeExperimental);
+            final LocalDateTime dateTimePredictedMRNA = HTTPClient.peekZipModificationDateTime(PREDICTED_MRNA_FILE_URL);
+            if (dateTimePredictedMRNA != null)
+                dateTimes.add(dateTimePredictedMRNA);
+            final LocalDateTime dateTimePredictedLNCRNA = HTTPClient.peekZipModificationDateTime(
+                    PREDICTED_MRNA_FILE_URL);
+            if (dateTimePredictedLNCRNA != null)
+                dateTimes.add(dateTimePredictedLNCRNA);
+            if (dateTimes.isEmpty())
                 return null;
-            if (dateTimeExperimental == null)
-                return createVersionFromDateTime(dateTimeDatabase);
-            if (dateTimeDatabase == null)
-                return createVersionFromDateTime(dateTimeExperimental);
-            if (dateTimeExperimental.isAfter(dateTimeDatabase))
-                return createVersionFromDateTime(dateTimeExperimental);
-            return createVersionFromDateTime(dateTimeDatabase);
+            LocalDateTime newest = dateTimes.get(0);
+            for (int i = 1; i < dateTimes.size(); i++)
+                if (dateTimes.get(i).isAfter(newest))
+                    newest = dateTimes.get(i);
+            return createVersionFromDateTime(newest);
         } catch (IOException e) {
             throw new UpdaterConnectionException(e);
         }
@@ -47,12 +58,13 @@ public class RNALocateUpdater extends Updater<RNALocateDataSource> {
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         downloadFileAsBrowser(workspace, EXPERIMENTAL_FILE_URL, EXPERIMENTAL_FILE_NAME);
-        downloadFileAsBrowser(workspace, DATABASE_FILE_URL, DATABASE_FILE_NAME);
+        downloadFileAsBrowser(workspace, PREDICTED_MRNA_FILE_URL, PREDICTED_MRNA_FILE_NAME);
+        downloadFileAsBrowser(workspace, PREDICTED_LNCRNA_FILE_URL, PREDICTED_LNCRNA_FILE_NAME);
         return true;
     }
 
     @Override
     protected String[] expectedFileNames() {
-        return new String[]{EXPERIMENTAL_FILE_NAME, DATABASE_FILE_NAME};
+        return new String[]{EXPERIMENTAL_FILE_NAME, PREDICTED_MRNA_FILE_NAME, PREDICTED_LNCRNA_FILE_NAME};
     }
 }

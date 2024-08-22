@@ -1,17 +1,15 @@
 package de.unibi.agbi.biodwh2.rnalocate.etl;
 
-import com.fasterxml.jackson.databind.MappingIterator;
 import de.unibi.agbi.biodwh2.core.Workspace;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
+import de.unibi.agbi.biodwh2.core.etl.OntologyGraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
-import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
-import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.rnalocate.RNALocateDataSource;
-import de.unibi.agbi.biodwh2.rnalocate.model.DatabaseEntry;
-import de.unibi.agbi.biodwh2.rnalocate.model.ExperimentEntry;
+import de.unibi.agbi.biodwh2.rnalocate.model.ExperimentalEntry;
+import de.unibi.agbi.biodwh2.rnalocate.model.PredictedEntry;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -22,92 +20,98 @@ public class RNALocateGraphExporter extends GraphExporter<RNALocateDataSource> {
     private static final String LOCALIZATION_LABEL = "Localization";
     static final String RNA_LABEL = "RNA";
 
+    private final Map<String, Long> localizationNodeIdMap = new HashMap<>();
+    private final Map<String, Long> rnaNodeIdMap = new HashMap<>();
+
     public RNALocateGraphExporter(final RNALocateDataSource dataSource) {
         super(dataSource);
     }
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        graph.addIndex(IndexDescription.forNode(RNA_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
-        final Map<String, Long> localizationNodeIdMap = new HashMap<>();
-        exportExperimentalEntries(workspace, graph, localizationNodeIdMap);
-        exportDatabaseEntries(workspace, graph, localizationNodeIdMap);
+        localizationNodeIdMap.clear();
+        rnaNodeIdMap.clear();
+        exportExperimentalEntries(workspace, graph);
+        exportPredictedEntries(workspace, graph, RNALocateUpdater.PREDICTED_MRNA_FILE_NAME);
+        exportPredictedEntries(workspace, graph, RNALocateUpdater.PREDICTED_LNCRNA_FILE_NAME);
         return true;
     }
 
-    private void exportExperimentalEntries(final Workspace workspace, final Graph graph,
-                                           final Map<String, Long> localizationNodeIdMap) {
+    private void exportExperimentalEntries(final Workspace workspace, final Graph graph) {
         try (final ZipInputStream inputStream = FileUtils.openZip(workspace, dataSource,
                                                                   RNALocateUpdater.EXPERIMENTAL_FILE_NAME)) {
             inputStream.getNextEntry();
-            final MappingIterator<ExperimentEntry> entries = FileUtils.openSeparatedValuesFile(inputStream,
-                                                                                               ExperimentEntry.class,
-                                                                                               '\t', true);
+            final var entries = FileUtils.openTsvWithHeader(inputStream, ExperimentalEntry.class);
             while (entries.hasNext())
-                exportExperimentalEntry(graph, entries.next(), localizationNodeIdMap);
+                exportExperimentalEntry(graph, entries.next());
         } catch (IOException e) {
-            throw new ExporterFormatException(e);
+            throw new ExporterFormatException("Failed to export '" + RNALocateUpdater.EXPERIMENTAL_FILE_NAME + "'", e);
         }
     }
 
-    private void exportExperimentalEntry(final Graph graph, final ExperimentEntry entry,
-                                         final Map<String, Long> localizationNodeIdMap) {
-        final Long localizationNodeId = getOrCreateLocalizationNode(graph, localizationNodeIdMap,
-                                                                    entry.subCellularLocalization);
-        final Node rnaNode = getOrCreateRNANode(graph, entry.geneId, entry.geneName, entry.geneSymbol,
-                                                entry.rnaCategory);
-        graph.addEdge(rnaNode, localizationNodeId, "LOCALIZED_IN", ID_KEY, entry.id, "description", entry.description,
-                      "species", entry.species, "pmid", entry.pmid);
+    private void exportExperimentalEntry(final Graph graph, final ExperimentalEntry entry) {
+        final var rnaNodeId = getOrCreateRNANode(graph, entry.rnaSymbol, entry.rnaType);
+        final var localizationNodeId = getOrCreateLocalizationNode(graph, entry.subcellularLocalization,
+                                                                   entry.goAccession);
+        final var builder = graph.buildEdge().fromNode(rnaNodeId).toNode(localizationNodeId).withLabel("LOCALIZED_IN");
+        builder.withPropertyIfNotNull(ID_KEY, entry.id);
+        builder.withPropertyIfNotNull("score", entry.score);
+        builder.withPropertyIfNotNull("species", entry.species);
+        builder.withPropertyIfNotNull("pmid", entry.pmid);
+        builder.withPropertyIfNotNull("evidence", "experimental");
+        builder.build();
     }
 
-    private Long getOrCreateLocalizationNode(final Graph graph, final Map<String, Long> localizationNodeIdMap,
-                                             final String localization) {
+    private Long getOrCreateRNANode(final Graph graph, final String symbol, final String type) {
+        final String key = type + "|" + symbol;
+        Long nodeId = rnaNodeIdMap.get(key);
+        if (nodeId == null) {
+            nodeId = graph.addNode(RNA_LABEL, "symbol", symbol, "type", type).getId();
+            rnaNodeIdMap.put(key, nodeId);
+        }
+        return nodeId;
+    }
+
+    private Long getOrCreateLocalizationNode(final Graph graph, final String localization, final String goAccession) {
         Long nodeId = localizationNodeIdMap.get(localization);
         if (nodeId == null) {
-            nodeId = graph.addNode(LOCALIZATION_LABEL, "name", localization).getId();
+            if (goAccession != null) {
+                nodeId = graph.addNode(LOCALIZATION_LABEL, ID_KEY, goAccession, "name", localization,
+                                       OntologyGraphExporter.IS_PROXY_KEY, true).getId();
+            } else {
+                nodeId = graph.addNode(LOCALIZATION_LABEL, "name", localization).getId();
+            }
             localizationNodeIdMap.put(localization, nodeId);
         }
         return nodeId;
     }
 
-    private Node getOrCreateRNANode(final Graph graph, final String id, final String name, final String symbol,
-                                    final String category) {
-        Node node = graph.findNode(RNA_LABEL, ID_KEY, id);
-        if (node == null) {
-            if (name != null)
-                node = graph.addNode(RNA_LABEL, ID_KEY, id, "symbol", symbol, "category", category, "name", name);
-            else
-                node = graph.addNode(RNA_LABEL, ID_KEY, id, "symbol", symbol, "category", category);
-        }
-        return node;
-    }
-
-    private void exportDatabaseEntries(final Workspace workspace, final Graph graph,
-                                       final Map<String, Long> localizationNodeIdMap) {
-        try (final ZipInputStream inputStream = FileUtils.openZip(workspace, dataSource,
-                                                                  RNALocateUpdater.DATABASE_FILE_NAME)) {
+    private void exportPredictedEntries(final Workspace workspace, final Graph graph, final String fileName) {
+        try (final ZipInputStream inputStream = FileUtils.openZip(workspace, dataSource, fileName)) {
             inputStream.getNextEntry();
-            final MappingIterator<DatabaseEntry> entries = FileUtils.openSeparatedValuesFile(inputStream,
-                                                                                             DatabaseEntry.class, '\t',
-                                                                                             true);
+            final var entries = FileUtils.openTsvWithHeader(inputStream, PredictedEntry.class);
             while (entries.hasNext())
-                exportDatabaseEntry(graph, entries.next(), localizationNodeIdMap);
+                exportPredictedEntry(graph, entries.next());
         } catch (IOException e) {
-            throw new ExporterFormatException(e);
+            throw new ExporterFormatException("Failed to export '" + fileName + "'", e);
         }
     }
 
-    private void exportDatabaseEntry(final Graph graph, final DatabaseEntry entry,
-                                     final Map<String, Long> localizationNodeIdMap) {
-        final Long localizationNodeId = getOrCreateLocalizationNode(graph, localizationNodeIdMap,
-                                                                    entry.subCellularLocalization);
-        final Node rnaNode = getOrCreateRNANode(graph, entry.geneId, null, entry.geneSymbol, entry.rnaCategory);
-        graph.addEdge(rnaNode, localizationNodeId, "LOCALIZED_IN", ID_KEY, entry.id, "database", entry.database,
-                      "species", entry.species);
+    private void exportPredictedEntry(final Graph graph, final PredictedEntry entry) {
+        final var rnaNodeId = getOrCreateRNANode(graph, entry.rnaSymbol, entry.rnaType);
+        final var localizationNodeId = getOrCreateLocalizationNode(graph, entry.subcellularLocalization,
+                                                                   entry.goAccession);
+        final var builder = graph.buildEdge().fromNode(rnaNodeId).toNode(localizationNodeId).withLabel("LOCALIZED_IN");
+        builder.withPropertyIfNotNull(ID_KEY, entry.id);
+        builder.withPropertyIfNotNull("score", entry.score);
+        builder.withPropertyIfNotNull("species", entry.species);
+        builder.withPropertyIfNotNull("algorithm", entry.algorithm);
+        builder.withPropertyIfNotNull("evidence", "predicted");
+        builder.build();
     }
 }
