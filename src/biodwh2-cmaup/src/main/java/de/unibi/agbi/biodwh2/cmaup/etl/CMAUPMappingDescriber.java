@@ -4,7 +4,6 @@ import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
-import org.apache.commons.lang3.StringUtils;
 
 public class CMAUPMappingDescriber extends MappingDescriber {
     public CMAUPMappingDescriber(final DataSource dataSource) {
@@ -37,11 +36,10 @@ public class CMAUPMappingDescriber extends MappingDescriber {
         description.addName(node.getProperty("pref_name"));
         description.addName(node.getProperty("iupac_name"));
         description.addIdentifier(IdentifierType.CHEMBL, node.<String>getProperty("chembl_id"));
-        final String pubchemCid = node.getProperty("pubchem_cid");
-        if (pubchemCid != null && !pubchemCid.isEmpty()) {
-            final String[] parts = StringUtils.split(pubchemCid, ';');
-            for (final String part : parts)
-                description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, Integer.parseInt(part));
+        final Integer[] pubchemCid = node.getProperty("pubchem_cid");
+        if (pubchemCid != null) {
+            for (final Integer part : pubchemCid)
+                description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, part);
         }
         return new NodeMappingDescription[]{description};
     }

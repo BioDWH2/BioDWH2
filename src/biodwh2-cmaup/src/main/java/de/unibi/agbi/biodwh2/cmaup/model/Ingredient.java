@@ -3,77 +3,66 @@ package de.unibi.agbi.biodwh2.cmaup.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.unibi.agbi.biodwh2.cmaup.etl.CMAUPGraphExporter;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphArrayProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
+import de.unibi.agbi.biodwh2.core.model.graph.GraphNumberProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @JsonPropertyOrder({
-        "Ingredient_ID", "pref_name", "iupac_name", "chembl_id", "pubchem_cid", "zinc_id", "formula", "mw", "alogp",
-        "mlogp", "xlogp", "hba", "hbd", "psa", "rotatable_bond", "rings", "heavy_atom", "lipinski_failure",
-        "standard_inchi", "standard_inchi_key", "canonical_smiles"
+        "np_id", "pref_name", "iupac_name", "chembl_id", "pubchem_cid", "MW", "LogS", "LogD", "LogP", "nHA", "nHD",
+        "TPSA", "nRot", "nRing", "InChI", "InChIKey", "SMILES"
 })
 @GraphNodeLabel(CMAUPGraphExporter.INGREDIENT_LABEL)
 public class Ingredient {
-    @JsonProperty("Ingredient_ID")
+    @JsonProperty("np_id")
     @GraphProperty("id")
     public String id;
     @JsonProperty("pref_name")
-    @GraphProperty("pref_name")
+    @GraphProperty(value = "pref_name", emptyPlaceholder = {"NA", "n.a."})
     public String prefName;
     @JsonProperty("iupac_name")
-    @GraphProperty("iupac_name")
+    @GraphProperty(value = "iupac_name", emptyPlaceholder = {"NA", "n.a."})
     public String iupacName;
     @JsonProperty("chembl_id")
-    @GraphProperty("chembl_id")
+    @GraphProperty(value = "chembl_id", emptyPlaceholder = {"NA", "n.a."})
     public String chemblId;
     @JsonProperty("pubchem_cid")
-    @GraphProperty(value = "pubchem_cid", emptyPlaceholder = {"NA", "n.a."})
+    @GraphArrayProperty(value = "pubchem_cid", emptyPlaceholder = {"NA", "n.a."}, type = GraphArrayProperty.Type.Int)
     public String pubchemCid;
-    @JsonProperty("zinc_id")
-    @GraphProperty("zinc_id")
-    public String zincId;
-    @JsonProperty("formula")
-    @GraphProperty("formula")
-    public String formula;
-    @JsonProperty("mw")
-    @GraphProperty("mw")
+    @JsonProperty("MW")
+    @GraphProperty(value = "mw", emptyPlaceholder = {"NA", "n.a."})
     public String mw;
-    @JsonProperty("alogp")
-    @GraphProperty("alogp")
-    public String alogp;
-    @JsonProperty("mlogp")
-    @GraphProperty("mlogp")
-    public String mlogp;
-    @JsonProperty("xlogp")
-    @GraphProperty("xlogp")
-    public String xlogp;
-    @JsonProperty("hba")
-    @GraphProperty("hba")
-    public String hba;
-    @JsonProperty("hbd")
-    @GraphProperty("hbd")
-    public String hbd;
-    @JsonProperty("psa")
-    @GraphProperty("psa")
-    public String psa;
-    @JsonProperty("rotatable_bond")
-    @GraphProperty("rotatable_bond")
-    public String rotatableBond;
-    @JsonProperty("rings")
-    @GraphProperty("rings")
+    @JsonProperty("LogS")
+    @GraphProperty(value = "logs", emptyPlaceholder = {"NA", "n.a."})
+    public String logS;
+    @JsonProperty("LogD")
+    @GraphProperty(value = "logd", emptyPlaceholder = {"NA", "n.a."})
+    public String logD;
+    @JsonProperty("LogP")
+    @GraphProperty(value = "logp", emptyPlaceholder = {"NA", "n.a."})
+    public String logp;
+    @JsonProperty("nHA")
+    @GraphProperty(value = "nha", emptyPlaceholder = {"NA", "n.a."})
+    public String nha;
+    @JsonProperty("nHD")
+    @GraphProperty(value = "nhd", emptyPlaceholder = {"NA", "n.a."})
+    public String nhd;
+    @JsonProperty("TPSA")
+    @GraphProperty(value = "tpsa", emptyPlaceholder = {"NA", "n.a."})
+    public String tpsa;
+    @JsonProperty("nRot")
+    @GraphNumberProperty(value = "rotatable_bonds", emptyPlaceholder = {"NA", "n.a."})
+    public String rotatableBonds;
+    @JsonProperty("nRing")
+    @GraphNumberProperty(value = "rings", emptyPlaceholder = {"NA", "n.a."})
     public String rings;
-    @JsonProperty("heavy_atom")
-    @GraphProperty("heavy_atom")
-    public String heavyAtom;
-    @JsonProperty("lipinski_failure")
-    @GraphProperty("lipinski_failure")
-    public String lipinskiFailure;
-    @JsonProperty("standard_inchi")
-    @GraphProperty("standard_inchi")
-    public String standardInchi;
-    @JsonProperty("standard_inchi_key")
-    @GraphProperty("standard_inchi_key")
-    public String standardInchiKey;
-    @JsonProperty("canonical_smiles")
-    @GraphProperty("canonical_smiles")
-    public String canonicalSmiles;
+    @JsonProperty("InChI")
+    @GraphProperty("inchi")
+    public String inchi;
+    @JsonProperty("InChIKey")
+    @GraphProperty("inchi_key")
+    public String inchiKey;
+    @JsonProperty("SMILES")
+    @GraphProperty("smiles")
+    public String smiles;
 }
