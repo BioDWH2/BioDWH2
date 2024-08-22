@@ -2,6 +2,7 @@ package de.unibi.agbi.biodwh2.core;
 
 public enum DataSourcePropertyType {
     STRING,
+    PASSWORD,
     INTEGER,
     DECIMAL,
     BOOLEAN,

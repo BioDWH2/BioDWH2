@@ -279,6 +279,7 @@ public class WebConfigurator {
                                 continue;
                             switch (propertyTypes.get(field.getKey())) {
                                 case STRING:
+                                case PASSWORD:
                                     properties.put(field.getKey(), field.getValue().asText());
                                     break;
                                 case INTEGER:

@@ -63,6 +63,7 @@ final class CmdConfigPropertyParser {
     public static Object parse(final String value, DataSourcePropertyType propertyType) {
         switch (propertyType) {
             case STRING:
+            case PASSWORD:
                 return value;
             case INTEGER:
                 return parseInteger(value);
