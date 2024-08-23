@@ -5,7 +5,11 @@ import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPWebUpdater;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.model.Version;
 import de.unibi.agbi.biodwh2.mirbase.MiRBaseDataSource;
+import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.regex.Pattern;
 
 public class MiRBaseUpdater extends MultiFileFTPWebUpdater<MiRBaseDataSource> {
@@ -22,6 +26,36 @@ public class MiRBaseUpdater extends MultiFileFTPWebUpdater<MiRBaseDataSource> {
         if (matcher.find())
             return new Version(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
         return null;
+    }
+
+    @Override
+    protected boolean tryUpdateFiles(Workspace workspace) throws UpdaterException {
+        if (!super.tryUpdateFiles(workspace))
+            return false;
+        for (final String fileName : expectedFileNames()) {
+            final var filePath = dataSource.resolveSourceFilePath(workspace, fileName);
+            try {
+                String text = Files.readString(filePath, StandardCharsets.UTF_8);
+                if (text.startsWith("<p>")) {
+                    text = StringUtils.replace(text, "<p>", "");
+                    text = StringUtils.replace(text, "</p>", "");
+                    text = StringUtils.replace(text, "<br>", "\n");
+                    text = StringUtils.replace(text, "&quot;", "\"");
+                    text = StringUtils.replace(text, "&#34;", "\"");
+                    text = StringUtils.replace(text, "&#x27;", "'");
+                    text = StringUtils.replace(text, "&apos;", "'");
+                    text = StringUtils.replace(text, "&#39;", "'");
+                    text = StringUtils.replace(text, "&lt;", "<");
+                    text = StringUtils.replace(text, "&gt;", ">");
+                    text = StringUtils.replace(text, "&nbsp;", " ");
+                    text = StringUtils.replace(text, "&amp;", "&");
+                    Files.writeString(filePath, text, StandardCharsets.UTF_8);
+                }
+            } catch (IOException e) {
+                throw new UpdaterException("Failed to post-process file '" + fileName + "'", e);
+            }
+        }
+        return true;
     }
 
     @Override
