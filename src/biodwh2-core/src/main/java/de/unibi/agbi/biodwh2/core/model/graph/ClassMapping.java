@@ -299,10 +299,14 @@ final class ClassMapping {
                                                    final ClassMappingNumberField field) throws IllegalAccessException {
         final Object value = getFieldValue(obj, field);
         if (value != null) {
+            String valueText = value.toString();
+            final int decimalIndex = valueText.indexOf('.');
+            if (decimalIndex > 0)
+                valueText = valueText.substring(0, decimalIndex);
             if (field.type == GraphNumberProperty.Type.Int)
-                model.setProperty(field.propertyName, Integer.parseInt(value.toString()));
+                model.setProperty(field.propertyName, Integer.parseInt(valueText));
             else if (field.type == GraphNumberProperty.Type.Long)
-                model.setProperty(field.propertyName, Long.parseLong(value.toString()));
+                model.setProperty(field.propertyName, Long.parseLong(valueText));
         }
     }
 
