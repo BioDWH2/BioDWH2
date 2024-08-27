@@ -1,5 +1,34 @@
 # Changelog
 
+## 📦 Version [v0.6.0](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.0)
+
+Released: 27.08.2024
+
+### 📚 Data Sources
+
+* ```[HPO]``` Split HPO data source into HPO and HPOAnnotations
+* ```[GeneOntology]``` Split GeneOntology data source into GeneOntology and GeneOntologyAnnotations
+* ```[AgronomyOntology]``` Add agronomy ontology data source
+* ```[PathwayCommons]``` Fix download URL
+* ```[miRBase]``` Fix updater and graph exporter
+* ```[IntAct]``` Add more species downloads configurable using speciesFilter
+* ```[CMAUP]``` Fix data model
+* ```[RNALocate]``` Fix data model and download
+* ```[ITIS]``` Fix version retrieval
+
+### 🔧 Bug fixes and other changes
+
+* ```[feature]``` Modularize output format writers
+* ```[feature]``` Add GEXF output format writer
+* ```[feature]``` Add JSONGraph output format writer
+* ```[feature]``` Introduce ontology proxy nodes resolved during graph merging
+* ```[feature]``` Add OBO Foundry ontology data source abstraction
+* ```[feature]``` Add automatic ROBOT tool download and OWL to OBO conversion
+* ```[feature]``` Validate downloaded file sizes if size is known
+* ```[feature]``` Finish web configurator API
+* ```[feature]``` All config parameters can be set via command line
+* ```[fix]``` Fix GraphMapper path traversal going back already traversed edges in some scenarios
+
 ## 📦 Version [v0.5.1](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.5.1)
 
 Released: 24.05.2024
