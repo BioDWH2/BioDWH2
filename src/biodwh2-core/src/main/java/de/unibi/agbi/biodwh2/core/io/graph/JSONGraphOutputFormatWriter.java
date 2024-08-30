@@ -92,7 +92,7 @@ public class JSONGraphOutputFormatWriter extends OutputFormatWriter {
         }
         if (!first)
             writer.println();
-        writer.println("    }");
+        writer.println("    ]");
         writer.println("  }");
         writer.println("}");
     }
