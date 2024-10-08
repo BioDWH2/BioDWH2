@@ -2,7 +2,7 @@
 
 ## 📦 Version [v0.6.1](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.1)
 
-Released: upcoming
+Released: 08.10.2024
 
 ### 📚 Data Sources
 
