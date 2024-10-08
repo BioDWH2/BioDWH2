@@ -120,24 +120,34 @@ public final class HTTPClient {
     }
 
     public static String getWebsiteSource(final String url) throws IOException {
-        return getWebsiteSource(url, null, null, 0);
+        return getWebsiteSource(url, null, null, 0, null);
+    }
+
+    public static String getWebsiteSource(final String url,
+                                          final Map<String, String> additionalHeaders) throws IOException {
+        return getWebsiteSource(url, null, null, 0, additionalHeaders);
     }
 
     public static String getWebsiteSource(final String url, int retries) throws IOException {
-        return getWebsiteSource(url, null, null, retries);
+        return getWebsiteSource(url, null, null, retries, null);
     }
 
     public static String getWebsiteSource(final String url, final String username,
                                           final String password) throws IOException {
-        return getWebsiteSource(url, username, password, 0);
+        return getWebsiteSource(url, username, password, 0, null);
     }
 
     public static String getWebsiteSource(final String url, final String username, final String password,
                                           int retries) throws IOException {
+        return getWebsiteSource(url, username, password, retries, null);
+    }
+
+    public static String getWebsiteSource(final String url, final String username, final String password, int retries,
+                                          final Map<String, String> additionalHeaders) throws IOException {
         int counter = 0;
         while (counter <= retries) {
             StringBuilder result = new StringBuilder();
-            try (final var stream = getUrlInputStream(url, username, password)) {
+            try (final var stream = getUrlInputStream(url, username, password, additionalHeaders)) {
                 final var reader = FileUtils.createBufferedReaderFromStream(stream.stream);
                 String inputLine = reader.readLine();
                 while (inputLine != null) {
