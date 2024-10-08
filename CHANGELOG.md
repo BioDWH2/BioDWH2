@@ -7,6 +7,7 @@ Released: upcoming
 ### 📚 Data Sources
 
 * ```[HGNC]``` Fix HGNC updater with new download URL and version retrieval
+* ```[PharmGKB]``` Ignore missing genes for variant annotations
 
 ## 📦 Version [v0.6.0](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.0)
 

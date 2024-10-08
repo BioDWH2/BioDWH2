@@ -542,8 +542,8 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                         graph.addEdge(node, accessionNodeIdMap.get(geneId), ASSOCIATED_WITH_LABEL);
                     else {
                         LOGGER.warn(
-                                "Failed to add AutomatedAnnotation gene association as no gene with " + "accession '" +
-                                geneId + "' was found");
+                                "Failed to add AutomatedAnnotation gene association as no gene with accession '{}' was found",
+                                geneId);
                     }
                 }
             }
@@ -655,14 +655,18 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
     }
 
     private <T extends VariantAnnotation> void addVariantAnnotations(final Graph graph, final List<T> annotations) {
-        LOGGER.info("Add " + annotations.get(0).getClass().getSimpleName() + "...");
+        LOGGER.info("Add {}...", annotations.get(0).getClass().getSimpleName());
         for (final T annotation : annotations) {
             final Node node = graph.addNodeFromModel(annotation);
             variantAnnotationIdNodeIdMap.put(annotation.annotationId, node.getId());
             if (annotation.gene != null) {
                 for (final String gene : parseCommaSpaceStringArray(annotation.gene)) {
                     final Node geneNode = graph.findNode(GENE_LABEL, "symbol", gene);
-                    graph.addEdge(node, geneNode, ASSOCIATED_WITH_LABEL);
+                    if (geneNode != null)
+                        graph.addEdge(node, geneNode, ASSOCIATED_WITH_LABEL);
+                    else
+                        LOGGER.warn("Failed to link variant annotation {} with gene '{}'", annotation.annotationId,
+                                    gene);
                 }
             }
             if (annotation.drugs != null) {
@@ -673,9 +677,8 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                     if (drugNode == null) {
                         drugNode = graph.findNode(CHEMICAL_LABEL, NAME_PROPERTY, annotation.drugs);
                         if (drugNode == null) {
-                            LOGGER.warn(
-                                    "Failed to link variant annotation " + annotation.annotationId + " with drugs '" +
-                                    annotation.drugs + "'");
+                            LOGGER.warn("Failed to link variant annotation {} with drugs '{}'", annotation.annotationId,
+                                        annotation.drugs);
                             break;
                         }
                     }
@@ -747,7 +750,7 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             final Node annotationNode = graph.findNode("ClinicalAnnotation", ID_PROPERTY,
                                                        evidence.clinicalAnnotationId);
             if (annotationNode == null) {
-                LOGGER.warn("Failed to find clinical annotation node for id '" + evidence.clinicalAnnotationId + "'");
+                LOGGER.warn("Failed to find clinical annotation node for id '{}'", evidence.clinicalAnnotationId);
                 continue;
             }
             Long evidenceNodeId = accessionNodeIdMap.get(evidence.evidenceId);
@@ -767,8 +770,8 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
                 builder.withPropertyIfNotNull("score", evidence.score);
                 builder.build();
             } else if (LOGGER.isWarnEnabled()) {
-                LOGGER.warn("Failed to add clinical annotation evidence for evidence id '" + evidence.evidenceId +
-                            "' and evidence type '" + evidence.evidenceType + "'");
+                LOGGER.warn("Failed to add clinical annotation evidence for evidence id '{}' and evidence type '{}'",
+                            evidence.evidenceId, evidence.evidenceType);
             }
         }
     }
