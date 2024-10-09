@@ -29,3 +29,4 @@ target
 dependency-reduced-pom.xml
 
 .ipynb_checkpoints/
+.DS_Store

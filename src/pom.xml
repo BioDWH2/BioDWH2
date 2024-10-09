@@ -87,6 +87,7 @@
         <module>biodwh2-themarker</module>
         <module>biodwh2-markerdb</module>
         <module>biodwh2-bionda</module>
+        <module>biodwh2-ptmd</module>
     </modules>
 
     <packaging>pom</packaging>
