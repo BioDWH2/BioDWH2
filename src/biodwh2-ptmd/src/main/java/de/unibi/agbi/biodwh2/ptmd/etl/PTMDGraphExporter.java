@@ -102,11 +102,13 @@ public class PTMDGraphExporter extends GraphExporter<PTMDDataSource> {
         final String type = ptmType;
         FileUtils.openTsvWithHeader(stream, PTMSite.class, ptm -> {
             final var nodeId = graph.addNodeFromModel(ptm, "type", type).getId();
+            Node proteinNode = graph.findNode(PROTEIN_LABEL, "uniprot_id", ptm.uniprotId);
+            if (proteinNode == null)
+                proteinNode = graph.addNode(PROTEIN_LABEL, "uniprot_id", ptm.uniprotId);
+            graph.addEdge(proteinNode, nodeId, "HAS_PTM");
             if (ptm.position != null) {
                 UniProtIdPositionPTMMap.computeIfAbsent(ptm.uniprotId, (id) -> new HashMap<>()).put(ptm.position,
                                                                                                     nodeId);
-            } else {
-                System.out.println("warn");
             }
         });
     }
@@ -134,10 +136,11 @@ public class PTMDGraphExporter extends GraphExporter<PTMDDataSource> {
                 }
             }
         }
-        if (ptmNode == null)
+        if (ptmNode == null) {
             ptmNode = createPTMNode(graph, ptm);
-        final Node proteinNode = graph.findNode(PROTEIN_LABEL, "uniprot_id", ptm.uniprotId);
-        graph.addEdge(proteinNode, ptmNode, "HAS_PTM");
+            final Node proteinNode = graph.findNode(PROTEIN_LABEL, "uniprot_id", ptm.uniprotId);
+            graph.addEdge(proteinNode, ptmNode, "HAS_PTM");
+        }
         if (ptm.species != null)
             findOrAddSpecies(graph, ptm, ptmNode);
         if (ptm.disease != null)
@@ -163,7 +166,6 @@ public class PTMDGraphExporter extends GraphExporter<PTMDDataSource> {
 
     private Node createPTMNode(final Graph graph, final PTM ptm) {
         final NodeBuilder builder = graph.buildNode().withLabel(PTM_LABEL);
-        builder.withPropertyIfNotNull("uniprot_id", ptm.uniprotId);
         builder.withPropertyIfNotNull("gene_name", ptm.geneName);
         builder.withPropertyIfNotNull("type", ptm.ptmType);
         builder.withPropertyIfNotNull("state", ptm.state);
@@ -177,7 +179,7 @@ public class PTMDGraphExporter extends GraphExporter<PTMDDataSource> {
     }
 
     private void findOrAddSpecies(final Graph graph, final PTM ptm, final Node ptmNode) {
-        String speciesName = ptm.species.replaceAll("\\s*\\(.*?\\)", "");
+        String speciesName = ptm.species.replaceAll("\\s*\\(.*?\\)\\s*", "");
         Long speciesNodeId = SpeciesMapping.get(speciesName);
         if (speciesNodeId == null) {
             final var species = SpeciesLookup.getByScientificName(speciesName);

@@ -10,7 +10,6 @@ import de.unibi.agbi.biodwh2.ptmd.etl.PTMDGraphExporter;
 @GraphNodeLabel(PTMDGraphExporter.PTM_LABEL)
 public class PTMSite {
     @JsonProperty("Uniprot ID")
-    @GraphProperty(value = "uniprot_id")
     public String uniprotId;
     @JsonProperty("Sites")
     @GraphProperty(value = "position")

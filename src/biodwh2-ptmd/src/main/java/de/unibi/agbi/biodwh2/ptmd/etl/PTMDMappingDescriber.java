@@ -16,8 +16,6 @@ public class PTMDMappingDescriber extends MappingDescriber {
             return describeProteinNode(node);
         if (PTMDGraphExporter.SPECIES_LABEL.equals(localMappingLabel))
             return describeSpeciesNode(node);
-        // if (PTMDGraphExporter.PTM_LABEL.equals(localMappingLabel))
-        //     return describePTMNode(node);
         return null;
     }
 
@@ -40,15 +38,6 @@ public class PTMDMappingDescriber extends MappingDescriber {
         return new NodeMappingDescription[]{description};
     }
 
-    // private NodeMappingDescription[] describePTMNode(final Node node) {
-    //     final String uniprotId = node.getProperty("uniprot_id");
-    //     if (uniprotId == null)
-    //         return null;
-    //     final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.PTM);
-    //     description.addIdentifier(IdentifierType.UNIPROT_KB, uniprotId);
-    //     return new NodeMappingDescription[]{description};
-    // }
-
     @Override
     public PathMappingDescription describe(Graph graph, Node[] nodes, Edge[] edges) {
         return null;
@@ -56,21 +45,11 @@ public class PTMDMappingDescriber extends MappingDescriber {
 
     @Override
     protected String[] getNodeMappingLabels() {
-        return new String[]{
-                PTMDGraphExporter.PROTEIN_LABEL, PTMDGraphExporter.SPECIES_LABEL, PTMDGraphExporter.PTM_LABEL
-        };
+        return new String[]{PTMDGraphExporter.PROTEIN_LABEL, PTMDGraphExporter.SPECIES_LABEL};
     }
 
     @Override
     protected PathMapping[] getEdgePathMappings() {
-        // final var hasPTMPath = new PathMapping().add(PTMDGraphExporter.PROTEIN_LABEL, "HAS_PTM",
-        //                                              PTMDGraphExporter.PTM_LABEL, EdgeDirection.FORWARD);
-        // final var hasSpeciesPath = new PathMapping().add(PTMDGraphExporter.PTM_LABEL, "HAS_SPECIES",
-        //                                                  PTMDGraphExporter.SPECIES_LABEL, EdgeDirection.FORWARD);
-        // final var inDiseasePath = new PathMapping().add(PTMDGraphExporter.PTM_LABEL, "IN_DISEASE",
-        //                                                 PTMDGraphExporter.DISEASE_LABEL, EdgeDirection.FORWARD);
-        return new PathMapping[]{
-                //hasPTMPath, hasSpeciesPath, inDiseasePath
-        };
+        return new PathMapping[0];
     }
 }
