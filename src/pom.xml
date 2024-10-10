@@ -89,6 +89,7 @@
         <module>biodwh2-bionda</module>
         <module>biodwh2-ptmd</module>
         <module>biodwh2-qptm</module>
+        <module>biodwh2-qptmplants</module>
     </modules>
 
     <packaging>pom</packaging>
