@@ -338,7 +338,7 @@ public final class SpeciesLookup {
     }
 
     public static Entry getByScientificName(final String scientificName) {
-        return scientificNameLookup.get(scientificName);
+        return scientificNameLookup.get(scientificName.strip());
     }
 
     public static Entry getByNCBITaxId(final Integer ncbiTaxId) {
