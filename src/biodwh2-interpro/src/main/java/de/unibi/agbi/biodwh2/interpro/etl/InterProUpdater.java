@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 public class InterProUpdater extends Updater<InterProDataSource> {
     private static final Pattern RELEASE_PATTERN = Pattern.compile("Release (\\d+)\\.(\\d+)");
-    private static final String RELEASE_NOTES_URL = "https://ftp.ebi.ac.uk/pub/databases/interpro/releases/90.0/release_notes.txt";
+    private static final String RELEASE_NOTES_URL = "https://ftp.ebi.ac.uk/pub/databases/interpro/current_release/release_notes.txt";
     private static final String DOWNLOAD_URL_PREFIX = "https://ftp.ebi.ac.uk/pub/databases/interpro/current_release/";
     static final String FILE_NAME = "interpro.xml.gz";
 
