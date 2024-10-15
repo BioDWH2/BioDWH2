@@ -5,7 +5,7 @@ import de.unibi.agbi.biodwh2.core.etl.MultiFileFTPWebUpdater;
 import de.unibi.agbi.biodwh2.uniprot.UniProtDataSource;
 
 public class UniProtUpdater extends MultiFileFTPWebUpdater<UniProtDataSource> {
-    static final String HUMAN_SPROT_FILE_NAME = "uniprot_sprot_human.xml.gz";
+    static final String SPROT_FILE_NAME = "uniprot_sprot.xml.gz";
 
     public UniProtUpdater(final UniProtDataSource dataSource) {
         super(dataSource);
@@ -13,16 +13,16 @@ public class UniProtUpdater extends MultiFileFTPWebUpdater<UniProtDataSource> {
 
     @Override
     protected String getFTPIndexUrl() {
-        return "https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/taxonomic_divisions/";
+        return "https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/";
     }
 
     @Override
     protected String[] getFilePaths(final Workspace workspace) {
-        return new String[]{HUMAN_SPROT_FILE_NAME};
+        return new String[]{SPROT_FILE_NAME};
     }
 
     @Override
     protected String[] expectedFileNames() {
-        return new String[]{HUMAN_SPROT_FILE_NAME};
+        return new String[]{SPROT_FILE_NAME};
     }
 }

@@ -43,10 +43,9 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         dbReferenceCitationNodeIdMap.clear();
         graph.addIndex(IndexDescription.forNode(ORGANISM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
-        final File filePath = dataSource.resolveSourceFilePath(workspace, UniProtUpdater.HUMAN_SPROT_FILE_NAME)
-                                        .toFile();
+        final File filePath = dataSource.resolveSourceFilePath(workspace, UniProtUpdater.SPROT_FILE_NAME).toFile();
         if (!filePath.exists())
-            throw new ExporterException("Failed to parse the file '" + UniProtUpdater.HUMAN_SPROT_FILE_NAME + "'");
+            throw new ExporterException("Failed to parse the file '" + UniProtUpdater.SPROT_FILE_NAME + "'");
         try (final GZIPInputStream stream = FileUtils.openGzip(filePath.toString())) {
             FileUtils.streamXmlList(stream, Entry.class, (protein -> exportEntry(graph, protein)));
         } catch (IOException | XMLStreamException e) {
@@ -109,15 +108,53 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
         // TODO: List<Organism> entry.organismHost
         // TODO: List<Comment> entry.comment
         // TODO: List<DbReference> entry.dbReference
-        // TODO: List<Feature> entry.feature
         // TODO: List<Evidence> entry.evidence
-        graph.addEdge(node, getOrCreateOrganism(graph, entry.organism), "HAS_SOURCE");
+        final Map<String, Long> referenceKeyNodeIdMap = new HashMap<>();
         for (final Reference reference : entry.reference) {
-            final long citationNodeId = getOrCreateCitation(graph, reference.citation);
             final String[] scopes = reference.scope != null ? reference.scope.toArray(new String[0]) : new String[0];
+            final var referenceNode = graph.addNode("Reference", "key", Integer.parseInt(reference.key), "scopes",
+                                                    scopes);
+            referenceKeyNodeIdMap.put(reference.key, referenceNode.getId());
             // TODO: reference.source
-            graph.addEdge(node, citationNodeId, "REFERENCES", "key", Integer.parseInt(reference.key), "scopes", scopes);
+            // TODO: reference.evidence
+            final long citationNodeId = getOrCreateCitation(graph, reference.citation);
+            graph.addEdge(node, referenceNode, "REFERENCES");
+            graph.addEdge(referenceNode, citationNodeId, "REFERENCES");
         }
+        if (entry.feature != null) {
+            for (final var feature : entry.feature) {
+                // TODO:
+                //  String original
+                //  List<String> variation
+                //  Ligand ligand
+                //  LigandPart ligandPart
+                //  String evidence
+                final var featureBuilder = graph.buildNode().withLabel("Feature");
+                featureBuilder.withPropertyIfNotNull(ID_KEY, feature.id);
+                featureBuilder.withPropertyIfNotNull("description", feature.description);
+                featureBuilder.withPropertyIfNotNull("type", feature.type);
+                if (feature.location != null) {
+                    featureBuilder.withPropertyIfNotNull("location_sequence", feature.location.sequence);
+                    if (feature.location.position != null) {
+                        featureBuilder.withPropertyIfNotNull("location_position", feature.location.position.position);
+                        // TODO: status, evidence
+                    }
+                    if (feature.location.begin != null) {
+                        featureBuilder.withPropertyIfNotNull("location_begin", feature.location.begin.position);
+                        // TODO: status, evidence
+                    }
+                    if (feature.location.end != null) {
+                        featureBuilder.withPropertyIfNotNull("location_end", feature.location.end.position);
+                        // TODO: status, evidence
+                    }
+                }
+                final var featureNode = featureBuilder.build();
+                graph.addEdge(node, featureNode, "HAS_FEATURE");
+                if (feature.ref != null)
+                    graph.addEdge(featureNode, referenceKeyNodeIdMap.get(feature.ref), "REFERENCES");
+            }
+        }
+        graph.addEdge(node, getOrCreateOrganism(graph, entry.organism), "HAS_SOURCE");
     }
 
     private long getOrCreateOrganism(final Graph graph, final Organism organism) {
