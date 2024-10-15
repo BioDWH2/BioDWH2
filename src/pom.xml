@@ -90,6 +90,7 @@
         <module>biodwh2-ptmd</module>
         <module>biodwh2-qptm</module>
         <module>biodwh2-qptmplants</module>
+        <module>biodwh2-iptmnet</module>
     </modules>
 
     <packaging>pom</packaging>
