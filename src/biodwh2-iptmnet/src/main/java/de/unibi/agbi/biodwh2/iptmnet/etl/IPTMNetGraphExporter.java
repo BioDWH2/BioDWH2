@@ -26,6 +26,8 @@ public class IPTMNetGraphExporter extends GraphExporter<IPTMNetDataSource> {
     public static final String PTM_LABEL = "PTM";
     public static final String ORGANISM_LABEL = "Organism";
     private final Map<String, Long> OrganismMapping = new HashMap<>();
+    private final Map<String, Map<String, Map<String, Long>>> PTMMapping = new HashMap<>();
+    private final Map<String, Map<String, Map<String, Set<String>>>> AddedEnzymeRelations = new HashMap<>();
 
     public IPTMNetGraphExporter(final IPTMNetDataSource dataSource) {
         super(dataSource);
@@ -39,6 +41,8 @@ public class IPTMNetGraphExporter extends GraphExporter<IPTMNetDataSource> {
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         OrganismMapping.clear();
+        PTMMapping.clear();
+        AddedEnzymeRelations.clear();
         graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, "uniprot_accession", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, "uniprot_id", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode(ORGANISM_LABEL, "ncbi_taxid", IndexDescription.Type.UNIQUE));
@@ -52,7 +56,6 @@ public class IPTMNetGraphExporter extends GraphExporter<IPTMNetDataSource> {
         final Map<String, Map<String, Map<String, Integer>>> ptmScoreMap = new HashMap<>();
         try {
             FileUtils.openTsv(workspace, dataSource, IPTMNetUpdater.SCORE_FILE_NAME, Score.class, (score) -> {
-                // TODO: enzyme
                 ptmScoreMap.computeIfAbsent(score.substrateUniProtAccession, (k) -> new HashMap<>()).computeIfAbsent(
                         score.ptmType.toLowerCase(Locale.ROOT), (k) -> new HashMap<>()).put(score.site, score.score);
             });
@@ -128,41 +131,65 @@ public class IPTMNetGraphExporter extends GraphExporter<IPTMNetDataSource> {
 
     private void exportPTM(final Graph graph, final PTM ptm,
                            Map<String, Map<String, Map<String, Integer>>> ptmScoreMap) {
-        // TODO: enzyme
+        final var proteinAccession = ptm.substrateUniProtAccession;
         Integer score = null;
-        final var typeScoreMap = ptmScoreMap.get(ptm.substrateUniProtAccession);
+        final var typeScoreMap = ptmScoreMap.get(proteinAccession);
         if (typeScoreMap != null) {
             final var siteScoreMap = typeScoreMap.get(ptm.type.toLowerCase(Locale.ROOT));
             if (siteScoreMap != null)
                 score = siteScoreMap.get(ptm.site);
         }
-        var proteinNode = graph.findNode(PROTEIN_LABEL, "uniprot_accession", ptm.substrateUniProtAccession);
+        final Long organismNodeId = ptm.organism != null ? OrganismMapping.get(ptm.organism) : null;
+        var proteinNode = graph.findNode(PROTEIN_LABEL, "uniprot_accession", proteinAccession);
         if (proteinNode == null) {
-            proteinNode = graph.addNode(PROTEIN_LABEL, "uniprot_accession", ptm.substrateUniProtAccession, "gene_name",
+            proteinNode = graph.addNode(PROTEIN_LABEL, "uniprot_accession", proteinAccession, "gene_name",
                                         ptm.substrateGeneName);
-            final Long organismNodeId = ptm.organism != null ? OrganismMapping.get(ptm.organism) : null;
             if (organismNodeId != null)
                 graph.addEdge(proteinNode, organismNodeId, "BELONGS_TO");
         }
-        final var builder = graph.buildNode().withLabel(PTM_LABEL);
-        builder.withPropertyIfNotNull("residue", ptm.site.substring(0, 1));
-        String position = ptm.site.substring(1).strip();
-        if (position.contains("or")) {
-            String[] parts = StringUtils.split(position.replace("(", ""), "or");
-            position = parts[0].strip();
-            final String alternativeSite = parts[0].strip();
-            builder.withPropertyIfNotNull("or_residue", alternativeSite.substring(0, 1));
-            builder.withPropertyIfNotNull("or_position", Integer.parseInt(alternativeSite.substring(1)));
+        final String ptmType = ptm.type.toLowerCase(Locale.ROOT);
+        final var siteNodeIdMap = PTMMapping.computeIfAbsent(proteinAccession, (k) -> new HashMap<>()).computeIfAbsent(
+                ptmType, (k) -> new HashMap<>());
+        Long nodeId = siteNodeIdMap.get(ptm.site);
+        if (nodeId == null) {
+            final var builder = graph.buildNode().withLabel(PTM_LABEL);
+            builder.withPropertyIfNotNull("residue", ptm.site.substring(0, 1));
+            String position = ptm.site.substring(1).strip();
+            if (position.contains("or")) {
+                String[] parts = StringUtils.split(position.replace("(", ""), "or");
+                position = parts[0].strip();
+                final String alternativeSite = parts[0].strip();
+                builder.withPropertyIfNotNull("or_residue", alternativeSite.substring(0, 1));
+                builder.withPropertyIfNotNull("or_position", Integer.parseInt(alternativeSite.substring(1)));
+            }
+            builder.withPropertyIfNotNull("position", Integer.parseInt(position));
+            builder.withPropertyIfNotNull("type", ptmType);
+            builder.withPropertyIfNotNull("score", score);
+            nodeId = builder.build().getId();
+            siteNodeIdMap.put(ptm.site, nodeId);
         }
-        builder.withPropertyIfNotNull("position", Integer.parseInt(position));
-        builder.withPropertyIfNotNull("type", ptm.type.toLowerCase(Locale.ROOT));
-        builder.withPropertyIfNotNull("source", ptm.source);
-        builder.withPropertyIfNotNull("note", ptm.note);
-        builder.withPropertyIfNotNull("score", score);
+        if (ptm.enzymeUniProtAccession != null) {
+            Node enzymeNode = graph.findNode(PROTEIN_LABEL, "uniprot_accession", ptm.enzymeUniProtAccession);
+            if (enzymeNode == null) {
+                enzymeNode = graph.addNode(PROTEIN_LABEL, "uniprot_accession", ptm.enzymeUniProtAccession, "gene_name",
+                                           ptm.enzymeGeneName);
+                if (organismNodeId != null)
+                    graph.addEdge(enzymeNode, organismNodeId, "BELONGS_TO");
+            }
+            final var enzymesSet = AddedEnzymeRelations.computeIfAbsent(proteinAccession, (k) -> new HashMap<>())
+                                                       .computeIfAbsent(ptmType, (k) -> new HashMap<>())
+                                                       .computeIfAbsent(ptm.site, (k) -> new HashSet<>());
+            if (!enzymesSet.contains(ptm.enzymeUniProtAccession)) {
+                graph.addEdge(nodeId, enzymeNode, "INVOLVES");
+                enzymesSet.add(ptm.enzymeUniProtAccession);
+            }
+        }
+        final var edgeBuilder = graph.buildEdge().withLabel("HAS_PTM").fromNode(proteinNode).toNode(nodeId);
+        edgeBuilder.withPropertyIfNotNull("source", ptm.source);
+        edgeBuilder.withPropertyIfNotNull("note", ptm.note);
         if (StringUtils.isNotEmpty(ptm.pmids))
-            builder.withProperty("pmids", Arrays.stream(StringUtils.split(ptm.pmids, ",")).map(Integer::parseInt)
-                                                .toArray(Integer[]::new));
-        final var ptmNode = builder.build();
-        graph.addEdge(proteinNode, ptmNode, "HAS_PTM");
+            edgeBuilder.withProperty("pmids", Arrays.stream(StringUtils.split(ptm.pmids, ",")).map(Integer::parseInt)
+                                                    .toArray(Integer[]::new));
+        edgeBuilder.build();
     }
 }

@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 
@@ -101,7 +102,7 @@ public class PTMDGraphExporter extends GraphExporter<PTMDDataSource> {
             ptmType = "Phosphorylation";
         final String type = ptmType;
         FileUtils.openTsvWithHeader(stream, PTMSite.class, ptm -> {
-            final var nodeId = graph.addNodeFromModel(ptm, "type", type).getId();
+            final var nodeId = graph.addNodeFromModel(ptm, "type", type.toLowerCase(Locale.ROOT)).getId();
             Node proteinNode = graph.findNode(PROTEIN_LABEL, "uniprot_id", ptm.uniprotId);
             if (proteinNode == null)
                 proteinNode = graph.addNode(PROTEIN_LABEL, "uniprot_id", ptm.uniprotId);
@@ -158,8 +159,8 @@ public class PTMDGraphExporter extends GraphExporter<PTMDDataSource> {
             String ptmTypeAminoAcid = AminoAcidMapping.get(ptmTypeNewWords[0]);
             if (!ptmTypeAminoAcid.equals(ptmResidue))
                 node.setProperty("residue", ptmTypeAminoAcid);
-            if (ptmTypeNode.contains(ptmTypeNewWords[1]))
-                node.setProperty("type", ptm.ptmType);
+            if (ptmTypeNode.contains(ptmTypeNewWords[1].toLowerCase(Locale.ROOT)))
+                node.setProperty("type", ptm.ptmType.toLowerCase(Locale.ROOT));
         }
         graph.update(node);
     }
@@ -167,7 +168,7 @@ public class PTMDGraphExporter extends GraphExporter<PTMDDataSource> {
     private Node createPTMNode(final Graph graph, final PTM ptm) {
         final NodeBuilder builder = graph.buildNode().withLabel(PTM_LABEL);
         builder.withPropertyIfNotNull("gene_name", ptm.geneName);
-        builder.withPropertyIfNotNull("type", ptm.ptmType);
+        builder.withPropertyIfNotNull("type", ptm.ptmType.toLowerCase(Locale.ROOT));
         builder.withPropertyIfNotNull("state", ptm.state);
         builder.withPropertyIfNotNull("position", ptm.position);
         final String[] ptmTypeNewWords = ptm.ptmType.split("\\s+");
