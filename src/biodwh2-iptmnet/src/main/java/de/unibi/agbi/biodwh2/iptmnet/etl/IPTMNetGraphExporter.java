@@ -105,9 +105,11 @@ public class IPTMNetGraphExporter extends GraphExporter<IPTMNetDataSource> {
         var organismWithoutBraces = organism.replaceAll("\\s*\\(.*?\\)\\s*", "").strip();
         Integer ncbiTaxId = null;
         final var matcher = TAXONOMY_ID_PATTERN.matcher(organism);
+        String oxIdText = null;
         if (matcher.find()) {
             ncbiTaxId = Integer.parseInt(matcher.group(1));
-            organismWithoutBraces = organismWithoutBraces.replace(matcher.group(), "").strip();
+            oxIdText = matcher.group();
+            organismWithoutBraces = organismWithoutBraces.replace(oxIdText, "").strip();
         }
         var entry = organismDetailsMap.get(organismWithoutBraces);
         if (entry == null) {
@@ -119,11 +121,28 @@ public class IPTMNetGraphExporter extends GraphExporter<IPTMNetDataSource> {
             entry = new Tuple2<>(ncbiTaxId, new HashSet<>());
             organismDetailsMap.put(organismWithoutBraces, entry);
         }
-        entry.getSecond().add(matcher.find() ? organism.replace(matcher.group(), "").strip() : organism);
+        entry.getSecond().add(oxIdText != null ? organism.replace(oxIdText, "").strip() : organism);
     }
 
     private void exportProtein(final Graph graph, final Protein protein) {
-        final Node proteinNode = graph.addNodeFromModel(protein);
+        final var builder = graph.buildNode(PROTEIN_LABEL).withModel(protein);
+        builder.withPropertyIfNotNull("name", StringUtils.strip(protein.name, " \t;"));
+        if (StringUtils.isNotEmpty(protein.geneName)) {
+            final String[] geneNameParts = StringUtils.splitByWholeSeparator(protein.geneName, "; ");
+            for (final var namePart : geneNameParts) {
+                if (StringUtils.isEmpty(namePart))
+                    continue;
+                final String[] parts = StringUtils.splitByWholeSeparator(namePart, ": ", 2);
+                if ("name".equalsIgnoreCase(parts[0]))
+                    builder.withPropertyIfNotNull("gene_name", parts[1]);
+                else if ("OrderedLocusNames".equalsIgnoreCase(parts[0]))
+                    builder.withPropertyIfNotNull("ordered_locus_names",
+                                                  StringUtils.splitByWholeSeparator(parts[1], ", "));
+                else if ("ORFNames".equalsIgnoreCase(parts[0]))
+                    builder.withPropertyIfNotNull("orf_names", StringUtils.splitByWholeSeparator(parts[1], ", "));
+            }
+        }
+        final Node proteinNode = builder.build();
         final Long organismNodeId = protein.organism != null ? OrganismMapping.get(protein.organism) : null;
         if (organismNodeId != null)
             graph.addEdge(proteinNode, organismNodeId, "BELONGS_TO");

@@ -19,10 +19,8 @@ public class Protein {
     @GraphProperty("uniprot_id")
     public String uniProtId;
     @JsonProperty("protein_name")
-    @GraphProperty("name")
     public String name;
     @JsonProperty("genename")
-    @GraphProperty("gene_name")
     public String geneName;
     @JsonProperty("organism")
     public String organism;

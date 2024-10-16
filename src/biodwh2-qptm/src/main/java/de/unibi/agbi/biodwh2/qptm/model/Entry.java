@@ -2,7 +2,6 @@ package de.unibi.agbi.biodwh2.qptm.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @JsonPropertyOrder({
@@ -10,7 +9,6 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
         "Sample", "Condition", "Log2Ratio (peptide)", "P value (peptide)", "Log2Ratio (protein)", "P value (protein)",
         "Reliability", "fdr (peptide)"
 })
-@GraphNodeLabel("PTM")
 public class Entry {
     @JsonProperty("Organism")
     public String organism;
@@ -22,13 +20,10 @@ public class Entry {
     @JsonProperty("Gene name")
     public String geneName;
     @JsonProperty("Position")
-    @GraphProperty("position")
     public Integer position;
     @JsonProperty("PTM")
-    @GraphProperty("type")
     public String ptm;
     @JsonProperty("Sequence window")
-    @GraphProperty("sequence_window")
     public String sequenceWindow;
     @JsonProperty("Raw peptide")
     @GraphProperty("raw_peptide")
