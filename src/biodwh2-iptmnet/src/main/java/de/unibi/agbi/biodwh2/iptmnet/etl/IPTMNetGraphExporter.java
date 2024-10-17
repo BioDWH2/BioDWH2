@@ -22,10 +22,13 @@ import java.util.regex.Pattern;
 
 public class IPTMNetGraphExporter extends GraphExporter<IPTMNetDataSource> {
     private static final Pattern TAXONOMY_ID_PATTERN = Pattern.compile("OX=([0-9]+)");
+    private static final Map<String, Integer> SPECIES_NCBI_TAX_ID_MAP = Map.of("human", 9606, "mouse", 10090, "rat",
+                                                                               10116, "rabbit", 9986);
     public static final String PROTEIN_LABEL = "Protein";
     public static final String PTM_LABEL = "PTM";
     public static final String ORGANISM_LABEL = "Organism";
     private final Map<String, Long> OrganismMapping = new HashMap<>();
+    private final Map<String, Integer> OrganismNcbiTaxIdMapping = new HashMap<>();
     private final Map<String, Map<String, Map<String, Long>>> PTMMapping = new HashMap<>();
     private final Map<String, Map<String, Map<String, Set<String>>>> AddedEnzymeRelations = new HashMap<>();
 
@@ -41,6 +44,7 @@ public class IPTMNetGraphExporter extends GraphExporter<IPTMNetDataSource> {
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
         OrganismMapping.clear();
+        OrganismNcbiTaxIdMapping.clear();
         PTMMapping.clear();
         AddedEnzymeRelations.clear();
         graph.addIndex(IndexDescription.forNode(PROTEIN_LABEL, "uniprot_accession", IndexDescription.Type.UNIQUE));
@@ -93,8 +97,10 @@ public class IPTMNetGraphExporter extends GraphExporter<IPTMNetDataSource> {
             } else {
                 node = graph.addNode(ORGANISM_LABEL, "names", entry.getValue().getSecond().toArray(new String[0]));
             }
-            for (final var name : entry.getValue().getSecond())
+            for (final var name : entry.getValue().getSecond()) {
                 OrganismMapping.put(name, node.getId());
+                OrganismNcbiTaxIdMapping.put(name, entry.getValue().getFirst());
+            }
         }
     }
 
@@ -113,18 +119,27 @@ public class IPTMNetGraphExporter extends GraphExporter<IPTMNetDataSource> {
         }
         var entry = organismDetailsMap.get(organismWithoutBraces);
         if (entry == null) {
+            if (ncbiTaxId == null)
+                ncbiTaxId = SPECIES_NCBI_TAX_ID_MAP.get(organism);
             if (ncbiTaxId == null) {
                 final var speciesMatch = SpeciesLookup.getByScientificName(organismWithoutBraces);
                 if (speciesMatch != null)
                     ncbiTaxId = speciesMatch.ncbiTaxId;
             }
-            entry = new Tuple2<>(ncbiTaxId, new HashSet<>());
-            organismDetailsMap.put(organismWithoutBraces, entry);
+            if (speciesFilter.isSpeciesAllowed(ncbiTaxId)) {
+                entry = new Tuple2<>(ncbiTaxId, new HashSet<>());
+                organismDetailsMap.put(organismWithoutBraces, entry);
+            }
         }
-        entry.getSecond().add(oxIdText != null ? organism.replace(oxIdText, "").strip() : organism);
+        if (entry != null)
+            entry.getSecond().add(oxIdText != null ? organism.replace(oxIdText, "").strip() : organism);
     }
 
     private void exportProtein(final Graph graph, final Protein protein) {
+        final Long organismNodeId = protein.organism != null ? OrganismMapping.get(protein.organism) : null;
+        final Integer ncbiTaxId = protein.organism != null ? OrganismNcbiTaxIdMapping.get(protein.organism) : null;
+        if (!speciesFilter.isSpeciesAllowed(ncbiTaxId))
+            return;
         final var builder = graph.buildNode(PROTEIN_LABEL).withModel(protein);
         builder.withPropertyIfNotNull("name", StringUtils.strip(protein.name, " \t;"));
         if (StringUtils.isNotEmpty(protein.geneName)) {
@@ -143,7 +158,6 @@ public class IPTMNetGraphExporter extends GraphExporter<IPTMNetDataSource> {
             }
         }
         final Node proteinNode = builder.build();
-        final Long organismNodeId = protein.organism != null ? OrganismMapping.get(protein.organism) : null;
         if (organismNodeId != null)
             graph.addEdge(proteinNode, organismNodeId, "BELONGS_TO");
     }
@@ -159,6 +173,9 @@ public class IPTMNetGraphExporter extends GraphExporter<IPTMNetDataSource> {
                 score = siteScoreMap.get(ptm.site);
         }
         final Long organismNodeId = ptm.organism != null ? OrganismMapping.get(ptm.organism) : null;
+        final Integer ncbiTaxId = ptm.organism != null ? OrganismNcbiTaxIdMapping.get(ptm.organism) : null;
+        if (!speciesFilter.isSpeciesAllowed(ncbiTaxId))
+            return;
         var proteinNode = graph.findNode(PROTEIN_LABEL, "uniprot_accession", proteinAccession);
         if (proteinNode == null) {
             proteinNode = graph.addNode(PROTEIN_LABEL, "uniprot_accession", proteinAccession, "gene_name",
