@@ -51,7 +51,7 @@ public class MarkerDBGraphExporter extends GraphExporter<MarkerDBDataSource> {
         exportSpecificCollection(workspace, graph, MarkerDBUpdater.DIAGNOSTIC_CHEMICALS_FILE_NAME);
         exportSpecificCollection(workspace, graph, MarkerDBUpdater.DIAGNOSTIC_PROTEIN_FILE_NAME);
         exportSpecificCollection(workspace, graph, MarkerDBUpdater.DIAGNOSTIC_KARYOTYPES_FILE_NAME);
-        exportSpecificCollection(workspace, graph, MarkerDBUpdater.PREDICTIVE_GENETICS_FILE_NAME);
+        exportSpecificCollection(workspace, graph, MarkerDBUpdater.RISK_GENETICS_FILE_NAME);
         exportSpecificCollection(workspace, graph, MarkerDBUpdater.EXPOSURE_CHEMICALS_FILE_NAME);
         conditionNodeIdMap.clear();
         addedRelationshipKeys.clear();

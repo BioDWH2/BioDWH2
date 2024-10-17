@@ -22,7 +22,7 @@ public class MarkerDBUpdater extends Updater<MarkerDBDataSource> {
     private static final String DIAGNOSTIC_CHEMICALS_URL = "https://markerdb.ca/pages/download_all_diagnostic_chemicals?format=xml";
     private static final String DIAGNOSTIC_PROTEIN_URL = "https://markerdb.ca/pages/download_all_diagnostic_proteins?format=xml";
     private static final String DIAGNOSTIC_KARYOTYPES_URL = "https://markerdb.ca/pages/download_all_diagnostic_karyotypes?format=xml";
-    private static final String PREDICTIVE_GENETICS_URL = "https://markerdb.ca/pages/download_all_predictive_genetics?format=xml";
+    private static final String RISK_GENETICS_URL = "https://markerdb.ca/pages/download_all_risk_genetics?format=xml";
     private static final String EXPOSURE_CHEMICALS_URL = "https://markerdb.ca/pages/download_all_exposure_chemicals?format=xml";
     static final String PROTEINS_FILE_NAME = "all_proteins.xml";
     static final String CHEMICALS_FILE_NAME = "all_chemicals.xml";
@@ -31,7 +31,7 @@ public class MarkerDBUpdater extends Updater<MarkerDBDataSource> {
     static final String DIAGNOSTIC_CHEMICALS_FILE_NAME = "all_diagnostic_chemicals.xml";
     static final String DIAGNOSTIC_PROTEIN_FILE_NAME = "all_diagnostic_proteins.xml";
     static final String DIAGNOSTIC_KARYOTYPES_FILE_NAME = "all_diagnostic_karyotypes.xml";
-    static final String PREDICTIVE_GENETICS_FILE_NAME = "all_predictive_genetics.xml";
+    static final String RISK_GENETICS_FILE_NAME = "all_risk_genetics.xml";
     static final String EXPOSURE_CHEMICALS_FILE_NAME = "all_exposure_chemicals.xml";
 
     public MarkerDBUpdater(final MarkerDBDataSource dataSource) {
@@ -63,7 +63,7 @@ public class MarkerDBUpdater extends Updater<MarkerDBDataSource> {
         downloadAndFixXml(workspace, DIAGNOSTIC_CHEMICALS_URL, DIAGNOSTIC_CHEMICALS_FILE_NAME);
         downloadAndFixXml(workspace, DIAGNOSTIC_PROTEIN_URL, DIAGNOSTIC_PROTEIN_FILE_NAME);
         downloadAndFixXml(workspace, DIAGNOSTIC_KARYOTYPES_URL, DIAGNOSTIC_KARYOTYPES_FILE_NAME);
-        downloadAndFixXml(workspace, PREDICTIVE_GENETICS_URL, PREDICTIVE_GENETICS_FILE_NAME);
+        downloadAndFixXml(workspace, RISK_GENETICS_URL, RISK_GENETICS_FILE_NAME);
         downloadAndFixXml(workspace, EXPOSURE_CHEMICALS_URL, EXPOSURE_CHEMICALS_FILE_NAME);
         return true;
     }
@@ -87,7 +87,7 @@ public class MarkerDBUpdater extends Updater<MarkerDBDataSource> {
         return new String[]{
                 PROTEINS_FILE_NAME, CHEMICALS_FILE_NAME, SEQUENCE_VARIANTS_FILE_NAME, KARYOTYPES_FILE_NAME,
                 DIAGNOSTIC_CHEMICALS_FILE_NAME, DIAGNOSTIC_PROTEIN_FILE_NAME, DIAGNOSTIC_KARYOTYPES_FILE_NAME,
-                PREDICTIVE_GENETICS_FILE_NAME, EXPOSURE_CHEMICALS_FILE_NAME
+                RISK_GENETICS_FILE_NAME, EXPOSURE_CHEMICALS_FILE_NAME
         };
     }
 }
