@@ -97,12 +97,9 @@ public class PTMDGraphExporter extends GraphExporter<PTMDDataSource> {
     private void exportPTMSiteFile(final InputStream stream, final ZipEntry entry,
                                    final Graph graph) throws IOException {
         final String fileName = entry.getName().substring(entry.getName().lastIndexOf('/') + 1);
-        String ptmType = fileName.substring(0, fileName.lastIndexOf('.'));
-        if (ptmType.equals("phosphorylation"))
-            ptmType = "Phosphorylation";
-        final String type = ptmType;
+        final String ptmType = fileName.substring(0, fileName.lastIndexOf('.')).toLowerCase(Locale.ROOT);
         FileUtils.openTsvWithHeader(stream, PTMSite.class, ptm -> {
-            final var nodeId = graph.addNodeFromModel(ptm, "type", type.toLowerCase(Locale.ROOT)).getId();
+            final var nodeId = graph.addNodeFromModel(ptm, "type", ptmType).getId();
             Node proteinNode = graph.findNode(PROTEIN_LABEL, "uniprot_id", ptm.uniprotId);
             if (proteinNode == null)
                 proteinNode = graph.addNode(PROTEIN_LABEL, "uniprot_id", ptm.uniprotId);
