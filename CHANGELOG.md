@@ -1,5 +1,19 @@
 # Changelog
 
+## 📦 Version [v0.6.2](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.2)
+
+Released: 26.10.2024
+
+### 📚 Data Sources
+
+* ```[InterPro]``` Fix InterPro version retrieval
+* ```[MarkerDB]``` Fix MarkerDB updater
+* ```[UniProt]``` Use general UniProt file instead of human
+* ```[PTMD]``` Add PTMD data source module
+* ```[iPTMnet]``` Add iPTMnet data source module
+* ```[qPTM]``` Add qPTM data source module
+* ```[qPTMplants]``` Add qPTMplants data source module
+
 ## 📦 Version [v0.6.1](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.1)
 
 Released: 08.10.2024
