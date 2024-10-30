@@ -1,5 +1,14 @@
 # Changelog
 
+## 📦 Version [v0.6.3](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.3)
+
+Released: 30.10.2024
+
+### 📚 Data Sources
+
+* ```[PTMD]``` Update PTMD to version 2
+* ```[iPTMnet]``` Fix iPTMnet organism collection
+
 ## 📦 Version [v0.6.2](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.2)
 
 Released: 26.10.2024
