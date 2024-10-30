@@ -1,7 +1,6 @@
 package de.unibi.agbi.biodwh2.iptmnet.etl;
 
 import de.unibi.agbi.biodwh2.core.Workspace;
-import de.unibi.agbi.biodwh2.core.collections.Tuple2;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
@@ -76,63 +75,63 @@ public class IPTMNetGraphExporter extends GraphExporter<IPTMNetDataSource> {
     }
 
     private void collectOrganisms(final Workspace workspace, final Graph graph) {
-        final Map<String, Tuple2<Integer, Set<String>>> organismDetailsMap = new HashMap<>();
         try {
             FileUtils.openTsv(workspace, dataSource, IPTMNetUpdater.PROTEIN_FILE_NAME, Protein.class,
-                              (protein) -> collectOrganism(organismDetailsMap, protein.organism));
+                              (protein) -> collectOrganism(protein.organism));
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export '" + IPTMNetUpdater.PROTEIN_FILE_NAME + "'", e);
         }
         try {
             FileUtils.openTsv(workspace, dataSource, IPTMNetUpdater.PTM_FILE_NAME, PTM.class,
-                              (ptm) -> collectOrganism(organismDetailsMap, ptm.organism));
+                              (ptm) -> collectOrganism(ptm.organism));
         } catch (IOException e) {
             throw new ExporterFormatException("Failed to export '" + IPTMNetUpdater.PTM_FILE_NAME + "'", e);
         }
-        for (final var entry : organismDetailsMap.entrySet()) {
-            final Node node;
-            if (entry.getValue().getFirst() != null) {
-                node = graph.addNode(ORGANISM_LABEL, "ncbi_taxid", entry.getValue().getFirst(), "names",
-                                     entry.getValue().getSecond().toArray(new String[0]));
-            } else {
-                node = graph.addNode(ORGANISM_LABEL, "names", entry.getValue().getSecond().toArray(new String[0]));
-            }
-            for (final var name : entry.getValue().getSecond()) {
+        final Map<Integer, Set<String>> ncbiTaxIdNamesMap = new HashMap<>();
+        for (final var entry : OrganismNcbiTaxIdMapping.entrySet())
+            if (entry.getValue() != null)
+                ncbiTaxIdNamesMap.computeIfAbsent(entry.getValue(), (k) -> new HashSet<>()).add(entry.getKey());
+        for (final var entry : ncbiTaxIdNamesMap.entrySet()) {
+            final Node node = graph.addNode(ORGANISM_LABEL, "ncbi_taxid", entry.getKey(), "names",
+                                            entry.getValue().toArray(new String[0]));
+            for (final var name : entry.getValue())
                 OrganismMapping.put(name, node.getId());
-                OrganismNcbiTaxIdMapping.put(name, entry.getValue().getFirst());
+        }
+        for (final var entry : OrganismNcbiTaxIdMapping.entrySet()) {
+            final var ncbiTaxId = entry.getValue();
+            if (ncbiTaxId == null) {
+                final var node = graph.addNode(ORGANISM_LABEL, "names", new String[]{entry.getKey()});
+                OrganismMapping.put(entry.getKey(), node.getId());
             }
         }
     }
 
-    private void collectOrganism(final Map<String, Tuple2<Integer, Set<String>>> organismDetailsMap,
-                                 final String organism) {
+    private void collectOrganism(final String organism) {
         if (organism == null)
             return;
+        var ncbiTaxId = OrganismNcbiTaxIdMapping.get(organism);
+        if (ncbiTaxId != null)
+            return;
         var organismWithoutBraces = organism.replaceAll("\\s*\\(.*?\\)\\s*", "").strip();
-        Integer ncbiTaxId = null;
         final var matcher = TAXONOMY_ID_PATTERN.matcher(organism);
-        String oxIdText = null;
         if (matcher.find()) {
             ncbiTaxId = Integer.parseInt(matcher.group(1));
-            oxIdText = matcher.group();
+            String oxIdText = matcher.group();
             organismWithoutBraces = organismWithoutBraces.replace(oxIdText, "").strip();
         }
-        var entry = organismDetailsMap.get(organismWithoutBraces);
-        if (entry == null) {
-            if (ncbiTaxId == null)
-                ncbiTaxId = SPECIES_NCBI_TAX_ID_MAP.get(organism);
-            if (ncbiTaxId == null) {
-                final var speciesMatch = SpeciesLookup.getByScientificName(organismWithoutBraces);
-                if (speciesMatch != null)
-                    ncbiTaxId = speciesMatch.ncbiTaxId;
-            }
-            if (speciesFilter.isSpeciesAllowed(ncbiTaxId)) {
-                entry = new Tuple2<>(ncbiTaxId, new HashSet<>());
-                organismDetailsMap.put(organismWithoutBraces, entry);
-            }
+        if (ncbiTaxId == null) {
+            ncbiTaxId = OrganismNcbiTaxIdMapping.get(organismWithoutBraces);
         }
-        if (entry != null)
-            entry.getSecond().add(oxIdText != null ? organism.replace(oxIdText, "").strip() : organism);
+        if (ncbiTaxId == null) {
+            ncbiTaxId = SPECIES_NCBI_TAX_ID_MAP.get(organism);
+        }
+        if (ncbiTaxId == null) {
+            final var speciesMatch = SpeciesLookup.getByScientificName(organismWithoutBraces);
+            if (speciesMatch != null)
+                ncbiTaxId = speciesMatch.ncbiTaxId;
+        }
+        OrganismNcbiTaxIdMapping.put(organism, ncbiTaxId);
+        OrganismNcbiTaxIdMapping.put(organismWithoutBraces, ncbiTaxId);
     }
 
     private void exportProtein(final Graph graph, final Protein protein) {
