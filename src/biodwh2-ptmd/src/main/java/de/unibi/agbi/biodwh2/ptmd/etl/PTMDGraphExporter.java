@@ -9,6 +9,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.ptmd.PTMDDataSource;
 import de.unibi.agbi.biodwh2.ptmd.model.Entry;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.*;
 
@@ -23,6 +24,11 @@ public class PTMDGraphExporter extends GraphExporter<PTMDDataSource> {
     private static final Map<String, String> REGULATION_TYPES = Map.of("N", "disruption", "C", "creation", "A",
                                                                        "absence", "U", "up-regulation", "D",
                                                                        "down-regulation", "P", "presence");
+    private static final Set<String> AMINO_ACID_NAMES = Set.of("alanine", "arginine", "asparagine", "aspartic acid",
+                                                               "cysteine", "glutamic acid", "glutamine", "glycine",
+                                                               "histidine", "isoleucine", "leucine", "lysine",
+                                                               "methionine", "phenylalanine", "proline", "serine",
+                                                               "threonine", "tryptophan", "tyrosine", "valine");
 
     public PTMDGraphExporter(final PTMDDataSource dataSource) {
         super(dataSource);
@@ -57,7 +63,9 @@ public class PTMDGraphExporter extends GraphExporter<PTMDDataSource> {
     private void exportEntry(final Graph graph, final Entry entry) {
         if (StringUtils.isEmpty(entry.position) || StringUtils.isEmpty(entry.residue))
             return;
-        final String ptmType = entry.type.toLowerCase(Locale.ROOT);
+        String ptmType = entry.type.toLowerCase(Locale.ROOT);
+        for (var aminoAcidName : AMINO_ACID_NAMES)
+            ptmType = ptmType.replace(aminoAcidName, "").strip();
         final var ptmPosition = Integer.parseInt(
                 entry.position.contains(".") ? StringUtils.split(entry.position, ".", 2)[0] : entry.position);
         final String ptmKey = entry.uniProt + "_" + ptmType + "_" + ptmPosition + "_" + entry.residue;
@@ -84,15 +92,19 @@ public class PTMDGraphExporter extends GraphExporter<PTMDDataSource> {
         final var mutationSites = convertPythonArray(entry.mutationSite);
         final String[] mutationSiteImpacts = new String[mutationSites.length];
         for (int i = 0; i < mutationSites.length; i++) {
-            var mutationSite = mutationSites[i];
-            var mutationSitePosition = Integer.parseInt(mutationSite.substring(1, mutationSite.length() - 1));
-            var distance = Math.abs(ptmPosition - mutationSitePosition);
-            if (distance == 0)
-                mutationSiteImpacts[i] = "direct";
-            else if (distance < 3)
-                mutationSiteImpacts[i] = "proximal";
-            else
-                mutationSiteImpacts[i] = "distal";
+            var mutationSite = mutationSites[i].trim();
+            var mutationSitePosition = mutationSite.substring(1, mutationSite.length() - 1);
+            if (NumberUtils.isDigits(mutationSitePosition)) {
+                var distance = Math.abs(ptmPosition - Integer.parseInt(mutationSitePosition));
+                if (distance == 0)
+                    mutationSiteImpacts[i] = "direct";
+                else if (distance < 3)
+                    mutationSiteImpacts[i] = "proximal";
+                else
+                    mutationSiteImpacts[i] = "distal";
+            } else {
+                mutationSiteImpacts[i] = "unknown";
+            }
         }
         final var edgeBuilder = graph.buildEdge().withLabel("ASSOCIATED_WITH").fromNode(ptmNodeId).toNode(
                 diseaseNodeId);
