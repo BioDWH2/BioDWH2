@@ -64,9 +64,25 @@ The basic file structure is visualized below:
 
 BioDWH2 requires the Java Runtime Environment version 11 or higher to be installed. The JRE 11 is available [here](https://adoptium.net/temurin/releases/?package=jre&version=11).
 
-## Creating a workspace
+> :warning: **Please note**: The following commands refer to the BioDWH2 executable as `BioDWH2.jar` for simplicity. The file name of the release downloads is versioned such as `BioDWH2-v0.6.3.jar`.
 
-> :warning: **Please note**: The following commands refer to the BioDWH2 executable as `BioDWH2.jar` for simplicity. The file name of the release downloads is versioned such as `BioDWH2-v0.4.10.jar`.
+---
+
+## [GUI] Creating, configuring, and running a workspace using the Web-Configurator
+
+To start the web-based graphical configurator tool, simply run the following command:
+
+~~~BASH
+$ java -jar BioDWH2.jar --config
+~~~
+
+![](img/ui_web_configurator.png)
+
+---
+
+## [CMD] Creating, configuring, and running a workspace using the command line
+
+### Creating a workspace
 
 The first step is to create a blank workspace in a new location using the `-c` or `--create` command line parameter.
 
@@ -74,7 +90,7 @@ The first step is to create a blank workspace in a new location using the `-c` o
 $ java -jar BioDWH2.jar -c /path/to/workspace
 ~~~
 
-## Configuring workspace data sources
+### Configuring workspace data sources
 
 After creation, the workspace is configured without any data sources. Adding and removing data sources to the workspace can be done either using the command line or directly in the `config.json` file. All available data source IDs can be listed using the following command:
 
@@ -96,7 +112,7 @@ Alternatively open the `config.json` in your workspace with any text editor and 
   "version" : 1,
   "creationDateTime" : "2019-09-26T09:30:36.568",
   "dataSourceIds" : ["HGNC", "MED-RT"],
-  "skipGraphMLExport": false,
+  "outputFormatIds" : ["GRAPHML"],
   "skipMetaGraphGeneration": false,
   "globalProperties": {
     "speciesFilter": []
@@ -105,7 +121,7 @@ Alternatively open the `config.json` in your workspace with any text editor and 
 }
 ```
 
-## Executing the workflow
+### Executing the workflow
 
 Now, the workspace can be automatically updated, parsed, exported, merged, and mapped:
 
@@ -113,7 +129,7 @@ Now, the workspace can be automatically updated, parsed, exported, merged, and m
 $ java -jar BioDWH2.jar -u /path/to/workspace
 ~~~
 
-## Checking for updates
+### Checking for updates
 
 To check the current state of the workspace, whether new versions are available, something is missing, etc. the `-s` or `--status` command line parameter can be used.
 
@@ -121,22 +137,26 @@ To check the current state of the workspace, whether new versions are available,
 $ java -jar BioDWH2.jar -s /path/to/workspace
 ~~~
 
+---
+
 ## Analyzing the data
 
 After creating and processing the workspace, the resulting graph can be analyzed. For a detailed guide on analysis tasks, check [here](analysis.md).
 
 ## Task command line parameters
 
-| Short parameter | Long parameter       | Values                           | Description                                     |
-|-----------------|----------------------|----------------------------------|-------------------------------------------------|
-| -h              | --help               | -                                | Print the help message                          |
-|                 | --version            | -                                | Print the BioDWH2 version and check for updates |
-| -c              | --create             | \<workspacePath>                 | Create a new empty workspace                    |
-|                 | --data-sources       | -                                | List all available data sources                 |
-|                 | --add-data-source    | \<workspacePath> \<dataSourceId> | Add a data source to the configuration          |
-|                 | --remove-data-source | \<workspacePath> \<dataSourceId> | Remove a data source from the configuration     |
-| -u              | --update             | \<workspacePath>                 | Update all data sources of a workspace          |
-| -s              | --status             | \<workspacePath>                 | Check and output the state of a workspace       |
+| Short parameter | Long parameter       | Values                               | Description                                     |
+|-----------------|----------------------|--------------------------------------|-------------------------------------------------|
+| -h              | --help               | -                                    | Print the help message                          |
+|                 | --version            | -                                    | Print the BioDWH2 version and check for updates |
+|                 | --config             | -                                    | Start the web-based configurator                |
+| -c              | --create             | \<workspacePath>                     | Create a new empty workspace                    |
+|                 | --data-sources       | -                                    | List all available data sources                 |
+|                 | --add-data-source    | \<workspacePath> \<dataSourceId>     | Add a data source to the configuration          |
+|                 | --remove-data-source | \<workspacePath> \<dataSourceId>     | Remove a data source from the configuration     |
+|                 | --set-config         | \<workspacePath> \<keyPath> \<value> | Set a specific config value                     |
+| -u              | --update             | \<workspacePath>                     | Update all data sources of a workspace          |
+| -s              | --status             | \<workspacePath>                     | Check and output the state of a workspace       |
 
 ## Additional command line parameters
 
@@ -177,7 +197,7 @@ according to your needs if not all cores are available for execution at all time
   "version" : int,
   "creationDateTime" : string,
   "dataSourceIds" : [string, string, ...],
-  "skipGraphMLExport": boolean,
+  "outputFormatIds" : [string, string, ...],
   "skipMetaGraphGeneration": boolean,
   "globalProperties": {
     "speciesFilter": [int, int, ...]
