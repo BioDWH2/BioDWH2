@@ -131,9 +131,9 @@ public final class BioDWH2 {
     }
 
     private void setConfig(final CmdArgs commandLine) {
-        final String workspacePath = commandLine.removeDataSource.get(0);
-        String configKey = commandLine.removeDataSource.get(1);
-        final String value = commandLine.removeDataSource.get(2);
+        final String workspacePath = commandLine.setConfig.get(0);
+        String configKey = commandLine.setConfig.get(1);
+        final String value = commandLine.setConfig.get(2);
         final var workspace = new Workspace(workspacePath);
         final var config = workspace.getConfiguration();
         final var loader = DataSourceLoader.getInstance();
