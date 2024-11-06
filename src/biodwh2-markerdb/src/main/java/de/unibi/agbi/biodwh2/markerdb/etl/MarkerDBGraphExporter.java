@@ -162,8 +162,9 @@ public class MarkerDBGraphExporter extends GraphExporter<MarkerDBDataSource> {
                 final var builder = graph.buildEdge(indicationType.toUpperCase(Locale.ROOT) + "_BIOMARKER_FOR");
                 builder.fromNode(node);
                 builder.toNode(conditionNodeId);
-                if (measurements.reference.get(i) != null)
-                    builder.withProperty("pmids", new Integer[]{measurements.reference.get(i)});
+                final var pmid = measurements.reference.get(i);
+                if (pmid != null && pmid != 0)
+                    builder.withProperty("pmids", new Integer[]{pmid});
                 builder.build();
             }
         }
