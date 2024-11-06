@@ -1,5 +1,19 @@
 # Changelog
 
+## 📦 Version [v0.6.4](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.4)
+
+Released: 06.11.2024
+
+### 📚 Data Sources
+
+* ```[MarkerDB]``` Fix zero PubMed IDs in references
+
+### 🔧 Bug fixes and other changes
+
+* ```[fix]``` Fix setting config values via command line
+* ```[chore]``` Update dependencies
+* ```[chore]``` Update docs
+
 ## 📦 Version [v0.6.3](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.3)
 
 Released: 30.10.2024
