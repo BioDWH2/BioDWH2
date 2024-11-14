@@ -34,7 +34,7 @@ public class MarkerDBGraphExporter extends GraphExporter<MarkerDBDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -244,9 +244,16 @@ public class MarkerDBGraphExporter extends GraphExporter<MarkerDBDataSource> {
     private void exportGene(final Graph graph, final GeneSimple entry) {
         if ("id".equalsIgnoreCase(entry.id))
             return;
-        var node = graph.findNode(GENE_LABEL, ID_KEY, Integer.parseInt(entry.id));
-        if (node == null)
-            node = graph.addNodeFromModel(entry);
+        Node node;
+        if ("SequenceVariant".equalsIgnoreCase(entry.biomarkerType)) {
+            node = graph.findNode(SEQUENCE_VARIANT_LABEL, ID_KEY, Integer.parseInt(entry.id));
+            if (node == null)
+                node = graph.buildNode().withLabel(SEQUENCE_VARIANT_LABEL).withModel(entry).build();
+        } else {
+            node = graph.findNode(GENE_LABEL, ID_KEY, Integer.parseInt(entry.id));
+            if (node == null)
+                node = graph.buildNode().withLabel(GENE_LABEL).withModel(entry).build();
+        }
         exportAndConnectConditions(graph, entry, node);
     }
 }
