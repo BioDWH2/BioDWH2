@@ -40,6 +40,7 @@ public abstract class GraphExporter<D extends DataSource> {
         try (Graph g = new Graph(dataSource.getFilePath(workspace, DataSourceFileType.PERSISTENT_GRAPH))) {
             exportSuccessful = exportGraph(workspace, g);
             if (exportSuccessful) {
+                removeEmptyCollections(g);
                 exportSuccessful = trySaveGraphToFile(workspace, g);
                 if (exportSuccessful)
                     generateMetaGraphStatistics(workspace, g);
@@ -49,6 +50,15 @@ public abstract class GraphExporter<D extends DataSource> {
     }
 
     protected abstract boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException;
+
+    private void removeEmptyCollections(final Graph graph) {
+        for (final String label : graph.getNodeLabels())
+            if (graph.getNumberOfNodes(label) == 0)
+                graph.removeNodeLabel(label);
+        for (final String label : graph.getEdgeLabels())
+            if (graph.getNumberOfEdges(label) == 0)
+                graph.removeEdgeLabel(label);
+    }
 
     private boolean trySaveGraphToFile(final Workspace workspace, final Graph g) {
         // TODO: remove old and unused

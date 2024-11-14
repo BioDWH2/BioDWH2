@@ -101,6 +101,8 @@ public final class GraphMapper {
                                    final Map<String, Map<String, Long>> labelIdNodeIdMap,
                                    final MappingDescriber describer, final String localMappingLabel) {
         final String prefixedMappingLabel = describer.prefixLabel(localMappingLabel);
+        if (graph.getNumberOfNodes(prefixedMappingLabel) == 0)
+            return;
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Mapping nodes with label '{}'", prefixedMappingLabel);
         for (final Node node : graph.getNodes(prefixedMappingLabel)) {
