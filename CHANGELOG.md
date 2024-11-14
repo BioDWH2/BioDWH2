@@ -1,5 +1,18 @@
 # Changelog
 
+## 📦 Version [v0.6.5](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.5)
+
+Released: 14.11.2024
+
+### 📚 Data Sources
+
+* ```[MarkerDB]``` Fix sequence variants exported as genes
+
+### 🔧 Bug fixes and other changes
+
+* ```[feature]``` Remove empty collections after export
+* ```[feature]``` Ignore mapping labels without nodes
+
 ## 📦 Version [v0.6.4](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.4)
 
 Released: 06.11.2024
