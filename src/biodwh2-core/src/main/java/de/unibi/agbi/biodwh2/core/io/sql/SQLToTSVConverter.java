@@ -14,8 +14,8 @@ import java.util.List;
 
 public final class SQLToTSVConverter {
     public static boolean process(final InputStream stream, final Path outputPath) {
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-        StringBuilder buffer = new StringBuilder();
+        final var reader = new BufferedReader(new InputStreamReader(stream));
+        var buffer = new StringBuilder();
         try {
             while (reader.ready()) {
                 final String line = reader.readLine();
@@ -53,71 +53,90 @@ public final class SQLToTSVConverter {
         final String tableName = getTableNameManual(chunk, intoKeywordIndex, valuesKeywordIndex);
         try (final OutputStream stream = Files.newOutputStream(outputPath.resolve(tableName + ".tsv"),
                                                                StandardOpenOption.APPEND);
-             final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stream))) {
-            int currentIndex = valuesKeywordIndex + 6;
-            boolean insideRow = false;
-            int rowCounter = 0;
-            while (currentIndex < chunk.length()) {
-                if (rowCounter % 1000 == 0)
+             final var writer = new BufferedWriter(new OutputStreamWriter(stream))) {
+            final var rowCounter = new int[1];
+            handleInsertRows(chunk, valuesKeywordIndex + 6, (row) -> {
+                for (int i = 0; i < row.length; i++) {
+                    if (i > 0)
+                        writer.write(',');
+                    if (row[i] != null)
+                        writer.write(row[i]);
+                }
+                writer.write('\n');
+                rowCounter[0]++;
+                if (rowCounter[0] % 1000 == 0)
                     writer.flush();
-                final char c = chunk.charAt(currentIndex);
-                currentIndex++;
-                if (c == '(') {
-                    insideRow = true;
-                } else if (c == ')') {
-                    writer.write('\n');
-                    insideRow = false;
-                    rowCounter++;
-                } else if (insideRow) {
-                    if (c == '"' || c == '\'') {
-                        int backslashes;
-                        int endIndex = currentIndex - 1;
-                        do {
+            });
+        }
+        return true;
+    }
+
+    static void handleInsertRows(final String chunk, int currentIndex,
+                                 final RowConsumer rowHandler) throws IOException {
+        boolean insideRow = false;
+        List<String> currentRow = new ArrayList<>();
+        int currentRowValue = 0;
+        while (currentIndex < chunk.length()) {
+            final char c = chunk.charAt(currentIndex);
+            currentIndex++;
+            if (c == '(') {
+                insideRow = true;
+            } else if (c == ')') {
+                insideRow = false;
+                rowHandler.accept(currentRow.toArray(new String[0]));
+                currentRow.clear();
+                currentRowValue = 0;
+            } else if (insideRow) {
+                if (c == '"' || c == '\'') {
+                    int backslashes;
+                    int endIndex = currentIndex - 1;
+                    do {
+                        backslashes = 0;
+                        endIndex = chunk.indexOf(c, endIndex + 1);
+                        for (int i = endIndex - 1; i >= currentIndex; i--) {
+                            if (chunk.charAt(i) == '\\')
+                                backslashes++;
+                            else
+                                break;
+                        }
+                    } while ((backslashes % 2) != 0);
+                    String value = chunk.substring(currentIndex, endIndex);
+                    int replaceIndex = value.length();
+                    do {
+                        replaceIndex = value.lastIndexOf('"', replaceIndex - 1);
+                        if (replaceIndex != -1) {
                             backslashes = 0;
-                            endIndex = chunk.indexOf(c, endIndex + 1);
-                            for (int i = endIndex - 1; i > currentIndex; i--) {
-                                if (chunk.charAt(i) == '\\')
+                            for (int i = replaceIndex - 1; i > 0; i--) {
+                                if (value.charAt(i) == '\\')
                                     backslashes++;
                                 else
                                     break;
                             }
-                        } while ((backslashes % 2) != 0);
-                        String value = chunk.substring(currentIndex, endIndex);
-                        int replaceIndex = value.length();
-                        do {
-                            replaceIndex = value.lastIndexOf('"', replaceIndex - 1);
-                            if (replaceIndex != -1) {
-                                backslashes = 0;
-                                for (int i = replaceIndex - 1; i > 0; i--) {
-                                    if (value.charAt(i) == '\\')
-                                        backslashes++;
-                                    else
-                                        break;
-                                }
-                                if ((backslashes % 2) == 0)
-                                    value = value.substring(0, replaceIndex) + '"' + value.substring(replaceIndex);
-                                else {
-                                    value = value.substring(0, replaceIndex - 1) + '"' + value.substring(replaceIndex);
-                                    replaceIndex -= 1;
-                                }
+                            if ((backslashes % 2) == 0)
+                                value = value.substring(0, replaceIndex) + '"' + value.substring(replaceIndex);
+                            else {
+                                value = value.substring(0, replaceIndex - 1) + '"' + value.substring(replaceIndex);
+                                replaceIndex -= 1;
                             }
-                        } while (replaceIndex != -1);
-                        value = removeEscapeForChars(value);
-                        writer.write('"' + value + '"');
-                        currentIndex = endIndex + 1;
-                    } else if (c == ',') {
-                        writer.write('\t');
-                    } else {
-                        if (c == 'N' && chunk.substring(currentIndex - 1, currentIndex + 3).equals("NULL")) {
-                            currentIndex += 3;
-                            continue;
                         }
-                        writer.write(c);
+                    } while (replaceIndex != -1);
+                    value = removeEscapeForChars(value);
+                    currentRow.add('"' + value + '"');
+                    currentIndex = endIndex + 1;
+                } else if (c == ',') {
+                    currentRowValue++;
+                } else {
+                    if (c == 'N' && chunk.substring(currentIndex - 1, currentIndex + 3).equals("NULL")) {
+                        currentIndex += 3;
+                        currentRow.add(null);
+                    } else if (currentRowValue == currentRow.size()) {
+                        currentRow.add(String.valueOf(c));
+                    } else {
+                        currentRow.set(currentRowValue, currentRow.get(currentRowValue) + c);
                     }
                 }
             }
         }
-        return true;
     }
 
     private static String removeEscapeForChars(String value) {
@@ -279,6 +298,11 @@ public final class SQLToTSVConverter {
             }
         }
         writer.write('\n');
+    }
+
+    @FunctionalInterface
+    public interface RowConsumer {
+        void accept(String[] row) throws IOException;
     }
 
     private static class ErrorListener extends BaseErrorListener {
