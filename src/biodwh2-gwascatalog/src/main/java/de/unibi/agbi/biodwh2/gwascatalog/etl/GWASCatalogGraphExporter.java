@@ -30,7 +30,7 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -40,8 +40,8 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         graph.addIndex(IndexDescription.forNode(TRAIT_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
         try {
             exportStudies(workspace, graph);
-            exportAncestries(workspace, graph);
             exportAssociations(workspace, graph);
+            exportAncestries(workspace, graph);
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
@@ -59,7 +59,6 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         builder.withProperty("date_added", study.dateAddedToCatalog);
         builder.withProperty("initial_sample_size", study.initialSampleSize);
         builder.withProperty("replication_sample_size", study.replicationSampleSize);
-        builder.withProperty("association_count", study.associationCount);
         builder.withPropertyIfNotNull("genotyping_technology", study.genotypingTechnology);
         builder.withPropertyIfNotNull("platform", study.platform);
         builder.withPropertyIfNotNull("disease_or_trait", study.diseaseOrTrait);
@@ -118,27 +117,6 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         return result;
     }
 
-    private void exportAncestries(final Workspace workspace, final Graph graph) throws IOException {
-        FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource, GWASCatalogUpdater.ANCESTRY_FILE_NAME,
-                                                  Ancestry.class, (entry) -> exportAncestry(graph, entry));
-    }
-
-    private void exportAncestry(final Graph graph, final Ancestry ancestry) {
-        final NodeBuilder builder = graph.buildNode().withLabel(ANCESTRY_LABEL);
-        builder.withPropertyIfNotNull("stage", ancestry.stage);
-        if (ancestry.numberOfIndividuals != null)
-            builder.withPropertyIfNotNull("individuals", Integer.parseInt(ancestry.numberOfIndividuals));
-        builder.withPropertyIfNotNull("broad_category", ancestry.broadAncestralCategory);
-        builder.withPropertyIfNotNull("origin_country", ancestry.countryOfOrigin);
-        builder.withPropertyIfNotNull("recruitment_country", ancestry.countryOfRecruitment);
-        builder.withPropertyIfNotNull("additional_description", ancestry.additionalAncestryDescription);
-        final Node node = builder.build();
-        final Node studyNode = graph.findNode(STUDY_LABEL, ID_KEY, ancestry.studyAccession);
-        if (studyNode != null) // TODO: check
-            graph.addEdge(studyNode, node, "WITH_ANCESTRY");
-        getOrCreatePublication(graph, ancestry.pubmedId, ancestry.firstAuthor, null, null, ancestry.datePublished);
-    }
-
     private void exportAssociations(final Workspace workspace, final Graph graph) throws IOException {
         FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource, GWASCatalogUpdater.ASSOCIATIONS_FILE_NAME,
                                                   Association.class, (entry) -> exportAssociation(graph, entry));
@@ -175,10 +153,51 @@ public final class GWASCatalogGraphExporter extends GraphExporter<GWASCatalogDat
         final long[] traitNodeIds = exportTraits(graph, association.mappedTrait, association.mappedTraitUri);
         for (long traitNodeId : traitNodeIds)
             graph.addEdge(node, traitNodeId, "STUDIES");
-        final Node studyNode = graph.findNode(STUDY_LABEL, ID_KEY, association.studyAccession);
-        if (studyNode != null) // TODO: check
-            graph.addEdge(studyNode, node, "WITH_ASSOCIATION");
-        getOrCreatePublication(graph, association.pubmedId, association.firstAuthor, association.journal,
-                               association.studyTitle, association.datePublished);
+        Node studyNode = graph.findNode(STUDY_LABEL, ID_KEY, association.studyAccession);
+        if (studyNode == null) {
+            final NodeBuilder studyBuilder = graph.buildNode().withLabel(STUDY_LABEL);
+            studyBuilder.withProperty(ID_KEY, association.studyAccession);
+            studyBuilder.withProperty("initial_sample_size", association.initialSampleSize);
+            studyBuilder.withProperty("replication_sample_size", association.replicationSampleSize);
+            studyBuilder.withPropertyIfNotNull("genotyping_technology", association.genotypingTechnology);
+            studyBuilder.withPropertyIfNotNull("platform", association.platform);
+            studyBuilder.withPropertyIfNotNull("disease_or_trait", association.diseaseOrTrait);
+            studyBuilder.withPropertyIfNotNull("mapped_traits", association.mappedTrait);
+            studyNode = studyBuilder.build();
+            final Node publicationNode = getOrCreatePublication(graph, association.pubmedId, association.firstAuthor,
+                                                                association.journal, association.studyTitle,
+                                                                association.datePublished);
+            graph.addEdge(studyNode, publicationNode, "HAS_REFERENCE");
+        }
+        graph.addEdge(studyNode, node, "WITH_ASSOCIATION");
+    }
+
+    private void exportAncestries(final Workspace workspace, final Graph graph) throws IOException {
+        FileUtils.openTsvWithHeaderWithoutQuoting(workspace, dataSource, GWASCatalogUpdater.ANCESTRY_FILE_NAME,
+                                                  Ancestry.class, (entry) -> exportAncestry(graph, entry));
+    }
+
+    private void exportAncestry(final Graph graph, final Ancestry ancestry) {
+        final NodeBuilder builder = graph.buildNode().withLabel(ANCESTRY_LABEL);
+        builder.withPropertyIfNotNull("stage", ancestry.stage);
+        if (ancestry.numberOfIndividuals != null)
+            builder.withPropertyIfNotNull("individuals", Integer.parseInt(ancestry.numberOfIndividuals));
+        builder.withPropertyIfNotNull("broad_category", ancestry.broadAncestralCategory);
+        builder.withPropertyIfNotNull("origin_country", ancestry.countryOfOrigin);
+        builder.withPropertyIfNotNull("recruitment_country", ancestry.countryOfRecruitment);
+        builder.withPropertyIfNotNull("additional_description", ancestry.additionalAncestryDescription);
+        final Node node = builder.build();
+        Node studyNode = graph.findNode(STUDY_LABEL, ID_KEY, ancestry.studyAccession);
+        if (studyNode == null) {
+            final NodeBuilder studyBuilder = graph.buildNode().withLabel(STUDY_LABEL);
+            studyBuilder.withProperty(ID_KEY, ancestry.studyAccession);
+            studyBuilder.withProperty("initial_sample_size", ancestry.initialSampleDescription);
+            studyBuilder.withProperty("replication_sample_size", ancestry.replicationSampleDescription);
+            studyNode = studyBuilder.build();
+            final Node publicationNode = getOrCreatePublication(graph, ancestry.pubmedId, ancestry.firstAuthor, null,
+                                                                null, ancestry.datePublished);
+            graph.addEdge(studyNode, publicationNode, "HAS_REFERENCE");
+        }
+        graph.addEdge(studyNode, node, "WITH_ANCESTRY");
     }
 }
