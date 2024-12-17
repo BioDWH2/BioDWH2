@@ -44,6 +44,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
     public static final String INSTANCE_LABEL = "Instance";
 
     private final OntologyDataSource ontologyDataSource;
+    private boolean createdIsProxyTermIndex = false;
 
     public OntologyGraphExporter(final D dataSource) {
         super(dataSource);
@@ -52,7 +53,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -211,6 +212,7 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
 
     private void exportEntries(final boolean ignoreObsolete, final Graph graph, final OboReader reader) {
         boolean createdTermIndex = false;
+        createdIsProxyTermIndex = false;
         boolean createdTypedefIndex = false;
         boolean createdInstanceIndex = false;
         final Map<String, Map<String, List<EdgeCacheEntry>>> relationCache = new HashMap<>();
@@ -246,8 +248,10 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
         populateBuilderWithEntry(builder, term);
         builder.withPropertyIfNotNull("builtin", term.builtin());
         final String termIdPrefix = StringUtils.split(term.getId(), ":", 2)[0];
-        if (!termIdPrefix.equals(ontologyDataSource.getIdPrefix()))
+        if (!termIdPrefix.equals(ontologyDataSource.getIdPrefix())) {
+            createIsProxyTermIndexIfNecessary(graph);
             builder.withProperty(IS_PROXY_KEY, true);
+        }
         final Node node = builder.build();
         handleRelationshipsWithRelId(graph, term.getRelationships(), node, relationCache);
         handleRelationships(graph, term.isA(), "IS_A", node, relationCache);
@@ -256,6 +260,13 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
         handleRelationships(graph, term.unionOf(), "UNION_OF", node, relationCache);
         handleRelationships(graph, term.consider(), "CONSIDER", node, relationCache);
         handleRelationships(graph, term.replacedBy(), "REPLACED_BY", node, relationCache);
+    }
+
+    private void createIsProxyTermIndexIfNecessary(final Graph graph) {
+        if (createdIsProxyTermIndex)
+            return;
+        createdIsProxyTermIndex = true;
+        graph.addIndex(IndexDescription.forNode(TERM_LABEL, IS_PROXY_KEY, IndexDescription.Type.NON_UNIQUE));
     }
 
     private void populateBuilderWithEntry(final NodeBuilder builder, final OboEntry entry) {
@@ -405,10 +416,12 @@ public abstract class OntologyGraphExporter<D extends OntologyDataSource> extend
             Node termNode = graph.findNode(TERM_LABEL, ID_KEY, id);
             if (termNode == null) {
                 final String termIdPrefix = StringUtils.split(id, ":", 2)[0];
-                if (termIdPrefix.equals(ontologyDataSource.getIdPrefix()))
+                if (termIdPrefix.equals(ontologyDataSource.getIdPrefix())) {
                     termNode = graph.addNode(TERM_LABEL, ID_KEY, id);
-                else
+                } else {
+                    createIsProxyTermIndexIfNecessary(graph);
                     termNode = graph.addNode(TERM_LABEL, ID_KEY, id, OntologyGraphExporter.IS_PROXY_KEY, true);
+                }
             }
             final Map<String, Object> additionalProperties = new HashMap<>();
             if (idParts.length == 2) {

@@ -184,7 +184,7 @@ public final class GraphMerger {
             if (nodeProperties.containsKey(OntologyGraphExporter.IS_PROXY_KEY)) {
                 if (LOGGER.isInfoEnabled())
                     LOGGER.info("\tResolving nodes with label {}", nodeLabel);
-                for (final var node : graph.getNodes(nodeLabel)) {
+                for (final var node : graph.findNodes(nodeLabel, OntologyGraphExporter.IS_PROXY_KEY, true)) {
                     if (node.hasProperty(OntologyGraphExporter.IS_PROXY_KEY)) {
                         final String id = node.getProperty(GraphExporter.ID_KEY);
                         final String idPrefix = StringUtils.split(id, ":", 2)[0];

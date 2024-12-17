@@ -115,6 +115,8 @@ public abstract class GraphExporter<D extends DataSource> {
             createdOntologyProxyTermIndex = true;
             g.addIndex(
                     IndexDescription.forNode(OntologyGraphExporter.TERM_LABEL, ID_KEY, IndexDescription.Type.UNIQUE));
+            g.addIndex(IndexDescription.forNode(OntologyGraphExporter.TERM_LABEL, OntologyGraphExporter.IS_PROXY_KEY,
+                                                IndexDescription.Type.NON_UNIQUE));
             return g.addNode(OntologyGraphExporter.TERM_LABEL, ID_KEY, id, OntologyGraphExporter.IS_PROXY_KEY, true)
                     .getId();
         }
