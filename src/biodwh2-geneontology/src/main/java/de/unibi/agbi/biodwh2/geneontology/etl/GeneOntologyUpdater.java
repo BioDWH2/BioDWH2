@@ -17,12 +17,13 @@ import java.net.URL;
 public class GeneOntologyUpdater extends Updater<GeneOntologyAnnotationsDataSource> {
     private static final String VERSION_JSON_URL = "https://current.geneontology.org/release_stats/go-stats-summary.json";
     private static final String DOWNLOAD_URL_PREFIX = "http://current.geneontology.org/annotations/";
+    static final String GOA_CHICKEN_FILE_NAME = "goa_chicken.gaf.gz";
+    static final String GOA_COW_FILE_NAME = "goa_cow.gaf.gz";
+    static final String GOA_DOG_FILE_NAME = "goa_dog.gaf.gz";
     static final String GOA_HUMAN_FILE_NAME = "goa_human.gaf.gz";
-    static final String GOA_HUMAN_COMPLEX_FILE_NAME = "goa_human_complex.gaf.gz";
-    static final String GOA_HUMAN_ISOFORM_FILE_NAME = "goa_human_isoform.gaf.gz";
-    static final String GOA_HUMAN_RNA_FILE_NAME = "goa_human_rna.gaf.gz";
+    static final String GOA_PIG_FILE_NAME = "goa_pig.gaf.gz";
     private static final String[] ANNOTATION_FILE_NAMES = new String[]{
-            GOA_HUMAN_FILE_NAME, GOA_HUMAN_COMPLEX_FILE_NAME, GOA_HUMAN_ISOFORM_FILE_NAME, GOA_HUMAN_RNA_FILE_NAME
+            GOA_CHICKEN_FILE_NAME, GOA_COW_FILE_NAME, GOA_DOG_FILE_NAME, GOA_HUMAN_FILE_NAME, GOA_PIG_FILE_NAME
     };
 
     public GeneOntologyUpdater(final GeneOntologyAnnotationsDataSource dataSource) {

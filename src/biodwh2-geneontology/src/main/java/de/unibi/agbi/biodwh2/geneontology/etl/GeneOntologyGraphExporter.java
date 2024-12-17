@@ -6,6 +6,7 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
+import de.unibi.agbi.biodwh2.core.mapping.SpeciesLookup;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.geneontology.GeneOntologyAnnotationsDataSource;
 import de.unibi.agbi.biodwh2.geneontology.model.GAFEntry;
@@ -26,7 +27,7 @@ public class GeneOntologyGraphExporter extends GraphExporter<GeneOntologyAnnotat
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -37,10 +38,16 @@ public class GeneOntologyGraphExporter extends GraphExporter<GeneOntologyAnnotat
 
     private boolean exportAnnotations(final Workspace workspace, final Graph graph) throws ExporterException {
         try {
-            exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_FILE_NAME);
-            exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_COMPLEX_FILE_NAME);
-            exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_ISOFORM_FILE_NAME);
-            exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_RNA_FILE_NAME);
+            if (speciesFilter.isSpeciesAllowed(SpeciesLookup.GALLUS_GALLUS.ncbiTaxId))
+                exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_CHICKEN_FILE_NAME);
+            if (speciesFilter.isSpeciesAllowed(SpeciesLookup.BOS_TAURUS.ncbiTaxId))
+                exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_COW_FILE_NAME);
+            if (speciesFilter.isSpeciesAllowed(SpeciesLookup.CANIS_FAMILIARIS.ncbiTaxId))
+                exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_DOG_FILE_NAME);
+            if (speciesFilter.isSpeciesAllowed(SpeciesLookup.HOMO_SAPIENS.ncbiTaxId))
+                exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_HUMAN_FILE_NAME);
+            if (speciesFilter.isSpeciesAllowed(SpeciesLookup.SUS_SCROFA.ncbiTaxId))
+                exportAnnotationsFile(workspace, graph, GeneOntologyUpdater.GOA_PIG_FILE_NAME);
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
@@ -63,9 +70,6 @@ public class GeneOntologyGraphExporter extends GraphExporter<GeneOntologyAnnotat
 
     private void exportAnnotation(final Graph graph, final GAFEntry entry) {
         final Long termNodeId = getOrCreateOntologyProxyTerm(graph, entry.goId);
-        // If referencing an obsolete term excluded via config file, just skip this annotation
-        if (termNodeId == null)
-            return;
         final Node databaseObject = getOrCreateDatabaseObject(graph, entry);
         final String[] qualifierParts = StringUtils.split(entry.qualifier, '|');
         final String qualifier;
@@ -76,7 +80,6 @@ public class GeneOntologyGraphExporter extends GraphExporter<GeneOntologyAnnotat
         final EdgeBuilder builder = graph.buildEdge().fromNode(databaseObject).toNode(termNodeId).withLabel(qualifier);
         builder.withProperty("references", StringUtils.split(entry.dbReference, '|'));
         final String[] taxa = StringUtils.split(entry.taxon, '|');
-        builder.withProperty("taxon", taxa[0]);
         if (taxa.length == 2)
             builder.withProperty("interaction_taxon", taxa[1]);
         builder.withProperty("aspect", entry.aspect);
@@ -94,6 +97,8 @@ public class GeneOntologyGraphExporter extends GraphExporter<GeneOntologyAnnotat
         if (node == null) {
             final NodeBuilder builder = graph.buildNode().withLabel(DB_OBJECT_LABEL);
             builder.withProperty(ID_KEY, id);
+            final String[] taxa = StringUtils.split(entry.taxon, '|');
+            builder.withProperty("taxon", taxa[0]);
             builder.withProperty("db", entry.db);
             builder.withProperty("db_object_id", entry.dbObjectId);
             builder.withProperty("symbol", entry.dbObjectSymbol);
