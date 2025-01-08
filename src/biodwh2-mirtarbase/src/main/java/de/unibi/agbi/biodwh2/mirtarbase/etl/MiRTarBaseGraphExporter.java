@@ -5,7 +5,6 @@ import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterException;
 import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
-import de.unibi.agbi.biodwh2.core.io.XlsxMappingIterator;
 import de.unibi.agbi.biodwh2.core.mapping.SpeciesLookup;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
 import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
@@ -19,7 +18,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -53,31 +51,32 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
         speciesMap.put("gga", SpeciesLookup.GALLUS_GALLUS);
         speciesMap.put("ggo", SpeciesLookup.GORILLA_GORILLA);
         speciesMap.put("gma", SpeciesLookup.GLYCINE_MAX);
-        speciesMap.put("hcmv", SpeciesLookup.HUMAN_CYTOMEGALOVIRUS);
+        // speciesMap.put("hcmv", SpeciesLookup.HUMAN_CYTOMEGALOVIRUS);
         speciesMap.put("hsa", SpeciesLookup.HOMO_SAPIENS);
         speciesMap.put("kshv", SpeciesLookup.KAPOSI_SARCOMA_ASSOCIATED_HERPESVIRUS);
-        speciesMap.put("mdv1", SpeciesLookup.GALLID_ALPHAHERPESVIRUS_2);
+        // speciesMap.put("mdv1", SpeciesLookup.GALLID_ALPHAHERPESVIRUS_2);
         speciesMap.put("mml", SpeciesLookup.MACACA_MULATTA);
         speciesMap.put("mmu", SpeciesLookup.MUS_MUSCULUS);
-        speciesMap.put("mne", SpeciesLookup.MACACA_NEMESTRINA);
+        // speciesMap.put("mne", SpeciesLookup.MACACA_NEMESTRINA);
         speciesMap.put("oar", SpeciesLookup.OVIS_ARIES);
-        speciesMap.put("ola", SpeciesLookup.ORYZIAS_LATIPES);
-        speciesMap.put("osa", SpeciesLookup.ORYZA_SATIVA);
+        // speciesMap.put("ola", SpeciesLookup.ORYZIAS_LATIPES);
+        // speciesMap.put("osa", SpeciesLookup.ORYZA_SATIVA);
+        speciesMap.put("ocu", SpeciesLookup.ORYCTOLAGUS_CUNICULUS);
         speciesMap.put("ppa", SpeciesLookup.PAN_PANISCUS);
-        speciesMap.put("ppy", SpeciesLookup.PONGO_PYGMAEUS);
+        // speciesMap.put("ppy", SpeciesLookup.PONGO_PYGMAEUS);
         speciesMap.put("ptr", SpeciesLookup.PAN_TROGLODYTES);
         speciesMap.put("rno", SpeciesLookup.RATTUS_NORVEGICUS);
         speciesMap.put("sly", SpeciesLookup.SOLANUM_LYCOPERSICUM);
         speciesMap.put("ssc", SpeciesLookup.SUS_SCROFA);
         speciesMap.put("tgu", SpeciesLookup.TAENIOPYGIA_GUTTATA);
         // speciesMap.put("vsv", SpeciesLookup.VESICULAR_STOMATITIS_INDIANA_VIRUS);
-        speciesMap.put("xla", SpeciesLookup.XENOPUS_LAEVIS);
+        // speciesMap.put("xla", SpeciesLookup.XENOPUS_LAEVIS);
         speciesMap.put("xtr", SpeciesLookup.XENOPUS_TROPICALIS);
     }
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -96,23 +95,22 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
 
     private Map<String, Map<Integer, Map<String, Map<String, String>>>> collectTargetSites(final Workspace workspace) {
         final Map<String, Map<Integer, Map<String, Map<String, String>>>> targetSiteMap = new HashMap<>();
-        try (final InputStream inputStream = FileUtils.openInput(workspace, dataSource, "MicroRNA_Target_Sites.xlsx");
-             final XlsxMappingIterator<MicroRNATargetSite> iterator = new XlsxMappingIterator<>(
-                     MicroRNATargetSite.class, inputStream)) {
-            while (iterator.hasNext()) {
-                final MicroRNATargetSite entry = iterator.next();
-                final Map<Integer, Map<String, Map<String, String>>> pmidExperimentMap = targetSiteMap.computeIfAbsent(
-                        entry.miRTarBaseId, k -> new HashMap<>());
-                final Map<String, Map<String, String>> experimentSupportTypeMap = pmidExperimentMap.computeIfAbsent(
-                        entry.references, k -> new HashMap<>());
-                final Map<String, String> supportTypeSequenceMap = experimentSupportTypeMap.computeIfAbsent(
-                        entry.experiments, k -> new HashMap<>());
-                supportTypeSequenceMap.put(entry.supportType, entry.targetSite);
-            }
+        try {
+            FileUtils.openCsvWithHeader(workspace, dataSource, "MicroRNA_Target_Sites.csv", MicroRNATargetSite.class,
+                                        (entry) -> collectTargetSite(targetSiteMap, entry));
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }
         return targetSiteMap;
+    }
+
+    private void collectTargetSite(final Map<String, Map<Integer, Map<String, Map<String, String>>>> targetSiteMap,
+                                   final MicroRNATargetSite entry) {
+        final var pmidExperimentMap = targetSiteMap.computeIfAbsent(entry.miRTarBaseId, k -> new HashMap<>());
+        final var experimentSupportTypeMap = pmidExperimentMap.computeIfAbsent(entry.references, k -> new HashMap<>());
+        final var supportTypeSequenceMap = experimentSupportTypeMap.computeIfAbsent(entry.experiments,
+                                                                                    k -> new HashMap<>());
+        supportTypeSequenceMap.put(entry.supportType, entry.targetSite);
     }
 
     private void exportInteractions(final Workspace workspace, final Graph graph,
@@ -121,10 +119,10 @@ public class MiRTarBaseGraphExporter extends GraphExporter<MiRTarBaseDataSource>
         final Map<String, Long> geneKeyNodeIdMap = new HashMap<>();
         graph.beginEdgeIndicesDelay(HAS_EVIDENCE_LABEL);
         graph.beginEdgeIndicesDelay(ASSOCIATED_WITH_LABEL);
-        try (final InputStream inputStream = FileUtils.openInput(workspace, dataSource, "miRTarBase_MTI.xlsx");
-             final XlsxMappingIterator<MTIEntry> iterator = new XlsxMappingIterator<>(MTIEntry.class, inputStream)) {
-            while (iterator.hasNext())
-                exportInteraction(graph, targetSiteMap, addedInteractionEdges, geneKeyNodeIdMap, iterator.next());
+        try {
+            FileUtils.openCsvWithHeader(workspace, dataSource, "miRTarBase_MTI.csv", MTIEntry.class,
+                                        (entry) -> exportInteraction(graph, targetSiteMap, addedInteractionEdges,
+                                                                     geneKeyNodeIdMap, entry));
         } catch (IOException e) {
             throw new ExporterFormatException(e);
         }

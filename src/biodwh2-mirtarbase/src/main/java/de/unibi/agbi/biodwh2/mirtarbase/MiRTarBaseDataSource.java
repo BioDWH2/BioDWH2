@@ -3,7 +3,9 @@ package de.unibi.agbi.biodwh2.mirtarbase;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DataSourcePropertyType;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
-import de.unibi.agbi.biodwh2.core.etl.*;
+import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
+import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.mirtarbase.etl.MiRTarBaseGraphExporter;
 import de.unibi.agbi.biodwh2.mirtarbase.etl.MiRTarBaseMappingDescriber;
 import de.unibi.agbi.biodwh2.mirtarbase.etl.MiRTarBaseUpdater;
@@ -18,7 +20,7 @@ public class MiRTarBaseDataSource extends DataSource {
 
     @Override
     public String getLicenseUrl() {
-        return "https://mirtarbase.cuhk.edu.cn/~miRTarBase/miRTarBase_2022/cache/download/LICENSE";
+        return "https://awi.cuhk.edu.cn/~miRTarBase/miRTarBase_2025/cache/download/LICENSE";
     }
 
     @Override

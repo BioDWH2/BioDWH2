@@ -13,10 +13,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MiRTarBaseUpdater extends Updater<MiRTarBaseDataSource> {
-    private static final Pattern VERSION_PATTERN = Pattern.compile("Release ([0-9]+\\.[0-9]+(\\.[0-9]+)?) - Download");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("Release ([0-9]+\\.[0-9]+(\\.[0-9]+)?)</h4>");
     private static final Pattern DOWLOAD_FILE_PATTERN = Pattern.compile(
-            "<a href=\"(.+/([a-zA-Z0-9_]+\\.xlsx))\">[a-zA-Z0-9_]+\\.xlsx</a>");
-    private static final String VERSION_URL = "https://mirtarbase.cuhk.edu.cn/~miRTarBase/miRTarBase_2022/php/download.php";
+            "<a href=\"\\.\\./cache/download/(.+/([a-zA-Z0-9_]+\\.csv))\">[a-zA-Z0-9_]+\\.csv</a>");
+    private static final String VERSION_URL = "https://awi.cuhk.edu.cn/~miRTarBase/miRTarBase_2025/php/download.php";
 
     public MiRTarBaseUpdater(final MiRTarBaseDataSource dataSource) {
         super(dataSource);
@@ -37,7 +37,7 @@ public class MiRTarBaseUpdater extends Updater<MiRTarBaseDataSource> {
         } catch (IOException e) {
             throw new UpdaterConnectionException("Failed to retrieve download urls from '" + VERSION_URL + "'", e);
         }
-        final String downloadUrlPrefix = "https://mirtarbase.cuhk.edu.cn/~miRTarBase/miRTarBase_2022/php/";
+        final String downloadUrlPrefix = "https://awi.cuhk.edu.cn/~miRTarBase/miRTarBase_2025/cache/download/";
         final Matcher matcher = DOWLOAD_FILE_PATTERN.matcher(source);
         while (matcher.find()) {
             final String fileName = matcher.group(2);
