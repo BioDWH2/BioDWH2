@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public class Brenda {
     @JsonProperty("release")
     public String release;

@@ -36,7 +36,7 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -82,179 +82,160 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
         final Node node = builder.build();
         if (enzyme.kmValue != null)
             for (final NumericDataset dataset : enzyme.kmValue)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "substrate"), "HAS_KM");
+                createNumericValueNode(graph, node, "HAS_KM", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                       publicationRefNodeIdMap, dataset, "substrate");
         if (enzyme.turnoverNumber != null)
             for (final NumericDataset dataset : enzyme.turnoverNumber)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "substrate"),
-                              "HAS_TURNOVER_NUMBER");
+                createNumericValueNode(graph, node, "HAS_TURNOVER_NUMBER", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                       publicationRefNodeIdMap, dataset, "substrate");
         if (enzyme.kcatKm != null)
             for (final NumericDataset dataset : enzyme.kcatKm)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "substrate"),
-                              "HAS_KCAT_KM");
+                createNumericValueNode(graph, node, "HAS_KCAT_KM", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                       publicationRefNodeIdMap, dataset, "substrate");
         if (enzyme.kiValue != null)
             for (final NumericDataset dataset : enzyme.kiValue)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "inhibitor"),
-                              "HAS_KI_VALUE");
+                createNumericValueNode(graph, node, "HAS_KI_VALUE", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                       publicationRefNodeIdMap, dataset, "inhibitor");
         if (enzyme.ic50 != null)
             for (final NumericDataset dataset : enzyme.ic50)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "inhibitor"), "HAS_IC50");
+                createNumericValueNode(graph, node, "HAS_IC50", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                       publicationRefNodeIdMap, dataset, "inhibitor");
         if (enzyme.phRange != null)
             for (final NumericDataset dataset : enzyme.phRange)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "value"), "HAS_PH_RANGE");
+                createNumericValueNode(graph, node, "HAS_PH_RANGE", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                       publicationRefNodeIdMap, dataset, "value");
         if (enzyme.phStability != null)
             for (final NumericDataset dataset : enzyme.phStability)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "value"),
-                              "HAS_PH_STABILITY");
+                createNumericValueNode(graph, node, "HAS_PH_STABILITY", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                       publicationRefNodeIdMap, dataset, "value");
         if (enzyme.temperatureOptimum != null)
             for (final NumericDataset dataset : enzyme.temperatureOptimum)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "value"),
-                              "HAS_TEMPERATURE_OPTIMUM");
+                createNumericValueNode(graph, node, "HAS_TEMPERATURE_OPTIMUM", organismRefNodeIdMap,
+                                       proteinRefNodeIdMap, publicationRefNodeIdMap, dataset, "value");
         if (enzyme.temperatureRange != null)
             for (final NumericDataset dataset : enzyme.temperatureRange)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "value"),
-                              "HAS_TEMPERATURE_RANGE");
+                createNumericValueNode(graph, node, "HAS_TEMPERATURE_RANGE", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                       publicationRefNodeIdMap, dataset, "value");
         if (enzyme.temperatureStability != null)
             for (final NumericDataset dataset : enzyme.temperatureStability)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "value"),
-                              "HAS_TEMPERATURE_STABILITY");
+                createNumericValueNode(graph, node, "HAS_TEMPERATURE_STABILITY", organismRefNodeIdMap,
+                                       proteinRefNodeIdMap, publicationRefNodeIdMap, dataset, "value");
         if (enzyme.molecularWeight != null)
             for (final NumericDataset dataset : enzyme.molecularWeight)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "value"),
-                              "HAS_MOLECULAR_WEIGHT");
+                createNumericValueNode(graph, node, "HAS_MOLECULAR_WEIGHT", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                       publicationRefNodeIdMap, dataset, "value");
         if (enzyme.isoelectricPoint != null)
             for (final NumericDataset dataset : enzyme.isoelectricPoint)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "value"),
-                              "HAS_ISOELECTRIC_POINT");
+                createNumericValueNode(graph, node, "HAS_ISOELECTRIC_POINT", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                       publicationRefNodeIdMap, dataset, "value");
         if (enzyme.phOptimum != null)
             for (final NumericDataset dataset : enzyme.phOptimum)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "value"),
-                              "HAS_PH_OPTIMUM");
+                createNumericValueNode(graph, node, "HAS_PH_OPTIMUM", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                       publicationRefNodeIdMap, dataset, "value");
         if (enzyme.specificActivity != null)
             for (final NumericDataset dataset : enzyme.specificActivity)
-                graph.addEdge(node, createNumericValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                           publicationRefNodeIdMap, dataset, "value"),
-                              "HAS_SPECIFIC_ACTIVITY");
+                createNumericValueNode(graph, node, "HAS_SPECIFIC_ACTIVITY", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                       publicationRefNodeIdMap, dataset, "value");
         if (enzyme.crystallization != null)
             for (final Dataset dataset : enzyme.crystallization)
-                graph.addEdge(node,
-                              createValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap, publicationRefNodeIdMap,
-                                              dataset), "HAS_CRYSTALLIZATION");
+                createValueNode(graph, node, "HAS_CRYSTALLIZATION", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                publicationRefNodeIdMap, dataset);
         if (enzyme.purification != null)
             for (final Dataset dataset : enzyme.purification)
-                graph.addEdge(node,
-                              createValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap, publicationRefNodeIdMap,
-                                              dataset), "HAS_PURIFICATION");
+                createValueNode(graph, node, "HAS_PURIFICATION", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                publicationRefNodeIdMap, dataset);
         if (enzyme.renaturation != null)
             for (final Dataset dataset : enzyme.renaturation)
-                graph.addEdge(node,
-                              createValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap, publicationRefNodeIdMap,
-                                              dataset), "HAS_RENATURATION");
+                createValueNode(graph, node, "HAS_RENATURATION", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                publicationRefNodeIdMap, dataset);
         if (enzyme.generalStability != null)
             for (final Dataset dataset : enzyme.generalStability)
-                graph.addEdge(node,
-                              createValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap, publicationRefNodeIdMap,
-                                              dataset), "HAS_GENERAL_STABILITY");
+                createValueNode(graph, node, "HAS_GENERAL_STABILITY", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                publicationRefNodeIdMap, dataset);
         if (enzyme.oxygenStability != null)
             for (final Dataset dataset : enzyme.oxygenStability)
-                graph.addEdge(node,
-                              createValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap, publicationRefNodeIdMap,
-                                              dataset), "HAS_OXYGEN_STABILITY");
+                createValueNode(graph, node, "HAS_OXYGEN_STABILITY", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                publicationRefNodeIdMap, dataset);
         if (enzyme.storageStability != null)
             for (final Dataset dataset : enzyme.storageStability)
-                graph.addEdge(node,
-                              createValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap, publicationRefNodeIdMap,
-                                              dataset), "HAS_STORAGE_STABILITY");
+                createValueNode(graph, node, "HAS_STORAGE_STABILITY", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                publicationRefNodeIdMap, dataset);
         if (enzyme.synonyms != null)
             for (final TextDataset dataset : enzyme.synonyms)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_SYNONYM");
+                createTextValueNode(graph, node, "HAS_SYNONYM", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.application != null)
             for (final TextDataset dataset : enzyme.application)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_APPLICATION");
+                createTextValueNode(graph, node, "HAS_APPLICATION", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.reactionType != null)
             for (final TextDataset dataset : enzyme.reactionType)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_REACTION_TYPE");
+                createTextValueNode(graph, node, "HAS_REACTION_TYPE", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.localization != null)
             for (final TextDataset dataset : enzyme.localization)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_LOCALIZATION");
+                createTextValueNode(graph, node, "HAS_LOCALIZATION", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.tissue != null)
             for (final TextDataset dataset : enzyme.tissue)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_TISSUE");
+                createTextValueNode(graph, node, "HAS_TISSUE", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.activatingCompound != null)
             for (final TextDataset dataset : enzyme.activatingCompound)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_ACTIVATING_COMPOUND");
+                createTextValueNode(graph, node, "HAS_ACTIVATING_COMPOUND", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.inhibitor != null)
             for (final TextDataset dataset : enzyme.inhibitor)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_INHIBITOR");
+                createTextValueNode(graph, node, "HAS_INHIBITOR", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.metalsIons != null)
             for (final TextDataset dataset : enzyme.metalsIons)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_METALS_IONS");
+                createTextValueNode(graph, node, "HAS_METALS_IONS", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.posttranslationalModification != null)
             for (final TextDataset dataset : enzyme.posttranslationalModification)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset),
-                              "HAS_POSTTRANSLATIONAL_MODIFICATION");
+                createTextValueNode(graph, node, "HAS_POSTTRANSLATIONAL_MODIFICATION", organismRefNodeIdMap,
+                                    proteinRefNodeIdMap, publicationRefNodeIdMap, dataset);
         if (enzyme.subunits != null)
             for (final TextDataset dataset : enzyme.subunits)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_SUBUNITS");
+                createTextValueNode(graph, node, "HAS_SUBUNITS", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.cofactor != null)
             for (final TextDataset dataset : enzyme.cofactor)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_COFACTOR");
+                createTextValueNode(graph, node, "HAS_COFACTOR", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.engineering != null)
             for (final TextDataset dataset : enzyme.engineering)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_ENGINEERING");
+                createTextValueNode(graph, node, "HAS_ENGINEERING", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.cloned != null)
             for (final TextDataset dataset : enzyme.cloned)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_CLONED");
+                createTextValueNode(graph, node, "HAS_CLONED", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.organicSolventStability != null)
             for (final TextDataset dataset : enzyme.organicSolventStability)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset),
-                              "HAS_ORGANIC_SOLVENT_STABILITY");
+                createTextValueNode(graph, node, "HAS_ORGANIC_SOLVENT_STABILITY", organismRefNodeIdMap,
+                                    proteinRefNodeIdMap, publicationRefNodeIdMap, dataset);
         if (enzyme.expression != null)
             for (final TextDataset dataset : enzyme.expression)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_EXPRESSION");
+                createTextValueNode(graph, node, "HAS_EXPRESSION", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.generalInformation != null)
             for (final TextDataset dataset : enzyme.generalInformation)
-                graph.addEdge(node, createTextValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                        publicationRefNodeIdMap, dataset), "HAS_GENERAL_INFORMATION");
+                createTextValueNode(graph, node, "HAS_GENERAL_INFORMATION", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                    publicationRefNodeIdMap, dataset);
         if (enzyme.genericReaction != null)
             for (final ReactionDataset dataset : enzyme.genericReaction)
-                graph.addEdge(node, createReactionValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                            publicationRefNodeIdMap, dataset), "HAS_GENERIC_REACTION");
+                createReactionValueNode(graph, node, "HAS_GENERIC_REACTION", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                        publicationRefNodeIdMap, dataset);
         if (enzyme.naturalReaction != null)
             for (final ReactionDataset dataset : enzyme.naturalReaction)
-                graph.addEdge(node, createReactionValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                            publicationRefNodeIdMap, dataset), "HAS_NATURAL_REACTION");
+                createReactionValueNode(graph, node, "HAS_NATURAL_REACTION", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                        publicationRefNodeIdMap, dataset);
         if (enzyme.reaction != null)
             for (final ReactionDataset dataset : enzyme.reaction)
-                graph.addEdge(node, createReactionValueNode(graph, organismRefNodeIdMap, proteinRefNodeIdMap,
-                                                            publicationRefNodeIdMap, dataset), "HAS_REACTION");
+                createReactionValueNode(graph, node, "HAS_REACTION", organismRefNodeIdMap, proteinRefNodeIdMap,
+                                        publicationRefNodeIdMap, dataset);
     }
 
     private Map<Integer, Long> exportEnzymeOrganismRefs(Graph graph, Enzyme enzyme,
@@ -271,12 +252,12 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
 
     private Long getOrCreateOrganismNode(final Graph graph, final String speciesName,
                                          final Map<String, Long> organismNodeIdMap) {
+        // TODO: comment
         Long organismNodeId = organismNodeIdMap.get(speciesName);
         if (organismNodeId == null) {
             final SpeciesLookup.Entry species = SpeciesLookup.getByScientificName(speciesName);
             if (species != null && species.ncbiTaxId != null) {
-                organismNodeId = graph.addNode(ORGANISM_LABEL, "ncbi_taxid", species.ncbiTaxId, "name", speciesName)
-                                      .getId();
+                organismNodeId = getOrCreateOntologyProxyTerm(graph, species.getNCBITaxonId());
             } else {
                 organismNodeId = graph.addNode(ORGANISM_LABEL, "name", speciesName).getId();
             }
@@ -317,6 +298,7 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
         if (publicationNodeId == null) {
             final NodeBuilder publicationBuilder = graph.buildNode().withLabel(PUBLICATION_LABEL);
             publicationBuilder.withPropertyIfNotNull("pmid", pmidInt);
+            publicationBuilder.withPropertyIfNotNull("title", reference.title);
             publicationBuilder.withPropertyIfNotNull("authors", reference.authors);
             publicationBuilder.withPropertyIfNotNull("journal", reference.journal);
             publicationBuilder.withPropertyIfNotNull("volume", reference.volume);
@@ -335,7 +317,7 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
             for (final Map.Entry<Integer, Protein[]> entry : enzyme.proteins.entrySet()) {
                 // TODO: if (entry.getValue().length > 1)
                 //    LOGGER.warn("Proteins ref with " + entry.getValue().length + " entries found");
-                Protein protein = entry.getValue()[0];
+                final Protein protein = entry.getValue()[0];
                 final Long[] proteinNodeIds = getOrCreateProteinNodes(graph, protein);
                 refNodeIdMap.put(entry.getKey(), proteinNodeIds);
             }
@@ -359,7 +341,8 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
         return nodeIds.toArray(new Long[0]);
     }
 
-    private Node createNumericValueNode(final Graph graph, final Map<Integer, Long> organismRefNodeIdMap,
+    private void createNumericValueNode(final Graph graph, final Node enzymeNode, final String edgeLabel,
+                                        final Map<Integer, Long> organismRefNodeIdMap,
                                         final Map<Integer, Long[]> proteinRefNodeIdMap,
                                         final Map<Integer, Long> publicationRefNodeIdMap, final NumericDataset dataset,
                                         final String valueKey) {
@@ -367,26 +350,56 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
         builder.withPropertyIfNotNull("num_value", dataset.numValue);
         builder.withPropertyIfNotNull("min_value", dataset.minValue);
         builder.withPropertyIfNotNull("max_value", dataset.maxValue);
-        builder.withPropertyIfNotNull("comment", dataset.comment);
         builder.withPropertyIfNotNull(valueKey, dataset.value);
-        final Node node = builder.build();
-        connectDatasetWithEntities(graph, organismRefNodeIdMap, proteinRefNodeIdMap, publicationRefNodeIdMap, dataset,
-                                   node);
-        return node;
+        createDatasetNode(graph, enzymeNode, edgeLabel, organismRefNodeIdMap, proteinRefNodeIdMap,
+                          publicationRefNodeIdMap, dataset, builder);
     }
 
-    private void connectDatasetWithEntities(final Graph graph, final Map<Integer, Long> organismRefNodeIdMap,
-                                            final Map<Integer, Long[]> proteinRefNodeIdMap,
-                                            final Map<Integer, Long> publicationRefNodeIdMap, final Dataset dataset,
-                                            final Node node) {
-        if (dataset.organisms != null) {
-            for (final String organism : dataset.organisms) {
-                final int organismRef = Integer.parseInt(organism);
-                final Long organismNodeId = organismRefNodeIdMap.get(organismRef);
-                graph.addEdge(node, organismNodeId, "BELONGS_TO");
+    private void createDatasetNode(final Graph graph, final Node enzymeNode, final String edgeLabel,
+                                   final Map<Integer, Long> organismRefNodeIdMap,
+                                   final Map<Integer, Long[]> proteinRefNodeIdMap,
+                                   final Map<Integer, Long> publicationRefNodeIdMap, final Dataset dataset,
+                                   final NodeBuilder builder) {
+        if (dataset.comment != null) {
+            final CommentData[] comments = parseComment(dataset.comment);
+            for (final CommentData comment : comments) {
+                builder.withProperty("comment", comment.text);
+                final Node node = builder.build();
+                graph.addEdge(enzymeNode, node, edgeLabel);
+                if (comment.referenceRefs != null) {
+                    for (final Integer referenceRef : comment.referenceRefs) {
+                        final Long nodeId = publicationRefNodeIdMap.get(referenceRef);
+                        if (nodeId != null)
+                            graph.addEdge(node, nodeId, "REFERENCES");
+                    }
+                }
+                if (comment.organismProteinRefs != null) {
+                    for (final Integer organismProteinRef : comment.organismProteinRefs) {
+                        final Long organismNodeId = organismRefNodeIdMap.get(organismProteinRef);
+                        if (organismNodeId != null)
+                            graph.addEdge(node, organismNodeId, "BELONGS_TO");
+                        if (dataset.proteins != null) {
+                            for (final String proteinRef : dataset.proteins) {
+                                if (proteinRef.equals(organismProteinRef.toString())) {
+                                    final Long[] proteinNodeIds = proteinRefNodeIdMap.get(organismProteinRef);
+                                    if (proteinNodeIds != null) {
+                                        for (final Long proteinNodeId : proteinNodeIds)
+                                            graph.addEdge(node, proteinNodeId, "ASSOCIATED_WITH");
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
             }
+        } else {
+            // TODO: association between organism/protein and references is not discernible
+            final Node node = builder.build();
+            graph.addEdge(enzymeNode, node, edgeLabel);
+            connectDatasetWithEntities(graph, organismRefNodeIdMap, proteinRefNodeIdMap, publicationRefNodeIdMap,
+                                       dataset, node);
         }
-        // TODO: references, protein
     }
 
     private CommentData[] parseComment(final String comment) {
@@ -396,12 +409,13 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
             result[i] = new CommentData();
             result[i].text = sentences[i];
             final Matcher organismsMatcher = ORGANISMS_PATTERN.matcher(sentences[i]);
-            while (organismsMatcher.find()) {
+            if (organismsMatcher.find()) {
                 final String[] organismRefs = StringUtils.split(organismsMatcher.group(1), ',');
-                result[i].organismRefs = Arrays.stream(organismRefs).map(Integer::parseInt).toArray(Integer[]::new);
+                result[i].organismProteinRefs = Arrays.stream(organismRefs).map(Integer::parseInt).toArray(
+                        Integer[]::new);
             }
             final Matcher referencesMatcher = REFERENCES_PATTERN.matcher(sentences[i]);
-            while (referencesMatcher.find()) {
+            if (referencesMatcher.find()) {
                 final String[] referenceRefs = StringUtils.split(referencesMatcher.group(1), ',');
                 result[i].referenceRefs = Arrays.stream(referenceRefs).map(Integer::parseInt).toArray(Integer[]::new);
             }
@@ -409,40 +423,68 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
         return result;
     }
 
-    private Node createValueNode(final Graph graph, final Map<Integer, Long> organismRefNodeIdMap,
+    private void connectDatasetWithEntities(final Graph graph, final Map<Integer, Long> organismRefNodeIdMap,
+                                            final Map<Integer, Long[]> proteinRefNodeIdMap,
+                                            final Map<Integer, Long> publicationRefNodeIdMap, final Dataset dataset,
+                                            final Node node) {
+        if (dataset.organisms != null) {
+            for (final String organism : dataset.organisms) {
+                final int organismRef = Integer.parseInt(organism);
+                final Long nodeId = organismRefNodeIdMap.get(organismRef);
+                graph.addEdge(node, nodeId, "BELONGS_TO");
+            }
+        }
+        if (dataset.proteins != null) {
+            for (final String protein : dataset.proteins) {
+                final int proteinRef = Integer.parseInt(protein);
+                final Long[] nodeIds = proteinRefNodeIdMap.get(proteinRef);
+                if (nodeIds != null) {
+                    for (final Long nodeId : nodeIds) {
+                        graph.addEdge(node, nodeId, "ASSOCIATED_WITH");
+                    }
+                }
+            }
+        }
+        if (dataset.references != null) {
+            for (final String reference : dataset.references) {
+                if (StringUtils.isNotEmpty(reference)) {
+                    final int referenceRef = Integer.parseInt(reference);
+                    final Long nodeId = publicationRefNodeIdMap.get(referenceRef);
+                    if (nodeId != null)
+                        graph.addEdge(node, nodeId, "REFERENCES");
+                }
+            }
+        }
+    }
+
+    private void createValueNode(final Graph graph, final Node enzymeNode, final String edgeLabel,
+                                 final Map<Integer, Long> organismRefNodeIdMap,
                                  final Map<Integer, Long[]> proteinRefNodeIdMap,
                                  final Map<Integer, Long> publicationRefNodeIdMap, final Dataset dataset) {
         final NodeBuilder builder = graph.buildNode().withLabel("Value");
-        builder.withPropertyIfNotNull("comment", dataset.comment);
-        final Node node = builder.build();
-        connectDatasetWithEntities(graph, organismRefNodeIdMap, proteinRefNodeIdMap, publicationRefNodeIdMap, dataset,
-                                   node);
-        return node;
+        createDatasetNode(graph, enzymeNode, edgeLabel, organismRefNodeIdMap, proteinRefNodeIdMap,
+                          publicationRefNodeIdMap, dataset, builder);
     }
 
-    private Node createTextValueNode(final Graph graph, final Map<Integer, Long> organismRefNodeIdMap,
+    private void createTextValueNode(final Graph graph, final Node enzymeNode, final String edgeLabel,
+                                     final Map<Integer, Long> organismRefNodeIdMap,
                                      final Map<Integer, Long[]> proteinRefNodeIdMap,
                                      final Map<Integer, Long> publicationRefNodeIdMap, final TextDataset dataset) {
         final NodeBuilder builder = graph.buildNode().withLabel("TextValue");
-        builder.withPropertyIfNotNull("comment", dataset.comment);
         builder.withPropertyIfNotNull("value", dataset.value);
-        final Node node = builder.build();
-        connectDatasetWithEntities(graph, organismRefNodeIdMap, proteinRefNodeIdMap, publicationRefNodeIdMap, dataset,
-                                   node);
-        return node;
+        createDatasetNode(graph, enzymeNode, edgeLabel, organismRefNodeIdMap, proteinRefNodeIdMap,
+                          publicationRefNodeIdMap, dataset, builder);
     }
 
-    private Node createReactionValueNode(final Graph graph, final Map<Integer, Long> organismRefNodeIdMap,
+    private void createReactionValueNode(final Graph graph, final Node enzymeNode, final String edgeLabel,
+                                         final Map<Integer, Long> organismRefNodeIdMap,
                                          final Map<Integer, Long[]> proteinRefNodeIdMap,
                                          final Map<Integer, Long> publicationRefNodeIdMap,
                                          final ReactionDataset dataset) {
         final NodeBuilder builder = graph.buildNode().withLabel("ReactionValue");
-        builder.withPropertyIfNotNull("comment", dataset.comment);
         builder.withPropertyIfNotNull("educts", dataset.educts);
         builder.withPropertyIfNotNull("products", dataset.products);
-        final Node node = builder.build();
-        connectDatasetWithEntities(graph, organismRefNodeIdMap, proteinRefNodeIdMap, publicationRefNodeIdMap, dataset,
-                                   node);
-        return node;
+        createDatasetNode(graph, enzymeNode, edgeLabel, organismRefNodeIdMap, proteinRefNodeIdMap,
+                          publicationRefNodeIdMap, dataset, builder);
     }
 }
