@@ -1,4 +1,4 @@
 package de.unibi.agbi.biodwh2.core.io.biopax;
 
-public class DeltaG {
+public class DeltaG extends UtilityClass {
 }

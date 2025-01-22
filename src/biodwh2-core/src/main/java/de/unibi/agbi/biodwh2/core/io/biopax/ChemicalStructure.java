@@ -1,4 +1,4 @@
 package de.unibi.agbi.biodwh2.core.io.biopax;
 
-public class ChemicalStructure {
+public class ChemicalStructure extends UtilityClass {
 }
