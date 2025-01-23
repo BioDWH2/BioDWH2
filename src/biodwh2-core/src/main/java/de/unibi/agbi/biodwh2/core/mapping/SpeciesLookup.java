@@ -358,5 +358,9 @@ public final class SpeciesLookup {
             this.ncbiTaxId = ncbiTaxId;
             this.ensemblGenomeAbbreviation = ensemblGenomeAbbreviation;
         }
+
+        public String getNCBITaxonId() {
+            return "NCBITaxon:" + ncbiTaxId;
+        }
     }
 }

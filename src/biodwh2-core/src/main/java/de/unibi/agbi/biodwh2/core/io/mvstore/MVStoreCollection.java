@@ -144,15 +144,16 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     }
 
     private void removeOldVersionFromIndices(final T oldModel) {
-        if (oldModel != null)
-            for (final String key : oldModel.keySet()) {
-                final MVStoreIndex index = indices.get(key);
-                if (index != null) {
-                    final Object property = oldModel.get(key);
-                    if (property != null)
-                        index.remove(property, oldModel.getId());
-                }
+        if (oldModel == null)
+            return;
+        for (final String key : oldModel.keySet()) {
+            final MVStoreIndex index = indices.get(key);
+            if (index != null) {
+                final Object property = oldModel.get(key);
+                if (property != null)
+                    index.remove(property, oldModel.getId());
             }
+        }
     }
 
     private void updateAllPropertyKeys(final T obj) {

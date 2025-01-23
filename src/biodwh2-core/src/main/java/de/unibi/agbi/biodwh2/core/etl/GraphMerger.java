@@ -18,7 +18,6 @@ import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
 import de.unibi.agbi.biodwh2.core.text.TextUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -62,7 +61,7 @@ public final class GraphMerger {
         LOGGER.info("Merging finished within {}", DurationFormatUtils.formatDuration(stop - start, "HH:mm:ss.S"));
     }
 
-    private Map<String, String> getAvailableOntologyPrefixes(DataSource[] dataSources) {
+    private Map<String, String> getAvailableOntologyPrefixes(final DataSource[] dataSources) {
         final Map<String, String> result = new HashMap<>();
         for (final DataSource dataSource : dataSources) {
             if (dataSource instanceof OntologyDataSource) {
@@ -177,6 +176,11 @@ public final class GraphMerger {
     }
 
     private void resolveOntologyProxyTerms(final Graph graph, final Map<String, String> termIdPrefixOntologyIdMap) {
+        final Map<String, String> resolvedTermLabels = new HashMap<>();
+        for (final String idPrefix : termIdPrefixOntologyIdMap.keySet()) {
+            resolvedTermLabels.put(idPrefix, termIdPrefixOntologyIdMap.get(idPrefix) + Graph.LABEL_PREFIX_SEPARATOR +
+                                             OntologyGraphExporter.TERM_LABEL);
+        }
         if (LOGGER.isInfoEnabled())
             LOGGER.info("Resolving ontology proxy terms");
         for (final var nodeLabel : graph.getNodeLabels()) {
@@ -185,39 +189,36 @@ public final class GraphMerger {
                 if (LOGGER.isInfoEnabled())
                     LOGGER.info("\tResolving nodes with label {}", nodeLabel);
                 for (final var node : graph.findNodes(nodeLabel, OntologyGraphExporter.IS_PROXY_KEY, true)) {
-                    if (node.hasProperty(OntologyGraphExporter.IS_PROXY_KEY)) {
-                        final String id = node.getProperty(GraphExporter.ID_KEY);
-                        final String idPrefix = StringUtils.split(id, ":", 2)[0];
-                        if (termIdPrefixOntologyIdMap.containsKey(idPrefix)) {
-                            final String resolvedTermLabel = termIdPrefixOntologyIdMap.get(idPrefix) +
-                                                             Graph.LABEL_PREFIX_SEPARATOR +
-                                                             OntologyGraphExporter.TERM_LABEL;
-                            // Safety check a node was falsely marked as proxy
-                            if (resolvedTermLabel.equals(node.getLabel()))
-                                continue;
-                            final Node resolvedTermNode = graph.findNode(resolvedTermLabel, GraphExporter.ID_KEY, id);
-                            if (resolvedTermNode != null) {
-                                for (final var edge : graph.findEdges(Edge.FROM_ID_FIELD, node.getId())) {
-                                    final var toNode = graph.getNode(edge.getToId());
-                                    if (toNode != null && toNode.hasProperty(OntologyGraphExporter.IS_PROXY_KEY)) {
-                                        graph.removeEdge(edge);
-                                    } else {
-                                        edge.setProperty(Edge.FROM_ID_FIELD, resolvedTermNode.getId());
-                                        graph.update(edge);
-                                    }
-                                }
-                                for (final var edge : graph.findEdges(Edge.TO_ID_FIELD, node.getId())) {
-                                    final var fromNode = graph.getNode(edge.getFromId());
-                                    if (fromNode != null && fromNode.hasProperty(OntologyGraphExporter.IS_PROXY_KEY)) {
-                                        graph.removeEdge(edge);
-                                    } else {
-                                        edge.setProperty(Edge.TO_ID_FIELD, resolvedTermNode.getId());
-                                        graph.update(edge);
-                                    }
-                                }
-                                graph.removeNode(node);
+                    final String id = node.getProperty(GraphExporter.ID_KEY);
+                    //noinspection DataFlowIssue
+                    final String idPrefix = id.substring(0, id.indexOf(':'));
+                    final String resolvedTermLabel = resolvedTermLabels.get(idPrefix);
+                    if (resolvedTermLabel == null)
+                        continue;
+                    // Safety check a node was falsely marked as proxy
+                    if (resolvedTermLabel.equals(node.getLabel()))
+                        continue;
+                    final Node resolvedTermNode = graph.findNode(resolvedTermLabel, GraphExporter.ID_KEY, id);
+                    if (resolvedTermNode != null) {
+                        for (final var edge : graph.findEdges(Edge.FROM_ID_FIELD, node.getId())) {
+                            final var toNode = graph.getNode(edge.getToId());
+                            if (toNode != null && toNode.hasProperty(OntologyGraphExporter.IS_PROXY_KEY)) {
+                                graph.removeEdge(edge);
+                            } else {
+                                edge.setProperty(Edge.FROM_ID_FIELD, resolvedTermNode.getId());
+                                graph.update(edge);
                             }
                         }
+                        for (final var edge : graph.findEdges(Edge.TO_ID_FIELD, node.getId())) {
+                            final var fromNode = graph.getNode(edge.getFromId());
+                            if (fromNode != null && fromNode.hasProperty(OntologyGraphExporter.IS_PROXY_KEY)) {
+                                graph.removeEdge(edge);
+                            } else {
+                                edge.setProperty(Edge.TO_ID_FIELD, resolvedTermNode.getId());
+                                graph.update(edge);
+                            }
+                        }
+                        graph.removeNode(node);
                     }
                 }
             }
