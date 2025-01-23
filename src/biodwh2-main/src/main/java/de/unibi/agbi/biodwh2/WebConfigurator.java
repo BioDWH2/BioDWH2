@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.unibi.agbi.biodwh2.core.*;
 import de.unibi.agbi.biodwh2.core.exceptions.WorkspaceException;
 import de.unibi.agbi.biodwh2.core.model.DataSourceFileType;
+import de.unibi.agbi.biodwh2.core.net.BioDWH2Updater;
 import de.unibi.agbi.biodwh2.core.net.UrlUtils;
 import io.javalin.Javalin;
 import io.javalin.apibuilder.ApiBuilder;
@@ -92,6 +93,7 @@ public class WebConfigurator {
                 ApiBuilder.post("/workspace/save", this::onWorkspaceSave);
                 ApiBuilder.post("/workspace/run", this::onWorkspaceRun);
                 ApiBuilder.get("/log", this::onGetLog);
+                ApiBuilder.get("/version", this::onGetVersion);
             });
         });
         app.start(port);
@@ -114,6 +116,18 @@ public class WebConfigurator {
         var map = new HashMap<String, Object>();
         map.put("running", runThread != null && runThread.isAlive());
         map.put("log", writer.toString());
+        ctx.json(map);
+    }
+
+    private void onGetVersion(final Context ctx) {
+        var map = new HashMap<String, Object>();
+        final var status = BioDWH2Updater.checkForUpdate("BioDWH2",
+                                                         "https://api.github.com/repos/BioDWH2/BioDWH2/releases");
+        map.put("isUpToDate", status.isUpToDate);
+        map.put("changelog", status.changelog);
+        map.put("latestDownloadUrl", status.latestDownloadUrl);
+        map.put("currentVersion", status.currentVersion);
+        map.put("latestVersion", status.latestVersion);
         ctx.json(map);
     }
 

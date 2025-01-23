@@ -37,7 +37,9 @@ public final class BioDWH2 {
     }
 
     private void run(final CmdArgs commandLine) {
-        BioDWH2Updater.checkForUpdate("BioDWH2", "https://api.github.com/repos/BioDWH2/BioDWH2/releases");
+        final var status = BioDWH2Updater.checkForUpdate("BioDWH2",
+                                                         "https://api.github.com/repos/BioDWH2/BioDWH2/releases");
+        BioDWH2Updater.logStatus(status);
         if (commandLine.listDataSources)
             listDataSources(commandLine);
         else if (commandLine.addDataSource != null)

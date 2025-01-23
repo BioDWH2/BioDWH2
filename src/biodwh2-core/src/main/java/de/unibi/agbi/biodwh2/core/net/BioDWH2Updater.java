@@ -21,7 +21,7 @@ public final class BioDWH2Updater {
     private BioDWH2Updater() {
     }
 
-    public static void checkForUpdate(final String toolRepositoryName, final String githubReleasesUrl) {
+    public static Status checkForUpdate(final String toolRepositoryName, final String githubReleasesUrl) {
         final Version currentVersion = ResourceUtils.getManifestBioDWH2Version();
         Version latestVersion = null;
         String latestDownloadUrl = null;
@@ -29,7 +29,7 @@ public final class BioDWH2Updater {
         final ObjectMapper mapper = new ObjectMapper();
         try {
             final URL releaseUrl = new URL(githubReleasesUrl);
-            final List<GithubRelease> releases = mapper.readValue(releaseUrl, new TypeReference<List<GithubRelease>>() {
+            final List<GithubRelease> releases = mapper.readValue(releaseUrl, new TypeReference<>() {
             });
             for (final GithubRelease release : releases) {
                 final Version version = Version.tryParse(release.tagName.replace("v", ""));
@@ -46,14 +46,41 @@ public final class BioDWH2Updater {
             }
         } catch (IOException | ClassCastException ignored) {
         }
-        if (currentVersion == null && latestVersion != null || currentVersion != null && currentVersion.compareTo(
-                latestVersion) < 0) {
+        final var isUpToDate = currentVersion != null && (latestVersion == null || currentVersion.compareTo(
+                latestVersion) < 0);
+        return new Status(toolRepositoryName, isUpToDate, currentVersion, latestVersion, latestDownloadUrl,
+                          latestRelease != null && StringUtils.isNotEmpty(latestRelease.body) ?
+                          StringUtils.replace(latestRelease.body, "```", "") : null);
+    }
+
+    public static void logStatus(final Status status) {
+        if (status.currentVersion == null && status.latestVersion != null ||
+            status.currentVersion != null && status.currentVersion.compareTo(status.latestVersion) < 0) {
             LOGGER.info("=======================================");
-            LOGGER.info("New version {} of {} is available at:", latestVersion, toolRepositoryName);
-            LOGGER.info(latestDownloadUrl);
-            if (latestRelease != null && StringUtils.isNotEmpty(latestRelease.body))
-                LOGGER.info("Description: {}", StringUtils.replace(latestRelease.body, "```", ""));
+            LOGGER.info("New version {} of {} is available at:", status.latestVersion, status.name);
+            LOGGER.info(status.latestDownloadUrl);
+            if (StringUtils.isNotEmpty(status.changelog))
+                LOGGER.info("Description: {}", status.changelog);
             LOGGER.info("=======================================");
+        }
+    }
+
+    public static class Status {
+        public final String name;
+        public final boolean isUpToDate;
+        public final Version currentVersion;
+        public final Version latestVersion;
+        public final String latestDownloadUrl;
+        public final String changelog;
+
+        public Status(final String name, final boolean isUpToDate, final Version currentVersion,
+                      final Version latestVersion, final String latestDownloadUrl, final String changelog) {
+            this.name = name;
+            this.isUpToDate = isUpToDate;
+            this.currentVersion = currentVersion;
+            this.latestVersion = latestVersion;
+            this.latestDownloadUrl = latestDownloadUrl;
+            this.changelog = changelog;
         }
     }
 }
