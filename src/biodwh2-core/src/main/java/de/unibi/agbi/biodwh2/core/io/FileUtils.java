@@ -81,6 +81,10 @@ public final class FileUtils {
         return new GZIPInputStream(openInput(filePath));
     }
 
+    public static GZIPInputStream openGzip(final Path filePath) throws IOException {
+        return new GZIPInputStream(openInput(filePath));
+    }
+
     public static TarArchiveInputStream openTar(final Workspace workspace, final DataSource dataSource,
                                                 final String fileName) throws IOException {
         return new TarArchiveInputStream(openInput(workspace, dataSource, fileName));
@@ -459,6 +463,11 @@ public final class FileUtils {
         return result.toArray(new String[0]);
     }
 
+    public static void forEachZipEntry(final Path file, final String suffix,
+                                       final ZipEntryConsumer<ZipInputStream, ZipEntry> consumer) throws Exception {
+        forEachZipEntry(file.toFile(), suffix, consumer);
+    }
+
     public static void forEachZipEntry(final File file, final String suffix,
                                        final ZipEntryConsumer<ZipInputStream, ZipEntry> consumer) throws Exception {
         try (final FileInputStream inputStream = new FileInputStream(file);
@@ -476,15 +485,7 @@ public final class FileUtils {
     public static void forEachZipEntry(final Workspace workspace, final DataSource dataSource, final String fileName,
                                        final String suffix,
                                        final ZipEntryConsumer<ZipInputStream, ZipEntry> consumer) throws Exception {
-        try (final InputStream inputStream = openInput(workspace, dataSource, fileName);
-             final var zipInputStream = new ZipInputStream(inputStream)) {
-            ZipEntry zipEntry;
-            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                if (suffix == null || zipEntry.getName().endsWith(suffix)) {
-                    consumer.accept(zipInputStream, zipEntry);
-                }
-            }
-        }
+        forEachZipEntry(dataSource.resolveSourceFilePath(workspace, fileName).toFile(), suffix, consumer);
     }
 
     @FunctionalInterface

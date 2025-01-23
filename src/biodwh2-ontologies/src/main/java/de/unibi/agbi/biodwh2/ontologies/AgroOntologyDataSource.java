@@ -19,7 +19,7 @@ public class AgroOntologyDataSource extends SingleOWLOntologyDataSource {
     }
 
     @Override
-    protected Version getVersionFromDataVersionLine(String dataVersion) {
+    protected Version getVersionFromDataVersionLine(final String dataVersion) {
         final Matcher matcher = DASHED_YYYY_MM_DD_VERSION_PATTERN.matcher(dataVersion);
         if (matcher.find())
             return new Version(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)),
