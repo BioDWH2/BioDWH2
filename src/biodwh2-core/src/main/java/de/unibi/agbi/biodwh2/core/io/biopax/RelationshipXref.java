@@ -1,4 +1,8 @@
 package de.unibi.agbi.biodwh2.core.io.biopax;
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+
 public class RelationshipXref extends Xref {
+    @JacksonXmlElementWrapper(useWrapping = false)
+    public ResourceRef[] relationshipType;
 }

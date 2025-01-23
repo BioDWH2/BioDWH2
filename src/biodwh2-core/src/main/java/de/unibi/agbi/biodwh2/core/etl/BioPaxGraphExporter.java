@@ -10,6 +10,8 @@ import de.unibi.agbi.biodwh2.core.exceptions.ExporterFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.core.io.biopax.*;
 import de.unibi.agbi.biodwh2.core.model.graph.Graph;
+import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
+import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,7 +24,10 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 /**
- * General exporter for BioPAX level 3 files
+ * General exporter for <a href="https://www.biopax.org/release/biopax-level3-documentation.pdf">BioPAX level 3</a>
+ * files.
+ * <p/>
+ * <a href="https://www.biopax.org/owldoc/Level3/">https://www.biopax.org/owldoc/Level3/</a>
  */
 public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExporter<D> {
     private static final Logger LOGGER = LogManager.getLogger(BioPaxGraphExporter.class);
@@ -168,7 +173,13 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
 
     @Override
     protected boolean exportGraph(final Workspace workspace, final Graph graph) throws ExporterException {
-        final Path filePath = dataSource.resolveSourceFilePath(workspace, getFileName());
+        for (final String key : bioPaxTypeConsumerMap.keySet())
+            graph.addIndex(IndexDescription.forNode(key, "about", IndexDescription.Type.UNIQUE));
+        exportGraph(graph, dataSource.resolveSourceFilePath(workspace, getFileName()));
+        return true;
+    }
+
+    private void exportGraph(final Graph graph, final Path filePath) {
         final String extension = FilenameUtils.getExtension(filePath.toString()).toLowerCase(Locale.ROOT);
         switch (extension) {
             case "gz":
@@ -196,7 +207,6 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
                 throw new ExporterFormatException(
                         "Failed to export '" + getFileName() + "'. Unknown extension '" + extension + "'");
         }
-        return true;
     }
 
     protected abstract String getFileName();
@@ -231,243 +241,427 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
     }
 
     private void exportBindingFeature(final Graph graph, final BindingFeature entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("BindingFeature");
+        builder.withModel(entry);
+        // TODO: bindsTo, evidence, featureLocation, featureLocationType
+        builder.build();
     }
 
     private void exportBiochemicalPathwayStep(final Graph graph, final BiochemicalPathwayStep entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("BiochemicalPathwayStep");
+        builder.withModel(entry);
+        // TODO: evidence, nextStep, stepConversion, stepProcess
+        builder.build();
     }
 
     private void exportBiochemicalReaction(final Graph graph, final BiochemicalReaction entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("BiochemicalReaction");
+        builder.withModel(entry);
+        // TODO: dataSource, deltaG, evidence, interactionType, kEQ, left, right, xref, participantStoichiometry,
+        //  participant
+        builder.build();
     }
 
     private void exportBioSource(final Graph graph, final BioSource entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("BioSource");
+        builder.withModel(entry);
+        // TODO: cellType, tissue, xref
+        builder.build();
     }
 
     private void exportCatalysis(final Graph graph, final Catalysis entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Catalysis");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportCellularLocationVocabulary(final Graph graph, final CellularLocationVocabulary entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("CellularLocationVocabulary");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportCellVocabulary(final Graph graph, final CellVocabulary entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("CellVocabulary");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportChemicalStructure(final Graph graph, final ChemicalStructure entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("ChemicalStructure");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportComplex(final Graph graph, final Complex entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("Complex");
+        builder.withModel(entry);
+        // TODO: cellularLocation, component, componentStoichiometry, dataSource, evidence, feature, notFeature,
+        //  memberPhysicalEntity, xref
+        builder.build();
     }
 
     private void exportComplexAssembly(final Graph graph, final ComplexAssembly entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("ComplexAssembly");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportControl(final Graph graph, final Control entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Control");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportConversion(final Graph graph, final Conversion entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Conversion");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportDegradation(final Graph graph, final Degradation entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Degradation");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportDeltaG(final Graph graph, final DeltaG entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("DeltaG");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportDna(final Graph graph, final Dna entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("Dna");
+        builder.withModel(entry);
+        // TODO:
+        builder.build();
     }
 
     private void exportDnaReference(final Graph graph, final DnaReference entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("DnaReference");
+        builder.withModel(entry);
+        // TODO: organism, memberEntityReference, entityFeature, entityReferenceType, evidence, xref
+        builder.build();
     }
 
     private void exportDnaRegion(final Graph graph, final DnaRegion entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("DnaRegion");
+        builder.withModel(entry);
+        // TODO: cellularLocation, dataSource, evidence, feature, notFeature, xref, entityReference,
+        //  memberPhysicalEntity
+        builder.build();
     }
 
     private void exportDnaRegionReference(final Graph graph, final DnaRegionReference entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("DnaRegionReference");
+        builder.withModel(entry);
+        // TODO: organism, memberEntityReference, entityFeature, entityReferenceType, evidence, xref
+        builder.build();
     }
 
     private void exportEntityFeature(final Graph graph, final EntityFeature entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("EntityFeature");
+        builder.withModel(entry);
+        // TODO: evidence, featureLocation, featureLocationType
+        builder.build();
     }
 
     private void exportEntityReferenceTypeVocabulary(final Graph graph, final EntityReferenceTypeVocabulary entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("EntityReferenceTypeVocabulary");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportEvidence(final Graph graph, final Evidence entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Evidence");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportEvidenceCodeVocabulary(final Graph graph, final EvidenceCodeVocabulary entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("EvidenceCodeVocabulary");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportExperimentalForm(final Graph graph, final ExperimentalForm entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("ExperimentalForm");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportExperimentalFormVocabulary(final Graph graph, final ExperimentalFormVocabulary entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("ExperimentalFormVocabulary");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportFragmentFeature(final Graph graph, final FragmentFeature entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("FragmentFeature");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportGene(final Graph graph, final Gene entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Gene");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportGeneticInteraction(final Graph graph, final GeneticInteraction entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("GeneticInteraction");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportInteraction(final Graph graph, final Interaction entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Interaction");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportInteractionVocabulary(final Graph graph, final InteractionVocabulary entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("InteractionVocabulary");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportModificationFeature(final Graph graph, final ModificationFeature entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("ModificationFeature");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportModulation(final Graph graph, final Modulation entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Modulation");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportMolecularInteraction(final Graph graph, final MolecularInteraction entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("MolecularInteraction");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportPathway(final Graph graph, final Pathway entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("Pathway");
+        builder.withModel(entry);
+        // TODO: dataSource, evidence, organism, pathwayComponent, pathwayOrder, xref
+        builder.build();
     }
 
     private void exportPathwayStep(final Graph graph, final PathwayStep entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("PathwayStep");
+        builder.withModel(entry);
+        // TODO: evidence, nextStep, stepProcess
+        builder.build();
     }
 
     private void exportPhysicalEntity(final Graph graph, final PhysicalEntity entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("PhysicalEntity");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportProtein(final Graph graph, final Protein entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Protein");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportProteinReference(final Graph graph, final ProteinReference entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("ProteinReference");
+        builder.withModel(entry);
+        // TODO: organism, memberEntityReference, entityFeature, entityReferenceType, evidence, xref
+        builder.build();
     }
 
     private void exportProvenance(final Graph graph, final Provenance entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Provenance");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportPublicationXref(final Graph graph, final PublicationXref entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("PublicationXref");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportRelationshipTypeVocabulary(final Graph graph, final RelationshipTypeVocabulary entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("RelationshipTypeVocabulary");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportRelationshipXref(final Graph graph, final RelationshipXref entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("RelationshipXref");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportRna(final Graph graph, final Rna entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Rna");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportRnaReference(final Graph graph, final RnaReference entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("RnaReference");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportRnaRegion(final Graph graph, final RnaRegion entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("RnaRegion");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportRnaRegionReference(final Graph graph, final RnaRegionReference entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("RnaRegionReference");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportScore(final Graph graph, final Score entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Score");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportSequenceInterval(final Graph graph, final SequenceInterval entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("SequenceInterval");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportSequenceLocation(final Graph graph, final SequenceLocation entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("SequenceLocation");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportSequenceModificationVocabulary(final Graph graph, final SequenceModificationVocabulary entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("SequenceModificationVocabulary");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportSequenceRegionVocabulary(final Graph graph, final SequenceRegionVocabulary entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("SequenceRegionVocabulary");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportSequenceSite(final Graph graph, final SequenceSite entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("SequenceSite");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportSmallMolecule(final Graph graph, final SmallMolecule entry) {
-        // TODO
+        final NodeBuilder builder = graph.buildNode().withLabel("SmallMolecule");
+        builder.withModel(entry);
+        // TODO: cellularLocation, dataSource, entityReference, evidence, feature, notFeature, xref,
+        //  memberPhysicalEntity
+        builder.build();
     }
 
     private void exportSmallMoleculeReference(final Graph graph, final SmallMoleculeReference entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("SmallMoleculeReference");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportStoichiometry(final Graph graph, final Stoichiometry entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Stoichiometry");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportTemplateReaction(final Graph graph, final TemplateReaction entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("TemplateReaction");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportTissueVocabulary(final Graph graph, final TissueVocabulary entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("TissueVocabulary");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportTransport(final Graph graph, final Transport entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("Transport");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportTransportWithBiochemicalReaction(final Graph graph,
                                                         final TransportWithBiochemicalReaction entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("TransportWithBiochemicalReaction");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportUnificationXref(final Graph graph, final UnificationXref entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("UnificationXref");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 
     private void exportTemplateReactionRegulation(final Graph graph, final TemplateReactionRegulation entry) {
+        final NodeBuilder builder = graph.buildNode().withLabel("TemplateReactionRegulation");
+        builder.withModel(entry);
         // TODO
+        builder.build();
     }
 }

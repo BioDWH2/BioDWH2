@@ -1,4 +1,12 @@
 package de.unibi.agbi.biodwh2.core.io.biopax;
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+
 public class PathwayStep extends UtilityClass {
+    @JacksonXmlElementWrapper(useWrapping = false)
+    public ResourceRef[] stepProcess;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    public ResourceRef[] nextStep;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    public ResourceRef[] evidence;
 }

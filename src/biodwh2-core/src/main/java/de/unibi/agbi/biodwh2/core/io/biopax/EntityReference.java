@@ -1,18 +1,17 @@
 package de.unibi.agbi.biodwh2.core.io.biopax;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
-public abstract class Entity {
-    @JacksonXmlProperty(isAttribute = true)
-    @GraphProperty("about")
-    public String about;
+public abstract class EntityReference extends UtilityClass {
     @JacksonXmlElementWrapper(useWrapping = false)
-    @GraphProperty("comment")
-    public String[] comment;
-    public ResourceRef dataSource;
-    public ResourceRef evidence;
+    public ResourceRef[] entityFeature;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    public ResourceRef[] memberEntityReference;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    public ResourceRef[] entityReferenceType;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    public ResourceRef[] evidence;
     @JacksonXmlElementWrapper(useWrapping = false)
     public ResourceRef[] xref;
     @JacksonXmlElementWrapper(useWrapping = false)
@@ -22,6 +21,4 @@ public abstract class Entity {
     public String displayName;
     @GraphProperty("standard_name")
     public String standardName;
-    @GraphProperty("availability")
-    public String availability;
 }
