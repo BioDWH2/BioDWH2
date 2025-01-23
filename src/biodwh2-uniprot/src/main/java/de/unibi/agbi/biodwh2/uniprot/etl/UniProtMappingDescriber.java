@@ -45,10 +45,13 @@ public class UniProtMappingDescriber extends MappingDescriber {
     private NodeMappingDescription[] describeProtein(final Node node) {
         final var description = new NodeMappingDescription(NodeMappingDescription.NodeType.PROTEIN);
         description.addNames(node.<String[]>getProperty("names"));
-        final var accessions = node.<String[]>getProperty("accessions");
+        description.addIdentifier(IdentifierType.UNIPROT_KB, node.<String>getProperty("accession"));
+        /* TODO: verify
+        final var accessions = node.<String[]>getProperty("secondary_accessions");
         if (accessions != null)
             for (final String accession : accessions)
                 description.addIdentifier(IdentifierType.UNIPROT_KB, accession);
+         */
         return new NodeMappingDescription[]{description};
     }
 

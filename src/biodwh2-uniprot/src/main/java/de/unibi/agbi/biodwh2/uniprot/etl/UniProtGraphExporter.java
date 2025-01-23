@@ -11,6 +11,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.uniprot.UniProtDataSource;
 import de.unibi.agbi.biodwh2.uniprot.model.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -36,7 +37,7 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -61,7 +62,9 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
         builder.withPropertyIfNotNull("modified", entry.modified);
         builder.withPropertyIfNotNull("version", entry.version);
         builder.withProperty("names", entry.name.toArray(new String[0]));
-        builder.withProperty("accessions", entry.accession.toArray(new String[0]));
+        final var secondaryAccessions = entry.accession.stream().skip(1).toArray(String[]::new);
+        builder.withProperty("accession", entry.accession.get(0));
+        builder.withProperty("secondary_accessions", secondaryAccessions);
         if (entry.sequence != null) {
             builder.withPropertyIfNotNull("sequence", entry.sequence.value);
             builder.withPropertyIfNotNull("sequence_length", entry.sequence.length);
@@ -82,6 +85,43 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
                 if (keyword.evidence != null && !keyword.evidence.isEmpty())
                     LOGGER.warn("Evidence for keyword '{}' ({}) not exported", keyword.value, keyword.id);
         }
+        if (entry.protein != null) {
+            if (entry.protein.recommendedName != null) {
+                final var recommendedName = entry.protein.recommendedName;
+                // TODO: evidences
+                if (recommendedName.fullName != null) {
+                    builder.withPropertyIfNotNull("protein_recommended_name_full", recommendedName.fullName.value);
+                }
+                if (recommendedName.shortName != null && !recommendedName.shortName.isEmpty()) {
+                    builder.withPropertyIfNotNull("protein_recommended_name_short",
+                                                  recommendedName.shortName.stream().map((n) -> n.value)
+                                                                           .toArray(String[]::new));
+                }
+                if (recommendedName.ecNumber != null && !recommendedName.ecNumber.isEmpty()) {
+                    builder.withPropertyIfNotNull("protein_recommended_name_ec_numbers",
+                                                  recommendedName.ecNumber.stream().map((ec) -> ec.value)
+                                                                          .toArray(String[]::new));
+                }
+            }
+
+            // TODO: List<Protein.AlternativeName> alternativeName
+            // TODO: List<Protein.SubmittedName> submittedName
+            // TODO: EvidencedString allergenName
+            // TODO: EvidencedString biotechName
+            // TODO: List<EvidencedString> cdAntigenName
+            // TODO: List<EvidencedString> innName
+            // TODO: List<Protein.Domain> domain
+            // TODO: List<Protein.Component> component
+        }
+        // TODO: List<Organism> entry.organismHost
+        // TODO: List<Comment> entry.comment
+        // TODO: List<Evidence> entry.evidence
+        if (entry.dbReference != null) {
+            // TODO: evidence, molecule, property
+            final String[] dbReferences = entry.dbReference.stream().map((r) -> r.type + ':' + r.id).toArray(
+                    String[]::new);
+            builder.withProperty("db_references", dbReferences);
+        }
         final Node node = builder.build();
         if (entry.gene != null) {
             for (final Gene gene : entry.gene) {
@@ -94,27 +134,12 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
                 // LOGGER.info(location.type + ", " + location.evidence + ", " + location.name);
             }
         }
-        if (entry.protein != null) {
-            // TODO: Protein.RecommendedName recommendedName
-            // TODO: List<Protein.AlternativeName> alternativeName
-            // TODO: List<Protein.SubmittedName> submittedName
-            // TODO: EvidencedString allergenName
-            // TODO: EvidencedString biotechName
-            // TODO: List<EvidencedString> cdAntigenName
-            // TODO: List<EvidencedString> innName
-            // TODO: List<Protein.Domain> domain
-            // TODO: List<Protein.Component> component
-        }
-        // TODO: List<Organism> entry.organismHost
-        // TODO: List<Comment> entry.comment
-        // TODO: List<DbReference> entry.dbReference
-        // TODO: List<Evidence> entry.evidence
-        final Map<String, Long> referenceKeyNodeIdMap = new HashMap<>();
+        final Map<Integer, Long> referenceKeyNodeIdMap = new HashMap<>();
         for (final Reference reference : entry.reference) {
             final String[] scopes = reference.scope != null ? reference.scope.toArray(new String[0]) : new String[0];
-            final var referenceNode = graph.addNode("Reference", "key", Integer.parseInt(reference.key), "scopes",
-                                                    scopes);
-            referenceKeyNodeIdMap.put(reference.key, referenceNode.getId());
+            final int refKey = Integer.parseInt(reference.key);
+            final var referenceNode = graph.addNode("Reference", "key", refKey, "scopes", scopes);
+            referenceKeyNodeIdMap.put(refKey, referenceNode.getId());
             // TODO: reference.source
             // TODO: reference.evidence
             final long citationNodeId = getOrCreateCitation(graph, reference.citation);
@@ -150,8 +175,13 @@ public class UniProtGraphExporter extends GraphExporter<UniProtDataSource> {
                 }
                 final var featureNode = featureBuilder.build();
                 graph.addEdge(node, featureNode, "HAS_FEATURE");
-                if (feature.ref != null)
-                    graph.addEdge(featureNode, referenceKeyNodeIdMap.get(feature.ref), "REFERENCES");
+                if (feature.ref != null) {
+                    for (final String refKey : StringUtils.split(feature.ref, ' ')) {
+                        final Long referenceNodeId = referenceKeyNodeIdMap.get(Integer.parseInt(refKey));
+                        if (referenceNodeId != null)
+                            graph.addEdge(featureNode, referenceNodeId, "REFERENCES");
+                    }
+                }
             }
         }
         graph.addEdge(node, getOrCreateOrganism(graph, entry.organism), "HAS_SOURCE");
