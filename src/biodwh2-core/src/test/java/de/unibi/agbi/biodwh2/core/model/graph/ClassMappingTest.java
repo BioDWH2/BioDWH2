@@ -139,6 +139,18 @@ class ClassMappingTest {
         assertArrayEquals(new Integer[]{1, 10, 4969048}, node.getProperty("int_array"));
     }
 
+    @Test
+    void enumType() {
+        final ClassMapping mapping = new ClassMapping(TestClassEnumType.class);
+        final TestClassEnumType instance = new TestClassEnumType();
+        instance.a = TestEnum.VALUE_1;
+        instance.b = TestEnum.VALUE_2;
+        final Node node = Node.newNode("test");
+        mapping.setModelProperties(node, instance);
+        assertEquals("VALUE_1", node.getProperty("a"));
+        assertEquals("VALUE_2", node.getProperty("b"));
+    }
+
     @GraphNodeLabel("A")
     private static class TestClass {
         @GraphProperty("id")
@@ -167,5 +179,17 @@ class ClassMappingTest {
     private static class TestClassArrayType {
         @GraphArrayProperty(value = "int_array", type = GraphArrayProperty.Type.Int)
         public String intArray;
+    }
+
+    private static class TestClassEnumType {
+        @GraphProperty(value = "a", transformation = ValueTransformation.ENUM_TO_STRING)
+        public TestEnum a;
+        @GraphProperty(value = "b", transformation = ValueTransformation.ENUM_TO_STRING)
+        public TestEnum b;
+    }
+
+    private enum TestEnum {
+        VALUE_1,
+        VALUE_2
     }
 }

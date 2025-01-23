@@ -228,8 +228,14 @@ final class ClassMapping {
                     return collection.toArray(new Object[0]);
                 }
                 return value;
-            } else
+            } else if (value instanceof Enum) {
+                if (field.transformation == ValueTransformation.ENUM_TO_STRING) {
+                    return value.toString();
+                }
                 return value;
+            } else {
+                return value;
+            }
         }
         return null;
     }
