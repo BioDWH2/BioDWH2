@@ -126,8 +126,8 @@ public class WebConfigurator {
         map.put("isUpToDate", status.isUpToDate);
         map.put("changelog", status.changelog);
         map.put("latestDownloadUrl", status.latestDownloadUrl);
-        map.put("currentVersion", status.currentVersion);
-        map.put("latestVersion", status.latestVersion);
+        map.put("currentVersion", status.currentVersion != null ? status.currentVersion.toString() : null);
+        map.put("latestVersion", status.latestVersion != null ? status.latestVersion.toString() : null);
         ctx.json(map);
     }
 
