@@ -74,6 +74,10 @@ public final class MVStoreUniqueIndex extends MVStoreIndex {
         final Long id = map.get(propertyValue);
         return id != null ? Collections.singleton(id) : Collections.emptySet();
     }
+    
+    public Long get(final Comparable<?> propertyValue) {
+        return map.get(propertyValue);
+    }
 
     @Override
     public void remove(final Object propertyValue, final long id) {

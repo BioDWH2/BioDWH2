@@ -207,7 +207,33 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     }
 
     public Iterable<T> find(final String propertyKey, final Comparable<?> propertyValue) {
-        return find(new String[]{propertyKey}, new Comparable<?>[]{propertyValue});
+        if (!propertyKeyTypes.containsKey(propertyKey))
+            return new ArrayList<>();
+        final MVStoreIndex index = indices.get(propertyKey);
+        if (index != null) {
+            return () -> index.find(propertyValue).stream().map(this::get).iterator();
+        }
+        final Set<Long> ids = new HashSet<>();
+        for (final Long id : map.keySet()) {
+            final Object value = map.get(id).get(propertyKey);
+            if (value instanceof Comparable<?>) {
+                if (!propertyMatchesCriteria((Comparable<?>) value, propertyValue))
+                    continue;
+            } else if (value instanceof Comparable<?>[]) {
+                boolean matchedAnyInArray = false;
+                for (final Comparable<?> comparable : (Comparable<?>[]) value) {
+                    if (propertyMatchesCriteria(comparable, propertyValue)) {
+                        matchedAnyInArray = true;
+                        break;
+                    }
+                }
+                if (!matchedAnyInArray)
+                    continue;
+            } else
+                continue;
+            ids.add(id);
+        }
+        return () -> ids.stream().map(this::get).iterator();
     }
 
     public Iterable<T> find(final String propertyKey1, final Comparable<?> propertyValue1, final String propertyKey2,
@@ -237,7 +263,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
         final boolean[] hasIndexFlags = new boolean[propertyKeys.length];
         Set<Long> ids = retainIndexedIds(propertyKeys, propertyValues, hasIndexFlags);
         if (isFindOnNonIndexedProperties(hasIndexFlags))
-            ids = retainUnindexedIds(propertyKeys, propertyValues, hasIndexFlags, ids);
+            ids = retainNonIndexedIds(propertyKeys, propertyValues, hasIndexFlags, ids);
         final Set<Long> finalIds = ids != null ? ids : new HashSet<>();
         return () -> finalIds.stream().map(this::get).iterator();
     }
@@ -265,8 +291,8 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
         return false;
     }
 
-    private Set<Long> retainUnindexedIds(final String[] propertyKeys, final Comparable<?>[] propertyValues,
-                                         final boolean[] hasIndexFlags, Set<Long> ids) {
+    private Set<Long> retainNonIndexedIds(final String[] propertyKeys, final Comparable<?>[] propertyValues,
+                                          final boolean[] hasIndexFlags, Set<Long> ids) {
         if (ids == null) {
             ids = new HashSet<>();
             for (final Long id : map.keySet())
@@ -319,6 +345,82 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
             if (b instanceof Long || b instanceof Integer || b instanceof Short || b instanceof Byte)
                 return ((Number) a).longValue() == ((Number) b).longValue();
         return a.equals(b);
+    }
+
+    public synchronized Long findId(final String propertyKey, final Comparable<?> propertyValue) {
+        if (!propertyKeyTypes.containsKey(propertyKey))
+            return null;
+        final MVStoreIndex index = indices.get(propertyKey);
+        if (index != null) {
+            if (index instanceof MVStoreUniqueIndex)
+                return ((MVStoreUniqueIndex) index).get(propertyValue);
+            for (final Long id : index.find(propertyValue))
+                return id;
+            return null;
+        }
+        for (final Long id : map.keySet()) {
+            final Object value = map.get(id).get(propertyKey);
+            if (value instanceof Comparable<?>) {
+                if (!propertyMatchesCriteria((Comparable<?>) value, propertyValue))
+                    continue;
+            } else if (value instanceof Comparable<?>[]) {
+                boolean matchedAnyInArray = false;
+                for (final Comparable<?> comparable : (Comparable<?>[]) value) {
+                    if (propertyMatchesCriteria(comparable, propertyValue)) {
+                        matchedAnyInArray = true;
+                        break;
+                    }
+                }
+                if (!matchedAnyInArray)
+                    continue;
+            } else
+                continue;
+            return id;
+        }
+        return null;
+    }
+
+    public synchronized Iterable<Long> findIds(final String propertyKey, final Comparable<?> propertyValue) {
+        if (!propertyKeyTypes.containsKey(propertyKey))
+            return new ArrayList<>();
+        final MVStoreIndex index = indices.get(propertyKey);
+        if (index != null) {
+            return index.find(propertyValue);
+        }
+        final Set<Long> ids = new HashSet<>();
+        for (final Long id : map.keySet()) {
+            final Object value = map.get(id).get(propertyKey);
+            if (value instanceof Comparable<?>) {
+                if (!propertyMatchesCriteria((Comparable<?>) value, propertyValue))
+                    continue;
+            } else if (value instanceof Comparable<?>[]) {
+                boolean matchedAnyInArray = false;
+                for (final Comparable<?> comparable : (Comparable<?>[]) value) {
+                    if (propertyMatchesCriteria(comparable, propertyValue)) {
+                        matchedAnyInArray = true;
+                        break;
+                    }
+                }
+                if (!matchedAnyInArray)
+                    continue;
+            } else
+                continue;
+            ids.add(id);
+        }
+        return ids;
+    }
+
+    public synchronized Iterable<Long> findIds(final String[] propertyKeys, final Comparable<?>[] propertyValues) {
+        for (final String propertyKey : propertyKeys)
+            if (!propertyKeyTypes.containsKey(propertyKey))
+                return new ArrayList<>();
+        final boolean[] hasIndexFlags = new boolean[propertyKeys.length];
+        Set<Long> ids = retainIndexedIds(propertyKeys, propertyValues, hasIndexFlags);
+        if (isFindOnNonIndexedProperties(hasIndexFlags))
+            ids = retainNonIndexedIds(propertyKeys, propertyValues, hasIndexFlags, ids);
+        if (ids == null)
+            return new ArrayList<>();
+        return ids;
     }
 
     @Override

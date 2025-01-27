@@ -242,6 +242,21 @@ public class GraphView extends BaseGraph {
         return filterEdgesIterable(graph.findEdges(properties));
     }
 
+    @Override
+    public Long findNodeId(final String propertyKey, final Comparable<?> value) {
+        for (final var node : findNodes(propertyKey, value))
+            if (nodeLabels.contains(node.getLabel()))
+                return node.getId();
+        return null;
+    }
+
+    @Override
+    public Long findNodeId(final String label, final String propertyKey, final Comparable<?> value) {
+        if (!nodeLabels.contains(label))
+            return null;
+        return graph.findNodeId(label, propertyKey, value);
+    }
+
     private class FilterNodesIterator implements Iterator<Node> {
         private final Iterator<Node> parent;
         private Node nextNode = null;

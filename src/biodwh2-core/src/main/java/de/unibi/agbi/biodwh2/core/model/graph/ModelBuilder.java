@@ -43,4 +43,8 @@ public abstract class ModelBuilder<S extends ModelBuilder<S>> extends HashMap<St
     public int getPropertyCount() {
         return size();
     }
+
+    public <T> T getProperty(final String key) {
+        return (T) get(key);
+    }
 }

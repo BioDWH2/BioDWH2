@@ -121,6 +121,10 @@ public abstract class BaseGraph {
         return findEdges(label);
     }
 
+    public abstract Long findNodeId(final String propertyKey, final Comparable<?> value);
+
+    public abstract Long findNodeId(final String label, final String propertyKey, final Comparable<?> value);
+
     public Node findNode(final String label) {
         return firstOrDefault(findNodes(label));
     }
@@ -134,7 +138,8 @@ public abstract class BaseGraph {
     }
 
     public Node findNode(final String label, final String propertyKey, final Comparable<?> value) {
-        return firstOrDefault(findNodes(label, propertyKey, value));
+        final Long nodeId = findNodeId(label, propertyKey, value);
+        return nodeId != null ? getNode(nodeId) : null;
     }
 
     public Node findNode(final String label, final String propertyKey1, final Comparable<?> value1,
