@@ -8,4 +8,12 @@ public class DeltaG extends UtilityClass {
      */
     @GraphProperty("deltaG_prime0")
     public String deltaGPrime0;
+    @GraphProperty("ionic_strength")
+    public String ionicStrength;
+    @GraphProperty("pH")
+    public String pH;
+    @GraphProperty("pMg")
+    public String pMg;
+    @GraphProperty("temperature")
+    public String temperature;
 }
