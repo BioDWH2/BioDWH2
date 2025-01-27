@@ -5,5 +5,5 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 public class Interaction extends Entity {
     public ResourceRef interactionType;
     @JacksonXmlElementWrapper(useWrapping = false)
-    public ResourceRef participant;
+    public ResourceRef[] participant;
 }

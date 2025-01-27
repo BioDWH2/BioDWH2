@@ -7,4 +7,6 @@ public class EntityFeature extends UtilityClass {
     public ResourceRef featureLocation;
     @JacksonXmlElementWrapper(useWrapping = false)
     public ResourceRef[] evidence;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    public ResourceRef[] memberFeature;
 }
