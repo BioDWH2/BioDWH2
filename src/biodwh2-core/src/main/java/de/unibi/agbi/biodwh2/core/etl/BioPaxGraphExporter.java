@@ -257,7 +257,6 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
         //noinspection UnusedAssignment
         JsonToken token = parser.nextToken();
         String lastTypeKey = null;
-        long testCounter = 0;
         final Set<String> warnedTypeKeys = new HashSet<>();
         while ((token = parser.nextToken()) != null) {
             if ("FIELD_NAME".equals(token.name())) {
@@ -267,10 +266,8 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
                 if (lastTypeKey.equals("Ontology")) {
                     continue; // ignored
                 }
-                testCounter++;
-                if (testCounter >= 1_000_000) {
-                    break;
-                }
+                if (graph.getNumberOfNodes() >= 1_000_000)
+                    break; // TODO: remove test
                 final var consumer = bioPaxTypeConsumerMap.get(lastTypeKey);
                 if (consumer != null) {
                     consumer.consume(graph, xmlMapper.readValue(parser, consumer.type));
@@ -300,20 +297,24 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
     private void exportBiochemicalReaction(final Graph graph, final BiochemicalReaction entry) {
         final Node node = graph.buildNode().withLabel("BiochemicalReaction").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO: deltaG, interactionType, kEQ, left, right, participantStoichiometry, participant
+        // TODO: deltaG, kEQ
     }
 
     private void exportBioSource(final Graph graph, final BioSource entry) {
         final Node node = graph.buildNode().withLabel("BioSource").withModel(entry).build();
         if (entry.xref != null)
             edges.add(new EdgeInfo(node.getId(), entry.xref.resource, "HAS_XREF"));
-        // TODO: cellType, tissue
+        if (entry.tissue != null)
+            edges.add(new EdgeInfo(node.getId(), entry.tissue.resource, "HAS_TISSUE"));
+        if (entry.cellType != null)
+            for (final var cellType : entry.cellType)
+                edges.add(new EdgeInfo(node.getId(), cellType.resource, "HAS_CELL_TYPE"));
     }
 
     private void exportCatalysis(final Graph graph, final Catalysis entry) {
         final Node node = graph.buildNode().withLabel("Catalysis").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
+        // TODO: cofactor, controller, controlled
     }
 
     private void exportCellularLocationVocabulary(final Graph graph, final CellularLocationVocabulary entry) {
@@ -332,35 +333,32 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
 
     private void exportComplex(final Graph graph, final Complex entry) {
         final Node node = graph.buildNode().withLabel("Complex").withModel(entry).build();
-        // TODO: cellularLocation, componentStoichiometry, feature, notFeature, memberPhysicalEntity
         addRelations(node.getId(), entry);
         if (entry.component != null)
             for (final var component : entry.component)
                 edges.add(new EdgeInfo(node.getId(), component.resource, "HAS_COMPONENT"));
+        // TODO: componentStoichiometry
     }
 
     private void exportComplexAssembly(final Graph graph, final ComplexAssembly entry) {
         final Node node = graph.buildNode().withLabel("ComplexAssembly").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
     }
 
     private void exportControl(final Graph graph, final Control entry) {
         final Node node = graph.buildNode().withLabel("Control").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
+        // TODO: controlled, controller
     }
 
     private void exportConversion(final Graph graph, final Conversion entry) {
         final Node node = graph.buildNode().withLabel("Conversion").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
     }
 
     private void exportDegradation(final Graph graph, final Degradation entry) {
         final Node node = graph.buildNode().withLabel("Degradation").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
     }
 
     private void exportDeltaG(final Graph graph, final DeltaG entry) {
@@ -376,19 +374,21 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
     private void exportDnaReference(final Graph graph, final DnaReference entry) {
         final Node node = graph.buildNode().withLabel("DnaReference").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO: organism
+        if (entry.organism != null)
+            edges.add(new EdgeInfo(node.getId(), entry.organism.resource, "BELONGS_TO"));
     }
 
     private void exportDnaRegion(final Graph graph, final DnaRegion entry) {
         final Node node = graph.buildNode().withLabel("DnaRegion").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO: cellularLocation, feature, notFeature, entityReference, memberPhysicalEntity
+        // TODO: entityReference
     }
 
     private void exportDnaRegionReference(final Graph graph, final DnaRegionReference entry) {
         final Node node = graph.buildNode().withLabel("DnaRegionReference").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO: organism
+        if (entry.organism != null)
+            edges.add(new EdgeInfo(node.getId(), entry.organism.resource, "BELONGS_TO"));
     }
 
     private void exportEntityFeature(final Graph graph, final EntityFeature entry) {
@@ -416,7 +416,7 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
 
     private void exportExperimentalForm(final Graph graph, final ExperimentalForm entry) {
         final Node node = graph.buildNode().withLabel("ExperimentalForm").withModel(entry).build();
-        // TODO
+        // TODO: experimentalFormDescription, experimentalFormEntity, experimentalFeature
     }
 
     private void exportExperimentalFormVocabulary(final Graph graph, final ExperimentalFormVocabulary entry) {
@@ -438,13 +438,12 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
     private void exportGeneticInteraction(final Graph graph, final GeneticInteraction entry) {
         final Node node = graph.buildNode().withLabel("GeneticInteraction").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
+        // TODO: interactionScore, phenotype
     }
 
     private void exportInteraction(final Graph graph, final Interaction entry) {
         final Node node = graph.buildNode().withLabel("Interaction").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO: participant, interactionType
     }
 
     private void exportInteractionVocabulary(final Graph graph, final InteractionVocabulary entry) {
@@ -467,18 +466,17 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
     private void exportMolecularInteraction(final Graph graph, final MolecularInteraction entry) {
         final Node node = graph.buildNode().withLabel("MolecularInteraction").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
     }
 
     private void exportPathway(final Graph graph, final Pathway entry) {
         final Node node = graph.buildNode().withLabel("Pathway").withModel(entry).build();
-        // TODO: pathwayOrder
         addRelations(node.getId(), entry);
         if (entry.organism != null)
             edges.add(new EdgeInfo(node.getId(), entry.organism.resource, "BELONGS_TO"));
         if (entry.pathwayComponent != null)
             for (final var component : entry.pathwayComponent)
                 edges.add(new EdgeInfo(node.getId(), component.resource, "HAS_COMPONENT"));
+        // TODO: pathwayOrder
     }
 
     private void exportPathwayStep(final Graph graph, final PathwayStep entry) {
@@ -489,19 +487,20 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
     private void exportPhysicalEntity(final Graph graph, final PhysicalEntity entry) {
         final Node node = graph.buildNode().withLabel("PhysicalEntity").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
     }
 
     private void exportProtein(final Graph graph, final Protein entry) {
         final Node node = graph.buildNode().withLabel("Protein").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
+        // TODO: entityReference
     }
 
     private void exportProteinReference(final Graph graph, final ProteinReference entry) {
         final Node node = graph.buildNode().withLabel("ProteinReference").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO: organism, memberEntityReference, entityFeature, entityReferenceType
+        if (entry.organism != null)
+            edges.add(new EdgeInfo(node.getId(), entry.organism.resource, "BELONGS_TO"));
+        // TODO: memberEntityReference, entityFeature, entityReferenceType
     }
 
     private void exportProvenance(final Graph graph, final Provenance entry) {
@@ -528,40 +527,41 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
     private void exportRna(final Graph graph, final Rna entry) {
         final Node node = graph.buildNode().withLabel("Rna").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
+        // TODO: entityReference
     }
 
     private void exportRnaReference(final Graph graph, final RnaReference entry) {
         final Node node = graph.buildNode().withLabel("RnaReference").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
+        if (entry.organism != null)
+            edges.add(new EdgeInfo(node.getId(), entry.organism.resource, "BELONGS_TO"));
     }
 
     private void exportRnaRegion(final Graph graph, final RnaRegion entry) {
         final Node node = graph.buildNode().withLabel("RnaRegion").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
+        // TODO: entityReference
     }
 
     private void exportRnaRegionReference(final Graph graph, final RnaRegionReference entry) {
         final Node node = graph.buildNode().withLabel("RnaRegionReference").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
+        if (entry.organism != null)
+            edges.add(new EdgeInfo(node.getId(), entry.organism.resource, "BELONGS_TO"));
     }
 
     private void exportScore(final Graph graph, final Score entry) {
         final Node node = graph.buildNode().withLabel("Score").withModel(entry).build();
-        // TODO
+        // TODO: scoreSource
     }
 
     private void exportSequenceInterval(final Graph graph, final SequenceInterval entry) {
         final Node node = graph.buildNode().withLabel("SequenceInterval").withModel(entry).build();
-        // TODO
+        // TODO: sequenceIntervalBegin, sequenceIntervalEnd
     }
 
     private void exportSequenceLocation(final Graph graph, final SequenceLocation entry) {
-        final Node node = graph.buildNode().withLabel("SequenceLocation").withModel(entry).build();
-        // TODO
+        graph.buildNode().withLabel("SequenceLocation").withModel(entry).build();
     }
 
     private void exportSequenceModificationVocabulary(final Graph graph, final SequenceModificationVocabulary entry) {
@@ -575,14 +575,13 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
     }
 
     private void exportSequenceSite(final Graph graph, final SequenceSite entry) {
-        final Node node = graph.buildNode().withLabel("SequenceSite").withModel(entry).build();
-        // TODO
+        graph.buildNode().withLabel("SequenceSite").withModel(entry).build();
     }
 
     private void exportSmallMolecule(final Graph graph, final SmallMolecule entry) {
         final Node node = graph.buildNode().withLabel("SmallMolecule").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO: cellularLocation, entityReference, feature, notFeature, memberPhysicalEntity
+        // TODO: entityReference
     }
 
     private void exportSmallMoleculeReference(final Graph graph, final SmallMoleculeReference entry) {
@@ -610,7 +609,6 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
     private void exportTransport(final Graph graph, final Transport entry) {
         final Node node = graph.buildNode().withLabel("Transport").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO
     }
 
     private void exportTransportWithBiochemicalReaction(final Graph graph,
@@ -627,7 +625,7 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
     private void exportTemplateReactionRegulation(final Graph graph, final TemplateReactionRegulation entry) {
         final Node node = graph.buildNode().withLabel("TemplateReactionRegulation").withModel(entry).build();
         addRelations(node.getId(), entry);
-        // TODO: controlled, controller, interactionType, participant
+        // TODO: controlled, controller
     }
 
     private void addRelations(final Long id, final ControlledVocabulary entry) {
@@ -644,6 +642,25 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
             for (final ResourceRef ref : entry.xref)
                 edges.add(new EdgeInfo(id, ref.resource, "HAS_XREF"));
         // TODO: entityFeature, entityReferenceType, memberEntityReference
+    }
+
+    private void addRelations(final Long id, final PhysicalEntity entry) {
+        addRelations(id, (Entity) entry);
+        // TODO: cellularLocation, feature, notFeature, memberPhysicalEntity
+    }
+
+    private void addRelations(final Long id, final Conversion entry) {
+        addRelations(id, (Interaction) entry);
+        // TODO: left, right, participantStoichiometry
+    }
+
+    private void addRelations(final Long id, final Interaction entry) {
+        addRelations(id, (Entity) entry);
+        if (entry.interactionType != null)
+            edges.add(new EdgeInfo(id, entry.interactionType.resource, "OF_INTERACTION_TYPE"));
+        if (entry.participant != null)
+            for (final ResourceRef ref : entry.participant)
+                edges.add(new EdgeInfo(id, ref.resource, "HAS_PARTICIPANT"));
     }
 
     private void addRelations(final Long id, final Entity entry) {
@@ -667,8 +684,10 @@ public abstract class BioPaxGraphExporter<D extends DataSource> extends GraphExp
             for (final ResourceRef ref : entry.evidence)
                 edges.add(new EdgeInfo(id, ref.resource, "HAS_EVIDENCE"));
         if (entry.nextStep != null)
-            for (final var nextStep : entry.nextStep)
-                edges.add(new EdgeInfo(id, nextStep.resource, "HAS_NEXT_STEP"));
-        // TODO: stepProcess
+            for (final var ref : entry.nextStep)
+                edges.add(new EdgeInfo(id, ref.resource, "HAS_NEXT_STEP"));
+        if (entry.stepProcess != null)
+            for (final var ref : entry.stepProcess)
+                edges.add(new EdgeInfo(id, ref.resource, "HAS_PROCESS"));
     }
 }
