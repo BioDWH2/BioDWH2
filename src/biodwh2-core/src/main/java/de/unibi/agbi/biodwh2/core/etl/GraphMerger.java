@@ -190,8 +190,17 @@ public final class GraphMerger {
                     LOGGER.info("\tResolving nodes with label {}", nodeLabel);
                 for (final var node : graph.findNodes(nodeLabel, OntologyGraphExporter.IS_PROXY_KEY, true)) {
                     final String id = node.getProperty(GraphExporter.ID_KEY);
-                    //noinspection DataFlowIssue
-                    final String idPrefix = id.substring(0, id.indexOf(':'));
+                    if (id == null)
+                        continue;
+                    // MI:2404
+                    int prefixEndIndex = id.indexOf(':');
+                    if (prefixEndIndex == -1) {
+                        // MI_2406
+                        prefixEndIndex = id.indexOf('_');
+                        if (prefixEndIndex == -1)
+                            continue;
+                    }
+                    final String idPrefix = id.substring(0, prefixEndIndex);
                     final String resolvedTermLabel = resolvedTermLabels.get(idPrefix);
                     if (resolvedTermLabel == null)
                         continue;
