@@ -54,7 +54,7 @@ public class DGIdbGraphExporter extends GraphExporter<DGIdbDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -216,10 +216,10 @@ public class DGIdbGraphExporter extends GraphExporter<DGIdbDataSource> {
     }
 
     private void exportInteraction(final Graph graph, final Interaction interaction) {
-        if (interaction.gene_concept_id != null && !"NULL".equals(interaction.gene_concept_id) &&
-            interaction.drug_concept_id != null && !"NULL".equals(interaction.drug_concept_id)) {
-            final Node drugNode = graph.findNode(DRUG_LABEL, ID_KEY, interaction.drug_concept_id);
-            final Node geneNode = graph.findNode(GENE_LABEL, ID_KEY, interaction.gene_concept_id);
+        if (interaction.geneConceptId != null && !"NULL".equals(interaction.geneConceptId) &&
+            interaction.drugConceptId != null && !"NULL".equals(interaction.drugConceptId)) {
+            final Node drugNode = graph.findNode(DRUG_LABEL, ID_KEY, interaction.drugConceptId);
+            final Node geneNode = graph.findNode(GENE_LABEL, ID_KEY, interaction.geneConceptId);
             graph.addEdgeFromModel(drugNode, geneNode, interaction);
         }
     }
