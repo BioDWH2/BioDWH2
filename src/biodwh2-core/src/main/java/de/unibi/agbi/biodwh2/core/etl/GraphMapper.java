@@ -13,6 +13,7 @@ import de.unibi.agbi.biodwh2.core.model.WorkspaceFileType;
 import de.unibi.agbi.biodwh2.core.model.graph.*;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
+import de.unibi.agbi.biodwh2.core.text.MetaGraphExtendedStatisticsWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -388,11 +389,12 @@ public final class GraphMapper {
         final String statistics = new MetaGraphStatisticsWriter(metaGraph).write();
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(statistics);
+            LOGGER.info("For extended meta graph information see: {}", metaGraphStatsFilePath);
             LOGGER.info("Exporting mapped meta graph image to {}", metaGraphImageFilePath);
         }
         final MetaGraphImage image = new MetaGraphImage(metaGraph, 2048, 2048);
         image.drawAndSaveImage(metaGraphImageFilePath);
-        FileUtils.writeTextToUTF8File(metaGraphStatsFilePath, statistics);
+        new MetaGraphExtendedStatisticsWriter(metaGraph).write(metaGraphStatsFilePath);
         final MetaGraphDynamicVisWriter visWriter = new MetaGraphDynamicVisWriter(metaGraph);
         visWriter.write(metaGraphDynamicVisFilePath);
     }

@@ -12,6 +12,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.meta.MetaGraph;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphDynamicVisWriter;
+import de.unibi.agbi.biodwh2.core.text.MetaGraphExtendedStatisticsWriter;
 import de.unibi.agbi.biodwh2.core.text.MetaGraphStatisticsWriter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -96,11 +97,12 @@ public abstract class GraphExporter<D extends DataSource> {
         final String statistics = new MetaGraphStatisticsWriter(metaGraph).write();
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(statistics);
+            LOGGER.info("For extended meta graph information see: {}", metaGraphStatsFilePath);
             LOGGER.info("Exporting meta graph image to {}", metaGraphImageFilePath);
         }
         final MetaGraphImage image = new MetaGraphImage(metaGraph, META_GRAPH_IMAGE_SIZE, META_GRAPH_IMAGE_SIZE);
         image.drawAndSaveImage(metaGraphImageFilePath);
-        FileUtils.writeTextToUTF8File(metaGraphStatsFilePath, statistics);
+        new MetaGraphExtendedStatisticsWriter(metaGraph).write(metaGraphStatsFilePath);
         final MetaGraphDynamicVisWriter visWriter = new MetaGraphDynamicVisWriter(metaGraph);
         visWriter.write(metaGraphDynamicVisFilePath);
     }

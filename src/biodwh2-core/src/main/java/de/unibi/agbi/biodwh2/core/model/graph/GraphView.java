@@ -1,5 +1,7 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
+import de.unibi.agbi.biodwh2.core.lang.Type;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -255,6 +257,18 @@ public class GraphView extends BaseGraph {
         if (!nodeLabels.contains(label))
             return null;
         return graph.findNodeId(label, propertyKey, value);
+    }
+
+    public final Map<String, Type> getPropertyKeyTypesForNodeLabel(final String label) {
+        if (!nodeLabels.contains(label))
+            return new HashMap<>();
+        return graph.getPropertyKeyTypesForNodeLabel(label);
+    }
+
+    public final Map<String, Type> getPropertyKeyTypesForEdgeLabel(final String label) {
+        if (!edgeLabels.contains(label))
+            return new HashMap<>();
+        return graph.getPropertyKeyTypesForEdgeLabel(label);
     }
 
     private class FilterNodesIterator implements Iterator<Node> {

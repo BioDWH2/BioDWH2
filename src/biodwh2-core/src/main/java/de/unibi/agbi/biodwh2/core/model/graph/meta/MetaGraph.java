@@ -1,9 +1,7 @@
 package de.unibi.agbi.biodwh2.core.model.graph.meta;
 
-import de.unibi.agbi.biodwh2.core.model.graph.BaseGraph;
-import de.unibi.agbi.biodwh2.core.model.graph.Edge;
-import de.unibi.agbi.biodwh2.core.model.graph.Graph;
-import de.unibi.agbi.biodwh2.core.model.graph.Node;
+import de.unibi.agbi.biodwh2.core.lang.Type;
+import de.unibi.agbi.biodwh2.core.model.graph.*;
 
 import java.util.*;
 
@@ -42,6 +40,16 @@ public final class MetaGraph {
             final String dataSourceId = determineDataSourceIdForNodeLabel(label);
             final boolean isMappingLabel = isMappedGraph && dataSourceId == null && !METADATA_LABEL.equals(label);
             final MetaNode node = new MetaNode(label, dataSourceId, isMappingLabel);
+            final Map<String, Type> propertyKeyTypes;
+            if (graph instanceof Graph)
+                propertyKeyTypes = ((Graph) graph).getPropertyKeyTypesForNodeLabel(label);
+            else if (graph instanceof GraphView)
+                propertyKeyTypes = ((GraphView) graph).getPropertyKeyTypesForNodeLabel(label);
+            else
+                propertyKeyTypes = null;
+            if (propertyKeyTypes != null)
+                for (final String key : propertyKeyTypes.keySet())
+                    node.propertyKeyTypes.put(key, propertyKeyTypes.get(key));
             node.count = graph.getNumberOfNodes(label);
             nodes.put(label, node);
         }
@@ -69,6 +77,7 @@ public final class MetaGraph {
                     for (final String toLabel : fromToLabels.get(fromLabel).keySet()) {
                         final String key = label + '|' + fromLabel + '|' + toLabel;
                         final MetaEdge metaEdge = new MetaEdge(fromLabel, toLabel, label, dataSourceId, isMappingLabel);
+                        addMetaEdgeProperties(graph, metaEdge);
                         edges.put(key, metaEdge);
                         metaEdge.count = fromToLabels.get(fromLabel).get(toLabel);
                     }
@@ -81,12 +90,26 @@ public final class MetaGraph {
                     MetaEdge metaEdge = edges.get(key);
                     if (metaEdge == null) {
                         metaEdge = new MetaEdge(fromLabel, toLabel, label, dataSourceId, isMappingLabel);
+                        addMetaEdgeProperties(graph, metaEdge);
                         edges.put(key, metaEdge);
                     }
                     metaEdge.count++;
                 }
             }
         }
+    }
+
+    private void addMetaEdgeProperties(final BaseGraph graph, final MetaEdge metaEdge) {
+        final Map<String, Type> propertyKeyTypes;
+        if (graph instanceof Graph)
+            propertyKeyTypes = ((Graph) graph).getPropertyKeyTypesForEdgeLabel(metaEdge.label);
+        else if (graph instanceof GraphView)
+            propertyKeyTypes = ((GraphView) graph).getPropertyKeyTypesForEdgeLabel(metaEdge.label);
+        else
+            propertyKeyTypes = null;
+        if (propertyKeyTypes != null)
+            for (final String key : propertyKeyTypes.keySet())
+                metaEdge.propertyKeyTypes.put(key, propertyKeyTypes.get(key));
     }
 
     public long getNodeLabelCount() {
