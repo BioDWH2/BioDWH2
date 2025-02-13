@@ -6,9 +6,9 @@ import de.unibi.agbi.biodwh2.core.model.graph.GraphNodeLabel;
 import de.unibi.agbi.biodwh2.core.model.graph.GraphProperty;
 
 @JsonPropertyOrder({
-        "UNII", "Display Name", "RN", "EC", "NCIT", "RXCUI", "PUBCHEM", "EPA_CompTox", "CATALOGUE_OF_LIFE", "ITIS",
-        "NCBI", "PLANTS", "GRIN", "MPNS", "INN_ID", "USAN_ID", "MF", "INCHIKEY", "SMILES", "INGREDIENT_TYPE",
-        "SUBSTANCE_TYPE", "UUID", "DAILYMED"
+        "UNII", "Display Name", "RN", "EC", "NCIT", "RXCUI", "PUBCHEM", "SMSID", "EPA_CompTox", "CATALOGUE_OF_LIFE",
+        "ITIS", "NCBI", "PLANTS", "POWO", "GRIN", "MPNS", "INN_ID", "USAN_ID", "MF", "INCHIKEY", "SMILES",
+        "INGREDIENT_TYPE", "SUBSTANCE_TYPE", "UUID", "DAILYMED"
 })
 @GraphNodeLabel("UNII")
 public class UNIIDataEntry {
@@ -21,22 +21,25 @@ public class UNIIDataEntry {
     @JsonProperty("RN")
     @GraphProperty("cas")
     public String rn;
-    /*
+    /**
      * European Chemicals Agency registry number (formerly known EINECS)
+     * <p>
      * https://echa.europa.eu/information-on-chemicals
      */
     @JsonProperty("EC")
     @GraphProperty("ec")
     public String ec;
-    /*
+    /**
      * NCI Thesaurus Concept Code
+     * <p>
      * https://ncit.nci.nih.gov/ncitbrowser/
      */
     @JsonProperty("NCIT")
     @GraphProperty("ncit")
     public String ncit;
-    /*
+    /**
      * RXNORM Ingredient Concept Code
+     * <p>
      * https://www.nlm.nih.gov/research/umls/rxnorm/
      */
     @JsonProperty("RXCUI")
@@ -45,46 +48,63 @@ public class UNIIDataEntry {
     @JsonProperty("PUBCHEM")
     @GraphProperty("pubchem_cid")
     public String pubchem;
+    @JsonProperty("SMSID")
+    @GraphProperty("smsid")
+    public String smsId;
     @JsonProperty("EPA_CompTox")
     @GraphProperty("epa_comptox")
     public String epaCompTox;
     @JsonProperty("CATALOGUE_OF_LIFE")
     @GraphProperty("catalogue_of_life")
     public String catalogueOfLife;
-    /*
+    /**
      * Integrated Taxonomic Information System Taxonomic Serial Number (ITIS TSN)
-     * https://www.itis.gov/
+     * <p>
+     * https://www.itis.gov
      */
     @JsonProperty("ITIS")
     public Integer itis;
-    /*
+    /**
      * NCBI taxonomy organism ID
+     * <p>
      * https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Root
      */
     @JsonProperty("NCBI")
     public String ncbi;
-    /*
+    /**
      * USDA PLANTS organism ID
+     * <p>
      * https://plants.usda.gov/java/
      */
     @JsonProperty("PLANTS")
     public String plants;
-    /*
+    /**
+     * Plants of the World Online
+     * <p>
+     * https://powo.science.kew.org
+     */
+    @JsonProperty("POWO")
+    @GraphProperty("powo")
+    public String powo;
+    /**
      * USDA Agricultural Research Service Germplasm Resources Information Network (GRIN) nomen ID
+     * <p>
      * https://npgsweb.ars-grin.gov/gringlobal/taxon/taxonomysearch.aspx
      */
     @JsonProperty("GRIN")
     @GraphProperty("usda_grin_nomen_id")
     public String grin;
-    /*
+    /**
      * Kew Gardens Medicinal Plants Name Service Record ID (includes source database prefix)
+     * <p>
      * http://mpns.kew.org/mpns-portal/
      */
     @JsonProperty("MPNS")
     @GraphProperty("mpns")
     public String mpns;
-    /*
+    /**
      * Sequential number assigned by World Health Organization's International Nonproprietary Name (INN) Programme
+     * <p>
      * http://www.who.int/medicines/services/inn/en/
      */
     @JsonProperty("INN_ID")
@@ -93,7 +113,7 @@ public class UNIIDataEntry {
     @JsonProperty("USAN_ID")
     @GraphProperty("usan_id")
     public String usanId;
-    /*
+    /**
      * Molecular Formula - total atoms represented as a molecular structure in a UNII description
      */
     @JsonProperty("MF")
