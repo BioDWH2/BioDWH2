@@ -29,7 +29,7 @@ public class RNALocateGraphExporter extends GraphExporter<RNALocateDataSource> {
 
     @Override
     public long getExportVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -39,6 +39,8 @@ public class RNALocateGraphExporter extends GraphExporter<RNALocateDataSource> {
         exportExperimentalEntries(workspace, graph);
         exportPredictedEntries(workspace, graph, RNALocateUpdater.PREDICTED_MRNA_FILE_NAME);
         exportPredictedEntries(workspace, graph, RNALocateUpdater.PREDICTED_LNCRNA_FILE_NAME);
+        exportPredictedEntries(workspace, graph, RNALocateUpdater.PREDICTED_MIRNA_FILE_NAME);
+        exportPredictedEntries(workspace, graph, RNALocateUpdater.PREDICTED_SNORNA_FILE_NAME);
         return true;
     }
 
