@@ -1,5 +1,43 @@
 # Changelog
 
+## 📦 Version [v0.6.6](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.6)
+
+Released: 13.02.2025
+
+### 📚 Data Sources
+
+* ```[Negatome]``` Check for live version in addition to the archive fallback
+* ```[GWASCatalog]``` Add GWASCatalog studies missing from the studies file
+* ```[GeneOntologyAnnotations]``` Fix gene ontology annotations updater and graph exporter
+* ```[miRTarBase]``` Update miRTarBase model and updater
+* ```[BRENDA]``` Update BRENDA model and exporter
+* ```[HMDB]``` Fix HMDB exporter
+* ```[HGNC]``` Update HGNC model and exporter
+* ```[UNII]``` Update UNII model
+* ```[DGIdb]``` Update DGIdb model
+* ```[DrugBank]``` Add username/password to DrugBank version retrieval
+* ```[USDA-PLANTS]``` Fix USDA-PLANTS updater
+* ```[BIONDA]``` Update BIONDA download URL
+* ```[TheMarker]``` TheMarker exporter now properly finishes
+* ```[RNALocate]``` Fix RNALocate updater with broken SSL and add additional download files
+* ```[UniProt]``` Remove secondary accessions from mapping and export recommended names and EC numbers
+* ```[CancerDrugsDB]``` Update CancerDrugsDB version URL
+* ```[EvidenceAndConclusionOntology]``` Add EvidenceAndConclusionOntology ontology data source module
+* ```[MedicalActionOntology]``` Add MedicalActionOntology ontology data source module
+* ```[CompositionalDietaryNutritionOntology]``` Add CompositionalDietaryNutritionOntology ontology data source module
+
+### 🔧 Bug fixes and other changes
+
+* ```[feature]``` Improved SQL to TSV conversion
+* ```[feature]``` Speedup ontology proxy term resolution
+* ```[feature]``` Speedup retrieving single node Ids
+* ```[feature]``` First draft of generalized BioPAX exporter
+* ```[feature]``` Web configurator now shows available new versions
+* ```[feature]``` Add class mapping value transformer from enum to string
+* ```[feature]``` Breaking: meta graph statistics files are now JSON with additional detail information
+* ```[fix]``` Safety checks for malformed ontology IDs in proxy term resolution
+* ```[chore]``` Update dependencies
+
 ## 📦 Version [v0.6.5](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.5)
 
 Released: 14.11.2024
