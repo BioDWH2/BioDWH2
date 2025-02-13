@@ -13,10 +13,15 @@ public class Enzyme {
     @JsonProperty("id")
     public String id;
     /**
+     * Information about when EC number has been deleted or transferred.
+     */
+    @JsonProperty("history")
+    public String history;
+    /**
      * The recommended or accepted name of an enzyme as given by the IUBMB.
      */
-    @JsonProperty("name")
-    public String name;
+    @JsonProperty("recommended_name")
+    public String recommendedName;
     /**
      * The systematic name fields provides a chemically more precise name and is usually based on the substrate or, in
      * the case of a bimolecular reaction, of the two substrates separated by a colon, and the nature of the reaction.
@@ -53,8 +58,11 @@ public class Enzyme {
      */
     @JsonProperty("purification")
     public Dataset[] purification;
-    @JsonProperty("renaturation")
-    public Dataset[] renaturation;
+    /**
+     * Information on the renaturation, refolding and reactivation procedures of enzymes after denaturation processes.
+     */
+    @JsonProperty("renatured")
+    public Dataset[] renatured;
     /**
      * General information on enzyme stability.
      */
@@ -63,8 +71,8 @@ public class Enzyme {
     /**
      * The influence of oxidating agents on enzyme stability.
      */
-    @JsonProperty("oxygen_stability")
-    public Dataset[] oxygenStability;
+    @JsonProperty("oxydation_stability")
+    public Dataset[] oxydationStability;
     /**
      * The influence of storage duration and conditions such as temperature, pH, additives etc. on the enzyme stability
      * and activity.
@@ -72,27 +80,30 @@ public class Enzyme {
     @JsonProperty("storage_stability")
     public Dataset[] storageStability;
     /**
-     * A generalized form of reactions catalyzed by the enzyme.
-     */
-    @JsonProperty("generic_reaction")
-    public ReactionDataset[] genericReaction;
-    /**
-     * The reaction catalyzed by the enzyme under physiological conditions.
-     */
-    @JsonProperty("natural_reaction")
-    public ReactionDataset[] naturalReaction;
-    /**
-     * The reaction catalyzed by the enzyme.
+     * The reaction as defined by the IUBMB (International Union of Biochemistry and Molecular Biology).
      */
     @JsonProperty("reaction")
-    public ReactionDataset[] reaction;
+    public TextDataset[] reaction;
     /**
-     * The rate at which an enzyme converts its substrate in 1/s.
+     * Substrates and products in the metabolism of the cell in vivo, under physiological conditions. A natural
+     * substrate and/or product is only given if it is specified in the literature reference.
+     */
+    @JsonProperty("natural_substrates_products")
+    public TextDataset[] naturalSubstratesProducts;
+    /**
+     * All natural or synthetic substrates and products are listed here (not in stoichiometric quantities). In cases
+     * with unclear product formation only a '?' as a dummy is given. The reversibility of the reaction is given here in
+     * {...} r=reversible, ir=irreversible.
+     */
+    @JsonProperty("substrates_products")
+    public TextDataset[] substratesProducts;
+    /**
+     * The turnover number (kcat) is given in the unit 1/s. Each value is connected to a substrate name in {...}.
      */
     @JsonProperty("turnover_number")
     public NumericDataset[] turnoverNumber;
     /**
-     * The Michaelis-Menten constant of the enzyme in mM.
+     * The Michaelis-Menten value of the enzyme in mM. Each value is connected to a substrate name.
      */
     @JsonProperty("km_value")
     public NumericDataset[] kmValue;
@@ -107,7 +118,7 @@ public class Enzyme {
     @JsonProperty("ph_range")
     public NumericDataset[] phRange;
     /**
-     * The pH stability of the enzyme.
+     * This field can either give a range or a single value in which the enzyme has its optimal stability.
      */
     @JsonProperty("ph_stability")
     public NumericDataset[] phStability;
@@ -127,7 +138,8 @@ public class Enzyme {
     @JsonProperty("temperature_range")
     public NumericDataset[] temperatureRange;
     /**
-     * The temperature stability of the enzyme in °C.
+     * The temperature stability is given in °C. This field can either give a range or a single value in which the
+     * enzyme is stable.
      */
     @JsonProperty("temperature_stability")
     public NumericDataset[] temperatureStability;
@@ -138,26 +150,25 @@ public class Enzyme {
     @JsonProperty("molecular_weight")
     public NumericDataset[] molecularWeight;
     /**
-     * The pH value at which the protein carries no net electrical charge.
+     * Isoelectric point of the enzyme, the pH value at which the protein carries no net electrical charge.
      */
-    @JsonProperty("isoelectric_point")
-    public NumericDataset[] isoelectricPoint;
+    @JsonProperty("pi_value")
+    public NumericDataset[] piValue;
     /**
-     * The inhibition constant in mM. Each value is connected to an inhibitor (`value` property).
+     * The inhibition constant in mM. Each value is connected to an inhibitor in {...}
      */
     @JsonProperty("ki_value")
     public NumericDataset[] kiValue;
     /**
-     * The half maximal inhibitory concentration of a compound in mM. Each value is connected to an inhibitor (`value`
-     * property).
+     * The half maximal inhibitory concentration of a compund in mM. Each value is connected to an inhibitor in {...}.
      */
-    @JsonProperty("ic50")
-    public NumericDataset[] ic50;
+    @JsonProperty("ic50_value")
+    public NumericDataset[] ic50Value;
     /**
-     * The catalytic efficiency of the enzyme in mM/s. Each value is connected to a substrate (`value` property).
+     * The catalytic efficiency of the enzyme in mM/s. Each value is connected to a substrate in {...}.
      */
-    @JsonProperty("kcat_km")
-    public NumericDataset[] kcatKm;
+    @JsonProperty("kcat_km_value")
+    public NumericDataset[] kcatKmValue;
     /**
      * The intracellular localization of the enzyme.
      */
@@ -167,10 +178,10 @@ public class Enzyme {
      * For multicellular organisms the tissues used for isolation of the enzyme or the tissue in which the enzyme is
      * present. Cell-lines can also be a source of enzymes.
      */
-    @JsonProperty("tissue")
-    public TextDataset[] tissue;
+    @JsonProperty("source_tissue")
+    public TextDataset[] sourceTissue;
     /**
-     * Compounds that have a positive effects on the activity of the enzyme, except metal ions and cofactors.
+     * Compounds that have positive effects on the activity of the enzyme, except metal ions and cofactors.
      */
     @JsonProperty("activating_compound")
     public TextDataset[] activatingCompound;
@@ -201,8 +212,12 @@ public class Enzyme {
      */
     @JsonProperty("cofactor")
     public TextDataset[] cofactor;
-    @JsonProperty("engineering")
-    public TextDataset[] engineering;
+    /**
+     * The properties of modified enzyme proteins are described. The modification could be i.e. natural occurring
+     * mutations, site-directed mutagenesis, deletions etc. In most cases the amino acid exchanges are given.
+     */
+    @JsonProperty("protein_variants")
+    public TextDataset[] proteinVariants;
     /**
      * Information on expression and cloning procedures and systems are given and in which organism or cell culture an
      * enzyme is expressed in.
@@ -216,7 +231,7 @@ public class Enzyme {
     public TextDataset[] organicSolventStability;
     /**
      * This information field describes the effect of compounds and/or conditions on the expression of enzymes leading
-     * to an up- or downregulation.
+     * to an up- or down-regulation.
      */
     @JsonProperty("expression")
     public TextDataset[] expression;
@@ -229,16 +244,11 @@ public class Enzyme {
     /**
      * Protein/gene accessions associated with the data field.
      */
-    @JsonProperty("proteins")
-    public Map<Integer, Protein[]> proteins;
+    @JsonProperty("protein")
+    public Map<Integer, ProteinDataset> proteins;
     /**
      * The references associated with the data field.
      */
-    @JsonProperty("references")
-    public Map<Integer, Reference> references;
-    /**
-     * The organisms associated with the data field.
-     */
-    @JsonProperty("organisms")
-    public Map<Integer, Organism> organisms;
+    @JsonProperty("reference")
+    public Map<Integer, ReferenceDataset> references;
 }

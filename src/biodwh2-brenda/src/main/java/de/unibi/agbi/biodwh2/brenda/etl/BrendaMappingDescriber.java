@@ -27,7 +27,7 @@ public class BrendaMappingDescriber extends MappingDescriber {
     private NodeMappingDescription[] describeEnzyme(final Node node) {
         final NodeMappingDescription description = new NodeMappingDescription(NodeMappingDescription.NodeType.PROTEIN);
         description.addIdentifier(IdentifierType.EC_NUMBER, node.<String>getProperty(GraphExporter.ID_KEY));
-        description.addName(node.getProperty("name"));
+        description.addName(node.getProperty("recommended_name"));
         description.addName(node.getProperty("systematic_name"));
         return new NodeMappingDescription[]{description};
     }

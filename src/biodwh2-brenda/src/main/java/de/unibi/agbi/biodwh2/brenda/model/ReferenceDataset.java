@@ -2,7 +2,7 @@ package de.unibi.agbi.biodwh2.brenda.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Reference {
+public class ReferenceDataset {
     @SuppressWarnings("unused")
     @JsonProperty("id")
     public String id;
@@ -18,6 +18,6 @@ public class Reference {
     public String pages;
     @JsonProperty("vol")
     public String volume;
-    @JsonProperty("pmid")
+    @JsonProperty("pm_id")
     public Long pmid; // TODO: should be Integer, however some PMIDs are malformed
 }
