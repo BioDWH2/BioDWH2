@@ -46,7 +46,7 @@ public class TheMarkerGraphExporter extends GraphExporter<TheMarkerDataSource> {
         exportDrugs(workspace, graph);
         exportMarker(workspace, graph);
         exportAssociations(workspace, graph);
-        return false;
+        return true;
     }
 
     private void exportDiseases(final Workspace workspace, final Graph graph) {
