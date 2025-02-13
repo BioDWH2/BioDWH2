@@ -12,8 +12,8 @@ import java.util.regex.Pattern;
 public class BIONDAUpdater extends Updater<BIONDADataSource> {
     private static final Pattern VERSION_PATTERN = Pattern.compile("Version ([0-9]+\\.[0-9]+\\.[0-9]+)");
     private static final String VERSION_URL = "http://bionda.mpc.ruhr-uni-bochum.de/start.php";
-    private static final String DOWNLOAD_URL = "http://bionda.mpc.ruhr-uni-bochum.de/down/Bionda_complete.tsv";
     static final String FILE_NAME = "Bionda_complete.tsv";
+    private static final String DOWNLOAD_URL = "http://bionda.mpc.ruhr-uni-bochum.de/downloads/" + FILE_NAME;
 
     public BIONDAUpdater(final BIONDADataSource dataSource) {
         super(dataSource);
