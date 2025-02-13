@@ -28,13 +28,17 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
 
     @Override
     public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        final JsonNode json = loadReleasesJson();
+        final JsonNode json = loadReleasesJson(workspace);
         final String version = getFirstReleaseVersion(json);
         return parseVersion(version);
     }
 
-    private JsonNode loadReleasesJson() throws UpdaterException {
-        final String source = getWebsiteSource("https://go.drugbank.com/releases.json");
+    private JsonNode loadReleasesJson(final Workspace workspace) throws UpdaterException {
+        final String username = dataSource.getStringProperty(workspace, "username");
+        final String password = dataSource.getStringProperty(workspace, "password");
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password))
+            throw new UpdaterOnlyManuallyException();
+        final String source = getWebsiteSource("https://go.drugbank.com/releases.json", username, password);
         return parseJsonSource(source);
     }
 
@@ -68,7 +72,7 @@ public class DrugBankUpdater extends Updater<DrugBankDataSource> {
         final String password = dataSource.getStringProperty(workspace, "password");
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password))
             throw new UpdaterOnlyManuallyException();
-        final JsonNode releases = loadReleasesJson();
+        final JsonNode releases = loadReleasesJson(workspace);
         final JsonNode latestRelease = releases.get(0);
         final String latestReleaseUrl = latestRelease.get("url").asText();
         downloadFileAsBrowser(workspace, latestReleaseUrl + FULL_DATABASE_URL_SUFFIX, FULL_DATABASE_FILE_NAME, username,

@@ -15,8 +15,10 @@ public class CanadianNutrientFileUpdater extends Updater<CanadianNutrientFileDat
      * Main page of the project. Is used to determine the newest version by parsing the html code.
      */
     private static final String CNF_MAIN_URL = "https://www.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/nutrient-data/canadian-nutrient-file-2015-download-files.html";
-    private static final String CNF_DOWNLOAD_URL = "https://www.canada.ca/content/dam/hc-sc/migration/hc-sc/fn-an/alt_formats/zip/nutrition/fiche-nutri-data/cnf-fcen-csv.zip";
     static final String FILE_NAME = "cnf-fcen-csv.zip";
+    private static final String CNF_DOWNLOAD_URL =
+            "https://www.canada.ca/content/dam/hc-sc/migration/hc-sc/fn-an/alt_formats/zip/nutrition/fiche-nutri-data/" +
+            FILE_NAME;
 
     public CanadianNutrientFileUpdater(final CanadianNutrientFileDataSource dataSource) {
         super(dataSource);

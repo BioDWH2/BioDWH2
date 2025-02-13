@@ -32,7 +32,7 @@ import java.util.function.BiConsumer;
 
 public final class HTTPClient {
     @SuppressWarnings("SpellCheckingInspection")
-    public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+    public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36";
 
     private HTTPClient() {
     }

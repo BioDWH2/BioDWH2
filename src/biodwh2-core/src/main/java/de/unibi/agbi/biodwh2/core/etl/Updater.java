@@ -155,7 +155,25 @@ public abstract class Updater<D extends DataSource> {
         }
     }
 
-    protected String getWebsiteSource(final String url, int retries) throws UpdaterConnectionException {
+    protected String getWebsiteSource(final String url, final String username,
+                                      final String password) throws UpdaterConnectionException {
+        try {
+            return HTTPClient.getWebsiteSource(url, username, password);
+        } catch (IOException e) {
+            throw new UpdaterConnectionException("Failed to retrieve version", e);
+        }
+    }
+
+    protected String getWebsiteSource(final String url, final String username, final String password,
+                                      final int retries) throws UpdaterConnectionException {
+        try {
+            return HTTPClient.getWebsiteSource(url, username, password, retries);
+        } catch (IOException e) {
+            throw new UpdaterConnectionException("Failed to retrieve version", e);
+        }
+    }
+
+    protected String getWebsiteSource(final String url, final int retries) throws UpdaterConnectionException {
         try {
             return HTTPClient.getWebsiteSource(url, retries);
         } catch (IOException e) {
