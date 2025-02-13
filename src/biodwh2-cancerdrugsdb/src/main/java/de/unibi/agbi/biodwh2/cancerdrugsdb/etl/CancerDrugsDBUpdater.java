@@ -22,7 +22,7 @@ public class CancerDrugsDBUpdater extends Updater<CancerDrugsDBDataSource> {
 
     @Override
     public Version getNewestVersion(final Workspace workspace) throws UpdaterException {
-        final String source = getWebsiteSource("https://www.anticancerfund.org/en/cancerdrugs-db");
+        final String source = getWebsiteSource("https://www.anticancerfund.org/en/database-cancer-drugs");
         final Matcher matcher = VERSION_PATTERN.matcher(source);
         if (matcher.find()) {
             final String[] parts = StringUtils.split(matcher.group(1), '/');
