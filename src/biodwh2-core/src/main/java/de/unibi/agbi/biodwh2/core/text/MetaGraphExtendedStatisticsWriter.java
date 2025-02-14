@@ -35,7 +35,7 @@ public class MetaGraphExtendedStatisticsWriter {
         writer.write("\t\"nodeLabelCount\": " + graph.getNodeLabelCount() + ",\n");
         writer.write("\t\"edgeCount\": " + graph.getTotalEdgeCount() + ",\n");
         writer.write("\t\"edgeLabelCount\": " + graph.getEdgeLabelCount() + ",\n");
-        writer.write("\t\"nodeLabels\": [\n");
+        writer.write("\t\"nodeLabels\": {\n");
         for (final var nodeIterator = getLabelSortedMetaNodes().iterator(); nodeIterator.hasNext(); ) {
             final MetaNode node = nodeIterator.next();
             writer.write("\t\t\"" + node.label + "\": {\n");
@@ -59,8 +59,8 @@ public class MetaGraphExtendedStatisticsWriter {
                 writer.write(',');
             writer.write('\n');
         }
-        writer.write("\t],\n");
-        writer.write("\t\"edgeLabels\": [\n");
+        writer.write("\t},\n");
+        writer.write("\t\"edgeLabels\": {\n");
         for (final var edgeIterator = getLabelSortedMetaEdges().iterator(); edgeIterator.hasNext(); ) {
             final MetaEdge edge = edgeIterator.next();
             writer.write("\t\t\"" + edge.label + "\": {\n");
@@ -84,7 +84,7 @@ public class MetaGraphExtendedStatisticsWriter {
                 writer.write(',');
             writer.write('\n');
         }
-        writer.write("\t]\n");
+        writer.write("\t}\n");
         writer.write("}\n");
     }
 
