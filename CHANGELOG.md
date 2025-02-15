@@ -4,13 +4,7 @@
 
 Released: 14.02.2025
 
-### 🔧 Bug fixes and other changes
-
-* ```[fix]``` Fix extended meta graph statistics JSON
-
-## 📦 Version [v0.6.6](https://github.com/BioDWH2/BioDWH2/releases/tag/v0.6.6)
-
-Released: 13.02.2025
+Hotfix for v0.6.6 which contained a small issue.
 
 ### 📚 Data Sources
 
