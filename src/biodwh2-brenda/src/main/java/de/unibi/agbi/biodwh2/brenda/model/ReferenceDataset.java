@@ -18,6 +18,6 @@ public class ReferenceDataset {
     public String pages;
     @JsonProperty("vol")
     public String volume;
-    @JsonProperty("pm_id")
+    @JsonProperty("pmid")
     public Long pmid; // TODO: should be Integer, however some PMIDs are malformed
 }

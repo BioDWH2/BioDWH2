@@ -150,9 +150,9 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
             for (final Dataset dataset : enzyme.generalStability)
                 createValueNode(graph, node, "HAS_GENERAL_STABILITY", proteinRefNodeIdMap, publicationRefNodeIdMap,
                                 dataset);
-        if (enzyme.oxydationStability != null)
-            for (final Dataset dataset : enzyme.oxydationStability)
-                createValueNode(graph, node, "HAS_OXYDATION_STABILITY", proteinRefNodeIdMap, publicationRefNodeIdMap,
+        if (enzyme.oxidationStability != null)
+            for (final Dataset dataset : enzyme.oxidationStability)
+                createValueNode(graph, node, "HAS_OXIDATION_STABILITY", proteinRefNodeIdMap, publicationRefNodeIdMap,
                                 dataset);
         if (enzyme.storageStability != null)
             for (final Dataset dataset : enzyme.storageStability)
@@ -378,37 +378,20 @@ public class BrendaGraphExporter extends GraphExporter<BrendaDataSource> {
         }
         if (dataset.references != null) {
             for (final String reference : dataset.references) {
-                if (StringUtils.isNotEmpty(reference) && !"-".equals(reference) && !"Swissprot".equals(reference)) {
-                    try {
-                        final int indexOfDash = reference.indexOf('-');
-                        if (indexOfDash == -1) {
-                            final int referenceRef = Integer.parseInt(reference);
+                if (StringUtils.isNotEmpty(reference) && !"-".equals(reference)) {
+                    final int indexOfDash = reference.indexOf('-');
+                    if (indexOfDash == -1) {
+                        final int referenceRef = Integer.parseInt(reference);
+                        final Long nodeId = publicationRefNodeIdMap.get(referenceRef);
+                        if (nodeId != null)
+                            graph.addEdge(node, nodeId, "REFERENCES");
+                    } else {
+                        final int start = Integer.parseInt(reference.substring(0, indexOfDash));
+                        final int end = Integer.parseInt(reference.substring(indexOfDash + 1));
+                        for (int referenceRef = start; referenceRef <= end; referenceRef++) {
                             final Long nodeId = publicationRefNodeIdMap.get(referenceRef);
                             if (nodeId != null)
                                 graph.addEdge(node, nodeId, "REFERENCES");
-                        } else {
-                            final int start = Integer.parseInt(reference.substring(0, indexOfDash));
-                            final int end = Integer.parseInt(reference.substring(indexOfDash + 1));
-                            for (int referenceRef = start; referenceRef <= end; referenceRef++) {
-                                final Long nodeId = publicationRefNodeIdMap.get(referenceRef);
-                                if (nodeId != null)
-                                    graph.addEdge(node, nodeId, "REFERENCES");
-                            }
-                        }
-                    } catch (NumberFormatException ignored) {
-                        // TODO: remove fix for malformed data once fixed
-                        try {
-                            final String actualReference = dataset.references[dataset.references.length - 1];
-                            final int referenceRef = Integer.parseInt(actualReference.substring(1));
-                            final Long nodeId = publicationRefNodeIdMap.get(referenceRef);
-                            if (nodeId != null)
-                                graph.addEdge(node, nodeId, "REFERENCES");
-                            node.setProperty("comment", node.<String>getProperty("comment") + "<" +
-                                                        String.join(" ", dataset.references)
-                                                              .replace(" " + actualReference, ""));
-                            graph.update(node);
-                            break;
-                        } catch (Exception ignored2) {
                         }
                     }
                 }

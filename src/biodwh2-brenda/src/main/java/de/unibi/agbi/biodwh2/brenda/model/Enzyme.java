@@ -71,8 +71,8 @@ public class Enzyme {
     /**
      * The influence of oxidating agents on enzyme stability.
      */
-    @JsonProperty("oxydation_stability")
-    public Dataset[] oxydationStability;
+    @JsonProperty("oxidation_stability")
+    public Dataset[] oxidationStability;
     /**
      * The influence of storage duration and conditions such as temperature, pH, additives etc. on the enzyme stability
      * and activity.
