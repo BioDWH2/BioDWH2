@@ -467,6 +467,12 @@
             <artifactId>javalin</artifactId>
             <version>6.4.0</version>
         </dependency>
+        <dependency>
+            <groupId>de.unibi.agbi.biodwh2</groupId>
+            <artifactId>biodwh2-card</artifactId>
+            <version>0.1</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
