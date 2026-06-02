@@ -11,10 +11,14 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.card.CARDDataSource;
 import de.unibi.agbi.biodwh2.card.model.Entry;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 
 public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
+    private final Set<String> indexedCategoryLabels = new HashSet<>();
+
     public CARDGraphExporter(final CARDDataSource dataSource) {
         super(dataSource);
     }
@@ -94,30 +98,57 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
             if (cat == null)
                 continue;
 
-            String className = cat.categoryAroClassName;
-            String label = "ARO_Category";
-            if (className != null && !className.isEmpty()) {
-                // sanitize label: keep letters, numbers and underscores, replace other chars with underscore
-                label = className.replaceAll("[^A-Za-z0-9_]", "_");
-                // ensure label does not start with a digit
-                if (!label.isEmpty() && Character.isDigit(label.charAt(0)))
-                    label = "C_" + label;
-            }
-
-            final NodeBuilder catBuilder = graph.buildNode().withLabel(label);
-            catBuilder.withPropertyIfNotNull("category_aro_accession", cat.categoryAroAccession);
-            catBuilder.withPropertyIfNotNull("category_aro_cvterm_id", cat.categoryAroCvtermId);
-            catBuilder.withPropertyIfNotNull("category_aro_name", cat.categoryAroName);
-            catBuilder.withPropertyIfNotNull("category_aro_description", cat.categoryAroDescription);
-            // keep the class name as a property as well
-            catBuilder.withPropertyIfNotNull("category_aro_class_name", cat.categoryAroClassName);
-            // include original map key to help with uniqueness/debugging
-            catBuilder.withPropertyIfNotNull("_key", catEntry.getKey());
-
-            final Node catNode = catBuilder.build();
+            final String label = sanitizeCategoryLabel(cat.categoryAroClassName);
+            final String identity = getCategoryIdentity(catEntry.getKey(), cat);
+            final Node catNode = getOrCreateCategoryNode(graph, label, identity, cat, catEntry.getKey());
 
             // Connect CARD_Model -> ARO category
             graph.addEdge(modelNode, catNode, "HAS_ARO_CATEGORY");
         }
+    }
+
+    private Node getOrCreateCategoryNode(final Graph graph, final String label, final String identity,
+                                         final Entry.AROCategory category, final String key) {
+        if (!indexedCategoryLabels.contains(label)) {
+            graph.addIndex(IndexDescription.forNode(label, "category_aro_identity", IndexDescription.Type.UNIQUE));
+            indexedCategoryLabels.add(label);
+        }
+
+        Node node = graph.findNode(label, "category_aro_identity", identity);
+        if (node != null)
+            return node;
+
+        final NodeBuilder catBuilder = graph.buildNode().withLabel(label);
+        catBuilder.withProperty("category_aro_identity", identity);
+        catBuilder.withPropertyIfNotNull("category_aro_accession", category.categoryAroAccession);
+        catBuilder.withPropertyIfNotNull("category_aro_cvterm_id", category.categoryAroCvtermId);
+        catBuilder.withPropertyIfNotNull("category_aro_name", category.categoryAroName);
+        catBuilder.withPropertyIfNotNull("category_aro_description", category.categoryAroDescription);
+        // keep the class name as a property as well
+        catBuilder.withPropertyIfNotNull("category_aro_class_name", category.categoryAroClassName);
+        // include original map key to help with uniqueness/debugging
+        catBuilder.withPropertyIfNotNull("_key", key);
+
+        return catBuilder.build();
+    }
+
+    private String getCategoryIdentity(final String key, final Entry.AROCategory category) {
+        if (category.categoryAroCvtermId != null && !category.categoryAroCvtermId.isEmpty())
+            return category.categoryAroCvtermId;
+        if (category.categoryAroAccession != null && !category.categoryAroAccession.isEmpty())
+            return category.categoryAroAccession;
+        return key;
+    }
+
+    private String sanitizeCategoryLabel(final String className) {
+        String label = "ARO_Category";
+        if (className != null && !className.isEmpty()) {
+            // sanitize label: keep letters, numbers and underscores, replace other chars with underscore
+            label = className.replaceAll("[^A-Za-z0-9_]", "_");
+            // ensure label does not start with a digit
+            if (!label.isEmpty() && Character.isDigit(label.charAt(0)))
+                label = "C_" + label;
+        }
+        return label;
     }
 }
