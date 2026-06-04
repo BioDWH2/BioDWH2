@@ -74,13 +74,8 @@ public final class CARDParser extends Parser<CARDDataSource> {
         for (final Map.Entry<String, Object> entry : rawData.entrySet()) {
             final String key = entry.getKey();
 
-            if (!key.startsWith("_")) {
-                try {
-                    final Entry cardEntry = mapper.convertValue(entry.getValue(), Entry.class);
-                    card_results.add(cardEntry);
-                } catch (final Exception e) {
-                }
-            }
+            if (!key.startsWith("_") && entry.getValue() instanceof Map<?, ?>)
+                card_results.add(mapper.convertValue(entry.getValue(), Entry.class));
         }
 
         storeResults(dataSource, card_results);
@@ -114,20 +109,20 @@ public final class CARDParser extends Parser<CARDDataSource> {
             while ((line = reader.readLine()) != null) {
                 final String trimmedLine = line.trim();
                 if (trimmedLine.isEmpty()) {
-                    currentTerm = flushAROCurrentTerm(aroTerms, currentTerm, inTermSection);
+                    flushAROCurrentTerm(aroTerms, currentTerm, inTermSection);
+                    currentTerm = null;
                     inTermSection = false;
                     continue;
                 }
                 if (trimmedLine.startsWith("[")) {
-                    currentTerm = flushAROCurrentTerm(aroTerms, currentTerm, inTermSection);
+                    flushAROCurrentTerm(aroTerms, currentTerm, inTermSection);
+                    currentTerm = null;
                     inTermSection = "[Term]".equals(trimmedLine);
                     if (inTermSection)
                         currentTerm = new AROTerm();
-                    else
-                        currentTerm = null;
                     continue;
                 }
-                if (!inTermSection || currentTerm == null)
+                if (!inTermSection)
                     continue;
                 parseAROTermLine(currentTerm, trimmedLine);
             }
@@ -136,10 +131,10 @@ public final class CARDParser extends Parser<CARDDataSource> {
         }
     }
 
-    private AROTerm flushAROCurrentTerm(final Map<String, AROTerm> aroTerms, final AROTerm currentTerm,
-                                        final boolean inTermSection) {
+    private void flushAROCurrentTerm(final Map<String, AROTerm> aroTerms, final AROTerm currentTerm,
+                                     final boolean inTermSection) {
         if (!inTermSection || currentTerm == null)
-            return null;
+            return;
         if (StringUtils.isNotBlank(currentTerm.id)) {
             final AROTerm existingTerm = aroTerms.get(currentTerm.id);
             if (existingTerm == null)
@@ -147,7 +142,6 @@ public final class CARDParser extends Parser<CARDDataSource> {
             else
                 existingTerm.mergeFrom(currentTerm);
         }
-        return null;
     }
 
     private void parseAROTermLine(final AROTerm term, final String line) {
@@ -167,8 +161,16 @@ public final class CARDParser extends Parser<CARDDataSource> {
             term.def = parseDefinitionValue(line);
             return;
         }
+        if (line.startsWith("category_aro_accession:")) {
+            term.categoryAroAccession = parseSingleValue(line);
+            return;
+        }
         if (line.startsWith("is_a:")) {
             addUniqueValue(term.isA, parseIsAValue(line));
+            return;
+        }
+        if (line.startsWith("relationship:")) {
+            addUniqueRelationship(term.relationships, parseRelationshipValue(line));
             return;
         }
         if (line.startsWith("synonym:")) {
@@ -202,6 +204,22 @@ public final class CARDParser extends Parser<CARDDataSource> {
         return StringUtils.split(value, " ", 2)[0];
     }
 
+    private AROTerm.Relationship parseRelationshipValue(final String line) {
+        final String value = parseEntryValue(line);
+        if (StringUtils.isBlank(value))
+            return null;
+        final String[] parts = StringUtils.split(value, " ", 2);
+        if (parts.length < 2 || StringUtils.isBlank(parts[0]) || StringUtils.isBlank(parts[1]))
+            return null;
+        final String targetId = StringUtils.split(parts[1], " ", 2)[0];
+        if (StringUtils.isBlank(targetId))
+            return null;
+        final AROTerm.Relationship relationship = new AROTerm.Relationship();
+        relationship.name = parts[0];
+        relationship.targetId = targetId;
+        return relationship;
+    }
+
     private String parseEntryValue(final String line) {
         final int separatorIndex = line.indexOf(':');
         if (separatorIndex == -1 || separatorIndex + 1 >= line.length())
@@ -229,6 +247,19 @@ public final class CARDParser extends Parser<CARDDataSource> {
         if (StringUtils.isBlank(value) || values.contains(value))
             return;
         values.add(value);
+    }
+
+    private void addUniqueRelationship(final List<AROTerm.Relationship> relationships,
+                                       final AROTerm.Relationship relationship) {
+        if (relationship == null || StringUtils.isBlank(relationship.name) || StringUtils.isBlank(relationship.targetId))
+            return;
+        for (final AROTerm.Relationship existing : relationships) {
+            if (existing == null)
+                continue;
+            if (StringUtils.equals(existing.name, relationship.name) && StringUtils.equals(existing.targetId, relationship.targetId))
+                return;
+        }
+        relationships.add(relationship);
     }
 
     private void storeResults(final CARDDataSource dataSource, final List<Entry> results) {
