@@ -11,13 +11,17 @@ import de.unibi.agbi.biodwh2.card.etl.CARDGraphExporter;
 import de.unibi.agbi.biodwh2.card.etl.CARDParser;
 import de.unibi.agbi.biodwh2.card.etl.CARDMappingDescriber;
 import de.unibi.agbi.biodwh2.card.etl.CARDUpdater;
+import de.unibi.agbi.biodwh2.card.model.AROTerm;
 import de.unibi.agbi.biodwh2.card.model.Entry;
 
 
+import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class CARDDataSource extends DataSource {
     public List<Entry> entries;
+    public Map<String, AROTerm> aroTerms = new LinkedHashMap<>();
 
     @Override
     public String getId() {
@@ -63,5 +67,7 @@ public class CARDDataSource extends DataSource {
     protected void unloadData() {
         if (entries != null)
             entries.clear();
+        if (aroTerms != null)
+            aroTerms.clear();
     }
 }
