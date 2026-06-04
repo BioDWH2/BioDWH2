@@ -1,13 +1,11 @@
 package de.unibi.agbi.biodwh2.card.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 /**
  * Entry model representing a CARD (Comprehensive Antibiotic Resistance Database) model entry
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public final class Entry {
     @JsonProperty("model_id")
     public String modelId;
@@ -51,7 +49,6 @@ public final class Entry {
     @JsonProperty("ARO_category")
     public Map<String, AROCategory> aroCategory;
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class AROCategory {
         @JsonProperty("category_aro_accession")
         public String categoryAroAccession;

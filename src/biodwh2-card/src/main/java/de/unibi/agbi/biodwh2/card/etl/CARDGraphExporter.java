@@ -149,7 +149,7 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
                 continue;
             final Node targetNode = graph.findNode(ARO_LABEL, "aro_id", relationship.targetId);
             if (targetNode != null)
-                addAroRelationship(graph, addedAroRelations, childNode, targetNode, relationship.name);
+                addAroRelationship(graph, addedAroRelations, childNode, targetNode, relationship.name.toUpperCase());
         }
     }
 

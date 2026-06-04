@@ -137,10 +137,47 @@ public final class CARDParser extends Parser<CARDDataSource> {
             return;
         if (StringUtils.isNotBlank(currentTerm.id)) {
             final AROTerm existingTerm = aroTerms.get(currentTerm.id);
-            if (existingTerm == null)
+            if (existingTerm == null) {
                 aroTerms.put(currentTerm.id, currentTerm);
-            else
-                existingTerm.mergeFrom(currentTerm);
+            } else {
+                // Merge non-null scalar fields from currentTerm into existingTerm if missing
+                if (existingTerm.id == null)
+                    existingTerm.id = currentTerm.id;
+                if (existingTerm.name == null)
+                    existingTerm.name = currentTerm.name;
+                if (existingTerm.namespace == null)
+                    existingTerm.namespace = currentTerm.namespace;
+                if (existingTerm.def == null)
+                    existingTerm.def = currentTerm.def;
+                if (existingTerm.categoryAroAccession == null)
+                    existingTerm.categoryAroAccession = currentTerm.categoryAroAccession;
+                // Merge lists uniquely
+                for (final String v : currentTerm.isA) {
+                    if (v != null && !existingTerm.isA.contains(v))
+                        existingTerm.isA.add(v);
+                }
+                for (final String v : currentTerm.synonyms) {
+                    if (v != null && !existingTerm.synonyms.contains(v))
+                        existingTerm.synonyms.add(v);
+                }
+                for (final String v : currentTerm.xrefs) {
+                    if (v != null && !existingTerm.xrefs.contains(v))
+                        existingTerm.xrefs.add(v);
+                }
+                // Merge relationships uniquely by name+targetId
+                relationshipLoop:
+                for (final AROTerm.Relationship r : currentTerm.relationships) {
+                    if (r == null || StringUtils.isBlank(r.name) || StringUtils.isBlank(r.targetId))
+                        continue;
+                    for (final AROTerm.Relationship existingRel : existingTerm.relationships) {
+                        if (existingRel == null)
+                            continue;
+                        if (StringUtils.equals(existingRel.name, r.name) && StringUtils.equals(existingRel.targetId, r.targetId))
+                            continue relationshipLoop;
+                    }
+                    existingTerm.relationships.add(r);
+                }
+            }
         }
     }
 

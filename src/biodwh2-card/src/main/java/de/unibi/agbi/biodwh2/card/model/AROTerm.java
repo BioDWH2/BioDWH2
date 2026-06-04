@@ -1,70 +1,43 @@
 package de.unibi.agbi.biodwh2.card.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class AROTerm {
+    @JsonProperty("id")
     public String id;
+
+    @JsonProperty("name")
     public String name;
+
+    @JsonProperty("namespace")
     public String namespace;
+
+    @JsonProperty("def")
     public String def;
+
+    @JsonProperty("category_aro_accession")
     public String categoryAroAccession;
+
+    @JsonProperty("is_a")
     public final List<String> isA = new ArrayList<>();
+
+    @JsonProperty("synonyms")
     public final List<String> synonyms = new ArrayList<>();
+
+    @JsonProperty("xrefs")
     public final List<String> xrefs = new ArrayList<>();
+
+    @JsonProperty("relationships")
     public final List<Relationship> relationships = new ArrayList<>();
-
-    public void mergeFrom(final AROTerm other) {
-        if (other == null)
-            return;
-        if (id == null)
-            id = other.id;
-        if (name == null)
-            name = other.name;
-        if (namespace == null)
-            namespace = other.namespace;
-        if (def == null)
-            def = other.def;
-        if (categoryAroAccession == null)
-            categoryAroAccession = other.categoryAroAccession;
-        mergeUnique(isA, other.isA);
-        mergeUnique(synonyms, other.synonyms);
-        mergeUnique(xrefs, other.xrefs);
-        mergeUniqueRelationships(relationships, other.relationships);
-    }
-
-    private void mergeUnique(final List<String> target, final List<String> source) {
-        for (final String value : source) {
-            if (value != null && !target.contains(value))
-                target.add(value);
-        }
-    }
-
-    private void mergeUniqueRelationships(final List<Relationship> target, final List<Relationship> source) {
-        for (final Relationship value : source) {
-            if (value != null && !containsRelationship(target, value))
-                target.add(value);
-        }
-    }
-
-    private boolean containsRelationship(final List<Relationship> relationships, final Relationship value) {
-        for (final Relationship relationship : relationships) {
-            if (relationship == null)
-                continue;
-            if (equals(relationship.name, value.name) && equals(relationship.targetId, value.targetId))
-                return true;
-        }
-        return false;
-    }
-
-    private boolean equals(final String left, final String right) {
-        if (left == null)
-            return right == null;
-        return left.equals(right);
-    }
+    // Simplified model POJO: no merge/utility methods here. Merging is handled by the parser.
 
     public static final class Relationship {
+        @JsonProperty("name")
         public String name;
+
+        @JsonProperty("target_id")
         public String targetId;
     }
 }
