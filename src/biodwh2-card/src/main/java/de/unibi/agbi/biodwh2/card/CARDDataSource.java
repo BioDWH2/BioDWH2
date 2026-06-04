@@ -20,7 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 public class CARDDataSource extends DataSource {
-    public List<Entry> entries;
+    public List<Entry> model_entries;
     public Map<String, AROTerm> aroTerms = new LinkedHashMap<>();
 
     @Override
@@ -65,8 +65,8 @@ public class CARDDataSource extends DataSource {
 
     @Override
     protected void unloadData() {
-        if (entries != null)
-            entries.clear();
+        if (model_entries != null)
+            model_entries.clear();
         if (aroTerms != null)
             aroTerms.clear();
     }

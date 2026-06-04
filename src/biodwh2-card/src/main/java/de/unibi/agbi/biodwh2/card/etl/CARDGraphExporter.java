@@ -38,7 +38,7 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
         graph.addIndex(IndexDescription.forNode("CARD_Model", "ARO_accession", IndexDescription.Type.UNIQUE));
         graph.addIndex(IndexDescription.forNode("CARD_Model", "ARO_name", IndexDescription.Type.UNIQUE));
 
-        for (final Entry entry : dataSource.entries)
+        for (final Entry entry : dataSource.model_entries)
             exportEntry(graph, entry);
         exportOntology(graph);
         return true;
@@ -74,7 +74,7 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
                 // Log and skip if serialization fails
             }
         }
-
+        // TODO : put this in a function?
         if (entry.modelSequences != null) {
             try {
                 final ObjectMapper mapper = new ObjectMapper();

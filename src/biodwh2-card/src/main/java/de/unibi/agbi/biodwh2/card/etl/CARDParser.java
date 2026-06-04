@@ -232,6 +232,6 @@ public final class CARDParser extends Parser<CARDDataSource> {
     }
 
     private void storeResults(final CARDDataSource dataSource, final List<Entry> results) {
-        dataSource.entries = results.stream().filter(e -> StringUtils.isNotEmpty(e.modelId)).collect(Collectors.toList());
+        dataSource.model_entries = results.stream().filter(e -> StringUtils.isNotEmpty(e.modelId)).collect(Collectors.toList());
     }
 }
