@@ -11,7 +11,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.card.CARDDataSource;
 import de.unibi.agbi.biodwh2.card.model.AROTerm;
-import de.unibi.agbi.biodwh2.card.model.Entry;
+import de.unibi.agbi.biodwh2.card.model.CARD_Model;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -91,15 +91,11 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
     private void exportEntries(final Graph graph) {
         if (dataSource.model_entries == null)
             return;
-        for (final Entry entry : dataSource.model_entries)
-            exportEntry(graph, entry);
+        for (final CARD_Model entry : dataSource.model_entries)
+            exportCARDModel(graph, entry);
     }
 
-    private void exportEntry(final Graph graph, final Entry entry) {
-        exportCARDModel(graph, entry);
-    }
-
-    private void exportCARDModel(final Graph graph, final Entry entry) {
+    private void exportCARDModel(final Graph graph, final CARD_Model entry) {
         final NodeBuilder builder = graph.buildNode().withLabel(CARD_MODEL_LABEL);
 
         builder.withProperty(MODEL_ID_KEY, entry.modelId);
@@ -198,11 +194,11 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
         if (dataSource.model_entries == null || dataSource.model_entries.isEmpty())
             return;
 
-        for (final Entry entry : dataSource.model_entries)
+        for (final CARD_Model entry : dataSource.model_entries)
             exportModelAROCategoryLinks(graph, entry);
     }
 
-    private void exportModelAROCategoryLinks(final Graph graph, final Entry entry) {
+    private void exportModelAROCategoryLinks(final Graph graph, final CARD_Model entry) {
         if (entry == null || StringUtils.isBlank(entry.modelId) || entry.aroCategory == null)
             return;
 
@@ -210,8 +206,8 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
         if (modelNode == null)
             return;
 
-        for (final Map.Entry<String, Entry.AROCategory> catEntry : entry.aroCategory.entrySet()) {
-            final Entry.AROCategory category = catEntry.getValue();
+        for (final Map.Entry<String, CARD_Model.AROCategory> catEntry : entry.aroCategory.entrySet()) {
+            final CARD_Model.AROCategory category = catEntry.getValue();
             if (category == null || StringUtils.isBlank(category.categoryAroAccession))
                 continue;
 

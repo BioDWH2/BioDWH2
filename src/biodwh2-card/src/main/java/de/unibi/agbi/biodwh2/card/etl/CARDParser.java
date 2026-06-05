@@ -8,7 +8,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.ParserFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.card.CARDDataSource;
 import de.unibi.agbi.biodwh2.card.model.AROTerm;
-import de.unibi.agbi.biodwh2.card.model.Entry;
+import de.unibi.agbi.biodwh2.card.model.CARD_Model;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
@@ -68,14 +68,14 @@ public final class CARDParser extends Parser<CARDDataSource> {
         final Map<String, Object> rawData = mapper.readValue(cardJsonStream,
                                                              mapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class));
 
-        final List<Entry> card_results = new ArrayList<>();
+        final List<CARD_Model> card_results = new ArrayList<>();
 
         // Filter out metadata fields (keys starting with _) and deserialize only model entries
         for (final Map.Entry<String, Object> entry : rawData.entrySet()) {
             final String key = entry.getKey();
 
             if (!key.startsWith("_") && entry.getValue() instanceof Map<?, ?>)
-                card_results.add(mapper.convertValue(entry.getValue(), Entry.class));
+                card_results.add(mapper.convertValue(entry.getValue(), CARD_Model.class));
         }
 
         storeResults(dataSource, card_results);
@@ -299,7 +299,7 @@ public final class CARDParser extends Parser<CARDDataSource> {
         relationships.add(relationship);
     }
 
-    private void storeResults(final CARDDataSource dataSource, final List<Entry> results) {
+    private void storeResults(final CARDDataSource dataSource, final List<CARD_Model> results) {
         dataSource.model_entries = results.stream().filter(e -> StringUtils.isNotEmpty(e.modelId)).collect(Collectors.toList());
     }
 }

@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 /**
- * Entry model representing a CARD (Comprehensive Antibiotic Resistance Database) model entry
+ * CARD_Model representing a CARD (Comprehensive Antibiotic Resistance Database) model entry
  */
-public final class Entry {
+public final class CARD_Model {
     @JsonProperty("model_id")
     public String modelId;
 
@@ -66,3 +66,4 @@ public final class Entry {
         public String categoryAroClassName;
     }
 }
+
