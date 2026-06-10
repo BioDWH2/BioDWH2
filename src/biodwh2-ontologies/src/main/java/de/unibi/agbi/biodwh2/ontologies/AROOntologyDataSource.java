@@ -153,7 +153,9 @@ public class AROOntologyDataSource extends SingleOBOOntologyDataSource {
             final String[] xrefs = node.getProperty("xrefs");
             if (xrefs == null || xrefs.length == 0)
                 return null;
-            final CompoundNodeMappingDescription description = new CompoundNodeMappingDescription();
+            final CompoundNodeMappingDescription compoundDescription = new CompoundNodeMappingDescription();
+            final NodeMappingDescription drugDescription = new NodeMappingDescription(
+                    NodeMappingDescription.NodeType.DRUG);
             for (final String xref : xrefs) {
                 if (StringUtils.isBlank(xref))
                     continue;
@@ -163,28 +165,38 @@ public class AROOntologyDataSource extends SingleOBOOntologyDataSource {
                 final String value = parts[1].trim();
                 switch (parts[0].trim().toLowerCase()) {
                     case "cas":
-                        description.addIdentifier(IdentifierType.CAS, value);
+                        compoundDescription.addIdentifier(IdentifierType.CAS, value);
+                        drugDescription.addIdentifier(IdentifierType.CAS, value);
                         break;
                     case "chebi":
                         final String chebiValue = StringUtils.removeStartIgnoreCase(value, "CHEBI:");
-                        if (NumberUtils.isDigits(chebiValue))
-                            description.addIdentifier(IdentifierType.CHEBI, Integer.parseInt(chebiValue));
+                        if (NumberUtils.isDigits(chebiValue)) {
+                            final int chebiId = Integer.parseInt(chebiValue);
+                            compoundDescription.addIdentifier(IdentifierType.CHEBI, chebiId);
+                            drugDescription.addIdentifier(IdentifierType.CHEBI, chebiId);
+                        }
                         break;
                     case "chembl":
-                        description.addIdentifier(IdentifierType.CHEMBL, value);
+                        compoundDescription.addIdentifier(IdentifierType.CHEMBL, value);
+                        drugDescription.addIdentifier(IdentifierType.CHEMBL, value);
                         break;
                     case "pubchem":
-                        if (NumberUtils.isDigits(value))
-                            description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, Integer.parseInt(value));
+                        if (NumberUtils.isDigits(value)) {
+                            final int pubChemId = Integer.parseInt(value);
+                            compoundDescription.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, pubChemId);
+                            drugDescription.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, pubChemId);
+                        }
                         break;
                     default:
                         break;
                 }
             }
-            if (!description.hasIdentifiers())
+            if (!compoundDescription.hasIdentifiers())
                 return null;
-            description.addName(node.getProperty("name"));
-            return new NodeMappingDescription[]{description};
+            final String name = node.getProperty("name");
+            compoundDescription.addName(name);
+            drugDescription.addName(name);
+            return new NodeMappingDescription[]{compoundDescription, drugDescription};
         }
 
         @Override
