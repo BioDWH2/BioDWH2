@@ -1,17 +1,24 @@
 package de.unibi.agbi.biodwh2.ontologies;
 
+import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.SingleOBOOntologyDataSource;
 import de.unibi.agbi.biodwh2.core.Workspace;
+import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
+import de.unibi.agbi.biodwh2.core.etl.OntologyGraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterConnectionException;
 import de.unibi.agbi.biodwh2.core.exceptions.UpdaterException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
+import de.unibi.agbi.biodwh2.core.model.IdentifierType;
 import de.unibi.agbi.biodwh2.core.model.Version;
+import de.unibi.agbi.biodwh2.core.model.graph.*;
+import de.unibi.agbi.biodwh2.core.model.graph.mapping.CompoundNodeMappingDescription;
 import de.unibi.agbi.biodwh2.core.text.License;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -60,6 +67,11 @@ public class AROOntologyDataSource extends SingleOBOOntologyDataSource {
     @Override
     protected Updater<? extends AROOntologyDataSource> getUpdater() {
         return new AROUpdater(this);
+    }
+
+    @Override
+    public MappingDescriber getMappingDescriber() {
+        return new AROOntologyMappingDescriber(this);
     }
 
     private static final class AROUpdater extends Updater<AROOntologyDataSource> {
@@ -126,6 +138,68 @@ public class AROOntologyDataSource extends SingleOBOOntologyDataSource {
         @Override
         protected String[] expectedFileNames() {
             return new String[]{FILE_NAME};
+        }
+    }
+
+    private static final class AROOntologyMappingDescriber extends MappingDescriber {
+        AROOntologyMappingDescriber(final DataSource dataSource) {
+            super(dataSource);
+        }
+
+        @Override
+        public NodeMappingDescription[] describe(final Graph graph, final Node node, final String localMappingLabel) {
+            if (!OntologyGraphExporter.TERM_LABEL.equals(localMappingLabel))
+                return null;
+            final String[] xrefs = node.getProperty("xrefs");
+            if (xrefs == null || xrefs.length == 0)
+                return null;
+            final CompoundNodeMappingDescription description = new CompoundNodeMappingDescription();
+            for (final String xref : xrefs) {
+                if (StringUtils.isBlank(xref))
+                    continue;
+                final String[] parts = StringUtils.split(xref, ":", 2);
+                if (parts.length < 2)
+                    continue;
+                final String value = parts[1].trim();
+                switch (parts[0].trim().toLowerCase()) {
+                    case "cas":
+                        description.addIdentifier(IdentifierType.CAS, value);
+                        break;
+                    case "chebi":
+                        final String chebiValue = StringUtils.removeStartIgnoreCase(value, "CHEBI:");
+                        if (NumberUtils.isDigits(chebiValue))
+                            description.addIdentifier(IdentifierType.CHEBI, Integer.parseInt(chebiValue));
+                        break;
+                    case "chembl":
+                        description.addIdentifier(IdentifierType.CHEMBL, value);
+                        break;
+                    case "pubchem":
+                        if (NumberUtils.isDigits(value))
+                            description.addIdentifier(IdentifierType.PUB_CHEM_COMPOUND, Integer.parseInt(value));
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (!description.hasIdentifiers())
+                return null;
+            description.addName(node.getProperty("name"));
+            return new NodeMappingDescription[]{description};
+        }
+
+        @Override
+        public PathMappingDescription describe(final Graph graph, final Node[] nodes, final Edge[] edges) {
+            return null;
+        }
+
+        @Override
+        protected String[] getNodeMappingLabels() {
+            return new String[]{OntologyGraphExporter.TERM_LABEL};
+        }
+
+        @Override
+        protected PathMapping[] getEdgePathMappings() {
+            return new PathMapping[0];
         }
     }
 }
