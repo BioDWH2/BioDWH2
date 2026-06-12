@@ -15,8 +15,6 @@ public final class CARDUpdater extends Updater<CARDDataSource> {
             "<td class=\"hidden-xs\">([0-9]{4}-[0-9]{2}-[0-9]{2}) [0-9]{2}:[0-9]{2}:[0-9]{2}", Pattern.CASE_INSENSITIVE);
     static final String FILE_NAME_DATA = "card-data.tar.bz2";
     private static final String DOWNLOAD_URL_DATA = "https://card.mcmaster.ca/latest/data";
-    static final String FILE_NAME_ONTOLOGY = "card-ontology.tar.bz2";
-    private static final String DOWNLOAD_URL_ONTOLOGY = "https://card.mcmaster.ca/latest/ontology";
 
     public CARDUpdater(final CARDDataSource dataSource) {
         super(dataSource);
@@ -36,12 +34,11 @@ public final class CARDUpdater extends Updater<CARDDataSource> {
     @Override
     protected boolean tryUpdateFiles(final Workspace workspace) throws UpdaterException {
         downloadFileAsBrowser(workspace, DOWNLOAD_URL_DATA, FILE_NAME_DATA);
-        downloadFileAsBrowser(workspace, DOWNLOAD_URL_ONTOLOGY, FILE_NAME_ONTOLOGY);
         return true;
     }
 
     @Override
     protected String[] expectedFileNames() {
-        return new String[]{FILE_NAME_DATA,  FILE_NAME_ONTOLOGY};
+        return new String[]{FILE_NAME_DATA};
     }
 }
