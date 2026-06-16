@@ -1,6 +1,9 @@
 package de.unibi.agbi.biodwh2.card.model;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -38,7 +41,7 @@ public final class CARD_Model {
     public String aroDescription;
 
     @JsonProperty("model_param")
-    public Map<String, Object> modelParam;
+    public Map<String, ModelParam> modelParam;
 
     @JsonProperty("model_sequences")
     public ModelSequences modelSequences;
@@ -48,6 +51,35 @@ public final class CARD_Model {
      */
     @JsonProperty("ARO_category")
     public Map<String, AROCategory> aroCategory;
+
+    /**
+     * A single model parameter. The {@code param_value} is polymorphic: a plain string for bit-score cut-offs and a map
+     * (keyed by an arbitrary parameter instance id) for snp / gene order / efflux pump component parameters. Dispatch on
+     * {@code param_type_id} rather than the surrounding map key, which is not stable.
+     */
+    public static final class ModelParam {
+        @JsonProperty("param_type")
+        public String paramType;
+
+        @JsonProperty("param_description")
+        public String paramDescription;
+
+        @JsonProperty("param_type_id")
+        public String paramTypeId;
+
+        @JsonProperty("param_value")
+        public Object paramValue;
+
+        /**
+         * Evidence-category buckets of an snp / variant parameter, keyed by the CARD category name (e.g. {@code
+         * Curated-R}, {@code Curated-S}, {@code clinical}, {@code experimental}, {@code literature}). CARD uses an
+         * open-ended set of these, so they are captured generically rather than enumerated. Each value is a map of
+         * variant-instance-id to mutation string.
+         */
+        @JsonAnySetter
+        @JsonAnyGetter
+        public final Map<String, Object> evidenceCategories = new LinkedHashMap<>();
+    }
 
     public static final class AROCategory {
         @JsonProperty("category_aro_accession")
