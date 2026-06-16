@@ -12,6 +12,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.card.CARDDataSource;
 import de.unibi.agbi.biodwh2.card.model.CARD_Model;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -74,6 +75,14 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
     private static final String ARO_PREFIX = "ARO:";
 
     private final ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+    /**
+     * Tracks edges already created during this export run, keyed by {@code label|fromId|toId}, so duplicate edges are not
+     * emitted. CARD owns its de-duplication rather than relying on {@link Graph#containsEdge} (whose indexed
+     * implementation only checks whether the from- and to-ids each occur in <em>some</em> edge of the label, not the
+     * specific pair).
+     */
+    private final Set<String> createdEdgeKeys = new HashSet<>();
 
     public CARDGraphExporter(final CARDDataSource dataSource) {
         super(dataSource);
@@ -183,16 +192,16 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
                 continue;
 
             final Long proteinNodeId = getOrCreateProtein(graph, modelSequence.proteinSequence);
-            if (proteinNodeId != null && !graph.containsEdge(HAS_PROTEIN_LABEL, modelNode.getId(), proteinNodeId))
-                graph.addEdge(modelNode.getId(), proteinNodeId, HAS_PROTEIN_LABEL);
+            if (proteinNodeId != null)
+                addEdgeIfAbsent(graph, modelNode.getId(), proteinNodeId, HAS_PROTEIN_LABEL);
 
             final Long dnaNodeId = getOrCreateDnaSequence(graph, modelSequence.dnaSequence);
-            if (dnaNodeId != null && !graph.containsEdge(HAS_DNA_SEQUENCE_LABEL, modelNode.getId(), dnaNodeId))
-                graph.addEdge(modelNode.getId(), dnaNodeId, HAS_DNA_SEQUENCE_LABEL);
+            if (dnaNodeId != null)
+                addEdgeIfAbsent(graph, modelNode.getId(), dnaNodeId, HAS_DNA_SEQUENCE_LABEL);
 
             final Long taxonNodeId = getOrCreateTaxon(graph, modelSequence.ncbiTaxonomy);
-            if (taxonNodeId != null && !graph.containsEdge(IN_TAXON_LABEL, modelNode.getId(), taxonNodeId))
-                graph.addEdge(modelNode.getId(), taxonNodeId, IN_TAXON_LABEL);
+            if (taxonNodeId != null)
+                addEdgeIfAbsent(graph, modelNode.getId(), taxonNodeId, IN_TAXON_LABEL);
         }
     }
 
@@ -263,8 +272,7 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
             final String normalizedAccession = accession.startsWith(ARO_PREFIX) ? accession : ARO_PREFIX + accession;
             final Long termNodeId = getOrCreateOntologyProxyTerm(graph, normalizedAccession);
 
-            if (!graph.containsEdge(HAS_ARO_CATEGORY_LABEL, modelNode.getId(), termNodeId))
-                graph.addEdge(modelNode.getId(), termNodeId, HAS_ARO_CATEGORY_LABEL);
+            addEdgeIfAbsent(graph, modelNode.getId(), termNodeId, HAS_ARO_CATEGORY_LABEL);
         }
     }
 
@@ -336,8 +344,12 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
         }
         if (targetNode.getId() == modelNode.getId())
             return;
-        if (!graph.containsEdge(edgeLabel, modelNode.getId(), targetNode.getId()))
-            graph.addEdge(modelNode.getId(), targetNode.getId(), edgeLabel);
+        addEdgeIfAbsent(graph, modelNode.getId(), targetNode.getId(), edgeLabel);
+    }
+
+    private void addEdgeIfAbsent(final Graph graph, final long fromId, final long toId, final String label) {
+        if (createdEdgeKeys.add(label + '|' + fromId + '|' + toId))
+            graph.addEdge(fromId, toId, label);
     }
 
     private String geneTypeEdgeLabel(final String geneType) {
