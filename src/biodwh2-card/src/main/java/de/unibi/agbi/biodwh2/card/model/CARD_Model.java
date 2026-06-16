@@ -41,7 +41,7 @@ public final class CARD_Model {
     public Map<String, Object> modelParam;
 
     @JsonProperty("model_sequences")
-    public Map<String, Object> modelSequences;
+    public ModelSequences modelSequences;
 
     /**
      * ARO category entries grouped by an arbitrary key. Each value contains details about a specific ARO category.
@@ -64,6 +64,65 @@ public final class CARD_Model {
 
         @JsonProperty("category_aro_class_name")
         public String categoryAroClassName;
+    }
+
+    /**
+     * Model sequences linking a protein sequence, its coding DNA sequence and the source organism. Sequence entries are
+     * grouped by an arbitrary sequence id key.
+     */
+    public static final class ModelSequences {
+        @JsonProperty("sequence")
+        public Map<String, ModelSequence> sequence;
+    }
+
+    public static final class ModelSequence {
+        @JsonProperty("protein_sequence")
+        public ProteinSequence proteinSequence;
+
+        @JsonProperty("dna_sequence")
+        public DnaSequence dnaSequence;
+
+        @JsonProperty("NCBI_taxonomy")
+        public NcbiTaxonomy ncbiTaxonomy;
+    }
+
+    public static final class ProteinSequence {
+        @JsonProperty("accession")
+        public String accession;
+
+        @JsonProperty("sequence")
+        public String sequence;
+    }
+
+    public static final class DnaSequence {
+        @JsonProperty("accession")
+        public String accession;
+
+        @JsonProperty("fmin")
+        public String fmin;
+
+        @JsonProperty("fmax")
+        public String fmax;
+
+        @JsonProperty("strand")
+        public String strand;
+
+        @JsonProperty("sequence")
+        public String sequence;
+
+        @JsonProperty("partial")
+        public String partial;
+    }
+
+    public static final class NcbiTaxonomy {
+        @JsonProperty("NCBI_taxonomy_cvterm_id")
+        public String ncbiTaxonomyCvtermId;
+
+        @JsonProperty("NCBI_taxonomy_name")
+        public String ncbiTaxonomyName;
+
+        @JsonProperty("NCBI_taxonomy_id")
+        public String ncbiTaxonomyId;
     }
 }
 
