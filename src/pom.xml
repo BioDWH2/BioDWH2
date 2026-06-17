@@ -95,6 +95,7 @@
         <module>biodwh2-swisslipids</module>
         <module>biodwh2-lmsd</module>
         <module>biodwh2-npass</module>
+        <module>biodwh2-card</module>
     </modules>
 
     <packaging>pom</packaging>
