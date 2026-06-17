@@ -14,6 +14,7 @@ import de.unibi.agbi.biodwh2.card.CARDDataSource;
 import de.unibi.agbi.biodwh2.card.model.CARD_Model;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -54,7 +55,8 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
     private static final String SNP_KEY = "snp";
 
     // Relationship labels
-    private static final String HAS_ARO_CATEGORY_LABEL = "HAS_ARO_CATEGORY";
+    private static final String EDGE_LABEL_HAS_PREFIX = "HAS_";
+    private static final String HAS_ARO_CATEGORY_UNKNOWN_LABEL = "HAS_UNKNOWN";
     private static final String HAS_PROTEIN_LABEL = "HAS_PROTEIN";
     private static final String HAS_DNA_SEQUENCE_LABEL = "HAS_DNA_SEQUENCE";
     private static final String IN_TAXON_LABEL = "IN_TAXON";
@@ -272,8 +274,20 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
             final String normalizedAccession = accession.startsWith(ARO_PREFIX) ? accession : ARO_PREFIX + accession;
             final Long termNodeId = getOrCreateOntologyProxyTerm(graph, normalizedAccession);
 
-            addEdgeIfAbsent(graph, modelNode.getId(), termNodeId, HAS_ARO_CATEGORY_LABEL);
+            final String edgeLabel = aroCategoryEdgeLabel(category.categoryAroClassName);
+            addEdgeIfAbsent(graph, modelNode.getId(), termNodeId, edgeLabel);
         }
+    }
+
+    /**
+     * Builds the model→ARO edge label from an ARO category's class name: {@code HAS_} followed by the class name
+     * upper-cased with whitespace runs collapsed to single underscores (e.g. "Drug Class" -> HAS_DRUG_CLASS). Falls
+     * back to {@link #HAS_ARO_CATEGORY_UNKNOWN_LABEL} when the class name is absent.
+     */
+    private String aroCategoryEdgeLabel(final String className) {
+        if (StringUtils.isBlank(className))
+            return HAS_ARO_CATEGORY_UNKNOWN_LABEL;
+        return EDGE_LABEL_HAS_PREFIX + className.strip().toUpperCase(Locale.ROOT).replaceAll("\\s+", "_");
     }
 
     /**
