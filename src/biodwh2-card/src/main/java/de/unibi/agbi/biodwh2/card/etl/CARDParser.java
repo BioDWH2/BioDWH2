@@ -7,7 +7,7 @@ import de.unibi.agbi.biodwh2.core.exceptions.ParserException;
 import de.unibi.agbi.biodwh2.core.exceptions.ParserFormatException;
 import de.unibi.agbi.biodwh2.core.io.FileUtils;
 import de.unibi.agbi.biodwh2.card.CARDDataSource;
-import de.unibi.agbi.biodwh2.card.model.CARD_Model;
+import de.unibi.agbi.biodwh2.card.model.AMRModel;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
@@ -58,20 +58,20 @@ public final class CARDParser extends Parser<CARDDataSource> {
         final Map<String, Object> rawData = mapper.readValue(cardJsonStream,
                                                              mapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class));
 
-        final List<CARD_Model> card_results = new ArrayList<>();
+        final List<AMRModel> results = new ArrayList<>();
 
         // Filter out metadata fields (keys starting with _) and deserialize only model entries
         for (final Map.Entry<String, Object> entry : rawData.entrySet()) {
             final String key = entry.getKey();
 
             if (!key.startsWith("_") && entry.getValue() instanceof Map<?, ?>)
-                card_results.add(mapper.convertValue(entry.getValue(), CARD_Model.class));
+                results.add(mapper.convertValue(entry.getValue(), AMRModel.class));
         }
 
-        storeResults(dataSource, card_results);
+        storeResults(results);
     }
 
-    private void storeResults(final CARDDataSource dataSource, final List<CARD_Model> results) {
-        dataSource.model_entries = results.stream().filter(e -> StringUtils.isNotEmpty(e.modelId)).collect(Collectors.toList());
+    private void storeResults(final List<AMRModel> results) {
+        dataSource.entries = results.stream().filter(e -> StringUtils.isNotEmpty(e.modelId)).collect(Collectors.toList());
     }
 }

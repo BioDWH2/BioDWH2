@@ -11,7 +11,7 @@ import de.unibi.agbi.biodwh2.core.model.graph.IndexDescription;
 import de.unibi.agbi.biodwh2.core.model.graph.Node;
 import de.unibi.agbi.biodwh2.core.model.graph.NodeBuilder;
 import de.unibi.agbi.biodwh2.card.CARDDataSource;
-import de.unibi.agbi.biodwh2.card.model.CARD_Model;
+import de.unibi.agbi.biodwh2.card.model.AMRModel;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -71,9 +71,7 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
     private static final String PARAM_TYPE_ID_SNP = "36301";
     private static final String PARAM_TYPE_ID_GENE_ORDER = "40297";
     private static final String PARAM_TYPE_ID_EFFLUX_COMPONENTS = "41141";
-    private static final String SNP_PARAM_KEY = "snp";
 
-    // Constants
     private static final String ARO_PREFIX = "ARO:";
 
     private final ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -122,13 +120,13 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
     }
 
     private void exportEntries(final Graph graph) {
-        if (dataSource.model_entries == null)
+        if (dataSource.entries == null)
             return;
-        for (final CARD_Model entry : dataSource.model_entries)
+        for (final AMRModel entry : dataSource.entries)
             exportCARDModel(graph, entry);
     }
 
-    private void exportCARDModel(final Graph graph, final CARD_Model entry) {
+    private void exportCARDModel(final Graph graph, final AMRModel entry) {
         final NodeBuilder builder = graph.buildNode().withLabel(AMR_MODEL_LABEL);
 
         builder.withProperty(MODEL_ID_KEY, entry.modelId);
@@ -156,12 +154,12 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
      * node, leaving downstream extraction to the user. Gene-order and efflux-pump-component params encode pointers to
      * other models and are handled separately in {@link #exportModelDependencies(Graph)}.
      */
-    private void applyModelParams(final NodeBuilder builder, final CARD_Model entry) {
+    private void applyModelParams(final NodeBuilder builder, final AMRModel entry) {
         if (entry.modelParam == null)
             return;
 
-        for (final Map.Entry<String, CARD_Model.ModelParam> paramEntry : entry.modelParam.entrySet()) {
-            final CARD_Model.ModelParam param = paramEntry.getValue();
+        for (final Map.Entry<String, AMRModel.ModelParam> paramEntry : entry.modelParam.entrySet()) {
+            final AMRModel.ModelParam param = paramEntry.getValue();
             if (param == null)
                 continue;
             final String typeId = param.paramTypeId;
@@ -169,14 +167,14 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
                 applyParamAsJson(builder, BLASTP_BIT_SCORE_KEY, param);
             else if (PARAM_TYPE_ID_BLASTN_BIT_SCORE.equals(typeId))
                 applyParamAsJson(builder, BLASTN_BIT_SCORE_KEY, param);
-            else if (PARAM_TYPE_ID_SNP.equals(typeId) || SNP_PARAM_KEY.equalsIgnoreCase(paramEntry.getKey()))
+            else if (PARAM_TYPE_ID_SNP.equals(typeId) || SNP_KEY.equalsIgnoreCase(paramEntry.getKey()))
                 // The meta-models carry an snp block without param_type_id (only evidence buckets), hence the key
                 // fallback.
                 applyParamAsJson(builder, SNP_KEY, param);
         }
     }
 
-    private void applyParamAsJson(final NodeBuilder builder, final String key, final CARD_Model.ModelParam param) {
+    private void applyParamAsJson(final NodeBuilder builder, final String key, final AMRModel.ModelParam param) {
         try {
             builder.withProperty(key, objectMapper.writeValueAsString(param));
         } catch (JsonProcessingException e) {
@@ -185,11 +183,11 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
         }
     }
 
-    private void exportModelSequences(final Graph graph, final Node modelNode, final CARD_Model entry) {
+    private void exportModelSequences(final Graph graph, final Node modelNode, final AMRModel entry) {
         if (entry.modelSequences == null || entry.modelSequences.sequence == null)
             return;
 
-        for (final CARD_Model.ModelSequence modelSequence : entry.modelSequences.sequence.values()) {
+        for (final AMRModel.ModelSequence modelSequence : entry.modelSequences.sequence.values()) {
             if (modelSequence == null)
                 continue;
 
@@ -207,7 +205,7 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
         }
     }
 
-    private Long getOrCreateProtein(final Graph graph, final CARD_Model.ProteinSequence proteinSequence) {
+    private Long getOrCreateProtein(final Graph graph, final AMRModel.ProteinSequence proteinSequence) {
         if (proteinSequence == null || StringUtils.isBlank(proteinSequence.accession))
             return null;
 
@@ -219,7 +217,7 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
                     .withPropertyIfNotNull(SEQUENCE_KEY, proteinSequence.sequence).build().getId();
     }
 
-    private Long getOrCreateDnaSequence(final Graph graph, final CARD_Model.DnaSequence dnaSequence) {
+    private Long getOrCreateDnaSequence(final Graph graph, final AMRModel.DnaSequence dnaSequence) {
         if (dnaSequence == null || StringUtils.isBlank(dnaSequence.accession))
             return null;
 
@@ -234,11 +232,19 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
                     .withPropertyIfNotNull(PARTIAL_KEY, dnaSequence.partial).build().getId();
     }
 
-    private Long getOrCreateTaxon(final Graph graph, final CARD_Model.NcbiTaxonomy ncbiTaxonomy) {
+    private Long getOrCreateTaxon(final Graph graph, final AMRModel.NcbiTaxonomy ncbiTaxonomy) {
         if (ncbiTaxonomy == null || StringUtils.isBlank(ncbiTaxonomy.ncbiTaxonomyId))
             return null;
 
-        final Integer ncbiTaxId = Integer.parseInt(ncbiTaxonomy.ncbiTaxonomyId.strip());
+        final int ncbiTaxId;
+        try {
+            ncbiTaxId = Integer.parseInt(ncbiTaxonomy.ncbiTaxonomyId.strip());
+        } catch (NumberFormatException e) {
+            if (LOGGER.isWarnEnabled())
+                LOGGER.warn("Skipping taxon with non-numeric NCBI taxonomy id '{}'", ncbiTaxonomy.ncbiTaxonomyId);
+            return null;
+        }
+
         final Node existing = graph.findNode(TAXON_LABEL, NCBI_TAXID_KEY, ncbiTaxId);
         if (existing != null)
             return existing.getId();
@@ -249,14 +255,14 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
     }
 
     private void exportModelAROCategories(final Graph graph) {
-        if (dataSource.model_entries == null || dataSource.model_entries.isEmpty())
+        if (dataSource.entries == null || dataSource.entries.isEmpty())
             return;
 
-        for (final CARD_Model entry : dataSource.model_entries)
+        for (final AMRModel entry : dataSource.entries)
             exportModelAROCategoryLinks(graph, entry);
     }
 
-    private void exportModelAROCategoryLinks(final Graph graph, final CARD_Model entry) {
+    private void exportModelAROCategoryLinks(final Graph graph, final AMRModel entry) {
         if (entry == null || StringUtils.isBlank(entry.modelId) || entry.aroCategory == null)
             return;
 
@@ -264,8 +270,8 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
         if (modelNode == null)
             return;
 
-        for (final Map.Entry<String, CARD_Model.AROCategory> catEntry : entry.aroCategory.entrySet()) {
-            final CARD_Model.AROCategory category = catEntry.getValue();
+        for (final Map.Entry<String, AMRModel.AROCategory> catEntry : entry.aroCategory.entrySet()) {
+            final AMRModel.AROCategory category = catEntry.getValue();
             if (category == null || StringUtils.isBlank(category.categoryAroAccession))
                 continue;
 
@@ -295,13 +301,13 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
      * model is always present regardless of iteration order.
      */
     private void exportModelDependencies(final Graph graph) {
-        if (dataSource.model_entries == null)
+        if (dataSource.entries == null)
             return;
-        for (final CARD_Model entry : dataSource.model_entries)
+        for (final AMRModel entry : dataSource.entries)
             exportModelDependencyLinks(graph, entry);
     }
 
-    private void exportModelDependencyLinks(final Graph graph, final CARD_Model entry) {
+    private void exportModelDependencyLinks(final Graph graph, final AMRModel entry) {
         if (entry == null || StringUtils.isBlank(entry.modelId) || entry.modelParam == null)
             return;
 
@@ -309,7 +315,7 @@ public final class CARDGraphExporter extends GraphExporter<CARDDataSource> {
         if (modelNode == null)
             return;
 
-        for (final CARD_Model.ModelParam param : entry.modelParam.values()) {
+        for (final AMRModel.ModelParam param : entry.modelParam.values()) {
             if (param == null || param.paramTypeId == null)
                 continue;
             if (PARAM_TYPE_ID_GENE_ORDER.equals(param.paramTypeId))

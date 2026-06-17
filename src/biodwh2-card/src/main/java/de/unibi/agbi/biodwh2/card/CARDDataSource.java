@@ -1,23 +1,21 @@
 package de.unibi.agbi.biodwh2.card;
 
-
-import de.unibi.agbi.biodwh2.card.model.CARD_Model;
+import de.unibi.agbi.biodwh2.card.etl.CARDGraphExporter;
+import de.unibi.agbi.biodwh2.card.etl.CARDMappingDescriber;
+import de.unibi.agbi.biodwh2.card.etl.CARDParser;
+import de.unibi.agbi.biodwh2.card.etl.CARDUpdater;
+import de.unibi.agbi.biodwh2.card.model.AMRModel;
 import de.unibi.agbi.biodwh2.core.DataSource;
 import de.unibi.agbi.biodwh2.core.DevelopmentState;
 import de.unibi.agbi.biodwh2.core.etl.GraphExporter;
 import de.unibi.agbi.biodwh2.core.etl.MappingDescriber;
 import de.unibi.agbi.biodwh2.core.etl.Parser;
 import de.unibi.agbi.biodwh2.core.etl.Updater;
-import de.unibi.agbi.biodwh2.card.etl.CARDGraphExporter;
-import de.unibi.agbi.biodwh2.card.etl.CARDParser;
-import de.unibi.agbi.biodwh2.card.etl.CARDMappingDescriber;
-import de.unibi.agbi.biodwh2.card.etl.CARDUpdater;
-
 
 import java.util.List;
 
 public class CARDDataSource extends DataSource {
-    public List<CARD_Model> model_entries;
+    public List<AMRModel> entries;
 
     @Override
     public String getId() {
@@ -61,7 +59,7 @@ public class CARDDataSource extends DataSource {
 
     @Override
     protected void unloadData() {
-        if (model_entries != null)
-            model_entries.clear();
+        if (entries != null)
+            entries.clear();
     }
 }
