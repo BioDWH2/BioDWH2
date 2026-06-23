@@ -3,16 +3,18 @@ package de.unibi.agbi.biodwh2.chebi.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({"ID", "COMPOUND_ID", "SOURCE", "TYPE", "ACCESSION_NUMBER"})
+@JsonPropertyOrder({"id", "compound_id", "accession_number", "type", "status_id", "source_id"})
 public class DBAccession {
-    @JsonProperty("ID")
+    @JsonProperty("id")
     public Integer id;
-    @JsonProperty("COMPOUND_ID")
+    @JsonProperty("compound_id")
     public Integer compoundId;
-    @JsonProperty("SOURCE")
-    public String source;
-    @JsonProperty("TYPE")
-    public String type;
-    @JsonProperty("ACCESSION_NUMBER")
+    @JsonProperty("accession_number")
     public String accessionNumber;
+    @JsonProperty("type")
+    public String type;
+    @JsonProperty("status_id")
+    public Integer statusId;
+    @JsonProperty("source_id")
+    public Integer sourceId;
 }

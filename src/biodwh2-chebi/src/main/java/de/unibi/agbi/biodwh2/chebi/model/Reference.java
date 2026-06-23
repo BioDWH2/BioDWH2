@@ -3,16 +3,18 @@ package de.unibi.agbi.biodwh2.chebi.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({"COMPOUND_ID", "REFERENCE_ID", "REFERENCE_DB_NAME", "LOCATION_IN_REF", "REFERENCE_NAME"})
+@JsonPropertyOrder({"id", "compound_id", "location_in_ref", "source_id", "accession_number", "reference_name"})
 public class Reference {
-    @JsonProperty("COMPOUND_ID")
+    @JsonProperty("id")
+    public Integer id;
+    @JsonProperty("compound_id")
     public Integer compoundId;
-    @JsonProperty("REFERENCE_ID")
-    public String referenceId;
-    @JsonProperty("REFERENCE_DB_NAME")
-    public String referenceDbName;
-    @JsonProperty("LOCATION_IN_REF")
+    @JsonProperty("location_in_ref")
     public String locationInRef;
-    @JsonProperty("REFERENCE_NAME")
+    @JsonProperty("source_id")
+    public Integer sourceId;
+    @JsonProperty("accession_number")
+    public String accessionNumber;
+    @JsonProperty("reference_name")
     public String referenceName;
 }

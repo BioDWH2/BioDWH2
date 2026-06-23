@@ -3,16 +3,22 @@ package de.unibi.agbi.biodwh2.chebi.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({"ID", "TYPE", "INIT_ID", "FINAL_ID", "STATUS"})
+@JsonPropertyOrder({
+        "id", "relation_type_id", "init_id", "final_id", "status_id", "evidence_accession", "evidence_source_id"
+})
 public class Relation {
-    @JsonProperty("ID")
+    @JsonProperty("id")
     public Integer id;
-    @JsonProperty("TYPE")
-    public String type;
-    @JsonProperty("INIT_ID")
+    @JsonProperty("relation_type_id")
+    public Integer relationTypeId;
+    @JsonProperty("init_id")
     public Integer initId;
-    @JsonProperty("FINAL_ID")
+    @JsonProperty("final_id")
     public Integer finalId;
-    @JsonProperty("STATUS")
-    public String status;
+    @JsonProperty("status_id")
+    public Integer statusId;
+    @JsonProperty("evidence_accession")
+    public String evidenceAccession;
+    @JsonProperty("evidence_source_id")
+    public Integer evidenceSourceId;
 }

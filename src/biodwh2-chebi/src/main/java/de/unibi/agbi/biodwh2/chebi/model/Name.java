@@ -3,20 +3,24 @@ package de.unibi.agbi.biodwh2.chebi.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({"ID", "COMPOUND_ID", "TYPE", "SOURCE", "NAME", "ADAPTED", "LANGUAGE"})
+@JsonPropertyOrder({"id", "compound_id", "name", "type", "status_id", "adapted", "language_code", "ascii_name"})
 public class Name {
-    @JsonProperty("ID")
+    @JsonProperty("id")
     public Integer id;
-    @JsonProperty("COMPOUND_ID")
+    @JsonProperty("compound_id")
     public Integer compoundId;
-    @JsonProperty("TYPE")
+    @JsonProperty("name")
+    public String name;
+    @JsonProperty("type")
     public String type;
+    @JsonProperty("status_id")
+    public Integer statusId;
     @JsonProperty("SOURCE")
     public String source;
-    @JsonProperty("NAME")
-    public String name;
-    @JsonProperty("ADAPTED")
+    @JsonProperty("adapted")
     public String adapted;
-    @JsonProperty("LANGUAGE")
-    public String language;
+    @JsonProperty("language_code")
+    public String languageCode;
+    @JsonProperty("ascii_name")
+    public String asciiName;
 }

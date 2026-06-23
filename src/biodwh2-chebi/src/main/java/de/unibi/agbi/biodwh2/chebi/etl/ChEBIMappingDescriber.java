@@ -28,32 +28,23 @@ public class ChEBIMappingDescriber extends MappingDescriber {
             for (final String xref : xrefs) {
                 final String[] parts = StringUtils.split(xref, "|", 3);
                 switch (parts[1].toLowerCase()) {
-                    case "cas registry number":
+                    case "cas":
                         description.addIdentifier(IdentifierType.CAS, parts[2]);
                         break;
-                    case "drugbank accession":
+                    case "drugbank":
                         description.addIdentifier(IdentifierType.DRUG_BANK, parts[2]);
                         break;
-                    case "kegg drug accession":
-                    case "kegg compound accession":
+                    case "kegg.drug":
+                    case "kegg.compound":
                         description.addIdentifier(IdentifierType.KEGG, parts[2]);
                         break;
-                    case "drug central accession":
+                    case "drugcentral":
                         description.addIdentifier(IdentifierType.DRUG_CENTRAL, Integer.parseInt(parts[2]));
                         break;
                 }
-                // "Beilstein Registry Number", "BPDB accession", "ChemIDplus accession", "Chemspider accession",
-                // "COMe accession", "ECMDB accession", "FAO/WHO standards accession", "FooDB accession",
-                // "GlyGen accession", "GlyTouCan accession", "Gmelin Registry Number", "HMDB accession",
-                // "KEGG GLYCAN accession", "KNApSAcK accession", "LINCS accession", "LIPID MAPS class accession",
-                // "LIPID MAPS instance accession", "MetaCyc accession", "MolBase accession", "Patent accession",
-                // "PDB accession", "PDBeChem accession", "Pesticides accession", "PPDB accession", "PPR",
-                // "Pubchem accession", "Reaxys Registry Number", "RESID accession", "SMID accession", "UM-BBD compID",
-                // "VSDB accession", "WebElements accession", "Wikipedia accession", "YMDB accession"
             }
         }
         description.addName(node.getProperty("name"));
-        description.setInchi(node.getProperty("inchi"));
         return new NodeMappingDescription[]{description};
     }
 
