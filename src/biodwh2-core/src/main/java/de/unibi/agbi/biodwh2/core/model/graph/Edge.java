@@ -1,5 +1,6 @@
 package de.unibi.agbi.biodwh2.core.model.graph;
 
+import de.unibi.agbi.biodwh2.core.io.mvstore.CloneableModel;
 import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreId;
 import de.unibi.agbi.biodwh2.core.io.mvstore.MVStoreModel;
 
@@ -7,7 +8,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class Edge extends MVStoreModel {
+public final class Edge extends MVStoreModel implements CloneableModel<Edge> {
     private static final long serialVersionUID = -6592771152520163851L;
     public static final String FROM_ID_FIELD = "__from_id";
     public static final String TO_ID_FIELD = "__to_id";
@@ -17,6 +18,13 @@ public final class Edge extends MVStoreModel {
 
     private Edge() {
         super();
+    }
+
+    @Override
+    public Edge cloneModel() {
+        final Edge clone = new Edge();
+        copyStateInto(clone);
+        return clone;
     }
 
     static Edge newEdge(final long fromId, final long toId, final String label) {

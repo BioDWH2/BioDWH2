@@ -512,13 +512,30 @@ public class PharmGKBGraphExporter extends GraphExporter<PharmGKBDataSource> {
             if (annotation.gene != null)
                 for (final String gene : StringUtils.split(annotation.gene, ';'))
                     graph.addEdge(node, graph.findNode(GENE_LABEL, "symbol", gene), ASSOCIATED_WITH_LABEL);
-            if (annotation.drugs != null)
-                for (final String drug : StringUtils.split(annotation.drugs, ';'))
-                    graph.addEdge(node, graph.findNode(CHEMICAL_LABEL, NAME_PROPERTY, drug), ASSOCIATED_WITH_LABEL);
-            if (annotation.phenotypes != null)
-                for (final String phenotype : StringUtils.split(annotation.phenotypes, ';'))
-                    graph.addEdge(node, graph.findNode(PHENOTYPE_LABEL, NAME_PROPERTY, phenotype),
-                                  ASSOCIATED_WITH_LABEL);
+            if (annotation.drugs != null) {
+                for (final String drug : StringUtils.split(annotation.drugs, ';')) {
+                    var drugNode = graph.findNode(CHEMICAL_LABEL, NAME_PROPERTY, drug);
+                    if (drugNode != null) {
+                        graph.addEdge(node, drugNode, ASSOCIATED_WITH_LABEL);
+                    } else {
+                        LOGGER.warn(
+                                "Failed to add ClinicalAnnotation drug association as no drug with name '{}' was found",
+                                drug);
+                    }
+                }
+            }
+            if (annotation.phenotypes != null) {
+                for (final String phenotype : StringUtils.split(annotation.phenotypes, ';')) {
+                    var phenotypeNode = graph.findNode(PHENOTYPE_LABEL, NAME_PROPERTY, phenotype);
+                    if (phenotypeNode != null) {
+                        graph.addEdge(node, phenotypeNode, ASSOCIATED_WITH_LABEL);
+                    } else {
+                        LOGGER.warn(
+                                "Failed to add ClinicalAnnotation phenotype association as no phenotype with name '{}' was found",
+                                phenotype);
+                    }
+                }
+            }
         }
     }
 

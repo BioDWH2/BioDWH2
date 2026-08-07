@@ -1,5 +1,7 @@
 package de.unibi.agbi.biodwh2.core.io.mvstore;
 
+import org.h2.mvstore.DataType;
+import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 
 import java.util.*;
@@ -30,6 +32,17 @@ public final class MVStoreDB implements AutoCloseable {
 
     public <K, V> MVMapWrapper<K, V> openMap(final String name) {
         return new MVMapWrapper<>(store, store.openMap(name));
+    }
+
+    /**
+     * Open a map using a custom value data type while keeping the generic type for keys. Because the data type is not
+     * persisted in the map configuration, such a map must always be opened with the same type again.
+     *
+     * @param name      the name of the map
+     * @param valueType the data type used for the values of this map
+     */
+    <K, V> MVMapWrapper<K, V> openMapWithValueType(final String name, final DataType valueType) {
+        return new MVMapWrapper<>(store, store.openMap(name, new MVMap.Builder<>(null, valueType)));
     }
 
     public <T extends MVStoreModel> MVStoreCollection<T> getCollection(final String name) {

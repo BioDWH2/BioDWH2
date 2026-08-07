@@ -13,6 +13,7 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     private static final String INDEX_TYPES = "index_types";
     private static final String ALL_PROPERTY_KEYS = "all_property_keys";
     private static final String ALL_PROPERTY_TYPES = "all_property_types";
+    private static final String MODEL_CLASS = "model_class";
 
     private final boolean readOnly;
     private final MVStoreDB db;
@@ -20,18 +21,33 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
     private final MVMapWrapper<Long, T> map;
     private final MVMapWrapper<String, Object> metaMap;
     private final Map<String, MVStoreIndex> indices;
+    // Insertion ordered so the persisted key array stays order stable and its positions can be used as compact ids
     private final Map<String, Type> propertyKeyTypes;
+    private final PropertyKeyDictionary propertyKeyDictionary;
+    private final MVStoreModelValueType valueType;
+
     private boolean isDirty;
 
     MVStoreCollection(final MVStoreDB db, final String name, final boolean readOnly) {
         this.readOnly = readOnly;
         this.db = db;
         this.name = name;
-        map = db.openMap(name);
         metaMap = db.openMap(name + "!meta");
         indices = new HashMap<>();
-        propertyKeyTypes = new HashMap<>();
-        initPropertyKeyTypes();
+        propertyKeyTypes = new LinkedHashMap<>();
+        propertyKeyDictionary = new PropertyKeyDictionary();
+        // Load the persisted key dictionary before opening the entity map, so records can be decoded right away
+        final boolean propertyKeysPersisted = loadPersistedPropertyKeys();
+        valueType = new MVStoreModelValueType(propertyKeyDictionary);
+        final String modelClass = (String) metaMap.get(MODEL_CLASS);
+        if (modelClass != null)
+            valueType.setModelClass(modelClass);
+        map = db.openMapWithValueType(name, valueType);
+        // Only graphs written before the dictionary existed lack the persisted key array; rebuild it from the stored
+        // (old format) records, which are self-describing and decode without the dictionary
+        if (!propertyKeysPersisted)
+            for (final T obj : map.values())
+                updateAllPropertyKeys(obj);
         isDirty = false;
         initIndices();
     }
@@ -60,15 +76,22 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
         }
     }
 
-    private void initPropertyKeyTypes() {
+    /**
+     * Load the persisted property key types and rebuild the compact key dictionary from the same array so that key ids
+     * stay stable across sessions.
+     *
+     * @return whether a persisted key array was present; if not, the caller must rebuild it by scanning the records
+     */
+    private boolean loadPersistedPropertyKeys() {
         final String[] keys = (String[]) metaMap.get(ALL_PROPERTY_KEYS);
         final Type[] types = (Type[]) metaMap.get(ALL_PROPERTY_TYPES);
         if (keys == null || types == null)
-            for (final T obj : map.values())
-                updateAllPropertyKeys(obj);
-        else
-            for (int i = 0; i < keys.length; i++)
-                propertyKeyTypes.put(keys[i], types[i]);
+            return false;
+        for (int i = 0; i < keys.length; i++)
+            propertyKeyTypes.put(keys[i], types[i]);
+        // The dictionary order must match the persisted key array order exactly
+        propertyKeyDictionary.load(keys);
+        return true;
     }
 
     public MVStoreIndex getIndex(final String key) {
@@ -133,9 +156,17 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
 
     public void put(final T obj) {
         isDirty = true;
+        // Record the concrete model class once, so reopened records can be rebuilt into the right subclass
+        if (!readOnly && !valueType.hasModelClass()) {
+            final String className = obj.getClass().getName();
+            metaMap.put(MODEL_CLASS, className);
+            valueType.setModelClass(className);
+        }
         removeOldVersionFromIndices(map.get(obj.getId()));
-        map.put(obj.getId(), obj);
+        // Intern the property keys into the dictionary and persist it before writing the record, so the record never
+        // references a key id that is not yet on disk
         updateAllPropertyKeys(obj);
+        map.put(obj.getId(), obj);
         for (final MVStoreIndex index : indices.values()) {
             final Object property = obj.get(index.getKey());
             if (property != null)
@@ -165,6 +196,8 @@ public final class MVStoreCollection<T extends MVStoreModel> implements Iterable
                 continue;
             if (!propertyKeyTypes.containsKey(key)) {
                 propertyKeyTypes.put(key, Type.fromObject(value));
+                // Keep the dictionary in lockstep so a key gets the same id as its position in the persisted array
+                propertyKeyDictionary.idOf(key);
                 changed = true;
             } else if (propertyKeyTypes.get(key) != null) {
                 final Type oldType = propertyKeyTypes.get(key);

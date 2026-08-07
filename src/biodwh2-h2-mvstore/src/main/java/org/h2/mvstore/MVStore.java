@@ -310,7 +310,22 @@ public class MVStore implements AutoCloseable {
      * @return the map
      */
     public <K, V> MVMap<K, V> openMap(String name) {
-        MVMap.Builder<K, V> builder = new MVMap.Builder<>();
+        return openMap(name, new MVMap.Builder<>());
+    }
+
+    /**
+     * Open a map using the data types provided by the given builder. The map is automatically created if it does not
+     * yet exist. If a map with this name is already open, this map is returned as is, without applying the builder.
+     * Because the data types are not persisted in the map configuration, a map created with custom types must always be
+     * opened with the same types again.
+     *
+     * @param <K>     the key type
+     * @param <V>     the value type
+     * @param name    the name of the map
+     * @param builder the builder providing the key and value data types
+     * @return the map
+     */
+    public <K, V> MVMap<K, V> openMap(String name, MVMap.Builder<K, V> builder) {
         int id = getMapId(name);
         MVMap<K, V> map;
         if (id >= 0) {

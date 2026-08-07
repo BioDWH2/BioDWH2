@@ -834,8 +834,32 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
      * @param <V> the value type
      */
     public static class Builder<K, V> {
+        private final DataType keyType;
+        private final DataType valueType;
+
+        /**
+         * Create a builder using the generic {@link ObjectDataType} for both keys and values.
+         */
+        public Builder() {
+            this(null, null);
+        }
+
+        /**
+         * Create a builder using custom data types. A null type falls back to the generic {@link ObjectDataType}. Note
+         * that the type is not persisted in the map configuration, so a map created with custom types must always be
+         * opened with the same types again.
+         *
+         * @param keyType   the data type for keys, or null for the generic type
+         * @param valueType the data type for values, or null for the generic type
+         */
+        public Builder(DataType keyType, DataType valueType) {
+            this.keyType = keyType;
+            this.valueType = valueType;
+        }
+
         public MVMap<K, V> create(MVStore store, Map<String, Object> config) {
-            return new MVMap<>(store, new ObjectDataType(), new ObjectDataType(), config);
+            return new MVMap<>(store, keyType == null ? new ObjectDataType() : keyType,
+                               valueType == null ? new ObjectDataType() : valueType, config);
         }
     }
 
